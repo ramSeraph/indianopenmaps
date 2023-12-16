@@ -5,6 +5,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@fastify/static": "^6.12.0",
     "@mapbox/tilebelt": "^1.0.2",
     "fastify": "^4.21.0",
     "node-fetch": "^2.6.12",

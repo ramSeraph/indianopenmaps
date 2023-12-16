@@ -1,119 +1,68 @@
-const fetch = require('node-fetch');
+const path = require('node:path')
 const fastify = require('fastify')({ logger: true });
-const pmtiles = require('pmtiles');
-const tilebelt = require('@mapbox/tilebelt');
 
-const url = 'https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/mosaic.json';
+const fastifyStatic = require('@fastify/static');
+const MosaicHandler = require('./mosaic_handler');
+const PMTilesHandler = require('./pmtiles_handler');
+
+const GOBIReleaseUrl = 'https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/';
+
+function getTilesUrl(rname, fname) {
+  return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
+}
+
+const censusReleaseUrl = 'https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/';
+const handlerMap = {
+  '/google=buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf'),
+
+  '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf'),
+  '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf'),
+  '/not-so-open/census2011/village-points/': new PMTilesHandler(getTilesUrl('census-2011', 'Census_Villages.pmtiles'), 'pbf'),
+  '/shrug-census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-district-pc11.pmtiles'), 'pbf'),
+  '/shrug-census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-subdistrict-pc11.pmtiles'), 'pbf'),
+  '/shrug-census2011/villages/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-village-pc11.pmtiles'), 'pbf'),
+
+  '/not-so-open/states/lgd/': new PMTilesHandler(getTilesUrl('states', 'LGD_States.pmtiles'), 'pbf'),
+  '/not-so-open/states/bhuvan/': new PMTilesHandler(getTilesUrl('states', 'bhuvan_states.pmtiles'), 'pbf'),
+  '/states/soi/': new PMTilesHandler(getTilesUrl('states', 'SOI_States.pmtiles'), 'pbf'),
+
+  '/not-so-open/districts/lgd/': new PMTilesHandler(getTilesUrl('districts', 'LGD_Districts.pmtiles'), 'pbf'),
+  '/not-so-open/districts/bhuvan/': new PMTilesHandler(getTilesUrl('districts', 'bhuvan_districts.pmtiles'), 'pbf'),
+  '/districts/soi/': new PMTilesHandler(getTilesUrl('districts', 'SOI_Districts.pmtiles'), 'pbf'),
+
+  '/not-so-open/subdistricts/lgd/': new PMTilesHandler(getTilesUrl('subdistricts', 'LGD_Subdistricts.pmtiles'), 'pbf'),
+  '/subdistricts/soi/': new PMTilesHandler(getTilesUrl('subdistricts', 'SOI_Subdistricts.pmtiles'), 'pbf'),
+
+  '/not-so-open/blocks/lgd/': new PMTilesHandler(getTilesUrl('blocks', 'LGD_Blocks.pmtiles'), 'pbf'),
+  '/not-so-open/blocks/bhuvan/': new PMTilesHandler(getTilesUrl('blocks', 'bhuvan_blocks.pmtiles'), 'pbf'),
+  '/blocks/pmgsy/': new PMTilesHandler(getTilesUrl('blocks', 'PMGSY_Blocks.pmtiles'), 'pbf'),
+
+  '/not-so-open/panchayats/lgd/': new PMTilesHandler(getTilesUrl('panchayats', 'LGD_panchayats.pmtiles'), 'pbf'),
+  '/not-so-open/panchayats/bhuvan/': new PMTilesHandler(getTilesUrl('panchayats', 'bhuvan_panchayats.pmtiles'), 'pbf'),
+
+  '/not-so-open/villages/lgd/': new PMTilesHandler(getTilesUrl('villages', 'LGD_Villages.pmtiles'), 'pbf'),
+  '/not-so-open/villages/bhuvan/': new PMTilesHandler(getTilesUrl('villages', 'bhuvan_villages.pmtiles'), 'pbf'),
+  '/villages/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_villages.pmtiles'), 'pbf'),
+  '/not-so-open/village-points/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_VILLAGE_POINT.pmtiles'), 'pbf'),
+
+  '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf'),
+  '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf'),
+
+  '/not-so-open/constituencies/parliament/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Parliament_Constituencies.pmtiles'), 'pbf'),
+  '/not-so-open/constituencies/assembly/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Assembly_Constituencies.pmtiles'), 'pbf'),
+
+  '/not-so-open/forests/circles/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Circles.pmtiles'), 'pbf'),
+  '/not-so-open/forests/divisions/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Divisions.pmtiles'), 'pbf'),
+  '/not-so-open/forests/ranges/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Ranges.pmtiles'), 'pbf'),
+};
+
 const port = 3000;
 
-let pmtilesDict = null;
-let mimeTypes = null;
-
-function _getBounds(coord) {
-  const b = tilebelt.tileToBBOX([coord.x, coord.y, coord.z]);
-  const w = b[0], s = b[1], e = b[2], n = b[3];
-  return [[s, w], [n, e]];
-}
-
-function _isInSource(header, bounds) {
-  const corner0 = bounds[0];
-  const corner1 = bounds[1];
-  if (corner0[0] > header['maxLat'] ||
-      corner0[1] > header['maxLon'] ||
-      corner1[0] < header['minLat'] ||
-      corner1[1] < header['minLon']) {
-      return false;
-  }
-  return true;
-}
-
-function getSourceKey(coord) {
-  let z = coord.z;
-  let k = null;
-  const bounds = _getBounds(coord);
-  for (const [key, entry] of Object.entries(this.dict)) {
-    if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
-      continue;
-    }
-    if (!_isInSource(entry.header, bounds)) {
-      continue;
-    }
-    k = key;
-    fastify.log.info(`key=${k} for  (${coord.x} ${coord.y} ${coord.z})`);
-    break;
-  }
-  return k;
-}
-
-function getSource(key) {
-  return pmtilesDict[key].pmtiles;
-}
-
-function _resolveKey(key) {
-  if (key.startsWith('../')) {
-    return url + '/' + key;
-  }
-  return key;
-}
-
-function getMimeType(t) {
-  if (t == pmtiles.TileType.Png) {
-    return "image/png";
-  } else if (t == pmtiles.TileType.Jpeg) {
-    return "image/jpeg";
-  } else if (t == pmtiles.TileType.Webp) {
-    return "image/webp";
-  } else if (t == pmtiles.TileType.Avif) {
-    return "image/avif";
-  } else if (t == pmtiles.TileType.Mvt) {
-    return "application/vnd.mapbox-vector-tile";
-  }
-  throw Error(`Unknown tiletype ${t}`);
-}
-
-async function populateMosaic() {
-  let res = await fetch(url);
-  let data = await res.json();
-  pmtilesDict = {};
-  mimeTypes = {};
-  for (const [key, entry] of Object.entries(data)) {
-    var header = entry.header;
-    var resolvedUrl = _resolveKey(key);
-    var archive = new pmtiles.PMTiles(resolvedUrl);
-    header['minLat'] = header['min_lat_e7'] / 10000000;
-    header['minLon'] = header['min_lon_e7'] / 10000000;
-    header['maxLat'] = header['max_lat_e7'] / 10000000;
-    header['maxLon'] = header['max_lon_e7'] / 10000000;
-    pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-    mimeTypes[key] = getMimeType(header.tile_type);
-  }
-  fastify.log.info(pmtilesDict);
-}
-
-async function getTile(request, reply) {
+async function getTile(handler, request, reply) {
   const { z, x, y } = request.params;
-  let k = null;
-  let bounds = _getBounds(request.params);
-  for (const [key, entry] of Object.entries(pmtilesDict)) {
-    if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
-      continue;
-    }
-    if (!_isInSource(entry.header, bounds)) {
-      continue;
-    }
-    k = key;
-    fastify.log.info(`found key=${k} for (${x} ${y} ${z})`);
-    break;
-  }
-  if (k === null) {
-    return reply.code(404)
-                .header('Access-Control-Allow-Origin', "*")
-                .send('');
-  }
-  let source = getSource(k);
-  let arr = await source.getZxy(z,x,y);
+  const [ arr, mimeType ] = await handler.getTile(z,x,y);
   if (arr) {
-    return reply.header('Content-Type', mimeTypes[k])
+    return reply.header('Content-Type', mimeType)
                 .header('Cache-Control', 'max-age=86400000')
                 .header('Access-Control-Allow-Origin', "*")
                 .send(new Uint8Array(arr.data));
@@ -123,11 +72,30 @@ async function getTile(request, reply) {
               .send('');
 }
 
+async function initializeHandlers() {
+  fastify.log.info('initializing handlers');
+  const promises = Object.keys(handlerMap).map((k) => handlerMap[k].init());
+  await Promise.all(promises);
+  fastify.log.info('done initializing handlers');
+}
+
+function addRoutes() {
+  fastify.log.info('adding routes');
+  Object.keys(handlerMap).forEach((rPrefix, _) => {
+    const handler = handlerMap[rPrefix];
+    const tileSuffix = handler.tileSuffix;
+    fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
+  });
+}
 
 async function start() {
   try {
-    fastify.addHook('onReady', populateMosaic);
-    fastify.get('/google-buildings/:z/:x/:y.pbf', getTile);
+    fastify.register(fastifyStatic, {
+      root: path.join(__dirname, 'home'),
+    })
+
+    fastify.addHook('onReady', initializeHandlers);
+    addRoutes();
     await fastify.listen({ host: '0.0.0.0', port: port });
   } catch (err) {
     fastify.log.error(err);
