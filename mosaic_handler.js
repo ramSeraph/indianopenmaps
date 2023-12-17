@@ -36,9 +36,10 @@ function _getMimeType(t) {
 }
 
 class MosaicHandler {
-  constructor(url, tileSuffix) {
+  constructor(url, tileSuffix, logger) {
     this.url = url;
     this.tileSuffix = tileSuffix;
+    this.logger = logger;
     this.pmtilesDict = null;
     this.mimeTypes = null;
   }
@@ -87,9 +88,9 @@ class MosaicHandler {
         continue;
       }
       k = key;
-      // fastify.log.info(`key=${k} for  (${coord.x} ${coord.y} ${coord.z})`);
       break;
     }
+    // this.logger.info(`key=${k} for  (${x} ${y} ${z})`);
     return k;
   }
 

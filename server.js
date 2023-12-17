@@ -11,49 +11,51 @@ function getTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
 }
 
+const logger = fastify.log;
+
 const censusReleaseUrl = 'https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/';
 const handlerMap = {
-  '/google=buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf'),
+  '/google-buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf', logger),
 
-  '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf'),
-  '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf'),
-  '/not-so-open/census2011/village-points/': new PMTilesHandler(getTilesUrl('census-2011', 'Census_Villages.pmtiles'), 'pbf'),
-  '/shrug-census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-district-pc11.pmtiles'), 'pbf'),
-  '/shrug-census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-subdistrict-pc11.pmtiles'), 'pbf'),
-  '/shrug-census2011/villages/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-village-pc11.pmtiles'), 'pbf'),
+  '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf', logger),
+  '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf', logger),
+  '/not-so-open/census2011/village-points/': new PMTilesHandler(getTilesUrl('census-2011', 'Census_Villages.pmtiles'), 'pbf', logger),
+  '/shrug-census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-district-pc11.pmtiles'), 'pbf', logger),
+  '/shrug-census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-subdistrict-pc11.pmtiles'), 'pbf', logger),
+  '/shrug-census2011/villages/': new PMTilesHandler(getTilesUrl('census-2011', 'shrug-village-pc11.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/states/lgd/': new PMTilesHandler(getTilesUrl('states', 'LGD_States.pmtiles'), 'pbf'),
-  '/not-so-open/states/bhuvan/': new PMTilesHandler(getTilesUrl('states', 'bhuvan_states.pmtiles'), 'pbf'),
-  '/states/soi/': new PMTilesHandler(getTilesUrl('states', 'SOI_States.pmtiles'), 'pbf'),
+  '/not-so-open/states/lgd/': new PMTilesHandler(getTilesUrl('states', 'LGD_States.pmtiles'), 'pbf', logger),
+  '/not-so-open/states/bhuvan/': new PMTilesHandler(getTilesUrl('states', 'bhuvan_states.pmtiles'), 'pbf', logger),
+  '/states/soi/': new PMTilesHandler(getTilesUrl('states', 'SOI_States.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/districts/lgd/': new PMTilesHandler(getTilesUrl('districts', 'LGD_Districts.pmtiles'), 'pbf'),
-  '/not-so-open/districts/bhuvan/': new PMTilesHandler(getTilesUrl('districts', 'bhuvan_districts.pmtiles'), 'pbf'),
-  '/districts/soi/': new PMTilesHandler(getTilesUrl('districts', 'SOI_Districts.pmtiles'), 'pbf'),
+  '/not-so-open/districts/lgd/': new PMTilesHandler(getTilesUrl('districts', 'LGD_Districts.pmtiles'), 'pbf', logger),
+  '/not-so-open/districts/bhuvan/': new PMTilesHandler(getTilesUrl('districts', 'bhuvan_districts.pmtiles'), 'pbf', logger),
+  '/districts/soi/': new PMTilesHandler(getTilesUrl('districts', 'SOI_Districts.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/subdistricts/lgd/': new PMTilesHandler(getTilesUrl('subdistricts', 'LGD_Subdistricts.pmtiles'), 'pbf'),
-  '/subdistricts/soi/': new PMTilesHandler(getTilesUrl('subdistricts', 'SOI_Subdistricts.pmtiles'), 'pbf'),
+  '/not-so-open/subdistricts/lgd/': new PMTilesHandler(getTilesUrl('subdistricts', 'LGD_Subdistricts.pmtiles'), 'pbf', logger),
+  '/subdistricts/soi/': new PMTilesHandler(getTilesUrl('subdistricts', 'SOI_Subdistricts.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/blocks/lgd/': new PMTilesHandler(getTilesUrl('blocks', 'LGD_Blocks.pmtiles'), 'pbf'),
-  '/not-so-open/blocks/bhuvan/': new PMTilesHandler(getTilesUrl('blocks', 'bhuvan_blocks.pmtiles'), 'pbf'),
-  '/blocks/pmgsy/': new PMTilesHandler(getTilesUrl('blocks', 'PMGSY_Blocks.pmtiles'), 'pbf'),
+  '/not-so-open/blocks/lgd/': new PMTilesHandler(getTilesUrl('blocks', 'LGD_Blocks.pmtiles'), 'pbf', logger),
+  '/not-so-open/blocks/bhuvan/': new PMTilesHandler(getTilesUrl('blocks', 'bhuvan_blocks.pmtiles'), 'pbf', logger),
+  '/blocks/pmgsy/': new PMTilesHandler(getTilesUrl('blocks', 'PMGSY_Blocks.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/panchayats/lgd/': new PMTilesHandler(getTilesUrl('panchayats', 'LGD_panchayats.pmtiles'), 'pbf'),
-  '/not-so-open/panchayats/bhuvan/': new PMTilesHandler(getTilesUrl('panchayats', 'bhuvan_panchayats.pmtiles'), 'pbf'),
+  '/not-so-open/panchayats/lgd/': new PMTilesHandler(getTilesUrl('panchayats', 'LGD_panchayats.pmtiles'), 'pbf', logger),
+  '/not-so-open/panchayats/bhuvan/': new PMTilesHandler(getTilesUrl('panchayats', 'bhuvan_panchayats.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/villages/lgd/': new PMTilesHandler(getTilesUrl('villages', 'LGD_Villages.pmtiles'), 'pbf'),
-  '/not-so-open/villages/bhuvan/': new PMTilesHandler(getTilesUrl('villages', 'bhuvan_villages.pmtiles'), 'pbf'),
-  '/villages/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_villages.pmtiles'), 'pbf'),
-  '/not-so-open/village-points/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_VILLAGE_POINT.pmtiles'), 'pbf'),
+  '/not-so-open/villages/lgd/': new PMTilesHandler(getTilesUrl('villages', 'LGD_Villages.pmtiles'), 'pbf', logger),
+  '/not-so-open/villages/bhuvan/': new PMTilesHandler(getTilesUrl('villages', 'bhuvan_villages.pmtiles'), 'pbf', logger),
+  '/villages/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_villages.pmtiles'), 'pbf', logger),
+  '/not-so-open/village-points/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_VILLAGE_POINT.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf'),
-  '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf'),
+  '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf', logger),
+  '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/constituencies/parliament/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Parliament_Constituencies.pmtiles'), 'pbf'),
-  '/not-so-open/constituencies/assembly/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Assembly_Constituencies.pmtiles'), 'pbf'),
+  '/not-so-open/constituencies/parliament/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Parliament_Constituencies.pmtiles'), 'pbf', logger),
+  '/not-so-open/constituencies/assembly/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Assembly_Constituencies.pmtiles'), 'pbf', logger),
 
-  '/not-so-open/forests/circles/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Circles.pmtiles'), 'pbf'),
-  '/not-so-open/forests/divisions/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Divisions.pmtiles'), 'pbf'),
-  '/not-so-open/forests/ranges/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Ranges.pmtiles'), 'pbf'),
+  '/not-so-open/forests/circles/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Circles.pmtiles'), 'pbf', logger),
+  '/not-so-open/forests/divisions/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Divisions.pmtiles'), 'pbf', logger),
+  '/not-so-open/forests/ranges/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Ranges.pmtiles'), 'pbf', logger),
 };
 
 const port = 3000;

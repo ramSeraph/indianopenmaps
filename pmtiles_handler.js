@@ -16,10 +16,11 @@ function _getMimeType(t) {
 }
 
 class PMTilesHandler {
-  constructor(url, tileSuffix) {
+  constructor(url, tileSuffix, logger) {
     this.source = new pmtiles.PMTiles(url);
     this.tileSuffix = tileSuffix;
     this.mimeType = null;
+    this.logger = logger;
   }
 
   async init() {
