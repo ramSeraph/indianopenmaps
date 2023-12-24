@@ -11,11 +11,32 @@ function getTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
 }
 
+function getRoadsTilesUrl(rname, fname) {
+  return `https://github.com/ramSeraph/indian_roads/releases/download/${rname}/${fname}`;
+}
+
+function getCommsTilesUrl(rname, fname) {
+  return `https://github.com/ramSeraph/indian_communications/releases/download/${rname}/${fname}`;
+}
+
 const logger = fastify.log;
 
-const censusReleaseUrl = 'https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/';
 const handlerMap = {
   '/google-buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf', logger),
+
+  '/not-so-open/cell-towers/': new PMTilesHandler(getCommsTilesUrl('tarangsanchar', 'TS_Celltower_locations.pmtiles'), 'pbf', logger),
+
+  '/fb-roads/': new PMTilesHandler(getRoadsTilesUrl('fb-roads', 'fb_roads_india.pmtiles'), 'pbf', logger),
+  '/ms-roads/': new PMTilesHandler(getRoadsTilesUrl('ms-roads', 'ms_roads_india.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads-candidates/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_candidates.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads-proposals-i/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_i.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads-proposals-ii/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_ii.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads-proposals-iii/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_iii.pmtiles'), 'pbf', logger),
+  '/pmgsy-roads-proposals-rcplwea/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_rcplwea.pmtiles'), 'pbf', logger),
+  '/not-so-open/soi-roads/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Roads.pmtiles'), 'pbf', logger),
+  '/not-so-open/soi-tracks/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tracks.pmtiles'), 'pbf', logger),
+  '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
 
   '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf', logger),
   '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf', logger),
