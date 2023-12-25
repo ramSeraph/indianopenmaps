@@ -36,7 +36,7 @@ const handlerMap = {
   '/pmgsy-roads-proposals-rcplwea/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_rcplwea.pmtiles'), 'pbf', logger),
   '/not-so-open/soi-roads/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Roads.pmtiles'), 'pbf', logger),
   '/not-so-open/soi-tracks/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tracks.pmtiles'), 'pbf', logger),
-  '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
+  // '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
 
   '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf', logger),
   '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf', logger),
@@ -70,6 +70,8 @@ const handlerMap = {
 
   '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf', logger),
   '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf', logger),
+  '/habitations/karmashapes-polys/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_polygons_v0.pmtiles'), 'pbf', logger),
+  '/habitations/karmashapes-points/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_points_v0.pmtiles'), 'pbf', logger),
 
   '/not-so-open/constituencies/parliament/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Parliament_Constituencies.pmtiles'), 'pbf', logger),
   '/not-so-open/constituencies/assembly/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Assembly_Constituencies.pmtiles'), 'pbf', logger),
