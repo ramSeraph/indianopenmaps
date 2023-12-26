@@ -37,7 +37,7 @@ const handlerMap = {
   '/pmgsy-roads-proposals-rcplwea/': new PMTilesHandler(getRoadsTilesUrl('pmgsy-roads', 'pmgsy_roads_proposals_rcplwea.pmtiles'), 'pbf', logger),
   '/not-so-open/soi-roads/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Roads.pmtiles'), 'pbf', logger),
   '/not-so-open/soi-tracks/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tracks.pmtiles'), 'pbf', logger),
-  // '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
+  '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
 
   '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf', logger),
   '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf', logger),
