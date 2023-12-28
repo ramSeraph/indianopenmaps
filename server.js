@@ -26,6 +26,7 @@ const handlerMap = {
 
   '/not-so-open/cell-towers/tarangsanchar/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'TS_Celltower_locations.pmtiles'), 'pbf', logger),
   '/not-so-open/cell-towers/nic/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'NIC_Celltower_locations.pmtiles'), 'pbf', logger),
+  '/not-so-open/bharatnet/': new PMTilesHandler(getCommsTilesUrl('bharatnet', 'BBNL_points.pmtiles'), 'pbf', logger),
 
   '/fb-roads/': new PMTilesHandler(getRoadsTilesUrl('fb-roads', 'fb_roads_india.pmtiles'), 'pbf', logger),
   '/ms-roads/': new PMTilesHandler(getRoadsTilesUrl('ms-roads', 'ms_roads_india.pmtiles'), 'pbf', logger),
