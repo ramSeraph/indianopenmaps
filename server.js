@@ -6,6 +6,7 @@ const MosaicHandler = require('./mosaic_handler');
 const PMTilesHandler = require('./pmtiles_handler');
 
 const GOBIReleaseUrl = 'https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/';
+const MSBIReleaseUrl = 'https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI-latest/';
 
 function getTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
@@ -23,6 +24,7 @@ const logger = fastify.log;
 
 const handlerMap = {
   '/google-buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf', logger),
+  '/ms-buildings/': new MosaicHandler(MSBIReleaseUrl + 'mosaic.json', 'pbf', logger),
 
   '/not-so-open/cell-towers/tarangsanchar/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'TS_Celltower_locations.pmtiles'), 'pbf', logger),
   '/not-so-open/cell-towers/nic/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'NIC_Celltower_locations.pmtiles'), 'pbf', logger),
