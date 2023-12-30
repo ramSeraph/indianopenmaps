@@ -73,6 +73,7 @@ const handlerMap = {
   '/not-so-open/village-points/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_VILLAGE_POINT.pmtiles'), 'pbf', logger),
 
   '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf', logger),
+  '/not-so-open/habitations/soi-village-blocks/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_VILLAGE_BLOCKS.pmtiles'), 'pbf', logger),
   '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf', logger),
   '/habitations/karmashapes-polys/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_polygons_v0.pmtiles'), 'pbf', logger),
   '/habitations/karmashapes-points/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_points_v0.pmtiles'), 'pbf', logger),
