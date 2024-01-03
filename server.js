@@ -88,6 +88,8 @@ const handlerMap = {
   '/not-so-open/forests/divisions/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Divisions.pmtiles'), 'pbf', logger),
   '/not-so-open/forests/ranges/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Ranges.pmtiles'), 'pbf', logger),
   '/not-so-open/forests/beats/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Beats.pmtiles'), 'pbf', logger),
+
+  '/not-so-open/pincodes/': new PMTilesHandler(getTilesUrl('postal', 'PincodeBoundaries.pmtiles'), 'pbf', logger),
 };
 
 const port = 3000;
