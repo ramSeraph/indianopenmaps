@@ -13,6 +13,10 @@ function getTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
 }
 
+function getWaterTilesUrl(rname, fname) {
+  return `https://github.com/ramSeraph/indian_water_features/releases/download/${rname}/${fname}`;
+}
+
 function getRoadsTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_roads/releases/download/${rname}/${fname}`;
 }
@@ -90,6 +94,15 @@ const handlerMap = {
   '/not-so-open/forests/beats/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Beats.pmtiles'), 'pbf', logger),
 
   '/not-so-open/pincodes/': new PMTilesHandler(getTilesUrl('postal', 'PincodeBoundaries.pmtiles'), 'pbf', logger),
+
+  '/basins/wris/': new PMTilesHandler(getWaterTilesUrl('hydro-boundaries', 'WRIS_Basin.pmtiles'), 'pbf', logger),
+  '/sub-basins/wris/': new PMTilesHandler(getWaterTilesUrl('hydro-boundaries', 'WRIS_SubBasin.pmtiles'), 'pbf', logger),
+  '/watersheds/wris/': new PMTilesHandler(getWaterTilesUrl('hydro-boundaries', 'WRIS_Watershed.pmtiles'), 'pbf', logger),
+
+  '/waterbodies/wris/': new PMTilesHandler(getWaterTilesUrl('waterbodies', 'WRIS_Waterbodies.pmtiles'), 'pbf', logger),
+  '/river-polygons/wris/': new PMTilesHandler(getWaterTilesUrl('rivers', 'WRIS_River_Polygons.pmtiles'), 'pbf', logger),
+  '/rivers/wris/': new PMTilesHandler(getWaterTilesUrl('rivers', 'WRIS_Rivers.pmtiles'), 'pbf', logger),
+  '/streams/wris/': new PMTilesHandler(getWaterTilesUrl('rivers', 'WRIS_Streams.pmtiles'), 'pbf', logger),
 };
 
 const port = 3000;
