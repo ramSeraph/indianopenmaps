@@ -6,7 +6,7 @@ const MosaicHandler = require('./mosaic_handler');
 const PMTilesHandler = require('./pmtiles_handler');
 
 const GOBIReleaseUrl = 'https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/';
-const MSBIReleaseUrl = 'https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI-latest/';
+const MSBIReleaseUrl = 'https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI/';
 const OPReleaseUrl = 'https://github.com/ramSeraph/overture_places_india/releases/tag/overture-places/';
 
 function getTilesUrl(rname, fname) {
