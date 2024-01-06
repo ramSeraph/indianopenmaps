@@ -31,7 +31,7 @@ const handlerMap = {
   '/google-buildings/': new MosaicHandler(GOBIReleaseUrl + 'mosaic.json', 'pbf', logger),
   '/ms-buildings/': new MosaicHandler(MSBIReleaseUrl + 'mosaic.json', 'pbf', logger),
 
-  '/overture-places/': new MosaicHandler(OPReleaseUrl + 'mosaic.json', 'pbf', logger),
+  '/overture-places/': new PMTilesHandler(OPReleaseUrl + 'overture_places_india.pmtiles', 'pbf', logger),
 
   '/not-so-open/cell-towers/tarangsanchar/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'TS_Celltower_locations.pmtiles'), 'pbf', logger),
   '/not-so-open/cell-towers/nic/': new PMTilesHandler(getCommsTilesUrl('cell-towers', 'NIC_Celltower_locations.pmtiles'), 'pbf', logger),
