@@ -7,7 +7,7 @@ const PMTilesHandler = require('./pmtiles_handler');
 
 const GOBIReleaseUrl = 'https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/';
 const MSBIReleaseUrl = 'https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI/';
-const OPReleaseUrl = 'https://github.com/ramSeraph/overture_places_india/releases/tag/overture-places/';
+const OPReleaseUrl = 'https://github.com/ramSeraph/overture_places_india/releases/download/overture-places/';
 
 function getTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_admin_boundaries/releases/download/${rname}/${fname}`;
