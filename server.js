@@ -21,6 +21,10 @@ function getRoadsTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_roads/releases/download/${rname}/${fname}`;
 }
 
+function getRailsTilesUrl(rname, fname) {
+  return `https://github.com/ramSeraph/indian_railways/releases/download/${rname}/${fname}`;
+}
+
 function getCommsTilesUrl(rname, fname) {
   return `https://github.com/ramSeraph/indian_communications/releases/download/${rname}/${fname}`;
 }
@@ -48,6 +52,14 @@ const handlerMap = {
   '/not-so-open/soi-roads/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Roads.pmtiles'), 'pbf', logger),
   '/not-so-open/soi-tracks/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tracks.pmtiles'), 'pbf', logger),
   '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
+
+  '/not-so-open/railways/tracks/ir/': new PMTilesHandler(getRailsTilesUrl('railways', 'IR_Tracks.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/track-pois/ir/': new PMTilesHandler(getRailsTilesUrl('railways', 'IR_Track_POIs.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/tracks/soi/': new PMTilesHandler(getRailsTilesUrl('railways', 'SOI_Railway_Tracks.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/track-sidings/soi/': new PMTilesHandler(getRailsTilesUrl('railways', 'SOI_Railway_Sidings.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/stations/ir/': new PMTilesHandler(getRailsTilesUrl('railways', 'IR_Stations.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/stations/soi/': new PMTilesHandler(getRailsTilesUrl('railways', 'SOI_Railway_Stations.pmtiles'), 'pbf', logger),
+  '/not-so-open/railways/metros/soi/': new PMTilesHandler(getRailsTilesUrl('railways', 'SOI_metros.pmtiles'), 'pbf', logger),
 
   '/not-so-open/census2011/districts/': new PMTilesHandler(getTilesUrl('census-2011', 'Districts_2011.pmtiles'), 'pbf', logger),
   '/not-so-open/census2011/subdistricts/': new PMTilesHandler(getTilesUrl('census-2011', 'SubDistricts_2011.pmtiles'), 'pbf', logger),
@@ -80,7 +92,8 @@ const handlerMap = {
   '/not-so-open/village-points/soi/': new PMTilesHandler(getTilesUrl('villages', 'SOI_VILLAGE_POINT.pmtiles'), 'pbf', logger),
 
   '/not-so-open/habitations/soi/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_places.pmtiles'), 'pbf', logger),
-  '/not-so-open/habitations/soi-village-blocks/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_VILLAGE_BLOCKS.pmtiles'), 'pbf', logger),
+  '/not-so-open/habitations/soi-village-blocks/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_HumanSettlements_VILLAGE_BLOCKS.pmtiles'), 'pbf', logger),
+  '/not-so-open/habitations/soi-huts/': new PMTilesHandler(getTilesUrl('habitations', 'SOI_HumanSettlements_HUTS.pmtiles'), 'pbf', logger),
   '/habitations/pmgsy/': new PMTilesHandler(getTilesUrl('habitations', 'PMGSY_Habitations.pmtiles'), 'pbf', logger),
   '/habitations/karmashapes-polys/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_polygons_v0.pmtiles'), 'pbf', logger),
   '/habitations/karmashapes-points/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_points_v0.pmtiles'), 'pbf', logger),
@@ -121,9 +134,20 @@ async function getTile(handler, request, reply) {
               .send('');
 }
 
+async function getTileJson(handler, request, reply) {
+}
+
 async function initializeHandlers() {
   fastify.log.info('initializing handlers');
-  const promises = Object.keys(handlerMap).map((k) => handlerMap[k].init());
+  const promises = Object.keys(handlerMap).map((k) => {
+    logger.info(`initializing ${k}`);
+    try {
+      handlerMap[k].init();
+    }
+    catch(err) {
+      console.log(`failed to initialize ${k}, error: ${err}`);
+    }
+  });
   await Promise.all(promises);
   fastify.log.info('done initializing handlers');
 }
@@ -134,7 +158,9 @@ function addRoutes() {
     const handler = handlerMap[rPrefix];
     const tileSuffix = handler.tileSuffix;
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
+    fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
   });
+  fastify.log.info('done adding routes');
 }
 
 async function start() {

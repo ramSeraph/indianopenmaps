@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
+const getMimeType = require('./common').getMimeType;
 
 function _getBounds(z,x,y) {
   const b = tilebelt.tileToBBOX([x, y, z]);
@@ -18,21 +19,6 @@ function _isInSource(header, bounds) {
       return false;
   }
   return true;
-}
-
-function _getMimeType(t) {
-  if (t == pmtiles.TileType.Png) {
-    return "image/png";
-  } else if (t == pmtiles.TileType.Jpeg) {
-    return "image/jpeg";
-  } else if (t == pmtiles.TileType.Webp) {
-    return "image/webp";
-  } else if (t == pmtiles.TileType.Avif) {
-    return "image/avif";
-  } else if (t == pmtiles.TileType.Mvt) {
-    return "application/vnd.mapbox-vector-tile";
-  }
-  throw Error(`Unknown tiletype ${t}`);
 }
 
 class MosaicHandler {
@@ -65,7 +51,7 @@ class MosaicHandler {
       header['maxLat'] = header['max_lat_e7'] / 10000000;
       header['maxLon'] = header['max_lon_e7'] / 10000000;
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-      this.mimeTypes[key] = _getMimeType(header.tile_type);
+      this.mimeTypes[key] = getMimeType(header.tile_type);
     }
   }
 
