@@ -53,6 +53,9 @@ const handlerMap = {
   '/not-so-open/soi-tracks/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tracks.pmtiles'), 'pbf', logger),
   '/not-so-open/nic-roads/': new PMTilesHandler(getRoadsTilesUrl('nic-roads', 'NIC_Roads.pmtiles'), 'pbf', logger),
 
+  '/not-so-open/soi-bridges/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Bridges.pmtiles'), 'pbf', logger),
+  '/not-so-open/soi-tolls/': new PMTilesHandler(getRoadsTilesUrl('soi-roads', 'SOI_Tolls.pmtiles'), 'pbf', logger),
+
   '/not-so-open/railways/tracks/ir/': new PMTilesHandler(getRailsTilesUrl('railways', 'IR_Tracks.pmtiles'), 'pbf', logger),
   '/not-so-open/railways/track-pois/ir/': new PMTilesHandler(getRailsTilesUrl('railways', 'IR_Track_POIs.pmtiles'), 'pbf', logger),
   '/not-so-open/railways/tracks/soi/': new PMTilesHandler(getRailsTilesUrl('railways', 'SOI_Railway_Tracks.pmtiles'), 'pbf', logger),
@@ -105,6 +108,7 @@ const handlerMap = {
   '/not-so-open/forests/divisions/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Divisions.pmtiles'), 'pbf', logger),
   '/not-so-open/forests/ranges/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Ranges.pmtiles'), 'pbf', logger),
   '/not-so-open/forests/beats/fsi/': new PMTilesHandler(getTilesUrl('forests', 'FSI_Beats.pmtiles'), 'pbf', logger),
+  '/not-so-open/forests/soi/': new PMTilesHandler(getTilesUrl('forests', 'SOI_Forests.pmtiles'), 'pbf', logger),
 
   '/not-so-open/pincodes/': new PMTilesHandler(getTilesUrl('postal', 'PincodeBoundaries.pmtiles'), 'pbf', logger),
 
