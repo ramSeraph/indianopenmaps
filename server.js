@@ -101,6 +101,10 @@ const handlerMap = {
   '/habitations/karmashapes-polys/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_polygons_v0.pmtiles'), 'pbf', logger),
   '/habitations/karmashapes-points/': new PMTilesHandler(getTilesUrl('habitations', 'karmashapes_points_v0.pmtiles'), 'pbf', logger),
 
+  '/not-so-open/urban/ulbs/sbm/': new PMTilesHandler(getTilesUrl('urban', 'SBM_ULBs.pmtiles'), 'pbf', logger),
+  '/not-so-open/urban/wards/sbm/': new PMTilesHandler(getTilesUrl('urban', 'SBM_Wards.pmtiles'), 'pbf', logger),
+  '/not-so-open/urban/areas/sbm/': new PMTilesHandler(getTilesUrl('urban', 'SBM_Areas.pmtiles'), 'pbf', logger),
+
   '/not-so-open/constituencies/parliament/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Parliament_Constituencies.pmtiles'), 'pbf', logger),
   '/not-so-open/constituencies/assembly/lgd/': new PMTilesHandler(getTilesUrl('constituencies', 'LGD_Assembly_Constituencies.pmtiles'), 'pbf', logger),
 
