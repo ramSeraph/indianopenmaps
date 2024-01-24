@@ -1,5 +1,5 @@
 const pmtiles = require('pmtiles');
-const getMimeType = require('./common').getMimeType;
+const common = require('./common');
 
 class PMTilesHandler {
   constructor(url, tileSuffix, logger) {
@@ -14,8 +14,8 @@ class PMTilesHandler {
   async init() {
     const header = await this.source.getHeader();
     this.header = header;
-    this.mimeType = getMimeType(header.tileType);
-    this.metadata = await this.source.getMetadata;
+    this.mimeType = common.getMimeType(header.tileType);
+    this.metadata = await this.source.getMetadata();
   }
 
   async getTile(z, x, y) {
@@ -23,7 +23,20 @@ class PMTilesHandler {
     return [ arr, this.mimeType ];
   }
 
-  async tileJSON() {
+  async getConfig() {
+    return {
+      tilejson: "3.0.0",
+      scheme: "xyz",
+      vector_layers: this.metadata.vector_layers,
+      attribution: this.metadata.attribution,
+      description: this.metadata.description,
+      name: this.metadata.name,
+      version: this.metadata.version,
+      bounds: [this.header.minLon, this.header.minLat, this.header.maxLon, this.header.maxLat],
+      center: [this.header.centerLon, this.header.centerLat, this.header.centerZoom],
+      minzoom: this.header.minZoom,
+      maxzoom: this.header.maxZoom,
+    };
   }
 }
 

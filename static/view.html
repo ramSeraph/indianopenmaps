@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>mbview - vector</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
+  <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet'/>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+    .mbview_popup {
+      color: #333;
+      display: table;
+      font-family: "Open Sans", sans-serif;
+      font-size: 10px;
+    }
+
+    .mbview_feature:not(:last-child) {
+      border-bottom: 1px solid #ccc;
+    }
+
+    .mbview_layer:before {
+      content: '#';
+    }
+
+    .mbview_layer {
+      display: block;
+      font-weight: bold;
+    }
+
+    .mbview_property {
+      display: table-row;
+    }
+
+    .mbview_property-value {
+      display: table-cell;
+    }
+
+    .mbview_property-name {
+      display: table-cell;
+      padding-right: 10px;
+    }
+    #menu {
+      position: absolute;
+      top:10px;
+      right:10px;
+      z-index: 1;
+      color: white;
+      cursor: pointer;
+    }
+    #menu-container {
+      position: absolute;
+      display: none;
+      top: 50px;
+      right: 10px;
+      z-index: 1;
+      background-color: white;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+<script>
+// Show and hide hamburger menu as needed
+var menuBtn = document.querySelector("#menu");
+var menu = document.querySelector("#menu-container");
+menuBtn.addEventListener('click', function() {
+  popup.remove();
+  if (menuBtn.className.indexOf('active') > -1) {
+    //Hide Menu
+    menuBtn.className = '';
+    menu.style.display = 'none';
+  } else {
+    //Show Menu
+    menuBtn.className = 'active';
+    menu.style.display = 'block';
+
+  }
+}, false);
+
+function menuPopup() {
+  wantPopup = document.querySelector("#show-popup").checked;
+}
+
+function menuTiles() {
+  wantTileBounds = document.querySelector("#show-tiles").checked;
+  map.showTileBoundaries = wantTileBounds;
+}
+
+
+var center = [<%= center %>];
+center = [center[0], center[1]];
+
+let mapConfig = {    
+  'container': 'map',
+  'hash': true,
+  'style': {
+    'version': 8,
+    'sources': {
+      'carto-dark': {
+        'type': 'raster',
+        'tiles': [
+          "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+        ]
+      }
+    },
+    'layers': [{      
+      'id': 'carto-dark-layer',
+      'source': 'carto-dark',          
+      'type': 'raster',
+      'minzoom': 0,
+      'maxzoom': 22
+    }]
+  },
+  'center': center,
+  'zoom': zoom,
+  'maxZoom': 30,
+};
+
+var map = new maplibregl.Map(mapConfig);
+
+var layers = {
+  pts: [],
+  lines: [],
+  polygons: []
+}
+
+var lightColors = [
+  'FC49A3', // pink
+  'CC66FF', // purple-ish
+  '66CCFF', // sky blue
+  '66FFCC', // teal
+  '00FF00', // lime green
+  'FFCC66', // light orange
+  'FF6666', // salmon
+  'FF0000', // red
+  'FF8000', // orange
+  'FFFF66', // yellow
+  '00FFFF'  // turquoise
+];
+
+function randomColor(colors) {
+  var randomNumber = parseInt(Math.random() * colors.length);
+  return colors[randomNumber];
+}
+
+map.on('load', function () {
+    map.addSource(`${sid}`, {
+      type: 'vector',
+      tiles: [
+        'http://<%= host %>:<%= port %>/<%= sid %>/{z}/{x}/{y}.pbf'
+      ],
+      maxzoom: sources[sid].maxzoom
+    });
+    sources[sid].vector_layers.forEach(function (layer) {
+    
+      var layerColor = '#' + randomColor(lightColors);
+    
+      map.addLayer({
+        'id': `${layer.id}-polygons`,
+        'type': 'fill',
+        'source': `${sid}`,
+        'source-layer': `${layer.id}`,
+        'filter': ["==", "$type", "Polygon"],
+        'layout': {},
+        'paint': {
+          'fill-opacity': 0.1,
+          'fill-color': layerColor
+        }
+      });
+    
+      map.addLayer({
+        'id': `${layer.id}-polygons-outline`,
+        'type': 'line',
+        'source': `${sid}`,
+        'source-layer': `${layer.id}`,
+        'filter': ["==", "$type", "Polygon"],
+        'layout': {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        'paint': {
+          'line-color': layerColor,
+          'line-width': 1,
+          'line-opacity': 0.75
+        }
+      });
+    
+      map.addLayer({
+        'id': `${layer.id}-lines`,
+        'type': 'line',
+        'source': `${sid}`,
+        'source-layer': `${layer.id}`,
+        'filter': ["==", "$type", "LineString"],
+        'layout': {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        'paint': {
+          'line-color': layerColor,
+          'line-width': 1,
+          'line-opacity': 0.75
+        }
+      });
+    
+      map.addLayer({
+        'id': `${layer.id}-pts`,
+        'type': 'circle',
+        'source': `${sid}`,
+        'source-layer': `${layer.id}`,
+        'filter': ["==", "$type", "Point"],
+        'paint': {
+          'circle-color': layerColor,
+          'circle-radius': 2.5,
+          'circle-opacity': 0.75
+        }
+      });
+    
+      layers.polygons.push(`${layer.id}-polygons`);
+      layers.polygons.push(`${layer.id}-polygons-outline`);
+      layers.lines.push(`${layer.id}-lines`);
+      layers.pts.push(`${layer.id}-pts`);
+    
+    });
+
+  });
+});
+
+
+function displayValue(value,propName) {
+  if (propName=== '@timestamp'){
+    return value.toString() + "<br>[ " + (new Date(value*1000)).toISOString() + " ]";
+  }
+  if (typeof value === 'undefined' || value === null) return value;
+  if (typeof value === 'object' ||
+      typeof value === 'number' ||
+      typeof value === 'string') return value.toString();
+  return value;
+}
+
+function renderProperty(propertyName, property) {
+  return '<div class="mbview_property">' +
+    '<div class="mbview_property-name">' + propertyName + '</div>' +
+    '<div class="mbview_property-value">' + displayValue(property,propertyName) + '</div>' +
+    '</div>';
+}
+
+function renderLayer(layerId) {
+  return '<div class="mbview_layer">' + layerId + '</div>';
+}
+
+function renderProperties(feature) {
+  var sourceProperty = renderLayer(feature.layer['source-layer'] || feature.layer.source);
+  var idProperty = renderProperty('$id', feature.id);
+  var typeProperty = renderProperty('$type', feature.geometry.type);
+  var properties = Object.keys(feature.properties).map(function (propertyName) {
+    return renderProperty(propertyName, feature.properties[propertyName]);
+  });
+  return (feature.id ? [sourceProperty, idProperty, typeProperty]
+    : [sourceProperty, typeProperty]).concat(properties).join('');
+}
+
+function renderFeatures(features) {
+  return features.map(function (ft) {
+    return '<div class="mbview_feature">' + renderProperties(ft) + '</div>';
+  }).join('');
+}
+
+function renderPopup(features) {
+  return '<div class="mbview_popup">' + renderFeatures(features) + '</div>';
+}
+
+var popup = new mapboxgl.Popup({
+  closeButton: false,
+  closeOnClick: false
+});
+
+var wantPopup = false;
+
+map.on('mousemove', function (e) {
+  // set a bbox around the pointer
+  var selectThreshold = 3;
+  var queryBox = [
+    [
+      e.point.x - selectThreshold,
+      e.point.y + selectThreshold
+    ], // bottom left (SW)
+    [
+      e.point.x + selectThreshold,
+      e.point.y - selectThreshold
+    ] // top right (NE)
+  ];
+
+  var features = map.queryRenderedFeatures(queryBox, {
+    layers: layers.polygons.concat(layers.lines.concat(layers.pts))
+  }) || [];
+  map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+  if (!features.length || !wantPopup) {
+    popup.remove();
+  } else {
+    popup.setLngLat(e.lngLat)
+      .setHTML(renderPopup(features))
+      .addTo(map);
+  }
+});
+</script>
+
+
+<div id="menu"><span class='icon menu big'></span></div>
+<div id="menu-container">
+  <h4>Popup</h4>
+  <div id="menu-popup" onchange="menuPopup()" class='rounded-toggle short inline'>
+    <input id='show-popup' type='checkbox' name='ptoggle' value='all'>
+    <label for='show-popup'>show attributes</label>
+  </div>
+  <h4>Tiles</h4>
+  <div id="menu-popup" onchange="menuTiles()" class='rounded-toggle short inline'>
+    <input id='show-tiles' type='checkbox' name='ttoggle' value='all'>
+    <label for='show-tiles'>show tile boundaries</label>
+  </div>
+</div>
+
+<div id='map'></div>
+
+</body>
+</html>

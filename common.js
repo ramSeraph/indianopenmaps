@@ -14,7 +14,22 @@ function getMimeType(t) {
   }
   throw Error(`Unknown tiletype ${t}`);
 }
+function getExt(t) {
+  if (t == pmtiles.TileType.Png) {
+    return ".png";
+  } else if (t == pmtiles.TileType.Jpeg) {
+    return ".jpg";
+  } else if (t == pmtiles.TileType.Webp) {
+    return ".webp";
+  } else if (t == pmtiles.TileType.Avif) {
+    return ".avif";
+  } else if (t == pmtiles.TileType.Mvt) {
+    return ".pbf";
+  }
+  throw Error(`Unknown tiletype ${t}`);
+}
 
 module.exports = {
-  'getMimeType': getMimeType
+  'getMimeType': getMimeType,
+  'getExt': getExt,
 }

@@ -21,6 +21,48 @@ function _isInSource(header, bounds) {
   return true;
 }
 
+function _merge(config) {
+  var merged = {};
+  var commonFeaturesAdded = false;
+  Object.keys(config).forEach((key, _) => {
+    if (!commonFeaturesAdded) {
+      merged['metadata'] = config[key]['metadata'];
+      merged['header'] = {};
+      const hkeys = [
+        'tile_type',
+        'tile_compression',
+        'centerLon',
+        'centerLat'
+      ];
+      for (const hkey of hkeys) {
+        merged['header'][hkey] = config[key]['header'][hkey];
+      }
+      commonFeaturesAdded = true;
+    }
+    const minKeys = [ 'minLon', 'minLat', 'minZoom' ];
+    const maxKeys = [ 'maxLon', 'maxLat', 'maxZoom', 'centerZoom' ];
+    for (const hkey of minKeys) {
+      if (!(hkey in merged['header'])) {
+        merged['header'][hkey] = config[key]['header'][hkey];
+      } else {
+        if (merged['header'][hkey] > config[key]['header'][hkey]) {
+          merged['header'][hkey] = config[key]['header'][hkey];
+        }
+      }
+    }
+    for (const hkey of maxKeys) {
+      if (!(hkey in merged['header'])) {
+        merged['header'][hkey] = config[key]['header'][hkey];
+      } else {
+        if (merged['header'][hkey] < config[key]['header'][hkey]) {
+          merged['header'][hkey] = config[key]['header'][hkey];
+        }
+      }
+    }
+  });
+  return merged;
+}
+
 class MosaicHandler {
   constructor(url, tileSuffix, logger) {
     this.url = url;
@@ -50,7 +92,12 @@ class MosaicHandler {
       header['minLon'] = header['min_lon_e7'] / 10000000;
       header['maxLat'] = header['max_lat_e7'] / 10000000;
       header['maxLon'] = header['max_lon_e7'] / 10000000;
-      this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
+      header['centerLat'] = header['center_lat_e7'] / 10000000;
+      header['centerLon'] = header['center_lon_e7'] / 10000000;
+      header['maxZoom'] = header['max_zoom'];
+      header['minZoom'] = header['min_zoom'];
+      header['centerZoom'] = header['center_zoom'];
+      this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
       this.mimeTypes[key] = getMimeType(header.tile_type);
     }
   }
@@ -91,6 +138,25 @@ class MosaicHandler {
     return [ arr, this.mimeTypes[k] ]
   }
 
+  async getConfig() {
+    const config = _merge(this.pmtilesDict);
+    const header = config.header;
+    const metadata = config.metadata;
+
+    return {
+      tilejson: "3.0.0",
+      scheme: "xyz",
+      vector_layers: metadata.vector_layers,
+      attribution: metadata.attribution,
+      description: metadata.description,
+      name: metadata.name,
+      version: metadata.version,
+      bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat],
+      center: [header.centerLon, header.centerLat, header.centerZoom],
+      minzoom: header.minZoom,
+      maxzoom: header.maxZoom,
+    };
+  }
 }
 
 module.exports = MosaicHandler;
