@@ -238,7 +238,9 @@ var popup = new maplibregl.Popup({
   closeOnClick: false
 });
 
-var wantPopup = false;
+var initialInspect = true;
+
+var wantPopup = initialInspect;
 
 function showPopup(e) {
   // set a bbox around the pointer
@@ -275,7 +277,6 @@ function enablePopup(inspect) {
 class InspectButton {
   constructor(inspect) {
     this.inspect = inspect;
-    enablePopup(this.inpect);
   }
 
   getClass() {
@@ -409,7 +410,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     positionOptions: { enableHighAccuracy: true },
     trackUserLocation: true
   }));
-  map.addControl(new InspectButton(true));
+  map.addControl(new InspectButton(initialInspect));
   map.addControl(new BaseLayerPicker(baseLayers), 'top-left');
   map.once('load', function () {
     map.addSource(srcName, {
