@@ -103,7 +103,7 @@ class MosaicHandler {
   }
 
   async init() {
-      await this._populateMosaic();
+    await this._populateMosaic();
   }
 
   _getSource(key) {
@@ -130,7 +130,7 @@ class MosaicHandler {
   async getTile(z, x, y) {
     const k = this._getSourceKey(z, x, y);
     if (k === null) {
-        return [null, null];
+      return [null, null];
     }
 
     let source = this.pmtilesDict[k].pmtiles;
