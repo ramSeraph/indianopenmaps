@@ -409,7 +409,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     positionOptions: { enableHighAccuracy: true },
     trackUserLocation: true
   }));
-  map.addControl(new InspectButton(false));
+  map.addControl(new InspectButton(true));
   map.addControl(new BaseLayerPicker(baseLayers), 'top-left');
   map.once('load', function () {
     map.addSource(srcName, {
