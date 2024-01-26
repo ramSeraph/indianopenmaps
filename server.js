@@ -66,6 +66,12 @@ function addRoutes() {
     fastify.get(`${rPrefix}view`, async (request, reply) => {
       return reply.sendFile("view.html");
     });
+    fastify.get(`${rPrefix}view.js`, async (request, reply) => {
+      return reply.sendFile("view.js");
+    });
+    fastify.get(`${rPrefix}view.css`, async (request, reply) => {
+      return reply.sendFile("view.css");
+    });
   });
   logger.info('done adding routes');
 }
