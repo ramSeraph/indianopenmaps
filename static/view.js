@@ -63,8 +63,8 @@ var Stadia_AlidadeSmoothDark = {
 };
 
 var baseLayers = [
-  Stadia_AlidadeSmoothDark,
-  //Carto_Dark,
+  //Stadia_AlidadeSmoothDark,
+  Carto_Dark,
   Esri_WorldImagery
 ];
 
