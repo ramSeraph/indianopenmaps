@@ -18,7 +18,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>mbview - vector</title>
+  <title>Inspect</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
   <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
   <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet'/>
@@ -57,22 +57,11 @@
       display: table-cell;
       padding-right: 10px;
     }
-    #menu {
-      position: absolute;
-      top:10px;
-      right:10px;
-      z-index: 1;
-      color: white;
-      cursor: pointer;
+    .maplibregl-ctrl-inspect {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23333333' preserveAspectRatio='xMidYMid meet' viewBox='-10 -10 60 60'%3E%3Cg%3E%3Cpath d='m15 21.6q0-2 1.5-3.5t3.5-1.5 3.5 1.5 1.5 3.5-1.5 3.6-3.5 1.4-3.5-1.4-1.5-3.6z m18.4 11.1l-6.4-6.5q1.4-2.1 1.4-4.6 0-3.4-2.5-5.8t-5.9-2.4-5.9 2.4-2.5 5.8 2.5 5.9 5.9 2.5q2.4 0 4.6-1.4l7.4 7.4q-0.9 0.6-2 0.6h-20q-1.3 0-2.3-0.9t-1.1-2.3l0.1-26.8q0-1.3 1-2.3t2.3-0.9h13.4l10 10v19.3z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
     }
-    #menu-container {
-      position: absolute;
-      display: none;
-      top: 50px;
-      right: 10px;
-      z-index: 1;
-      background-color: white;
-      padding: 20px;
+    .maplibregl-ctrl-map {
+       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23333333' viewBox='-10 -10 60 60' preserveAspectRatio='xMidYMid meet'%3E%3Cg%3E%3Cpath d='m25 31.640000000000004v-19.766666666666673l-10-3.511666666666663v19.766666666666666z m9.140000000000008-26.640000000000004q0.8599999999999923 0 0.8599999999999923 0.8600000000000003v25.156666666666666q0 0.625-0.625 0.783333333333335l-9.375 3.1999999999999993-10-3.5133333333333354-8.906666666666668 3.4383333333333326-0.2333333333333334 0.07833333333333314q-0.8616666666666664 0-0.8616666666666664-0.8599999999999994v-25.156666666666663q0-0.625 0.6233333333333331-0.7833333333333332l9.378333333333334-3.198333333333334 10 3.5133333333333336 8.905000000000001-3.4383333333333344z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
     }
   </style>
 </head>
@@ -104,6 +93,34 @@ var lightColors = [
   'FFFF66', // yellow
   '00FFFF'  // turquoise
 ];
+
+var Esri_WorldImagery = {
+  'name': 'ESRI World Imagery',
+  'id': 'esri-world-imagery',
+  'tiles': [ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' ],
+  'attribution': 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+};
+
+var Carto_Dark = {
+  'name': 'Carto Dark',
+  'id': 'carto-dark',
+  'tiles': [
+    "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+    "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+    "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+    "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+  ],
+  'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+};
+
+var Stadia_AlidadeSmoothDark = {
+  'name': 'Stadia Dark',
+  'id': 'stadia-dark',
+  'tiles': [ 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png' ], 
+  'minZoom': 0,
+  'maxZoom': 20,
+  'attribution': '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+};
 
 function randomColor(colors) {
   var randomNumber = parseInt(Math.random() * colors.length);
@@ -146,44 +163,16 @@ let mapConfig = {
 var map = null;
 
 
-function wireButtons() {
-  // Show and hide hamburger menu as needed
-  var menuBtn = document.querySelector("#menu");
-  var menu = document.querySelector("#menu-container");
-  menuBtn.addEventListener('click', function() {
-    popup.remove();
-    if (menuBtn.className.indexOf('active') > -1) {
-      //Hide Menu
-      menuBtn.className = '';
-      menu.style.display = 'none';
-    } else {
-      //Show Menu
-      menuBtn.className = 'active';
-      menu.style.display = 'block';
-  
-    }
-  }, false);
-}
-
-function menuPopup() {
-  wantPopup = document.querySelector("#show-popup").checked;
-}
-
-function menuTiles() {
-  wantTileBounds = document.querySelector("#show-tiles").checked;
-  map.showTileBoundaries = wantTileBounds;
-}
-
 function addLayers(e) {
   if (!map.getSource(srcName) || !map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
     return;
   }
   map.off('sourcedata', addLayers);
   const src = map.getSource(srcName);
-  console.log(src);
+  //console.log(src);
   
   for (layerId of src.vectorLayerIds) {
-    console.log(layerId);
+    //console.log(layerId);
     var layerColor = '#' + randomColor(lightColors);
     map.addLayer({
       'id': `${layerId}-polygons`,
@@ -331,8 +320,47 @@ function showPopup(e) {
   }
 }
 
+function enablePopup(inspect) {
+  wantPopup = inspect;
+}
+
+class InspectButton {
+  constructor(inspect) {
+    this.inspect = inspect;
+    enablePopup(this.inpect);
+  }
+
+  getClass() {
+    if (this.inspect) {
+      return 'maplibregl-ctrl-icon maplibregl-ctrl-map';
+    } else {
+      return 'maplibregl-ctrl-icon maplibregl-ctrl-inspect';
+    }
+  }
+
+  toggle() {
+    this.inspect = !this.inspect;
+    var btn = document.querySelector('#show-popup');
+    btn.className = this.getClass();
+    enablePopup(this.inspect);
+  }
+
+  onAdd(map) {
+    const div = document.createElement("div");
+    div.className = "maplibregl-ctrl maplibregl-ctrl-group";
+    const classStr = this.getClass();
+    div.innerHTML = `<button id='show-popup' class='${classStr}'></button>`;
+    div.addEventListener("contextmenu", (e) => e.preventDefault());
+    div.addEventListener("click", () => this.toggle());
+    return div;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", (event) => {
   map = new maplibregl.Map(mapConfig);
+  map.addControl(new maplibregl.FullscreenControl());
+  map.addControl(new maplibregl.NavigationControl());
+  map.addControl(new InspectButton(false));
   map.once('load', function () {
     map.addSource(srcName, {
       'type': 'vector',
@@ -341,11 +369,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
   });
   map.on('sourcedata', addLayers);
   map.on('mousemove', showPopup);
-  wireButtons();
 });
 </script>
 
-
+<!--
 <div id="menu"><span class='icon menu big'></span></div>
 <div id="menu-container">
   <h4>Popup</h4>
@@ -353,12 +380,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
     <input id='show-popup' type='checkbox' name='ptoggle' value='all'>
     <label for='show-popup'>show attributes</label>
   </div>
-  <h4>Tiles</h4>
-  <div id="menu-popup" onchange="menuTiles()" class='rounded-toggle short inline'>
+  <h4>Base Layer</h4>
+  <div id="menu-base" onchange="menuBase()" class='rounded-toggle short inline'>
     <input id='show-tiles' type='checkbox' name='ttoggle' value='all'>
     <label for='show-tiles'>show tile boundaries</label>
   </div>
 </div>
+  -->
 
 <div id='map'></div>
 
