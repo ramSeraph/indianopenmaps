@@ -39,7 +39,7 @@ var Carto_Dark = {
   'name': 'Carto OSM Dark',
   'source-id': 'carto-dark',
   'layer-id': 'carto-dark-layer',
-  'initial': false,
+  'initial': true,
   'tiles': [
     "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
     "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
@@ -55,7 +55,7 @@ var Stadia_AlidadeSmoothDark = {
   'name': 'Stadia OSM Dark',
   'source-id': 'stadia-dark',
   'layer-id': 'stadia-dark-layer',
-  'initial': true,
+  'initial': false,
   'tiles': [ 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png' ], 
   'minZoom': 0,
   'maxZoom': 20,
