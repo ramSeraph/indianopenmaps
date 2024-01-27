@@ -13,7 +13,13 @@ const handlerMap = {};
 
 const port = 3000;
 
-const serverUrl = process.env.SERVER_URL || 'http://localhost:3000';
+var serverUrl = process.env.FLY_APP_NAME;
+if (!serverUrl) {
+    serverUrl = 'http://localhost:3000';
+} else {
+    serverUrl = `https://${serverUrl}.fly.dev`;
+}
+console.log('server url:', serverUrl);
 
 async function getTile(handler, request, reply) {
   const { z, x, y } = request.params;
