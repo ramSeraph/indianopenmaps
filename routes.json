@@ -367,6 +367,12 @@
     "name": "SBM ULB Areas",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Areas.pmtiles"
   },
+  "/not-so-open/urban/wards/wb-amrut/": {
+    "type": "pmtiles",
+    "category": "urban",
+    "name": "WB AMRUT ULB Wards",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Wards.pmtiles"
+  },
   "/not-so-open/constituencies/parliament/lgd/": {
     "type": "pmtiles",
     "category": "constituencies",
