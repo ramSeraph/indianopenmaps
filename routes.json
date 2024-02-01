@@ -471,5 +471,11 @@
     "category": "water",
     "name": "WRIS Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Streams.pmtiles"
+  },
+  "/not-so-open/facilities/police-stations/soi/": {
+    "type": "pmtiles",
+    "category": ["facilities", "police"],
+    "name": "SOI PoliceStations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/SOI_PoliceStations.pmtiles"
   }
 }
