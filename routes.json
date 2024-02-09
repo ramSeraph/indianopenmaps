@@ -3,18 +3,21 @@
     "type": "mosaic",
     "category": "buildings",
     "name": "Google Buildings",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-latest/mosaic.json"
   },
   "/ms-buildings/": {
     "type": "mosaic",
     "category": "buildings",
     "name": "Microsoft Buildings",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI/mosaic.json"
   },
   "/overture-places/": {
     "type": "pmtiles",
     "category": "pois",
     "name": "Overture Places",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/overture_places_india/releases/download/overture-places/overture_places_india.pmtiles"
   },
   "/not-so-open/cell-towers/tarangsanchar/": {
@@ -39,48 +42,56 @@
     "type": "pmtiles",
     "category": "roads",
     "name": "Facebook Roads",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/fb-roads/fb_roads_india.pmtiles"
   },
   "/ms-roads/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "Microsoft Roads",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/ms-roads/ms_roads_india.pmtiles"
   },
   "/pmgsy-roads/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Roads",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads.pmtiles"
   },
   "/pmgsy-roads-candidates/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Candidates",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_candidates.pmtiles"
   },
   "/pmgsy-roads-proposals-i/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals I",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_i.pmtiles"
   },
   "/pmgsy-roads-proposals-ii/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals II",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_ii.pmtiles"
   },
   "/pmgsy-roads-proposals-iii/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals III",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_iii.pmtiles"
   },
   "/pmgsy-roads-proposals-rcplwea/": {
     "type": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals RCPLWEA",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_rcplwea.pmtiles"
   },
   "/not-so-open/soi-roads/": {
@@ -275,6 +286,7 @@
     "type": "pmtiles",
     "category": "blocks",
     "name": "PMGSY Blocks",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/PMGSY_Blocks.pmtiles"
   },
   "/not-so-open/panchayats/lgd/": {
@@ -335,18 +347,21 @@
     "type": "pmtiles",
     "category": "habitations",
     "name": "PMGSY Habitations",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Habitations.pmtiles"
   },
   "/habitations/karmashapes-polys/": {
     "type": "pmtiles",
     "category": "habitations",
     "name": "Karmashapes Polygons",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_polygons_v0.pmtiles"
   },
   "/habitations/karmashapes-points/": {
     "type": "pmtiles",
     "category": "habitations",
     "name": "Karmashapes Points",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_points_v0.pmtiles"
   },
   "/not-so-open/urban/ulbs/sbm/": {

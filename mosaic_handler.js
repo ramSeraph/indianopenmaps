@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
-const getMimeType = require('./common').getMimeType;
+const common = require('./common');
 
 function _getBounds(z,x,y) {
   const b = tilebelt.tileToBBOX([x, y, z]);
@@ -64,12 +64,13 @@ function _merge(config) {
 }
 
 class MosaicHandler {
-  constructor(url, tileSuffix, logger) {
+  constructor(url, tileSuffix, logger, datameetAttribution) {
     this.url = url;
     this.tileSuffix = tileSuffix;
     this.logger = logger;
     this.pmtilesDict = null;
     this.mimeTypes = null;
+    this.datameetAttribution = datameetAttribution;
   }
 
   _resolveKey(key) {
@@ -98,7 +99,7 @@ class MosaicHandler {
       header['minZoom'] = header['min_zoom'];
       header['centerZoom'] = header['center_zoom'];
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
-      this.mimeTypes[key] = getMimeType(header.tile_type);
+      this.mimeTypes[key] = common.getMimeType(header.tile_type);
     }
   }
 
@@ -147,7 +148,7 @@ class MosaicHandler {
       tilejson: "3.0.0",
       scheme: "xyz",
       vector_layers: metadata.vector_layers,
-      attribution: metadata.attribution,
+      attribution: common.extendAttribution(metadata.attribution, this.datameetAttribution),
       description: metadata.description,
       name: metadata.name,
       version: metadata.version,

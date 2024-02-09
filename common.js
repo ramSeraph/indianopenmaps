@@ -14,6 +14,7 @@ function getMimeType(t) {
   }
   throw Error(`Unknown tiletype ${t}`);
 }
+
 function getExt(t) {
   if (t == pmtiles.TileType.Png) {
     return ".png";
@@ -29,7 +30,15 @@ function getExt(t) {
   throw Error(`Unknown tiletype ${t}`);
 }
 
+function extendAttribution(attribution, datameetAttribution) {
+  if (!datameetAttribution) {
+    return attribution;
+  }
+  return attribution + ' - ' + 'Collected by <a href="https://datameet.org" target="_blank" rel="noopener noreferrer">Datameet Community</a>';
+}
+
 module.exports = {
   'getMimeType': getMimeType,
   'getExt': getExt,
+  'extendAttribution': extendAttribution
 }

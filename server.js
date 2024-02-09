@@ -85,10 +85,14 @@ function addRoutes() {
 function createHandlers() {
   Object.keys(routes).forEach((rPrefix, _) => {
     const rInfo = routes[rPrefix];
+    var datameetAttribution = true;
+    if ('datameet_attribution' in rInfo) {
+      datameetAttribution = rInfo['datameet_attribution'];
+    }
     if (rInfo['type'] == 'mosaic') {
-        handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], 'pbf', logger);
+        handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], 'pbf', logger, datameetAttribution);
     } else {
-        handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], 'pbf', logger);
+        handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], 'pbf', logger, datameetAttribution);
     }
   });
 }
