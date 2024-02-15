@@ -6,7 +6,7 @@ const srcName = 'source-to-view';
 
 let protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
-var boundary_pmtiles_url = 'https://raw.githubusercontent.com/ramSeraph/indianopenmaps/india_boundary_correcter/osm_corrections.pmtiles';
+var boundary_pmtiles_url = 'https://raw.githubusercontent.com/ramSeraph/indianopenmaps/main/india_boundary_correcter/osm_corrections.pmtiles';
 
 var layers = {
   pts: [],
