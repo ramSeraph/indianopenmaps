@@ -4,11 +4,15 @@ const baseUrl = currUrl.replace(/\/view.*$/, '');
 const tileJsonUrl = baseUrl + '/tiles.json';
 const srcName = 'source-to-view';
 
+let protocol = new pmtiles.Protocol();
+maplibregl.addProtocol("pmtiles", protocol.tile);
+var boundary_pmtiles_url = 'https://raw.githubusercontent.com/ramSeraph/indianopenmaps/india_boundary_correcter/osm_corrections.pmtiles';
+
 var layers = {
   pts: [],
   lines: [],
   polygons: []
-}
+};
 
 var lightColors = [
   'FC49A3', // pink
@@ -26,41 +30,81 @@ var lightColors = [
 
 var Esri_WorldImagery = {
   'name': 'ESRI World Imagery',
-  'source-id': 'esri-world-imagery',
-  'layer-id': 'esri-world-imagery-layer',
   'initial': false,
-  'tiles': [ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' ],
-  'minZoom': 0,
-  'maxZoom': 17,
-  'attribution': 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  'sources': {
+    'esri-world-imagery': {
+      'type': 'raster',
+      'tiles': [ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' ],
+      'attribution': 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      'layers': [
+        {
+          'id': 'esri-world-imagery-layer',
+          'type': 'raster',
+          'minZoom': 0,
+          'maxZoom': 17,
+        }
+      ]
+    }
+  }
 };
 
 var Carto_Dark = {
   'name': 'Carto OSM Dark',
-  'source-id': 'carto-dark',
-  'layer-id': 'carto-dark-layer',
   'initial': true,
-  'tiles': [
-    "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-    "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-    "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-    "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
-  ],
-  'minZoom': 0,
-  'maxZoom': 20,
-  'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  'sources': {
+    'carto-dark': {
+      'type': 'raster',
+      'tiles': [
+        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+        "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+      ],
+      'attribution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      'layers': [
+        {
+          'id': 'carto-dark-layer',
+          'type': 'raster',
+          'minZoom': 0,
+          'maxZoom': 20,
+        }
+      ]
+    },
+    'india-boundary-correcter': {
+      'type': 'vector',
+      'url': `pmtiles://${boundary_pmtiles_url}`,
+      'layers': [
+        {
+          'id': 'to-add',
+          'source-layer': 'to-add',
+          'type': 'line',
+          'layout': {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          'paint': {
+            'line-color': "#262626",
+            'line-width': 4
+          }
+        },
+        {
+          'id': 'to-del',
+          'source-layer': 'to-del',
+          'type': 'line',
+          'layout': {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          'paint': {
+            'line-color': "#090909",
+            'line-width': 5
+          }
+        }
+      ]
+    }
+  }
 };
 
-var Stadia_AlidadeSmoothDark = {
-  'name': 'Stadia OSM Dark',
-  'source-id': 'stadia-dark',
-  'layer-id': 'stadia-dark-layer',
-  'initial': false,
-  'tiles': [ 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png' ], 
-  'minZoom': 0,
-  'maxZoom': 20,
-  'attribution': '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-};
 
 var baseLayers = [
   //Stadia_AlidadeSmoothDark,
@@ -71,6 +115,20 @@ var baseLayers = [
 function randomColor(colors) {
   var randomNumber = parseInt(Math.random() * colors.length);
   return colors[randomNumber];
+}
+
+function getLayersAndSources(layerInfo) {
+  var sources = JSON.parse(JSON.stringify(layerInfo.sources));
+  var layers = [];
+  for (const [sname, source] of Object.entries(sources)) {
+    var slayers = source.layers;
+    for (var layer of slayers) {
+      layer['source'] = sname;
+    }
+    layers = layers.concat(slayers);
+    delete source.layers;
+  }
+  return [sources, layers];
 }
 
 const INDIA_CENTER = [76.5,22.5];
@@ -93,18 +151,13 @@ baseLayers.forEach((layerInfo) => {
   if (!layerInfo.initial) {
     return;
   }
-  mapConfig.style.sources[layerInfo['source-id']] = {
-    'type': 'raster',
-    'tiles': layerInfo.tiles,
-    'attribution': layerInfo.attribution,
-  };
-  mapConfig.style.layers.push({
-    'id': layerInfo['layer-id'],
-    'source': layerInfo['source-id'],
-    'type': 'raster',
-    'minzoom': layerInfo.minZoom,
-    'maxzoom': layerInfo.maxZoom,
-  });
+  const [sources, layers] = getLayersAndSources(layerInfo);
+  for (const [sname, source] of Object.entries(sources)) {
+    mapConfig.style.sources[sname] = source;
+  }
+  for (const layer of layers) {
+    mapConfig.style.layers.push(layer);
+  }
 });
 
 var map = null;
@@ -323,30 +376,19 @@ class BaseLayerPicker {
     return null;
   }
 
-  getLayer(label) {
-    const layerInfo = this.getLayerInfo(label);
-    const layerId = layerInfo['layer-id'];
-    const layer = this.map.getLayer(layerId);
-    if (layer === undefined) return null;
-    return layer;
-  }
-
-  getSource(label) {
-    const layerInfo = this.getLayerInfo(label);
-    const sourceId = layerInfo['source-id'];
-    const src = this.map.getSource(sourceId);
-    if (src === undefined) return null;
-    return src;
-  }
-
   updateButtons() {
 	this.buttons.forEach((button) => {
       button.classList.remove('-active');
       let label = button.title;
-      const layer = this.getLayer(label);
-      if (layer !== null) {
-        button.classList.add('-active');
-      } 
+      const layerInfo = this.getLayerInfo(button.title);
+      const [sources, layers] = getLayersAndSources(layerInfo);
+      for (const [sname, source] of Object.entries(sources)) {
+        const src = this.map.getSource(sname);
+        if (src) {
+          button.classList.add('-active');
+          break;
+        }
+      }
     });
   }
 
@@ -360,30 +402,27 @@ class BaseLayerPicker {
 		if (button.classList.contains('-active')) return;
         // remove all layers
         this.buttons.forEach((b) => {
-          const layer = this.getLayer(b.title);
-          if (layer === null) {
-            return;
+          const layerInfo = this.getLayerInfo(b.title);
+          const [sources, layers] = getLayersAndSources(layerInfo);
+          for (const layer of layers) {
+            if (this.map.getLayer(layer.id)) {
+              this.map.removeLayer(layer.id);
+            }
           }
-          this.map.removeLayer(layer.id);
-          const src = this.getSource(b.title);
-          if (src === null) {
-            return;
+          for (const [sname, source] of Object.entries(sources)) {
+            if (this.map.getSource(sname)) {
+              this.map.removeSource(sname);
+            }
           }
-          this.map.removeSource(src.id);
         });
         const layerInfo = this.getLayerInfo(button.title);
-        this.map.addSource(layerInfo['source-id'], {
-          'type': 'raster',
-          'tiles': layerInfo.tiles,
-          'attribution': layerInfo.attribution,
-        });
-        this.map.addLayer({
-          'id': layerInfo['layer-id'],
-          'source': layerInfo['source-id'],
-          'minzoom': layerInfo.minZoom,
-          'maxzoom': layerInfo.maxZoom,
-          'type': 'raster',
-        }, firstLayerId);
+        const [sources, layers] = getLayersAndSources(layerInfo);
+        for (const [sname, source] of Object.entries(sources)) {
+          this.map.addSource(sname, source);
+        }
+        for (const layer of layers) {
+          this.map.addLayer(layer, firstLayerId);
+        }
 	  });
       this.buttons.push(button);
       this.container.appendChild(button);
