@@ -84,7 +84,13 @@ var Carto_Dark = {
           },
           'paint': {
             'line-color': "#262626",
-            'line-width': 4
+            'line-width': [
+                "step",
+                ["zoom"],
+                2, 5,
+                3, 6,
+                4 
+            ]
           }
         },
         {
@@ -97,7 +103,13 @@ var Carto_Dark = {
           },
           'paint': {
             'line-color': "#090909",
-            'line-width': 5
+            'line-width': [
+                "step",
+                ["zoom"],
+                3, 5,
+                4, 6,
+                5 
+            ]
           }
         }
       ]
