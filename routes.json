@@ -364,6 +364,13 @@
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_points_v0.pmtiles"
   },
+  "/habitations/esri-sentinel2-10m-builtup/": {
+    "type": "pmtiles",
+    "category": "habitations",
+    "name": "ESRI Sentinel2 Builtup Area",
+    "datameet_attribution": false,
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/ESRI_Sentinel2_10m_2021_Builtup_Area.pmtiles"
+  },
   "/not-so-open/urban/ulbs/sbm/": {
     "type": "pmtiles",
     "category": "urban",
