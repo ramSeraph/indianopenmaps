@@ -294,8 +294,12 @@ function renderFeatures(features) {
   }).join('');
 }
 
-function renderPopup(features) {
-  return '<div class="maplibregl-ctrl-inspect_popup">' + renderFeatures(features) + '</div>';
+function renderCoordinates(lngLat) {
+  return `<div class="maplibregl-ctrl-inspect_layer">Coords: ${(lngLat.lng).toFixed(5)},${(lngLat.lat).toFixed(5)}</div>`;
+}
+
+function renderPopup(features, lngLat) {
+  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + renderFeatures(features) + '</div>';
 }
 
 var popup = new maplibregl.Popup({
@@ -330,7 +334,7 @@ function showPopup(e) {
     popup.remove();
   } else {
     popup.setLngLat(e.lngLat)
-      .setHTML(renderPopup(features))
+      .setHTML(renderPopup(features, e.lngLat))
       .addTo(map);
   }
 }
