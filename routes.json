@@ -494,6 +494,18 @@
     "name": "WRIS Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Streams.pmtiles"
   },
+  "/facilities/pmgsy/": {
+    "type": "pmtiles",
+    "category": ["facilities"],
+    "name": "PMGSY Facilities",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pmgsy-facilities/PMGSY_facilities.pmtiles"
+  },
+  "/not-so-open/facilities/jjm/": {
+    "type": "pmtiles",
+    "category": ["facilities", "schools", "anganwadis", "water sources"],
+    "name": "JJM Facilities",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/jjm-facilities/JJM_facilities.pmtiles"
+  },
   "/not-so-open/facilities/police-stations/soi/": {
     "type": "pmtiles",
     "category": ["facilities", "police"],
