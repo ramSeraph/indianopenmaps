@@ -475,5 +475,15 @@ document.addEventListener("DOMContentLoaded", (event) => {
   });
   map.on('sourcedata', addLayers);
   map.on('mousemove', showPopup);
+
+  const params = new Proxy(new URLSearchParams(window.location.search), {
+    get: (searchParams, prop) => searchParams.get(prop),
+  });
+  if (params.markerLon !== undefined && params.markerLat !== undefined) {
+    const marker = new maplibregl.Marker({ color: '#DBDBDB',
+                                           draggable: false })
+                                 .setLngLat([params.markerLon, params.markerLat])
+                                 .addTo(map);
+  }
 });
 

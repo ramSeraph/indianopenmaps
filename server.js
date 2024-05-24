@@ -7,6 +7,8 @@ const PMTilesHandler = require('./pmtiles_handler');
 
 const routes = require('./routes.json');
 
+const getLocaterPage = require('./wikidata_locater')
+
 const logger = fastify.log;
 
 const handlerMap = {};
@@ -64,6 +66,15 @@ async function initializeHandlers() {
 
 function addRoutes() {
   logger.info('adding routes');
+
+  fastify.get('/wikidata-locater', async (request, reply) => {
+      return reply.header('Content-Type', 'text/html; charset=utf-8')
+                  .send(getLocaterPage(request));
+  });
+  fastify.get('/main-dark.css', async (request, reply) => {
+    return reply.sendFile("main-dark.css");
+  });
+
   Object.keys(handlerMap).forEach((rPrefix, _) => {
     const handler = handlerMap[rPrefix];
     const tileSuffix = handler.tileSuffix;
