@@ -503,7 +503,7 @@
   },
   "/not-so-open/facilities/jjm/": {
     "type": "pmtiles",
-    "category": ["facilities", "schools", "anganwadis", "water sources"],
+    "category": ["habitations", "facilities", "schools", "anganwadis", "water sources"],
     "name": "JJM Facilities",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/jjm-facilities/JJM_facilities.pmtiles"
   },
