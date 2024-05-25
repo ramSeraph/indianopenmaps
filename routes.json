@@ -497,7 +497,7 @@
   },
   "/facilities/pmgsy/": {
     "type": "pmtiles",
-    "category": ["facilities"],
+    "category": ["habitations", "facilities"],
     "name": "PMGSY Facilities",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pmgsy-facilities/PMGSY_facilities.pmtiles"
   },
@@ -506,6 +506,12 @@
     "category": ["facilities", "schools", "anganwadis", "water sources"],
     "name": "JJM Facilities",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/jjm-facilities/JJM_facilities.pmtiles"
+  },
+  "/not-so-open/egramswaraj-activities/": {
+    "type": "pmtiles",
+    "category": ["panchayats", "facilities" ],
+    "name": "Egramswaraj activities",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/egramswaraj_activities.pmtiles"
   },
   "/not-so-open/facilities/police-stations/soi/": {
     "type": "pmtiles",
