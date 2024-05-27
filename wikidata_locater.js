@@ -33,7 +33,7 @@ function getPage(request) {
       <link rel="stylesheet" type="text/css" href="main-dark.css">
     </head>
     <body>
-      <h1>Locater Links</h1>
+      <h1>Locater Links ( ${markerLat}, ${markerLon} )</h1>
         <div>
           <ul>${catLis.join("")}</ul>
         </div>
