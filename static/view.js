@@ -262,7 +262,12 @@ function displayValue(value,propName) {
   if (typeof value === 'undefined' || value === null) return value;
   if (typeof value === 'object' ||
       typeof value === 'number' ||
-      typeof value === 'string') return value.toString();
+      typeof value === 'string') return value.toString()
+                                             .replaceAll('&', '&amp;')
+                                             .replaceAll('<', '&lt;')
+                                             .replaceAll('>', '&gt;')
+                                             .replaceAll("'", '&#39;')
+                                             .replaceAll('"', '&quot;');
   return value;
 }
 
