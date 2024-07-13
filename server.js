@@ -7,7 +7,9 @@ const PMTilesHandler = require('./pmtiles_handler');
 
 const routes = require('./routes.json');
 
-const getLocaterPage = require('./wikidata_locater')
+const getLocaterPage = require('./wikidata_locater');
+
+const addSOIAncillaryRoutes = require('./soi_ancillary_routes');
 
 const logger = fastify.log;
 
@@ -90,6 +92,7 @@ function addRoutes() {
       return reply.sendFile("view.css");
     });
   });
+  addSOIAncillaryRoutes(fastify);
   logger.info('done adding routes');
 }
 

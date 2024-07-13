@@ -1,5 +1,5 @@
 {
-  "/raster/soi/osm/": {
+  "/soi/osm/": {
     "handlertype": "mosaic",
     "type": "raster",
     "category": ["raster"],
