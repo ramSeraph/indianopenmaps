@@ -100,10 +100,18 @@ function createHandlers() {
     if ('datameet_attribution' in rInfo) {
       datameetAttribution = rInfo['datameet_attribution'];
     }
-    if (rInfo['type'] == 'mosaic') {
-        handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], 'pbf', logger, datameetAttribution);
+    var type = 'vector';
+    if ('type' in rInfo) {
+      type = rInfo['type'];
+    }
+    var tilesuffix = 'pbf';
+    if (type === 'raster') {
+      tilesuffix = 'webp';
+    }
+    if (rInfo['handlertype'] === 'mosaic') {
+      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], tilesuffix, logger, datameetAttribution);
     } else {
-        handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], 'pbf', logger, datameetAttribution);
+      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], tilesuffix, logger, datameetAttribution);
     }
   });
 }
