@@ -225,6 +225,7 @@
       "census2011"
     ],
     "name": "SHRUG Census 2011 Districts",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-district-pc11.pmtiles"
   },
   "/shrug-census2011/subdistricts/": {
@@ -234,6 +235,7 @@
       "census2011"
     ],
     "name": "SHRUG Census 2011 Subdistricts",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-subdistrict-pc11.pmtiles"
   },
   "/shrug-census2011/villages/": {
@@ -243,6 +245,7 @@
       "census2011"
     ],
     "name": "SHRUG Census 2011 Villages",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-village-pc11.pmtiles"
   },
   "/google-buildings/": {
