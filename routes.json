@@ -259,6 +259,13 @@
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI/mosaic.json"
   },
+  "/essd-building-heights/": {
+    "handlertype": "pmtiles",
+    "category": "buildings",
+    "name": "ESSD Copernicus Building heights",
+    "datameet_attribution": false,
+    "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles"
+  },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
