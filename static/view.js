@@ -216,7 +216,25 @@ function addLayers(e) {
         'line-opacity': 0.75
       }
     });
-    
+
+    map.addLayer({
+      'id': `${layerId}-polygons-extrusions`,
+      'type': 'fill-extrusion',
+      'source': `${srcName}`,
+      'source-layer': `${layerId}`,
+      'minzoom': 14,
+      'filter': [
+        "all",
+        ["==", "$type", "Polygon"],
+        ["has", "Height"],
+      ],
+      'paint': {
+        'fill-extrusion-color': layerColor,
+        'fill-extrusion-height': ['get', 'Height'],
+        'fill-extrusion-opacity': 0.60,
+      }
+    });
+   
     map.addLayer({
       'id': `${layerId}-lines`,
       'type': 'line',
