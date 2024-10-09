@@ -1,24 +1,6 @@
 
 const currUrl = window.location.href;
-const baseUrl = currUrl.replace(/\/view.*$/, '');
-const tileJsonUrl = baseUrl + '/tiles.json';
 const srcName = 'source-to-view';
-
-// Set page title to something meaningful based on currUrl
-let path = currUrl.split('indianopenmaps.fly.dev/')[1].split('/view')[0];
-let pathParts = path.split('/');
-
-if (pathParts[0] === 'not-so-open') {
-  pathParts.shift();  // Remove "not-so-open"
-}
-
-if (pathParts.length === 2) {
-  document.title = `${pathParts[1]} - ${pathParts[0]}`; //like bhuvan - villages
-} else if (pathParts.length === 1) {
-  document.title = pathParts[0];
-} else {
-  document.title = "Inspect";  //Fail case
-}
 
 let protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
@@ -496,7 +478,28 @@ class BaseLayerPicker {
   }
 }
 
+function setTitle() {
+  const titleUrl = new URL('./title', currUrl).href;
+  fetch(titleUrl)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    document.title = data['title'];
+  })
+  .catch(error => {
+    // Handle any errors that occurred during the fetch
+    console.error('Fetch error:', error);
+  });
+}
+
+setTitle();
+
 document.addEventListener("DOMContentLoaded", (event) => {
+  const tileJsonUrl = new URL('./tiles.json', currUrl).href;
   map = new maplibregl.Map(mapConfig);
   map.addControl(new maplibregl.FullscreenControl());
   map.addControl(new maplibregl.NavigationControl());

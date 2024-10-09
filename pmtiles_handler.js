@@ -10,6 +10,7 @@ class PMTilesHandler {
     this.mimeType = null;
     this.logger = logger;
     this.datameetAttribution = datameetAttribution;
+    this.title = null;
   }
 
   async init() {
@@ -39,6 +40,9 @@ class PMTilesHandler {
       maxzoom: this.header.maxZoom,
     };
   }
+
+  getTitle() { return this.title; }
+  setTitle(title) { this.title = title; }
 }
 
 module.exports = PMTilesHandler;

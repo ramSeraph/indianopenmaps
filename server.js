@@ -39,6 +39,15 @@ async function getTile(handler, request, reply) {
               .send('');
 }
 
+async function getTitle(handler, request, reply) {
+  const title = handler.getTitle();
+
+  return reply.header('Content-Type', 'application/json')
+              .header('Cache-Control', 'max-age=86400000')
+              .header('Access-Control-Allow-Origin', "*")
+              .send(JSON.stringify({ 'title': title }));
+}
+
 async function getTileJson(handler, request, reply) {
   const config = await handler.getConfig();
   const tileJsonUrl = request.url;
@@ -82,6 +91,7 @@ function addRoutes() {
     const tileSuffix = handler.tileSuffix;
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
     fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
+    fastify.get(`${rPrefix}title`, getTitle.bind(null, handler));
     fastify.get(`${rPrefix}view`, async (request, reply) => {
       return reply.sendFile("view.html");
     });
@@ -116,6 +126,7 @@ function createHandlers() {
     } else {
       handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], tilesuffix, logger, datameetAttribution);
     }
+    handlerMap[rPrefix].setTitle(rInfo['name']);
   });
 }
 

@@ -71,6 +71,7 @@ class MosaicHandler {
     this.pmtilesDict = null;
     this.mimeTypes = null;
     this.datameetAttribution = datameetAttribution;
+    this.title = null;
   }
 
   _resolveKey(key) {
@@ -158,6 +159,9 @@ class MosaicHandler {
       maxzoom: header.maxZoom,
     };
   }
+
+  getTitle() { return this.title; }
+  setTitle(title) { this.title = title; }
 }
 
 module.exports = MosaicHandler;
