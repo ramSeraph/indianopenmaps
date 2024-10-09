@@ -78,9 +78,13 @@ async function initializeHandlers() {
 function addRoutes() {
   logger.info('adding routes');
 
+  fastify.get('/', async (request, reply) => {
+      return reply.header('Content-Type', 'text/html; charset=utf-8')
+                  .send(getLocaterPage(request, false));
+  });
   fastify.get('/wikidata-locater', async (request, reply) => {
       return reply.header('Content-Type', 'text/html; charset=utf-8')
-                  .send(getLocaterPage(request));
+                  .send(getLocaterPage(request, true));
   });
   fastify.get('/main-dark.css', async (request, reply) => {
     return reply.sendFile("main-dark.css");
@@ -91,6 +95,9 @@ function addRoutes() {
     const tileSuffix = handler.tileSuffix;
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
     fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
+    if (tileSuffix == 'webp') {
+      return;
+    }
     fastify.get(`${rPrefix}title`, getTitle.bind(null, handler));
     fastify.get(`${rPrefix}view`, async (request, reply) => {
       return reply.sendFile("view.html");
