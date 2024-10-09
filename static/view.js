@@ -4,6 +4,22 @@ const baseUrl = currUrl.replace(/\/view.*$/, '');
 const tileJsonUrl = baseUrl + '/tiles.json';
 const srcName = 'source-to-view';
 
+// Set page title to something meaningful based on currUrl
+let path = currUrl.split('indianopenmaps.fly.dev/')[1].split('/view')[0];
+let pathParts = path.split('/');
+
+if (pathParts[0] === 'not-so-open') {
+  pathParts.shift();  // Remove "not-so-open"
+}
+
+if (pathParts.length === 2) {
+  document.title = `${pathParts[1]} - ${pathParts[0]}`; //like bhuvan - villages
+} else if (pathParts.length === 1) {
+  document.title = pathParts[0];
+} else {
+  document.title = "Inspect";  //Fail case
+}
+
 let protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 var boundary_pmtiles_url = 'https://raw.githubusercontent.com/ramSeraph/indianopenmaps/main/india_boundary_correcter/osm_corrections.pmtiles';
