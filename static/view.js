@@ -1,5 +1,7 @@
 
 const currUrl = window.location.href;
+
+
 const srcName = 'source-to-view';
 
 let protocol = new pmtiles.Protocol();
@@ -26,6 +28,30 @@ var lightColors = [
   '00FFFF'  // turquoise
 ];
 
+const soiTileUrl = decodeURI(new URL('/soi/osm/{z}/{x}/{y}.webp', currUrl).href);
+console.log(soiTileUrl);
+// TODO: pick different colors for layers for SOI basemap to make things more visible
+var SOI_OSM_Imagery = {
+  'name': 'SOI OSM Imagery',
+  'initial': false,
+  'sources': {
+    'soi-osm-imagery': {
+      'type': 'raster',
+      'tiles': [ soiTileUrl ],
+      'attribution': 'Tiles &copy; Survey of India &mdash; Source: <a href="https://onlinemaps.surveyofindia.gov.in/">1:50000 Open Series Maps</a>',
+      'layers': [
+        {
+          'id': 'soi-osm-layer',
+          'type': 'raster',
+          'minZoom': 0,
+          'maxZoom': 14,
+        }
+      ],
+      'maxZoom': 14,
+    }
+  }
+};
+
 var Esri_WorldImagery = {
   'name': 'ESRI World Imagery',
   'initial': false,
@@ -41,7 +67,8 @@ var Esri_WorldImagery = {
           'minZoom': 0,
           'maxZoom': 17,
         }
-      ]
+      ],
+      'maxZoom': 17,
     }
   }
 };
@@ -66,7 +93,8 @@ var Carto_Dark = {
           'minZoom': 0,
           'maxZoom': 20,
         }
-      ]
+      ],
+      'maxZoom': 20,
     },
     'india-boundary-correcter': {
       'type': 'vector',
@@ -115,11 +143,10 @@ var Carto_Dark = {
   }
 };
 
-
 var baseLayers = [
-  //Stadia_AlidadeSmoothDark,
   Carto_Dark,
-  Esri_WorldImagery
+  Esri_WorldImagery,
+  SOI_OSM_Imagery,
 ];
 
 function randomColor(colors) {
@@ -491,8 +518,7 @@ function setTitle() {
     document.title = data['title'];
   })
   .catch(error => {
-    // Handle any errors that occurred during the fetch
-    console.error('Fetch error:', error);
+    console.error('Title fetch error:', error);
   });
 }
 
