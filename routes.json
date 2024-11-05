@@ -535,5 +535,17 @@
     "category": ["facilities", "police"],
     "name": "SOI PoliceStations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/SOI_PoliceStations.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/bulk-waste/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban Bulkwaste locations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Bulkwaste.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/public-toilets/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban Community and Public Toilets",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Community_and_public_toilets.pmtiles"
   }
 }
