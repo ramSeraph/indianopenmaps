@@ -649,5 +649,12 @@
     "category": ["waterbodies"],
     "name": "WB AMRUT Stormwater vents",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_vents.pmtiles"
+  },
+  "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "west bengal"],
+    "name": "WB AMRUT urban cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
   }
+
 }
