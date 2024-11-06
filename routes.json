@@ -602,6 +602,18 @@
     "name": "Wb AMRUT Urban Sewage Manholes",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_manholes.pmtiles"
   },
+  "/not-so-open/facilities/sanitation/community-toilets/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "Wb AMRUT Urban Community toilets",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Community_toilets.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/garbage-collection-points/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "Wb AMRUT Garbage Collection points",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Garbage_Collection_points.pmtiles"
+  },
   "/not-so-open/facilities/pois/sbm/": {
     "handlertype": "pmtiles",
     "category": ["facilities", "pois"],
