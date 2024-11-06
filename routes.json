@@ -577,5 +577,29 @@
     "category": ["facilities", "sanitation"],
     "name": "SBM Urban transfer station locations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Transfer_stations.pmtiles"
+  },
+  "/not-so-open/facilities/pois/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "pois"],
+    "name": "SBM Points of Interest",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/SBM_POIs.pmtiles"
+  },
+  "/not-so-open/urban-ghats/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["rivers", "ghats"],
+    "name": "SBM Urban Ghats",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Ghats.pmtiles"
+  },
+  "/not-so-open/urban-water-bodies/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["waterbodies"],
+    "name": "SBM Urban Water Bodies",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Water_bodies.pmtiles"
+  },
+  "/not-so-open/stormwater-drains/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["waterbodies"],
+    "name": "SBM Stormwater Drains",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Stormwater_drains.pmtiles"
   }
 }
