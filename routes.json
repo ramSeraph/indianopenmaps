@@ -590,6 +590,18 @@
     "name": "SBM Urban transfer station locations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Transfer_stations.pmtiles"
   },
+  "/not-so-open/facilities/sanitation/sewage-lines/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "Wb AMRUT Urban Sewage lines",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_lines.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/sewage-manholes/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "Wb AMRUT Urban Sewage Manholes",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_manholes.pmtiles"
+  },
   "/not-so-open/facilities/pois/sbm/": {
     "handlertype": "pmtiles",
     "category": ["facilities", "pois"],
@@ -613,5 +625,17 @@
     "category": ["waterbodies"],
     "name": "SBM Stormwater Drains",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Stormwater_drains.pmtiles"
+  },
+  "/not-so-open/stormwater-drains/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["waterbodies"],
+    "name": "WB AMRUT Stormwater Drains",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_drains.pmtiles"
+  },
+  "/not-so-open/stormwater-vents/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["waterbodies"],
+    "name": "WB AMRUT Stormwater vents",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_vents.pmtiles"
   }
 }
