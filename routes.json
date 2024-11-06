@@ -553,6 +553,29 @@
     "category": ["facilities", "sanitation"],
     "name": "SBM Urban Dumpsites",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Dumpsites.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/landfills/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban Landfills",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Landfills.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/processing-plants/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban Processing plants",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Processing_plants.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/secondary-storages/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban secondary storage locations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Secondary_storages.pmtiles"
+  },
+  "/not-so-open/facilities/sanitation/transfer-stations/sbm/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "sanitation"],
+    "name": "SBM Urban transfer station locations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Transfer_stations.pmtiles"
   }
-
 }
