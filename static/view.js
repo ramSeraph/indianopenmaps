@@ -251,11 +251,22 @@ function addLayers(e) {
       'filter': [
         "all",
         ["==", "$type", "Polygon"],
-        ["has", "Height"],
+        [
+          "any",
+          ["has", "Height"],
+          ["has", "HEIGHT"],
+        ]
       ],
       'paint': {
         'fill-extrusion-color': layerColor,
-        'fill-extrusion-height': ['get', 'Height'],
+        'fill-extrusion-height': [
+          "case", 
+          ["has", "Height"], 
+          ['get', 'Height'],
+          ["has", "HEIGHT"], 
+          ['get', 'HEIGHT'],
+          0
+        ],
         'fill-extrusion-opacity': 0.60,
       }
     });
