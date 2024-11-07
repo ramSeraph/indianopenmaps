@@ -299,6 +299,12 @@
     "name": "WB AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/gsdl/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings" ],
+    "name": "GSDL Delhi buildings",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GSDL_buildings.pmtiles"
+  },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
