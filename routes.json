@@ -197,6 +197,12 @@
     "name": "WB AMRUT Slum boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Slum_boundaries.pmtiles"
   },
+  "/not-so-open/urban/land-use/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": "urban",
+    "name": "WB AMRUT Urban Land Use Polygons",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_ULU_polygons.pmtiles"
+  },
   "/not-so-open/constituencies/parliament/lgd/": {
     "handlertype": "pmtiles",
     "category": "constituencies",
