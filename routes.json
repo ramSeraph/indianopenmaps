@@ -293,6 +293,12 @@
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles"
   },
+  "/not-so-open/urban/buildings/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings" ],
+    "name": "WB AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles"
+  },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
