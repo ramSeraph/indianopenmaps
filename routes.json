@@ -676,9 +676,15 @@
   },
   "/not-so-open/cadastrals/delhi/urban/gsdl/": {
     "handlertype": "pmtiles",
-    "category": ["cadastrals", "west bengal"],
-    "name": "WB AMRUT urban cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
+    "category": ["cadastrals", "delhi"],
+    "name": "GSDL Delhi cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/delhi/GSDL_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/telangana/bhunaksha/tracgis/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "telangana"],
+    "name": "Telangana Bhunaksha cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/telangana/TRACGIS_Bhunaksha_Cadastrals.pmtiles"
   },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
