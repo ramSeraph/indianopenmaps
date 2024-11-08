@@ -311,6 +311,12 @@
     "name": "Rajasthan Urban building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Rajdharaa_ULB_Building_footprints.pmtiles"
   },
+  "/not-so-open/urban/hyderabad/buildings/tracgis/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "hyderabad" ],
+    "name": "Hyderabad building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Hyderabad_Buildings.pmtiles"
+  },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
