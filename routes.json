@@ -686,6 +686,12 @@
     "name": "Telangana Bhunaksha cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/telangana/TRACGIS_Bhunaksha_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/andhra-pradesh/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "andhra pradesh"],
+    "name": "NCSCM Andhra Pradesh Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/NCSCM_AP_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
