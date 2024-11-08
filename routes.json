@@ -708,7 +708,7 @@
     "handlertype": "pmtiles",
     "category": ["cadastrals", "karnataka"],
     "name": "NCSCM Karnataka Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/NCSCM_KN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/NCSCM_KN_Cadastrals.pmtiles"
   },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
