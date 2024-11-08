@@ -313,9 +313,15 @@
   },
   "/not-so-open/urban/hyderabad/buildings/tracgis/": {
     "handlertype": "pmtiles",
-    "category": ["urban", "buildings", "hyderabad" ],
+    "category": ["urban", "buildings", "hyderabad", "telangana" ],
     "name": "Hyderabad building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Hyderabad_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/khammam/buildings/tracgis/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "khammam", "telangana" ],
+    "name": "Khammam building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Khammam_Buildings.pmtiles"
   },
   "/overture-places/": {
     "handlertype": "pmtiles",
