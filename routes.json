@@ -295,15 +295,21 @@
   },
   "/not-so-open/urban/buildings/wb-amrut/": {
     "handlertype": "pmtiles",
-    "category": ["urban", "buildings" ],
+    "category": ["urban", "buildings", "west bengal" ],
     "name": "WB AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles"
   },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
-    "category": ["urban", "buildings" ],
+    "category": ["urban", "buildings", "delhi" ],
     "name": "GSDL Delhi buildings",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GSDL_buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/rajdharaa/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "rajasthan" ],
+    "name": "Rajasthan Urban building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Rajdharaa_ULB_Building_footprints.pmtiles"
   },
   "/overture-places/": {
     "handlertype": "pmtiles",
