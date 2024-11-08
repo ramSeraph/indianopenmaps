@@ -698,6 +698,18 @@
     "name": "GSDL Delhi cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/delhi/GSDL_Cadastrals.pmtiles"
   },
+  "not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "jammu and kashmir"],
+    "name": "Jammu and Kashmir LRIS Khasra cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_Khasra_Cadastral.pmtiles"
+  },
+  "not-so-open/cadastrals/jammu-and-kashmir/ulpins/lris/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "jammu and kashmir"],
+    "name": "Jammu and Kashmir LRIS ULPIN cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_ULPIN_Cadastral.pmtiles"
+  },
   "/not-so-open/cadastrals/telangana/bhunaksha/tracgis/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "telangana"],
