@@ -710,6 +710,30 @@
     "name": "NCSCM Karnataka Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/NCSCM_KN_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/gujarat/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "gujarat"],
+    "name": "NCSCM Gujarat Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCSCM_GJ_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/maharashtra/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "maharashtra"],
+    "name": "NCSCM Maharashtra Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/NCSCM_MH_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/puducherry/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "puducherry"],
+    "name": "NCSCM Puducherry Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/puducherry/NCSCM_PC_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/dadra-and-nagar-haveli-and-daman-and-diu/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "dadra and nagar haveli and daman and diu"],
+    "name": "NCSCM Dadra and Nagar Haveli and Daman and Diu Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/dadra-and-nagar-haveli-and-daman-and-diu/NCSCM_DNHDD_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
