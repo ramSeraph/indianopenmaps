@@ -740,7 +740,7 @@
     "name": "NCSCM Lakshadweep Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/NCSCM_LK_Cadastrals.pmtiles"
   },
-  "/not-so-open/cadastrals/andama-and-nicobar/coastal/ncscm/": {
+  "/not-so-open/cadastrals/andaman-and-nicobar/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "andaman and nicobar"],
     "name": "NCSCM Andaman and Nicobar islands Coastal cadastrals",
