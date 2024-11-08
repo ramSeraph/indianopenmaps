@@ -734,6 +734,18 @@
     "name": "NCSCM Dadra and Nagar Haveli and Daman and Diu Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/dadra-and-nagar-haveli-and-daman-and-diu/NCSCM_DNHDD_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/lakshadweep/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "lakshadweep"],
+    "name": "NCSCM Lakshadweep Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/NCSCM_LK_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/andama-and-nicobar/coastal/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "andaman and nicobar"],
+    "name": "NCSCM Andaman and Nicobar islands Coastal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andaman-and-nicobar/NCSCM_AN_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
