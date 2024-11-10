@@ -752,6 +752,12 @@
     "name": "NCSCM Maharashtra Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/NCSCM_MH_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/maharashtra/mrsac/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "maharashtra"],
+    "name": "MRSAC Maharashtra cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/MRSAC_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/puducherry/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "puducherry"],
