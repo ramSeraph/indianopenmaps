@@ -566,6 +566,12 @@
     "name": "WRIS Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Streams.pmtiles"
   },
+  "/water-body-census/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Jaldharohar First Water body Census",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbody-census/JalDharohar_Waterbody_Census.pmtiles"
+  },
   "/water-ways/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
