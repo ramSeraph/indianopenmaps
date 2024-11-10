@@ -566,6 +566,60 @@
     "name": "WRIS Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Streams.pmtiles"
   },
+  "/water-ways/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Inland Waterways",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways.pmtiles"
+  },
+  "/water-ways/with-depth/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Inland Waterways with depth",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways_with_depth.pmtiles"
+  },
+  "/water-ways/navigation-canals/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Navigation canals",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Navigation_Canals.pmtiles"
+  },
+  "/water-ways/facilities/wris/": {
+    "handlertype": "pmtiles",
+    "category": ["water", "facilities"],
+    "name": "WRIS Waterway facilities",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterway_facilities.pmtiles"
+  },
+  "/water-ways/spurs/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Spurs",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Spurs.pmtiles"
+  },
+  "/not-so-open/water-ways/facilities/soi/": {
+    "handlertype": "pmtiles",
+    "category": ["water", "facilities"],
+    "name": "SOI Waterway facilities",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Waterway_facilities.pmtiles"
+  },
+  "/not-so-open/water-ways/navigation-locks/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Navigation Locks",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Navigation_Locks.pmtiles"
+  },
+  "/not-so-open/water-ways/ferries/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Ferries",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Ferries.pmtiles"
+  },
+  "/not-so-open/water-ways/steamer-service/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Steamer Service",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Steamer_service.pmtiles"
+  },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
     "category": ["habitations", "facilities"],
