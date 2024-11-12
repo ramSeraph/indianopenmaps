@@ -824,6 +824,12 @@
     "name": "NCSCM Kerala Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/NCSCM_KL_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/kerala/urban/lsgdp/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "kerala"],
+    "name": "LSGDP Kerala Urban cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/LSGDP_KL_Urban_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/karnataka/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "karnataka"],
