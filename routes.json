@@ -191,11 +191,23 @@
     "name": "WB AMRUT Localities",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Localities.pmtiles"
   },
-  "/not-so-open/urban/slums/wb-amrut/": {
+  "/not-so-open/urban/areas/delhi/gsdl/": {
     "handlertype": "pmtiles",
     "category": "urban",
+    "name": "GSDL Delhi Localities",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/GSDL_Localities.pmtiles"
+  },
+  "/not-so-open/urban/slums/wb-amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "slums", "west bengal"],
     "name": "WB AMRUT Slum boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Slum_boundaries.pmtiles"
+  },
+  "/not-so-open/urban/slums/ghmc/tracgis/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "slums", "hyderabad", "telangana"],
+    "name": "Hyderabad Slum boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TRACGIS_GHMC_Slums.pmtiles"
   },
   "/not-so-open/urban/land-use/wb-amrut/": {
     "handlertype": "pmtiles",
