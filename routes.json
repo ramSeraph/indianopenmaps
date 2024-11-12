@@ -853,5 +853,11 @@
     "category": ["cadastrals", "west bengal"],
     "name": "WB AMRUT urban cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
+  },
+  "/not-so-open/police/andhra-pradesh/station-boundaries/apsac/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "andhra pradesh"],
+    "name": "APSAC Andhra Pradesh Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/APSAC_Police_station_boundaries.pmtiles"
   }
 }
