@@ -527,6 +527,12 @@
     "name": "PINCode Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/PincodeBoundaries.pmtiles"
   },
+  "/not-so-open/pincodes/delhi/gsdl/": {
+    "handlertype": "pmtiles",
+    "category": ["postal", "delhi"],
+    "name": "GSDL Delhi PINCode/sublocality Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/GSDL_Pincodes.pmtiles"
+  },
   "/basins/wris/": {
     "handlertype": "pmtiles",
     "category": [
