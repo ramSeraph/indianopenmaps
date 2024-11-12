@@ -215,6 +215,12 @@
     "name": "WB AMRUT Urban Land Use Polygons",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_ULU_polygons.pmtiles"
   },
+  "/not-so-open/urban/kerala/land-use/lsgdp/": {
+    "handlertype": "pmtiles",
+    "category": "urban",
+    "name": "Kerala LSGDP Urban Land Use Polygons",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/LSGDP_KL_ULU.pmtiles"
+  },
   "/not-so-open/constituencies/parliament/lgd/": {
     "handlertype": "pmtiles",
     "category": "constituencies",
