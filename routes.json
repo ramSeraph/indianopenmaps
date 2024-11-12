@@ -806,6 +806,12 @@
     "name": "Andhra Pradesh APSAC cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/APSAC_AP_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/andhra-pradesh/forest/apsac/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "andhra pradesh", "forest"],
+    "name": "Andhra Pradesh APSAC forest cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/APSAC_AP_Forest_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/tamil-nadu/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "tamil nadu"],
