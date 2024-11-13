@@ -842,6 +842,12 @@
     "name": "NCSCM Karnataka Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/NCSCM_KN_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/karnataka/kgismaps/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "karnataka"],
+    "name": "Karnataka KGSIMAPS cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/KGISMAPS_KN_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/gujarat/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "gujarat"],
