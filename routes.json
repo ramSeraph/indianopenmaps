@@ -908,6 +908,12 @@
     "name": "Haryana HARSAC Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/haryana/HRSAC_HR_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/odisha/odisha4kgeo/": {
+    "handlertype": "mosaic",
+    "category": ["cadastrals", "odisha"],
+    "name": "Odisha Odisha4kgeo Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/odisha/Odisha4kgeo_OD_Cadastrals.mosaic.json"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
