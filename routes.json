@@ -902,6 +902,12 @@
     "name": "Jharkhand JSAC Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jharkhand/JSAC_JH_Cadastrals.mosaic.json"
   },
+  "/not-so-open/cadastrals/haryana/hrsac/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "haryana"],
+    "name": "Haryana HARSAC Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/haryana/HRSAC_HR_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
