@@ -920,6 +920,24 @@
     "name": "WB AMRUT urban cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
   },
+  "/not-so-open/police/tamil-nadu/station-boundaries/tngis/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "tamil nadu"],
+    "name": "TNGIS Tamil Nadu Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Police_Station_Boundaries.pmtiles"
+  },
+  "/not-so-open/police/tamil-nadu/traffic/station-boundaries/tngis/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "traffic", "tamil nadu"],
+    "name": "TNGIS Tamil Nadu Traffic Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Traffic_Police_Station_Boundaries.pmtiles"
+  },
+  "/not-so-open/police/rajasthan/station-boundaries/rajdharaa/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "rajasthan"],
+    "name": "Rajdharaa Rajasthan Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_Police_Thana_Boundary.pmtiles"
+  },
   "/not-so-open/police/andhra-pradesh/station-boundaries/apsac/": {
     "handlertype": "pmtiles",
     "category": ["police", "andhra pradesh"],
