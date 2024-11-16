@@ -345,7 +345,7 @@
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "chennai", "tamil nadu" ],
     "name": "Chennai building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TNGIS_GCC_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TNGIS_GCC_Chennai_Buildings.pmtiles"
   },
   "/overture-places/": {
     "handlertype": "pmtiles",
