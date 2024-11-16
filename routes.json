@@ -341,6 +341,12 @@
     "name": "Khammam building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Khammam_Buildings.pmtiles"
   },
+  "/not-so-open/urban/chennai/buildings/tngis/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "chennai", "tamil nadu" ],
+    "name": "Chennai building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TNGIS_GCC_Buildings.pmtiles"
+  },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
