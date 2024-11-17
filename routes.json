@@ -944,6 +944,19 @@
     "name": "Rajdharaa Rajasthan Police Station Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_Police_Thana_Boundary.pmtiles"
   },
+  "/not-so-open/police/rajasthan/grp/station-boundaries/rajdharaa/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "railway", "rajasthan"],
+    "name": "Rajdharaa Rajasthan Railway Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_GRP_Thana_Boundary.pmtiles"
+  },
+  "/not-so-open/police/bihar/station-boundaries/apsac/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "bihar"],
+    "name": "Bhugoal Bihar Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Bhugoal_BH_Police_Thana_Boundaries.pmtiles"
+  },
+
   "/not-so-open/police/andhra-pradesh/station-boundaries/apsac/": {
     "handlertype": "pmtiles",
     "category": ["police", "andhra pradesh"],
