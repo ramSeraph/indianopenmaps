@@ -950,7 +950,7 @@
     "name": "Rajdharaa Rajasthan Railway Police Station Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_GRP_Thana_Boundary.pmtiles"
   },
-  "/not-so-open/police/bihar/station-boundaries/apsac/": {
+  "/not-so-open/police/bihar/station-boundaries/bhugoal/": {
     "handlertype": "pmtiles",
     "category": ["police", "bihar"],
     "name": "Bhugoal Bihar Police Station Boundaries",
