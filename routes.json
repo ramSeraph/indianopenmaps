@@ -956,7 +956,12 @@
     "name": "Bhugoal Bihar Police Station Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Bhugoal_BH_Police_Thana_Boundaries.pmtiles"
   },
-
+  "/not-so-open/police/telangana/station-boundaries/tracgis/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "telangana"],
+    "name": "TRACGIS Telnagana Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TRACGIS_TG_Police_Station_Boundaries.pmtiles"
+  },
   "/not-so-open/police/andhra-pradesh/station-boundaries/apsac/": {
     "handlertype": "pmtiles",
     "category": ["police", "andhra pradesh"],
