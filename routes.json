@@ -960,7 +960,7 @@
     "handlertype": "pmtiles",
     "category": ["police", "delhi"],
     "name": "GSDL Delhi Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/GSDL_DL_Police_Station_Boundary.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/GSDL_DL_Police_Station_Boundaries.pmtiles"
   },
   "/not-so-open/police/rajasthan/grp/station-boundaries/rajdharaa/": {
     "handlertype": "pmtiles",
