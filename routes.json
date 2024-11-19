@@ -926,7 +926,7 @@
     "name": "Goa Bhunaksha Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Goa_Bhunaksha_Cadastrals.pmtiles"
   },
-  "/not-so-open/cadastrals/manipur/manipur/": {
+  "/not-so-open/cadastrals/manipur/marsac/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "manipur"],
     "name": "Manipur MARSAC Cadastrals",
