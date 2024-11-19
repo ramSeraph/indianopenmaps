@@ -920,6 +920,12 @@
     "name": "Odisha Odisha4kgeo Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/odisha/Odisha4kgeo_OD_Cadastrals.mosaic.json"
   },
+  "/not-so-open/cadastrals/goa/bhunaksha/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "goa"],
+    "name": "Goa Bhunaksha Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Goa_Bhunaksha_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
