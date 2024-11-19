@@ -788,6 +788,12 @@
     "name": "GSDL Delhi cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/delhi/GSDL_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/tripura/nesdr/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "tripura"],
+    "name": "NESDR Tripura cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/NESDR_Tripura_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "jammu and kashmir"],
