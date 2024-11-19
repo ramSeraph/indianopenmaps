@@ -926,6 +926,12 @@
     "name": "Goa Bhunaksha Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Goa_Bhunaksha_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/manipur/manipur/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "manipur"],
+    "name": "Manipur MARSAC Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/manipur/MARSAC_MN_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
