@@ -794,6 +794,12 @@
     "name": "NESDR Tripura cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/NESDR_Tripura_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/punjab/punjabgis/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "punjab"],
+    "name": "PunjabGIS Punjab cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/PunjabGIS_PB_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "jammu and kashmir"],
