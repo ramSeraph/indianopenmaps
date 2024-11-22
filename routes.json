@@ -842,6 +842,12 @@
     "name": "NCSCM Tamil Nadu Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/NCSCM_TN_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/tamil-nadu/tngis/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "tamil nadu"],
+    "name": "TNGIS Tamil Nadu cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/TNGIS_TN_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/kerala/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "kerala"],
