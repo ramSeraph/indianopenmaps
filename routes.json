@@ -366,11 +366,23 @@
     "name": "NIC Cell Towers",
     "url": "https://github.com/ramSeraph/indian_communications/releases/download/cell-towers/NIC_Celltower_locations.pmtiles"
   },
-  "/not-so-open/bharatnet/": {
+  "/not-so-open/bharatnet/onts/bbnl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "BBNL ONTs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_points.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_ONTs.pmtiles"
+  },
+  "/not-so-open/bharatnet/olts/bbnl/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "BBNL OLTs",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OLTs.pmtiles"
+  },
+  "/not-so-open/bharatnet/ofcs/bbnl/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "BBNL OFCs",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OFCs.pmtiles"
   },
   "/fb-roads/": {
     "handlertype": "pmtiles",
