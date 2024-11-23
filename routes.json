@@ -974,6 +974,18 @@
     "name": "Rajdharaa Rajasthan Police Station Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_Police_Thana_Boundary.pmtiles"
   },
+  "/not-so-open/police/karnataka/station-boundaries/kgismaps/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "karnataka"],
+    "name": "KGISMAPS Karnataka Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Police_Station_Boundaries.pmtiles"
+  },
+  "/not-so-open/police/grp/karnataka/station-boundaries/kgismaps/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "karnataka", "railway"],
+    "name": "KGISMAPS Karnataka Railway Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Railway_Police_Station_Boundaries.pmtiles"
+  },
   "/not-so-open/police/delhi/station-boundaries/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["police", "delhi"],
