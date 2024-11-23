@@ -608,6 +608,12 @@
     "name": "WRIS Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Streams.pmtiles"
   },
+  "/not-so-open/streams/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOi Streams",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles"
+  },
   "/water-body-census/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
