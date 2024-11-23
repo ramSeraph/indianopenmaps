@@ -986,6 +986,12 @@
     "name": "KGISMAPS Karnataka Railway Police Station Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Railway_Police_Station_Boundaries.pmtiles"
   },
+  "/not-so-open/police/traffic/karnataka/station-boundaries/kgismaps/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "karnataka", "traffic"],
+    "name": "KGISMAPS Karnataka traffic Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Traffic_Police_Station_Boundaries.pmtiles"
+  },
   "/not-so-open/police/delhi/station-boundaries/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["police", "delhi"],
