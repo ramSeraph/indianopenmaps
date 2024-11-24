@@ -611,8 +611,38 @@
   "/not-so-open/streams/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
-    "name": "SOi Streams",
+    "name": "SOI Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles"
+  },
+  "/not-so-open/irrigation/canals/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Canals",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Canals.pmtiles"
+  },
+  "/not-so-open/irrigation/drains/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Drains",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Canals.pmtiles"
+  },
+  "/not-so-open/irrigation/canals/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "Bharatmaps Canals",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canals.pmtiles"
+  },
+  "/not-so-open/irrigation/canal-polys/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "Bharatmaps Canal Polygons",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canal_Polygons.pmtiles"
+  },
+  "/not-so-open/irrigation/canal-names/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "Bharatmaps Canal Names",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canal_Names.pmtiles"
   },
   "/water-body-census/wris/": {
     "handlertype": "pmtiles",
