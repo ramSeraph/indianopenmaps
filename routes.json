@@ -227,6 +227,12 @@
     "name": "Mumbai Slum boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/UMD_Mumbai_Slum_Boundaries_2016.pmtiles"
   },
+  "/not-so-open/urban/slums/delhi/gsdl/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "slums", "delhi"],
+    "name": "Delhi Slum boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/DUSIB_Delhi_Slum_Boundaries.pmtiles"
+  },
   "/not-so-open/urban/land-use/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": "urban",
