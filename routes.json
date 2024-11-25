@@ -408,6 +408,24 @@
     "name": "BBNL OFCs",
     "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OFCs.pmtiles"
   },
+  "/not-so-open/bharatnet/andhra-pradesh/gps/apsfl/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "APSFL BBNL Gram Panchayat Endpoints",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_GPs.pmtiles"
+  },
+  "/not-so-open/bharatnet/andhra-pradesh/olts/apsfl/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "APSFL BBNL OLTs",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OLTs.pmtiles"
+  },
+  "/not-so-open/bharatnet/andhra-pradesh/ofcs/apsfl/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "APSFL BBNL OFCs",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OFCs.pmtiles"
+  },
   "/fb-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
