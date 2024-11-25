@@ -141,7 +141,7 @@ async function start() {
   try {
     createHandlers();
     fastify.register(fastifyStatic, {
-      root: path.join(__dirname, 'static'),
+      root: path.join(__dirname, '..', 'static'),
     });
 
     fastify.addHook('onReady', initializeHandlers);
