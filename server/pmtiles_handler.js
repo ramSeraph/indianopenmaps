@@ -11,6 +11,7 @@ class PMTilesHandler {
     this.logger = logger;
     this.datameetAttribution = datameetAttribution;
     this.title = null;
+    this.inited = false;
   }
 
   async init() {
@@ -18,14 +19,26 @@ class PMTilesHandler {
     this.header = header;
     this.mimeType = common.getMimeType(header.tileType);
     this.metadata = await this.source.getMetadata();
+    this.inited = true;
+  }
+
+  async initIfNeeded() {
+    if (this.inited) {
+        return;
+    }
+    await this.init();
   }
 
   async getTile(z, x, y) {
+    await this.initIfNeeded();
+
     let arr = await this.source.getZxy(z, x, y);
     return [ arr, this.mimeType ];
   }
 
   async getConfig() {
+    await this.initIfNeeded();
+
     return {
       tilejson: "3.0.0",
       scheme: "xyz",

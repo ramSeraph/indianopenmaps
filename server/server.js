@@ -60,21 +60,6 @@ async function getTileJson(handler, request, reply) {
               .send(JSON.stringify(config));
 }
 
-async function initializeHandlers() {
-  logger.info('initializing handlers');
-  const promises = Object.keys(handlerMap).map(async (k) => {
-    logger.info(`initializing ${k}`);
-    try {
-      await handlerMap[k].init();
-    }
-    catch(err) {
-      console.log(`failed to initialize ${k}, error: ${err}`);
-    }
-  });
-  await Promise.all(promises);
-  logger.info('done initializing handlers');
-}
-
 function addRoutes() {
   logger.info('adding routes');
 
@@ -144,7 +129,6 @@ async function start() {
       root: path.join(__dirname, '..', 'static'),
     });
 
-    fastify.addHook('onReady', initializeHandlers);
     addRoutes();
     await fastify.listen({ host: '0.0.0.0', port: port });
   } catch (err) {

@@ -72,6 +72,7 @@ class MosaicHandler {
     this.mimeTypes = null;
     this.datameetAttribution = datameetAttribution;
     this.title = null;
+    this.inited = false;
   }
 
   _resolveKey(key) {
@@ -106,6 +107,14 @@ class MosaicHandler {
 
   async init() {
     await this._populateMosaic();
+    this.inited = true;
+  }
+
+  async initIfNeeded() {
+    if (this.inited) {
+        return;
+    }
+    await this.init();
   }
 
   _getSource(key) {
@@ -130,6 +139,8 @@ class MosaicHandler {
   }
 
   async getTile(z, x, y) {
+    await this.initIfNeeded();
+
     const k = this._getSourceKey(z, x, y);
     if (k === null) {
       return [null, null];
@@ -141,6 +152,8 @@ class MosaicHandler {
   }
 
   async getConfig() {
+    await this.initIfNeeded();
+
     const config = _merge(this.pmtilesDict);
     const header = config.header;
     const metadata = config.metadata;
