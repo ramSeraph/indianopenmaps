@@ -678,7 +678,7 @@
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Drains",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Canals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Drains.pmtiles"
   },
   "/not-so-open/irrigation/canals/bharatmaps/": {
     "handlertype": "pmtiles",
