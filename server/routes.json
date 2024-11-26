@@ -656,6 +656,24 @@
     "name": "WRIS waterbodies",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Waterbodies.pmtiles"
   },
+  "not-so-open/waterbodies/lakes/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Lakes",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Lakes.pmtiles"
+  },
+  "not-so-open/waterbodies/tanks/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Tanks",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tanks.pmtiles"
+  },
+  "not-so-open/waterbodies/tank-points/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Tank Points",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tank_Points.pmtiles"
+  },
   "/river-polygons/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
