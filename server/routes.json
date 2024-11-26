@@ -896,6 +896,12 @@
     "name": "NESDR Tripura cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/NESDR_Tripura_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/tripura/matribhoomi/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "tripura"],
+    "name": "Matribhoomi Tripura cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/Matribhoomi_Tripura_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/bihar/matribhoomi/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "bihar"],
