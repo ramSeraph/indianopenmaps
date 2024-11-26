@@ -740,6 +740,24 @@
     "name": "SOI Siphons",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles"
   },
+  "/irrigation/anicuts/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Anicuts/weirs/barrages",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Anicuts.pmtiles"
+  },
+  "/irrigation/lift-stations/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS LIFT stations",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_LIFT_Stations.pmtiles"
+  },
+  "/irrigation/dams/wris/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "WRIS Dams",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Dams.pmtiles"
+  },
   "/not-so-open/irrigation/canals/bharatmaps/": {
     "handlertype": "pmtiles",
     "category": "water",
