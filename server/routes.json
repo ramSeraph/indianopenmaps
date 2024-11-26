@@ -426,6 +426,18 @@
     "name": "APSFL BBNL OFCs",
     "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OFCs.pmtiles"
   },
+  "/not-so-open/tanfinet/tamil-nadu/nodes/tngis/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "TANFINET Nodes",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Nodes.pmtiles"
+  },
+  "/not-so-open/tanfinet/tamil-nadu/links/tngis/": {
+    "handlertype": "pmtiles",
+    "category": "communications",
+    "name": "TANFINET Links",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Links.pmtiles"
+  },
   "/fb-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
