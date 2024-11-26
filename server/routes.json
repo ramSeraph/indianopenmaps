@@ -674,6 +674,18 @@
     "name": "SOI Tank Points",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tank_Points.pmtiles"
   },
+  "not-so-open/natural-water-features/springs/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Springs",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles"
+  },
+  "not-so-open/natural-water-features/waterfalls/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Waterfalls",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Waterfalls.pmtiles"
+  },
   "/river-polygons/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
