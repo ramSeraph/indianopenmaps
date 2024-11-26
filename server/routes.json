@@ -656,31 +656,31 @@
     "name": "WRIS waterbodies",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Waterbodies.pmtiles"
   },
-  "not-so-open/waterbodies/lakes/soi/": {
+  "/not-so-open/waterbodies/lakes/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Lakes",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Lakes.pmtiles"
   },
-  "not-so-open/waterbodies/tanks/soi/": {
+  "/not-so-open/waterbodies/tanks/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Tanks",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tanks.pmtiles"
   },
-  "not-so-open/waterbodies/tank-points/soi/": {
+  "/not-so-open/waterbodies/tank-points/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Tank Points",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tank_Points.pmtiles"
   },
-  "not-so-open/natural-water-features/springs/soi/": {
+  "/not-so-open/natural-water-features/springs/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Springs",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles"
   },
-  "not-so-open/natural-water-features/waterfalls/soi/": {
+  "/not-so-open/natural-water-features/waterfalls/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Waterfalls",
