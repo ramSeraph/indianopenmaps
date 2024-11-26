@@ -527,6 +527,18 @@
     "name": "SOI Tolls",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tolls.pmtiles"
   },
+  "/not-so-open/soi-passes/": {
+    "handlertype": "pmtiles",
+    "category": "roads",
+    "name": "SOI Passes",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Passes.pmtiles"
+  },
+  "/not-so-open/soi-glacial-routes/": {
+    "handlertype": "pmtiles",
+    "category": "roads",
+    "name": "SOI Glacial Routes",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles"
+  },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
