@@ -696,7 +696,7 @@
     "handlertype": "pmtiles",
     "category": "water",
     "name": "Bharatmaps Canal Names",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canal_Names.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canals_with_names.pmtiles"
   },
   "/water-body-census/wris/": {
     "handlertype": "pmtiles",
