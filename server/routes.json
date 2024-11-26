@@ -680,6 +680,12 @@
     "name": "SOI Springs",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles"
   },
+  "/not-so-open/natural-water-features/springs-compiled/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Springs Compiled",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs_compiled.pmtiles"
+  },
   "/not-so-open/natural-water-features/waterfalls/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
@@ -721,6 +727,18 @@
     "category": "water",
     "name": "SOI Drains",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Drains.pmtiles"
+  },
+  "/not-so-open/irrigation/sluices/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Sluices",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Sluices.pmtiles"
+  },
+  "/not-so-open/irrigation/siphons/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Siphons",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles"
   },
   "/not-so-open/irrigation/canals/bharatmaps/": {
     "handlertype": "pmtiles",
