@@ -26,7 +26,6 @@ body { margin:0; padding:0; }
 
 .maplibregl-ctrl-inspect_property-value {
   display: table-cell;
-  word-break: break-all;
 }
 
 .maplibregl-ctrl-inspect_property-name {
