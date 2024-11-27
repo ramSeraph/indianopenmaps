@@ -770,6 +770,18 @@
     "name": "SOI Siphons",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles"
   },
+  "/not-so-open/irrigation/weirs/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Weirs",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weirs.pmtiles"
+  },
+  "/not-so-open/irrigation/weir-locks/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Weir Locks",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weir_Locks.pmtiles"
+  },
   "/not-so-open/irrigation/aqueducts/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
