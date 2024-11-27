@@ -539,6 +539,24 @@
     "name": "SOI Glacial Routes",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles"
   },
+  "/not-so-open/soi-causeways/": {
+    "handlertype": "pmtiles",
+    "category": "roads",
+    "name": "SOI Causeways",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Causeways.pmtiles"
+  },
+  "/not-so-open/soi-culverts/": {
+    "handlertype": "pmtiles",
+    "category": "roads",
+    "name": "SOI Culverts",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Culverts.pmtiles"
+  },
+  "/not-so-open/soi-viaducts/": {
+    "handlertype": "pmtiles",
+    "category": "roads",
+    "name": "SOI Viaducts",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
+  },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
