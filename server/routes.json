@@ -656,6 +656,12 @@
     "name": "WRIS waterbodies",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Waterbodies.pmtiles"
   },
+  "/not-so-open/waterbodies/reservoirs/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "Bharatmaps Reservoirs",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Bharatmaps_Reservoirs.pmtiles"
+  },
   "/not-so-open/waterbodies/lakes/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
