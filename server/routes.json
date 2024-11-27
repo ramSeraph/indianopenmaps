@@ -746,6 +746,30 @@
     "name": "SOI Siphons",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles"
   },
+  "/not-so-open/irrigation/aqueducts/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Aqueducts",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Aqueducts.pmtiles"
+  },
+  "/not-so-open/irrigation/hand-pumps/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Hand Pumps",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Hand_Pumps.pmtiles"
+  },
+  "/not-so-open/irrigation/tube-wells/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Tube Wells",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Tube_Wells.pmtiles"
+  },
+  "/not-so-open/irrigation/wells/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Wells",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Wells.pmtiles"
+  },
   "/irrigation/anicuts/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
@@ -763,6 +787,12 @@
     "category": "water",
     "name": "WRIS Dams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Dams.pmtiles"
+  },
+  "not-so-open/irrigation/dams/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "Bharatmaps Dams",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Dams.pmtiles"
   },
   "/not-so-open/irrigation/canals/bharatmaps/": {
     "handlertype": "pmtiles",
