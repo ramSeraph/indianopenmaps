@@ -812,7 +812,7 @@
     "name": "WRIS Dams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Dams.pmtiles"
   },
-  "not-so-open/irrigation/dams/bharatmaps/": {
+  "/not-so-open/irrigation/dams/bharatmaps/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "Bharatmaps Dams",
