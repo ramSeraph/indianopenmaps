@@ -1220,13 +1220,13 @@
     "name": "WB AMRUT urban cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
   },
-  "/not-so-open/power/power-lines/soi/": {
+  "/not-so-open/power/lines/soi/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "SOI Power Lines",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles"
   },
-  "/not-so-open/power/power-lines/rec/": {
+  "/not-so-open/power/lines/rec/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "REC Power Line Connections",
