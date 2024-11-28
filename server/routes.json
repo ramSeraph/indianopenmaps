@@ -746,6 +746,18 @@
     "name": "SOI Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles"
   },
+  "/not-so-open/water-channels/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Water Channels",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channels.pmtiles"
+  },
+  "/not-so-open/water-channel-polys/soi/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "SOI Water Channel Polygons",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channel_Polygons.pmtiles"
+  },
   "/not-so-open/irrigation/canals/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
