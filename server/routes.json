@@ -1220,6 +1220,30 @@
     "name": "WB AMRUT urban cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
   },
+  "/not-so-open/power/power-lines/soi/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "SOI Power Lines",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles"
+  },
+  "/not-so-open/power/power-lines/rec/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "REC Power Line Connections",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Bharatmaps_REC_Power_Line_Connections.pmtiles"
+  },
+  "/not-so-open/power/sub-stations/rec/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "REC Power Sub Stations",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-stations/Bharatmaps_REC_Power_Sub_Stations.pmtiles"
+  },
+  "/not-so-open/power/transformers/rec/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "REC Power Transformers",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/transformers/Bharatmaps_REC_Transformers.pmtiles"
+  },
   "/not-so-open/police/tamil-nadu/station-boundaries/tngis/": {
     "handlertype": "pmtiles",
     "category": ["police", "tamil nadu"],
