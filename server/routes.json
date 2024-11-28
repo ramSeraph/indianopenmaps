@@ -557,6 +557,12 @@
     "name": "SOI Viaducts",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
   },
+  "/not-so-open/soi-fords/": {
+    "handlertype": "pmtiles",
+    "category": ["roads", "water" ],
+    "name": "SOI Fords",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
+  },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
@@ -1183,6 +1189,12 @@
     "category": ["cadastrals", "lakshadweep"],
     "name": "NCSCM Lakshadweep Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/NCSCM_LK_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/lakshadweep/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "lakshadweep"],
+    "name": "Bharatmaps Lakshadweep cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/Bharatmaps_Lakshadweep_Cadastrals.pmtiles"
   },
   "/not-so-open/cadastrals/andaman-and-nicobar/coastal/ncscm/": {
     "handlertype": "pmtiles",
