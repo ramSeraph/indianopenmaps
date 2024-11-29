@@ -635,6 +635,12 @@
     "name": "SOI Forests",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/SOI_Forests.pmtiles"
   },
+  "/not-so-open/forests/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": "forests",
+    "name": "Bharatmaps Forests",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_RFA.pmtiles"
+  },
   "/not-so-open/pincodes/": {
     "handlertype": "pmtiles",
     "category": "postal",
