@@ -641,6 +641,18 @@
     "name": "Bharatmaps Forests",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_RFA.pmtiles"
   },
+  "/not-so-open/coastal/regulation-zones/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": "coastal",
+    "name": "NCSCM Coastal Regulation Zones",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_CRZ_Regulation_Zones.pmtiles"
+  },
+  "/not-so-open/coastal/regulation-lines/ncscm/": {
+    "handlertype": "pmtiles",
+    "category": "coastal",
+    "name": "NCSCM Coastal Regulation Lines",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_CRZ_Regulation_Lines.pmtiles"
+  },
   "/not-so-open/pincodes/": {
     "handlertype": "pmtiles",
     "category": "postal",
