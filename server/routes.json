@@ -101,7 +101,7 @@
     "handlertype": "pmtiles",
     "category": "villages",
     "name": "SOI Villages",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/SOI_Villages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/SOI_villages.pmtiles"
   },
   "/not-so-open/village-points/soi/": {
     "handlertype": "pmtiles",
