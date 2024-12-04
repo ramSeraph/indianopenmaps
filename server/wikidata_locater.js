@@ -9,7 +9,15 @@ function getPage(request, markerExpeted) {
   Object.keys(routes).forEach((rPrefix, _) => {
     const rInfo = routes[rPrefix];
     var name = rInfo['name'];
+    var url  = rInfo['url'];
     var cats = rInfo['category'];
+
+    var download_url = url.replace('/releases/download/', '/releases/tag/')
+                          .split('/')
+                          .slice(0,-1)
+                          .join('/');
+    console.log(download_url);
+
     const type = ('type' in rInfo) ? rInfo['type'] : 'vector';
     if (type == 'raster') {
       return;
@@ -25,7 +33,7 @@ function getPage(request, markerExpeted) {
       if (markerExpeted) {
         query = `?markerLat=${markerLat}&markerLon=${markerLon}#14/${markerLat}/${markerLon}`;
       }
-      linksByCats[cat].push(`<a href="${rPrefix}view${query}" target="_blank">${name}</a>`);
+      linksByCats[cat].push(`<a href="${rPrefix}view${query}" target="_blank">${name}</a> - <a href="${download_url}" target="_blank">Download Link</a>`);
     }
   });
   
