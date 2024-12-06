@@ -1184,6 +1184,12 @@
     "name": "VEDAS Gujarat cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Vedas_GJ_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/gujarat/matribhoomi/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "gujarat"],
+    "name": "Matribhoomi Gujarat cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Matribhoomi_GJ_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/maharashtra/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "maharashtra"],
