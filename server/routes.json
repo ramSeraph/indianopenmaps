@@ -1178,6 +1178,12 @@
     "name": "NCSCM Gujarat Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCSCM_GJ_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/gujarat/vedas/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "gujarat"],
+    "name": "VEDAS Gujarat cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Vedas_GJ_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/maharashtra/coastal/ncscm/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "maharashtra"],
