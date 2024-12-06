@@ -1106,6 +1106,12 @@
     "name": "Jammu and Kashmir LRIS Khasra cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_Khasra_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/jammu-and-kashmir/matribhoomi/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "jammu and kashmir"],
+    "name": "Matribhoomi Jammu and Kashmir cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/Matribhoomi_JK_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/jammu-and-kashmir/ulpins/lris/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "jammu and kashmir"],
