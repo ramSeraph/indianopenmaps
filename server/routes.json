@@ -1286,6 +1286,12 @@
     "name": "SOI Power Lines",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles"
   },
+  "/not-so-open/power/lines/vedas/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "VEDAS Power Lines",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Trasmission_Lines.pmtiles"
+  },
   "/not-so-open/power/lines/rec/": {
     "handlertype": "pmtiles",
     "category": "power",
