@@ -255,6 +255,7 @@ function addLayers(e) {
           "any",
           ["has", "Height"],
           ["has", "HEIGHT"],
+          ["has", "height"],
         ]
       ],
       'paint': {
@@ -265,6 +266,8 @@ function addLayers(e) {
           ['get', 'Height'],
           ["has", "HEIGHT"], 
           ['get', 'HEIGHT'],
+          ["has", "height"], 
+          ['get', 'height'],
           0
         ],
         'fill-extrusion-opacity': 0.60,
