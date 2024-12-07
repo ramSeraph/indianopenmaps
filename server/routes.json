@@ -1160,6 +1160,12 @@
     "name": "NCSCM Kerala Coastal cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/NCSCM_KL_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/kerala/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "kerala"],
+    "name": "Bhuvan Kerala cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/Bhuvan_Kerala_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/kerala/urban/lsgdp/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "kerala"],
