@@ -1290,7 +1290,7 @@
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Lines",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Trasmission_Lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Transmission_Lines.pmtiles"
   },
   "/not-so-open/power/lines/rec/": {
     "handlertype": "pmtiles",
