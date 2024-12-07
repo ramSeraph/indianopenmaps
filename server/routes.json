@@ -347,6 +347,12 @@
     "name": "GSDL Delhi buildings",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GSDL_buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/vedas/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "ahmedabad" ],
+    "name": "VEDAS Ahmedabad buildings",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Vedas_Ahmedabad_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/rajdharaa/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "rajasthan" ],
