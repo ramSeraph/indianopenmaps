@@ -665,6 +665,13 @@
     "name": "NCSCM Coastal Regulation Lines",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_CRZ_Regulation_Lines.pmtiles"
   },
+  "/not-so-open/coastal/goa/regulation/ncscm/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": ["coastal", "raster", "goa" ],
+    "name": "NCSCM Raster Coastal Regulation Map of Goa",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_Goa_CRZ_Map.pmtiles"
+  },
   "/not-so-open/pincodes/": {
     "handlertype": "pmtiles",
     "category": "postal",
