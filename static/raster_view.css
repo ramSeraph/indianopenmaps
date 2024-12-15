@@ -1,0 +1,14 @@
+body {
+    margin:0;
+}
+div#map-wrapper {
+    display: flex;
+    width:100vw;
+    height:100vh;
+}
+div#map-wrapper div {
+    flex-basis: 100%;
+}
+div#map-left {
+    border-right:1px solid #000;
+}

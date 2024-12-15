@@ -80,19 +80,28 @@ function addRoutes() {
   fastify.get('/view.js', async (request, reply) => {
     return reply.sendFile("view.js");
   });
+  fastify.get('/raster_view.css', async (request, reply) => {
+    return reply.sendFile("raster_view.css");
+  });
+  fastify.get('/static_view.js', async (request, reply) => {
+    return reply.sendFile("raster_view.js");
+  });
 
   Object.keys(handlerMap).forEach((rPrefix, _) => {
     const handler = handlerMap[rPrefix];
     const tileSuffix = handler.tileSuffix;
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
     fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
-    if (tileSuffix == 'webp') {
-      return;
-    }
     fastify.get(`${rPrefix}title`, getTitle.bind(null, handler));
-    fastify.get(`${rPrefix}view`, async (request, reply) => {
-      return reply.sendFile("view.html");
-    });
+    if (handler.type == 'raster') {
+      fastify.get(`${rPrefix}rasterview`, async (request, reply) => {
+        return reply.sendFile("raster_view.html");
+      });
+    } else {
+      fastify.get(`${rPrefix}view`, async (request, reply) => {
+        return reply.sendFile("view.html");
+      });
+    }
   });
   addSOIAncillaryRoutes(fastify);
   logger.info('done adding routes');
@@ -114,9 +123,9 @@ function createHandlers() {
       tilesuffix = 'webp';
     }
     if (rInfo['handlertype'] === 'mosaic') {
-      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], tilesuffix, logger, datameetAttribution);
+      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
     } else {
-      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], tilesuffix, logger, datameetAttribution);
+      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
     }
     handlerMap[rPrefix].setTitle(rInfo['name']);
   });

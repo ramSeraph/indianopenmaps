@@ -2,9 +2,10 @@ const pmtiles = require('pmtiles');
 const common = require('./common');
 
 class PMTilesHandler {
-  constructor(url, tileSuffix, logger, datameetAttribution) {
+  constructor(url, type, tileSuffix, logger, datameetAttribution) {
     this.source = new pmtiles.PMTiles(url);
     this.tileSuffix = tileSuffix;
+    this.type = type;
     this.header = null;
     this.metadata = null;
     this.mimeType = null;

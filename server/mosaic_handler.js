@@ -64,9 +64,10 @@ function _merge(config) {
 }
 
 class MosaicHandler {
-  constructor(url, tileSuffix, logger, datameetAttribution) {
+  constructor(url, type, tileSuffix, logger, datameetAttribution) {
     this.url = url;
     this.tileSuffix = tileSuffix;
+    this.type = type;
     this.logger = logger;
     this.pmtilesDict = null;
     this.mimeTypes = null;
