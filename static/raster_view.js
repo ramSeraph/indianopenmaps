@@ -88,9 +88,12 @@ function addLayers(tileJSON) {
     "main": main2
   };
 
+  const b = tileJSON['bounds'];
+  var center = [(b[0] + b[2])/2, (b[1] + b[3])/2];
+
   var options = {
-    center: [21.5, 78.5],
-    zoom: 5,
+    center: center,
+    zoom: 10,
     minZoom: 5,
     maxZoom: 20,
     attributionControl: false
