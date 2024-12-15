@@ -68,7 +68,7 @@ function addLayers(tileJSON) {
   });
 
   var layerOptions = {
-    maxZoom: tileJSON['maxzoom'],
+    maxNativeZoom: tileJSON['maxzoom'],
     minZoom: tileJSON['minzoom'],
     attribution: tileJSON['attribution'],
   };
