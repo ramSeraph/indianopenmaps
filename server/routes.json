@@ -1185,6 +1185,12 @@
     "name": "Bhuvan Kerala cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/Bhuvan_Kerala_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/west-bengal/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "west bengal"],
+    "name": "Bhuvan West Bengal cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_WestBengal_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/chhattisgarh/bhuvan/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "chhattisgarh"],
