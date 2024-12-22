@@ -335,11 +335,71 @@
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles"
   },
-  "/not-so-open/urban/buildings/wb-amrut/": {
+  "/not-so-open/urban/buildings/west-bengal/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "west bengal" ],
-    "name": "WB AMRUT Urban Building footprints",
+    "name": "West Bengal AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/andaman-and-nicobar/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "andaman and nicobar" ],
+    "name": "Andaman and Nicobar AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AN_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/arunachal-pradesh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "arunachal pradesh" ],
+    "name": "Arunachal Pradesh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AR_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/assam/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "assam" ],
+    "name": "Assam AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AS_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/chhattisgarh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "chhattisgarh" ],
+    "name": "Chhattisgarh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/CG_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/goa/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "goa" ],
+    "name": "Goa AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GA_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/himachal-pradesh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "himachal pradesh" ],
+    "name": "Himachal Pradesh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Hp_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/jammu-and-kashmir/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "jammu and kashmir" ],
+    "name": "Jammu and Kashmir AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/JK_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/kerala/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "kerala" ],
+    "name": "Kerala AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/KL_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/ladakh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "ladakh" ],
+    "name": "Ladakh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/LD_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/manipur/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "manipur" ],
+    "name": "Manipur AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MN_AMRUT_Buildings.pmtiles"
   },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
