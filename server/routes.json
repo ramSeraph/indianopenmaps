@@ -455,6 +455,12 @@
     "name": "Khammam building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Khammam_Buildings.pmtiles"
   },
+  "/not-so-open/urban/telangana/cdma/buildings/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "telangana" ],
+    "name": "Telangana CDMA building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_CDMA_Buildings.pmtiles"
+  },
   "/not-so-open/urban/chennai/buildings/tngis/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "chennai", "tamil nadu" ],
