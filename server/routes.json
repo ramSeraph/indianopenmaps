@@ -401,11 +401,23 @@
     "name": "Ladakh AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/LD_AMRUT_Buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/madhya-pradesh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "madhya pradesh" ],
+    "name": "Madhya Pradesh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MP_AMRUT_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/manipur/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "manipur" ],
     "name": "Manipur AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MN_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/mizoram/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "mizoram" ],
+    "name": "Mizoram AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MZ_AMRUT_Buildings.pmtiles"
   },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
