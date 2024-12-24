@@ -737,6 +737,12 @@
     "name": "Bharatmaps Forests",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_RFA.pmtiles"
   },
+  "/not-so-open/forests/esz/ncog/": {
+    "handlertype": "pmtiles",
+    "category": "forests", 
+    "name": "NCOG Eco Sensitive Zones",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/NCOG_Eco_Sensitive_Zones.pmtiles"
+  },
   "/not-so-open/coastal/regulation-zones/ncscm/": {
     "handlertype": "pmtiles",
     "category": "coastal",
