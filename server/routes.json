@@ -1431,6 +1431,12 @@
     "name": "REC Power Transformers",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/transformers/Bharatmaps_REC_Transformers.pmtiles"
   },
+  "/not-so-open/police/marine/station-boundaries/ncog/": {
+    "handlertype": "pmtiles",
+    "category": ["police", "marine"],
+    "name": "NCOG Marine Police Station Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/NCOG_Marine_Police_Boundaries.pmtiles"
+  },
   "/not-so-open/police/tamil-nadu/station-boundaries/tngis/": {
     "handlertype": "pmtiles",
     "category": ["police", "tamil nadu"],
