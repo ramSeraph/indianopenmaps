@@ -419,6 +419,18 @@
     "name": "Mizoram AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MZ_AMRUT_Buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/puducherry/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "puducherry" ],
+    "name": "Puducherry AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PD_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/punjab/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "punjab" ],
+    "name": "Punjab AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PB_AMRUT_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "delhi" ],
