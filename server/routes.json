@@ -1221,6 +1221,24 @@
     "name": "PunjabGIS Punjab cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/PunjabGIS_PB_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/punjab/ncog/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "punjab"],
+    "name": "NCOG Punjab cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_Punjab_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/punjab/jalandhar/ncog/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "punjab", "jalandhar"],
+    "name": "NCOG Punjab Jalandhar cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_PB_Jalandhar_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/punjab/punjabgis/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "punjab"],
+    "name": "PunjabGIS Punjab cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/PunjabGIS_PB_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "jammu and kashmir"],
