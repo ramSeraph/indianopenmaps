@@ -1317,6 +1317,12 @@
     "name": "Bhuvan Chhattisgarh cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/Bhuvan_Chhattisgarh_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/chhattisgarh/dhamtari/ncog/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "chhattisgarh", "dhamtari"],
+    "name": "NCOG Chhattisgarh Dhamtari cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/NCOG_CG_Dhamtari_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/kerala/urban/lsgdp/": {
     "handlertype": "pmtiles",
     "category": ["cadastrals", "kerala"],
