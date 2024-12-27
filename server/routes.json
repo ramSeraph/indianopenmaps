@@ -1213,7 +1213,13 @@
     "handlertype": "pmtiles",
     "category": ["cadastrals", "bihar"],
     "name": "Matribhoomi Bihar cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/MAtribhoomi_BH_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/Matribhoomi_BH_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/bihar/ncog/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "bihar"],
+    "name": "NCOG Bihar cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NCOG_Bihar_Cadastrals.pmtiles"
   },
   "/not-so-open/cadastrals/punjab/punjabgis/": {
     "handlertype": "pmtiles",
