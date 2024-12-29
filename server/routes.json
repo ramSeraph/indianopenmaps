@@ -437,6 +437,12 @@
     "name": "Tamil Nadu AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TN_AMRUT_Buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/telangana/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "telangana" ],
+    "name": "Telangana AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_AMRUT_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "delhi" ],
