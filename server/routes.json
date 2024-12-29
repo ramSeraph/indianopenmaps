@@ -431,6 +431,12 @@
     "name": "Punjab AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PB_AMRUT_Buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/tamil-nadu/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "tamil nadu" ],
+    "name": "Tamil Nadu AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TN_AMRUT_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "delhi" ],
