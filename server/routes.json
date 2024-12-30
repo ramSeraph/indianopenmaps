@@ -443,6 +443,12 @@
     "name": "Telangana AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_AMRUT_Buildings.pmtiles"
   },
+  "/not-so-open/urban/buildings/uttarakhand/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "uttarakhand" ],
+    "name": "UttarPradesh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UK_AMRUT_Buildings.pmtiles"
+  },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "delhi" ],
