@@ -1351,7 +1351,7 @@
     "handlertype": "pmtiles",
     "category": ["cadastrals", "west bengal"],
     "name": "Bhuvan SISDP West Bengal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_SIDP_WestBengal_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_SISDP_WestBengal_Cadastrals.pmtiles"
   },
   "/not-so-open/cadastrals/chhattisgarh/bhuvan/": {
     "handlertype": "pmtiles",
