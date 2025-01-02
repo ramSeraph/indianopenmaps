@@ -692,14 +692,8 @@
   "/not-so-open/urban/roads/center-lines/amrut/bhuvan/": {
     "handlertype": "pmtiles",
     "category": ["roads", "urban" ],
-    "name": "AmRUT Road Center Lines",
+    "name": "AMRUT Road Center Lines",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles"
-  },
-  "/not-so-open/urban/roads/polys/amrut/bhuvan/": {
-    "handlertype": "pmtiles",
-    "category": ["roads", "urban" ],
-    "name": "AmRUT Road Polygons",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_Polys.pmtiles"
   },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
