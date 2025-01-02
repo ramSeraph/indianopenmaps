@@ -695,6 +695,12 @@
     "name": "AMRUT Road Center Lines",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles"
   },
+  "/not-so-open/urban/telangana/roads/polys/cdma/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["roads", "urban", "telangana" ],
+    "name": "Telangana CDMA Road Polygons",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/TS_CDMA_Roads.pmtiles"
+  },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
