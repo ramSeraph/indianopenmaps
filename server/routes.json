@@ -843,6 +843,16 @@
     "name": "WRIS watersheds",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_Watershed.pmtiles"
   },
+  "/micro-watersheds/slusi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "water",
+      "hydro_boundaries"
+    ],
+    "name": "SLUSI Micro Watersheds",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_MicroWatersheds.pmtiles"
+  },
+
   "/waterbodies/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
