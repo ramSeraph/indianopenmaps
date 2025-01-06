@@ -859,7 +859,7 @@
       "hydro_boundaries"
     ],
     "name": "SLUSI Micro Watershed Soil Preservation Priorities",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_Priorities_MicroWatersheds.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_Priority_MicroWatersheds.pmtiles"
   },
   "/waterbodies/wris/": {
     "handlertype": "pmtiles",
