@@ -239,17 +239,23 @@
     "name": "Delhi Slum boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/DUSIB_Delhi_Slum_Boundaries.pmtiles"
   },
-  "/not-so-open/urban/land-use/wb-amrut/": {
+  "/not-so-open/urban/west-bengal/land-use/amrut/": {
     "handlertype": "pmtiles",
-    "category": "urban",
+    "category": ["urban", "west bengal", "land use" ],
     "name": "WB AMRUT Urban Land Use Polygons",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_ULU_polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/WB_AMRUT_ULU_polygons.pmtiles"
   },
   "/not-so-open/urban/kerala/land-use/lsgdp/": {
     "handlertype": "pmtiles",
-    "category": "urban",
+    "category": ["urban", "kerala", "land use" ],
     "name": "Kerala LSGDP Urban Land Use Polygons",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/LSGDP_KL_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/LSGDP_KL_ULU.pmtiles"
+  },
+  "/not-so-open/urban/tamil-nadu/land-use/tngis/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "tamil nadu", "land use" ],
+    "name": "Tamil Nadu DTCP Urban Land Use Polygons",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_ULU.pmtiles"
   },
   "/not-so-open/constituencies/parliament/lgd/": {
     "handlertype": "pmtiles",
