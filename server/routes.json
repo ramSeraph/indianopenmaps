@@ -1137,6 +1137,18 @@
     "name": "Bhuvan ASI Zones",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Boundaries.pmtiles"
   },
+  "/not-so-open/cultural/monuments/soi/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "mounuments" ],
+    "name": "SOI Monuments",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Monuments.pmtiles"
+  },
+  "/not-so-open/cultural/religious/soi/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "religious" ],
+    "name": "SOI Religious Places",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Religious_Places.pmtiles"
+  },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
     "category": ["habitations", "facilities"],
