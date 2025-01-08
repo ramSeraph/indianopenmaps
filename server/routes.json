@@ -1119,6 +1119,24 @@
     "name": "SOI Steamer Service",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Steamer_service.pmtiles"
   },
+  "/not-so-open/cultural/forts/soi/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "forts" ],
+    "name": "SOI Forts",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_FORTS_Surveyed.pmtiles"
+  },
+  "/not-so-open/cultural/monuments/asi/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "mounuments" ],
+    "name": "Bhuvan ASI Monuments",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Monuments.pmtiles"
+  },
+  "/not-so-open/cultural/monuments/zones/asi/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "mounuments" ],
+    "name": "Bhuvan ASI Zones",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Boundaries.pmtiles"
+  },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
     "category": ["habitations", "facilities"],
