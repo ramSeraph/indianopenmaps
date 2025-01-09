@@ -239,6 +239,12 @@
     "name": "Delhi Slum boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/DUSIB_Delhi_Slum_Boundaries.pmtiles"
   },
+  "/not-so-open/geomorphology/50k/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": "geomorphology",
+    "name": "Bhuvan Geomorphology 50k from 05-06",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Geomorphology_50k_0506.pmtiles"
+  },
   "/not-so-open/urban/west-bengal/land-use/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "west bengal", "land use" ],
