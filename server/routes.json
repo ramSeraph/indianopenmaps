@@ -864,6 +864,12 @@
     "name": "SLUSI Micro Watersheds",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_MicroWatersheds.pmtiles"
   },
+  "/soil-health/slusi/": {
+    "handlertype": "pmtiles",
+    "category": "soil health",
+    "name": "SLUSI Soil Health data",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soil-health/SLUSI_SHC.pmtiles"
+  },
   "/micro-watersheds/priorities/slusi/": {
     "handlertype": "pmtiles",
     "category": [
