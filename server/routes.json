@@ -163,7 +163,7 @@
   },
   "/not-so-open/urban/wards/sbm/": {
     "handlertype": "pmtiles",
-    "category": "urban",
+    "category": ["urban", "wards"],
     "name": "SBM ULB Wards",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Wards.pmtiles"
   },
@@ -181,9 +181,15 @@
   },
   "/not-so-open/urban/wards/wb-amrut/": {
     "handlertype": "pmtiles",
-    "category": "urban",
+    "category": ["urban", "wards"],
     "name": "WB AMRUT ULB Wards",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Wards.pmtiles"
+  },
+  "/not-so-open/urban/wards/shillong/megh-cm-dashboard/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "wards"],
+    "name": "Shillong Wards",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/Shillong_Wards.pmtiles"
   },
   "/not-so-open/urban/areas/wb-amrut/": {
     "handlertype": "pmtiles",
