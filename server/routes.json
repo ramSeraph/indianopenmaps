@@ -97,6 +97,12 @@
     "name": "Bhuvan Villages",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/bhuvan_villages.pmtiles"
   },
+  "/not-so-open/villages/jammu-and-kashmir/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["villages", "jammu and kashmir" ],
+    "name": "Bhuvan Jammu and Kashmir Villages",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/Bhuvan_JK_Villages.pmtiles"
+  },
   "/villages/soi/": {
     "handlertype": "pmtiles",
     "category": "villages",
