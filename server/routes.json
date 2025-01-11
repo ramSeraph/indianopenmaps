@@ -1195,7 +1195,7 @@
     "handlertype": "pmtiles",
     "category": ["facilities", "postal"],
     "name": "SOI Post Offices",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-officess/SOI_PostOffices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/SOI_PostOffices.pmtiles"
   },
   "/not-so-open/facilities/post-offices/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1207,7 +1207,7 @@
     "handlertype": "pmtiles",
     "category": ["facilities", "postal"],
     "name": "PostalGIS Post Offices",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-officess/PostalGIS_PostOffices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/PostalGIS_PostOffices.pmtiles"
   },
   "/not-so-open/facilities/police-stations/soi/": {
     "handlertype": "pmtiles",
