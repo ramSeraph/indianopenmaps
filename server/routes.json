@@ -1191,6 +1191,24 @@
     "name": "Egramswaraj activities",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/egramswaraj_activities.pmtiles"
   },
+  "/not-so-open/facilities/post-offices/soi/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "postal"],
+    "name": "SOI Post Offices",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-officess/SOI_PostOffices.pmtiles"
+  },
+  "/not-so-open/facilities/post-offices/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "postal"],
+    "name": "Bhuvan Post Offices",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/Bhuvan_PostOffices.pmtiles"
+  },
+  "/not-so-open/facilities/post-offices/postalgis/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "postal"],
+    "name": "PostalGIS Post Offices",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-officess/PostalGIS_PostOffices.pmtiles"
+  },
   "/not-so-open/facilities/police-stations/soi/": {
     "handlertype": "pmtiles",
     "category": ["facilities", "police"],
