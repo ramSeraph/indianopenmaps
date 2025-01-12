@@ -713,6 +713,12 @@
     "name": "SOI Fords",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
   },
+  "/not-so-open/urban/roads/nuis/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["roads", "urban" ],
+    "name": "NUIS Road Center Lines",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Roads.pmtiles"
+  },
   "/not-so-open/urban/roads/center-lines/amrut/bhuvan/": {
     "handlertype": "pmtiles",
     "category": ["roads", "urban" ],
