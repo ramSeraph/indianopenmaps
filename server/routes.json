@@ -717,7 +717,7 @@
     "handlertype": "pmtiles",
     "category": ["roads", "urban" ],
     "name": "NUIS Road Center Lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Urban_Roads.pmtiles"
   },
   "/not-so-open/urban/roads/center-lines/amrut/bhuvan/": {
     "handlertype": "pmtiles",
