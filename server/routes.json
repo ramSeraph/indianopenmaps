@@ -1179,6 +1179,12 @@
     "name": "SOI Religious Places",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Religious_Places.pmtiles"
   },
+  "/not-so-open/cultural/sacred-places/envis/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [ "cultural", "sacred places", "environmental" ],
+    "name": "Bhuvan ENVIS Sacred Places",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ENVIS_SacredPlaces.pmtiles"
+  },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
     "category": ["habitations", "facilities"],
