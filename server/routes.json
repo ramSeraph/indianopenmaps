@@ -1611,6 +1611,12 @@
     "name": "WB AMRUT urban cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
   },
+  "/not-so-open/cadastrals/assam/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": ["cadastrals", "assam"],
+    "name": "Assam Bhuvan cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/assam/Bhuvan_Assam_Cadastrals.pmtiles"
+  },
   "/not-so-open/power/lines/soi/": {
     "handlertype": "pmtiles",
     "category": "power",
