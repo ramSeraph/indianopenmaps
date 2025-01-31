@@ -173,6 +173,12 @@
     "name": "SBM ULB Wards",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Wards.pmtiles"
   },
+  "/not-so-open/urban/wards/living-atlas/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "wards"],
+    "name": "ESRI LivingAtlas ULB Wards",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/LivingAtlas_Wards.pmtiles"
+  },
   "/not-so-open/urban/areas/sbm/": {
     "handlertype": "pmtiles",
     "category": "urban",
