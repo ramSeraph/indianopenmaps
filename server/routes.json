@@ -476,8 +476,14 @@
   "/not-so-open/urban/buildings/uttarakhand/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "buildings", "uttarakhand" ],
-    "name": "UttarPradesh AMRUT Urban Building footprints",
+    "name": "Uttarakhand AMRUT Urban Building footprints",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UK_AMRUT_Buildings.pmtiles"
+  },
+  "/not-so-open/urban/buildings/uttar-pradesh/amrut/": {
+    "handlertype": "pmtiles",
+    "category": ["urban", "buildings", "uttar pradesh" ],
+    "name": "UttarPradesh AMRUT Urban Building footprints",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UP_AMRUT_Buildings.pmtiles"
   },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
