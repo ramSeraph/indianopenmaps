@@ -1233,6 +1233,12 @@
     "name": "SOI PoliceStations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/SOI_PoliceStations.pmtiles"
   },
+  "/not-so-open/facilities/police-stations/living-atlas/": {
+    "handlertype": "pmtiles",
+    "category": ["facilities", "police"],
+    "name": "ESRI LivingAtlas PoliceStations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/LivingAtlas_PoliceStations.pmtiles"
+  },
   "/not-so-open/facilities/sanitation/bulk-waste/sbm/": {
     "handlertype": "pmtiles",
     "category": ["facilities", "sanitation"],
