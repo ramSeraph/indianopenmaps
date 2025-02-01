@@ -858,6 +858,18 @@
     "name": "Bharatmaps/Parivesh 2019 Coastal Regulation Lines",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Bharatmaps_Parivesh_CRZ2019_Regulatory_Lines.pmtiles"
   },
+  "/not-so-open/coastal/regulation-zones/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": "coastal",
+    "name": "Bharatmaps/Parivesh Coastal Regulation Zones",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Bharatmaps_Parivesh_CRZ_Regulatory_Zones.pmtiles"
+  },
+  "/not-so-open/coastal/regulation-lines/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": "coastal",
+    "name": "Bharatmaps/Parivesh Coastal Regulation Lines",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Bharatmaps_Parivesh_CRZ_Regulatory_Lines.pmtiles"
+  },
   "/not-so-open/pincodes/": {
     "handlertype": "pmtiles",
     "category": "postal",
