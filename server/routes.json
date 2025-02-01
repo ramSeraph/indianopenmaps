@@ -850,13 +850,13 @@
     "handlertype": "pmtiles",
     "category": "coastal",
     "name": "Bharatmaps/Parivesh 2019 Coastal Regulation Zones",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Baratmaps_Parivesh_CRZ2019_Regulation_Zones.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Baratmaps_Parivesh_CRZ2019_Regulatory_Zones.pmtiles"
   },
   "/not-so-open/coastal/regulation-lines/2019/parivesh/": {
     "handlertype": "pmtiles",
     "category": "coastal",
     "name": "Bharatmaps/Parivesh 2019 Coastal Regulation Lines",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Baratmaps_Parivesh_CRZ2019_Regulation_Lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/Baratmaps_Parivesh_CRZ2019_Regulatory_Lines.pmtiles"
   },
   "/not-so-open/pincodes/": {
     "handlertype": "pmtiles",
