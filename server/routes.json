@@ -833,6 +833,18 @@
     "name": "Bharatmaps/Parivesh Eco Sensitive Zones",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zones.pmtiles"
   },
+  "/not-so-open/forests/esz/buffers/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": "forests", 
+    "name": "Bharatmaps/Parivesh Eco Sensitive Zone Buffers",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zone_Buffers.pmtiles"
+  },
+  "/not-so-open/forests/wildlife/reserves-and-corridors/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": "forests", 
+    "name": "Bharatmaps/Parivesh Wildlife Reserves and Corridors",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Wildlife_Reserves_and_Corridors.pmtiles"
+  },
   "/not-so-open/coastal/regulation-zones/ncscm/": {
     "handlertype": "pmtiles",
     "category": "coastal",
