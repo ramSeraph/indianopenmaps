@@ -936,6 +936,12 @@
     "name": "SLUSI Micro Watersheds",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_MicroWatersheds.pmtiles"
   },
+  "/not-so-open/wetlands/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": "wetlands", 
+    "name": "Bharatmaps/Parivesh Wetland Boundaries",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/Bharatmaps_Parivesh_Wetland_Boundaries.pmtiles"
+  },
   "/not-so-open/forests/ftm/parivesh/": {
     "handlertype": "pmtiles",
     "category": "forests", 
