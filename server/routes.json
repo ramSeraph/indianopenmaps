@@ -1695,6 +1695,18 @@
     "name": "Assam Bhuvan cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/assam/Bhuvan_Assam_Cadastrals.pmtiles"
   },
+  "/not-so-open/power/lines/ncog/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "NCOG/SOI Power Lines",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_lines.pmtiles"
+  },
+  "/not-so-open/power/line-pylons/ncog/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "NCOG/SOI Power Line Pylons",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_line_pylons.pmtiles"
+  },
   "/not-so-open/power/lines/soi/": {
     "handlertype": "pmtiles",
     "category": "power",
