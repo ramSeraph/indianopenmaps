@@ -1047,6 +1047,12 @@
     "name": "SOI Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles"
   },
+  "/not-so-open/streams/ncog/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "nCOG SOI Streams",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/NCOG_SOI_Streams.pmtiles"
+  },
   "/not-so-open/water-channels/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
