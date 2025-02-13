@@ -1041,6 +1041,12 @@
     "name": "SOI Springs",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles"
   },
+  "/not-so-open/natural-water-features/geothermal-springs/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": "water",
+    "name": "NGDR Geothermal Springs",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/NGDR_Geothermal_Springs.pmtiles"
+  },
   "/not-so-open/natural-water-features/springs-compiled/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
