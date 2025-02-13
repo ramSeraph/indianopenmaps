@@ -287,6 +287,12 @@
     "name": "NGDR Geology 2M",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Geology_2M.pmtiles"
   },
+  "/not-so-open/lithology/2m/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": "lithology",
+    "name": "NGDR Lithology 50k",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Lithology_50k.pmtiles"
+  },
   "/not-so-open/urban/west-bengal/land-use/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "west bengal", "land use" ],
