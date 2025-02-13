@@ -287,7 +287,7 @@
     "name": "NGDR Geology 2M",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Geology_2M.pmtiles"
   },
-  "/not-so-open/lithology/2m/ngdr/": {
+  "/not-so-open/lithology/50k/ngdr/": {
     "handlertype": "pmtiles",
     "category": "lithology",
     "name": "NGDR Lithology 50k",
