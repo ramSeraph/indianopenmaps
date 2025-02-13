@@ -263,6 +263,12 @@
     "name": "Bhuvan Geomorphology 50k from 05-06",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Geomorphology_50k_0506.pmtiles"
   },
+  "/not-so-open/geology/2m/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": "geology",
+    "name": "NGDR Geology 2M",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Geology_2M.pmtiles"
+  },
   "/not-so-open/urban/west-bengal/land-use/amrut/": {
     "handlertype": "pmtiles",
     "category": ["urban", "west bengal", "land use" ],
