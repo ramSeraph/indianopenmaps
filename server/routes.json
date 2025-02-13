@@ -263,6 +263,24 @@
     "name": "Bhuvan Geomorphology 50k from 05-06",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Geomorphology_50k_0506.pmtiles"
   },
+  "/not-so-open/lineament/50k/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": "lineament",
+    "name": "Bhuvan Lineament 50k from 05-06",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Lineament_50k_0506.pmtiles"
+  },
+  "/not-so-open/geomorphology/250k/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": "geomorphology",
+    "name": "NGDR Geomorphology at 250k",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Geomorphology_250k.pmtiles"
+  },
+  "/not-so-open/lineament/250k/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": "lineament",
+    "name": "NGDR Lineament at 250k",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Lineament_250k.pmtiles"
+  },
   "/not-so-open/geology/2m/ngdr/": {
     "handlertype": "pmtiles",
     "category": "geology",
