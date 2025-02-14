@@ -1051,13 +1051,13 @@
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NGDR Landslide Points",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/natural/NGDR_Landslide_Points.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Points.pmtiles"
   },
   "/not-so-open/landslides/polygons/ngdr/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NGDR Landslide Polygons",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/natural/NGDR_Landslide_Polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Polygons.pmtiles"
   },
   "/not-so-open/natural-water-features/springs-compiled/soi/": {
     "handlertype": "pmtiles",
