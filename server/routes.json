@@ -1071,6 +1071,12 @@
     "name": "NDEM Landslide Polygons",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslides.pmtiles"
   },
+  "/not-so-open/landslides/polygons/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": "landslides",
+    "name": "Bhuvan Landslide Polygons",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/Bhuvan_Landslides.pmtiles"
+  },
   "/not-so-open/landslides/hazard/ndem/": {
     "handlertype": "pmtiles",
     "category": "landslides",
