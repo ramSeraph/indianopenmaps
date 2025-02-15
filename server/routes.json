@@ -1053,6 +1053,12 @@
     "name": "NGDR Landslide Points",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Points.pmtiles"
   },
+  "/not-so-open/landslides/points/gsi/": {
+    "handlertype": "pmtiles",
+    "category": "landslides",
+    "name": "GSI Landslide Inventory",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/GSI_Landslide_Inventory.pmtiles"
+  },
   "/not-so-open/landslides/polygons/ngdr/": {
     "handlertype": "pmtiles",
     "category": "landslides",
