@@ -1059,6 +1059,12 @@
     "name": "NGDR Landslide Polygons",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Polygons.pmtiles"
   },
+  "/not-so-open/landslides/polygons/ndem/": {
+    "handlertype": "pmtiles",
+    "category": "landslides",
+    "name": "NDEM Landslide Polygons",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslides.pmtiles"
+  },
   "/not-so-open/natural-water-features/springs-compiled/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
