@@ -2360,7 +2360,16 @@
     "category": [
       "earthquakes"
     ],
+    "name": "NGDR Earthquakes",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquakes.pmtiles"
+  },
+  "/not-so-open/earthquakes/cmt/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "earthquakes"
+    ],
     "name": "NGDR Earthquake CMT Beachballs",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquake_CMT_Beachballs.pmtiles"
   }
+
 }
