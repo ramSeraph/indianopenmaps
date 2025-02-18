@@ -2370,6 +2370,13 @@
     ],
     "name": "NGDR Earthquake CMT Beachballs",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquake_CMT_Beachballs.pmtiles"
+  },
+  "/not-so-open/floods/all-india/1998-2022/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods"
+    ],
+    "name": "NDEM All India aggregate flood Innundation 1998 to 2022",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Flood_Innundation_1998_to_2022.pmtiles"
   }
-
 }
