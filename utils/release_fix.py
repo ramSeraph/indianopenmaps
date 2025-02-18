@@ -52,7 +52,8 @@ def add_data_links(body, url_prefix):
     return body_new
 
 
-token = Path('token.txt').read_text().strip()
+token_file = Path(__file__).parent / 'token.txt'
+token = token_file.read_text().strip()
 
 repos = [
     'indian_admin_boundaries',
