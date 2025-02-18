@@ -9,6 +9,7 @@
 # ///
 import json
 import base64
+import textwrap
 from pathlib import Path
 
 import click
@@ -134,11 +135,13 @@ def update_release_doc(repo_name, release, description, file_7z, route, source, 
 
     to_append = f"""
     ### [{file_7z.name}](https://github.com/{user.login}/{repo_name}/releases/download/{release}/{file_7z.name})
-    Description: {description}
-    Source: {source} - {source_url}
-    License: [CC0 1.0 but attribute datameet where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
-    Tiles - https://indianopenmaps.fly.dev{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.fly.dev{route}view)
+    - Description: {description}
+    - Source: {source} - {source_url}
+    - License: [CC0 1.0 but attribute datameet where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
+    - Tiles - https://indianopenmaps.fly.dev{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.fly.dev{route}view)
     """
+
+    to_append = textwrap.dedent(to_append)
 
     new_body = body + '\n\n' + to_append
     release_obj.update_release(release_obj.title, new_body)
