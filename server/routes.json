@@ -2378,5 +2378,13 @@
     ],
     "name": "NDEM All India aggregate flood Innundation 1998 to 2022",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Flood_Innundation_1998_to_2022.pmtiles"
+  },
+  "/not-so-open/floods/all-india/2003-2020/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods"
+    ],
+    "name": "NDEM All India aggregate flood Innundation 2003 to 2020",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Aggregate_Flood_Innundation_by_state_2003_to_2020.pmtiles"
   }
 }
