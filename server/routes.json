@@ -2395,5 +2395,14 @@
     ],
     "name": "NDEM Andhra Pradesh flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AP_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/arunachal-pradesh/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "arunachal pradesh"
+    ],
+    "name": "NDEM Arunachal Pradesh flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Floods_Inundation.pmtiles"
   }
 }
