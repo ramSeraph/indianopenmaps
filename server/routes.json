@@ -2458,5 +2458,14 @@
     ],
     "name": "NDEM Gujarat flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_GJ_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/haryana/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "haryana"
+    ],
+    "name": "NDEM Haryana flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HR_Floods_Inundation.pmtiles"
   }
 }
