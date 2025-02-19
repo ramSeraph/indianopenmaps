@@ -2701,5 +2701,14 @@
     ],
     "name": "NDEM Kerala yearly flood Innundation 2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+  },
+  "/not-so-open/floods/karnataka/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "karnataka"
+    ],
+    "name": "NDEM Karnataka yearly flood Innundation 2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
   }
 }
