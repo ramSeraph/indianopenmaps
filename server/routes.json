@@ -2629,5 +2629,14 @@
     ],
     "name": "NDEM Uttar Pradesh yearly flood Innundation 2011,2013,2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_UP_Yearly_Aggregate_Flood_Innundation_2011_2013_2021.pmtiles"
+  },
+  "/not-so-open/floods/telangana/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "telangana"
+    ],
+    "name": "NDEM Uttar Pradesh yearly flood Innundation 2013",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TS_Yearly_Aggregate_Flood_Innundation_2013.pmtiles"
   }
 }
