@@ -2476,5 +2476,14 @@
     ],
     "name": "NDEM Jharkand flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JH_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/jammu-and-kashmir/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "jammu and kashmir"
+    ],
+    "name": "NDEM Jammu and Kashmir flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JK_Floods_Inundation.pmtiles"
   }
 }
