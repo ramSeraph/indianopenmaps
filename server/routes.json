@@ -2548,5 +2548,14 @@
     ],
     "name": "NDEM Odisha flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_OD_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/punjab/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "punjab"
+    ],
+    "name": "NDEM Punjab flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_PB_Floods_Inundation.pmtiles"
   }
 }
