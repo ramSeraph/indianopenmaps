@@ -2485,5 +2485,14 @@
     ],
     "name": "NDEM Jammu and Kashmir flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JK_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/karnataka/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "karnataka"
+    ],
+    "name": "NDEM Karnataka flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Floods_Inundation.pmtiles"
   }
 }
