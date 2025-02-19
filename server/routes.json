@@ -2602,5 +2602,14 @@
     ],
     "name": "NDEM Uttar Pradesh flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_UP_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/west-bengal/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "west bengal"
+    ],
+    "name": "NDEM West Bengal flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_WB_Floods_Inundation.pmtiles"
   }
 }
