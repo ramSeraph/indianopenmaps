@@ -2386,5 +2386,14 @@
     ],
     "name": "NDEM All India aggregate flood Innundation 2003 to 2020",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Aggregate_Flood_Innundation_by_state_2003_to_2020.pmtiles"
+  },
+  "/not-so-open/floods/andhra-pradesh/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "andhra pradesh"
+    ],
+    "name": "NDEM Andhra Pradesh flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AP_Floods_Inundation.pmtiles"
   }
 }
