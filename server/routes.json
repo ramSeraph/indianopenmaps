@@ -2404,5 +2404,14 @@
     ],
     "name": "NDEM Arunachal Pradesh flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/assam/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "assam"
+    ],
+    "name": "NDEM Assam flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AS_Floods_Inundation.pmtiles"
   }
 }
