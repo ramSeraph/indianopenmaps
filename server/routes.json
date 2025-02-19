@@ -2782,5 +2782,13 @@
     ],
     "name": "NDEM Andhra Pradesh yearly flood Innundation 2012,2013,2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AP_Yearly_Aggregate_Flood_Innundation_2012_2013_2021.pmtiles"
+  },
+  "/not-so-open/wetlands/swamps/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "wetlands"
+    ],
+    "name": "NCOG/SOI Swamps",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_Swamps.pmtiles"
   }
 }
