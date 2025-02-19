@@ -2665,5 +2665,14 @@
     ],
     "name": "NDEM Punjab yearly flood Innundation 1997 to 2010",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_PB_Yearly_Aggregate_Flood_Innundation_1997_to_2010.pmtiles"
+  },
+  "/not-so-open/floods/odisha/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "odisha"
+    ],
+    "name": "NDEM Odisha yearly flood Innundation 1999,2011,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_OD_Yearly_Aggregate_Flood_Innundation_1999_2011_2021.pmtiles"
   }
 }
