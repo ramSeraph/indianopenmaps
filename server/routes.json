@@ -2799,5 +2799,13 @@
     ],
     "name": "NCOG/SOI Christ Memorials",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/NCOG_SOI_Christ_Memorials.pmtiles"
+  },
+  "/not-so-open/health/hospitals/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "NCOG/SOI Hospitals",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Hospitals.pmtiles"
   }
 }
