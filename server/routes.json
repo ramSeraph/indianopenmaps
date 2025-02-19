@@ -2620,5 +2620,14 @@
     ],
     "name": "NDEM West Bengal yearly flood Innundation 2011,2013,2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_WB_Yearly_Aggregate_Flood_Innundation_2011_2013_2021.pmtiles"
+  },
+  "/not-so-open/floods/uttar-pradesh/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "uttar pradesh"
+    ],
+    "name": "NDEM Uttar Pradesh yearly flood Innundation 2011,2013,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_UP_Yearly_Aggregate_Flood_Innundation_2011_2013_2021.pmtiles"
   }
 }
