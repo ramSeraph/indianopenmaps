@@ -2467,5 +2467,14 @@
     ],
     "name": "NDEM Haryana flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HR_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/jharkand/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "jharkand"
+    ],
+    "name": "NDEM Jharkand flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JH_Floods_Inundation.pmtiles"
   }
 }
