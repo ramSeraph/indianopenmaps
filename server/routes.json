@@ -2815,5 +2815,13 @@
     ],
     "name": "NCOG/SOI Dispensaries",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Dispensaries.pmtiles"
+  },
+  "/not-so-open/landslides/prone-areas/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "landslides"
+    ],
+    "name": "NCOG/SOI Dispensaries",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NCOG_SOI_Landslide_Prone_Areas.pmtiles"
   }
 }
