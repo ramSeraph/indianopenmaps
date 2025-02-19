@@ -2683,5 +2683,14 @@
     ],
     "name": "NDEM Madhya Pradesh yearly flood Innundation 2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+  },
+  "/not-so-open/floods/maharashtra/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "maharashtra"
+    ],
+    "name": "NDEM Maharashtra yearly flood Innundation 2013,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MH_Yearly_Aggregate_Flood_Innundation_2013_2021.pmtiles"
   }
 }
