@@ -2512,5 +2512,14 @@
     ],
     "name": "NDEM Maharashtra flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MH_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/meghalaya/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "meghalaya"
+    ],
+    "name": "NDEM Meghalaya flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_ML_Floods_Inundation.pmtiles"
   }
 }
