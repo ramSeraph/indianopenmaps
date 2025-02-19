@@ -2575,5 +2575,14 @@
     ],
     "name": "NDEM Tamil Nadu flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TN_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/tripura/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "tripura"
+    ],
+    "name": "NDEM Tripura flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TR_Floods_Inundation.pmtiles"
   }
 }
