@@ -2807,5 +2807,13 @@
     ],
     "name": "NCOG/SOI Hospitals",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Hospitals.pmtiles"
+  },
+  "/not-so-open/health/dispensaries/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "NCOG/SOI Dispensaries",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Dispensaries.pmtiles"
   }
 }
