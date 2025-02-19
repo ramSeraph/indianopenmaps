@@ -2674,5 +2674,14 @@
     ],
     "name": "NDEM Odisha yearly flood Innundation 1999,2011,2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_OD_Yearly_Aggregate_Flood_Innundation_1999_2011_2021.pmtiles"
+  },
+  "/not-so-open/floods/madhya-pradesh/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "madhya pradesh"
+    ],
+    "name": "NDEM Madhya Pradesh yearly flood Innundation 2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
   }
 }
