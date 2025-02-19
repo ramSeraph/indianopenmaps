@@ -2431,5 +2431,14 @@
     ],
     "name": "NDEM Chhattisgarh flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_CG_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/delhi/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "delhi"
+    ],
+    "name": "NDEM Delhi flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_DL_Floods_Inundation.pmtiles"
   }
 }
