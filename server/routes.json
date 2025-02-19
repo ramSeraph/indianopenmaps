@@ -2593,5 +2593,14 @@
     ],
     "name": "NDEM Telangana flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TS_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/uttar-pradesh/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "uttar pradesh"
+    ],
+    "name": "NDEM Uttar Pradesh flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_UP_Floods_Inundation.pmtiles"
   }
 }
