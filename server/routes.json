@@ -2790,5 +2790,13 @@
     ],
     "name": "NCOG/SOI Swamps",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_Swamps.pmtiles"
+  },
+  "/not-so-open/wetlands/saltpans/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "wetlands"
+    ],
+    "name": "NCOG/SOI Saltpans",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_SaltPans.pmtiles"
   }
 }
