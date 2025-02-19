@@ -2773,5 +2773,14 @@
     ],
     "name": "NDEM Arunachal Pradesh yearly flood Innundation 2014",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Yearly_Aggregate_Flood_Innundation_2014.pmtiles"
+  },
+  "/not-so-open/floods/andhra-pradesh/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "andhra pradesh"
+    ],
+    "name": "NDEM Andhra Pradesh yearly flood Innundation 2012,2013,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AP_Yearly_Aggregate_Flood_Innundation_2012_2013_2021.pmtiles"
   }
 }
