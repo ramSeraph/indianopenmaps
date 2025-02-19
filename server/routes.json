@@ -2755,5 +2755,14 @@
     ],
     "name": "NDEM Bihar yearly flood Innundation 1998 to 2013",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_BR_Alt_Yearly_Aggregate_Flood_Innundation_1998_to_2013.pmtiles"
+  },
+  "/not-so-open/floods/assam/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "assam"
+    ],
+    "name": "NDEM Assam yearly flood Innundation 1998 to 2013, 2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AS_Yearly_Aggregate_Flood_Innundation_1998_to_2013_2021.pmtiles"
   }
 }
