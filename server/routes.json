@@ -2831,5 +2831,13 @@
     ],
     "name": "NCOG UDISE Schools",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_UDISE_Schools.pmtiles"
+  },
+  "/not-so-open/education/colleges/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "education"
+    ],
+    "name": "NCOG Colleges",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_Colleges.pmtiles"
   }
 }
