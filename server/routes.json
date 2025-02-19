@@ -2521,5 +2521,14 @@
     ],
     "name": "NDEM Meghalaya flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_ML_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/manipur/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "manipur"
+    ],
+    "name": "NDEM Manipur flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MN_Floods_Inundation.pmtiles"
   }
 }
