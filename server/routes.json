@@ -2719,5 +2719,14 @@
     ],
     "name": "NDEM Himachal Pradesh yearly flood Innundation 2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+  },
+  "/not-so-open/floods/gujarat/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "gujarat"
+    ],
+    "name": "NDEM Gujarat yearly flood Innundation 2013,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_GJ_Yearly_Aggregate_Flood_Innundation_2013_2021.pmtiles"
   }
 }
