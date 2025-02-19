@@ -2710,5 +2710,14 @@
     ],
     "name": "NDEM Karnataka yearly flood Innundation 2021",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+  },
+  "/not-so-open/floods/himachal-pradesh/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "himachal pradesh"
+    ],
+    "name": "NDEM Himachal Pradesh yearly flood Innundation 2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
   }
 }
