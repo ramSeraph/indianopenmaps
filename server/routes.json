@@ -2611,5 +2611,14 @@
     ],
     "name": "NDEM West Bengal flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_WB_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/west-bengal/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "west bengal"
+    ],
+    "name": "NDEM West Bengal yearly flood Innundation 2011,2013,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_WB_Yearly_Aggregate_Flood_Innundation_2011_2013_2021.pmtiles"
   }
 }
