@@ -2422,5 +2422,14 @@
     ],
     "name": "NDEM Bihar flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_BR_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/chhattisgarh/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "chhattisgarh"
+    ],
+    "name": "NDEM Chhattisgarh flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_CG_Floods_Inundation.pmtiles"
   }
 }
