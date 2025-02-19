@@ -2413,5 +2413,14 @@
     ],
     "name": "NDEM Assam flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AS_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/bihar/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "bihar"
+    ],
+    "name": "NDEM Bihar flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_BR_Floods_Inundation.pmtiles"
   }
 }
