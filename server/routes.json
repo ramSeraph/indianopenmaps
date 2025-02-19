@@ -2440,5 +2440,14 @@
     ],
     "name": "NDEM Delhi flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_DL_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/goa/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "goa"
+    ],
+    "name": "NDEM Goa flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_GA_Floods_Inundation.pmtiles"
   }
 }
