@@ -2566,5 +2566,14 @@
     ],
     "name": "NDEM Rajasthan flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_RJ_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/tamil-nadu/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "tamil nadu"
+    ],
+    "name": "NDEM Tamil Nadu flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TN_Floods_Inundation.pmtiles"
   }
 }
