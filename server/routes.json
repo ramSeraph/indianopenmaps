@@ -2638,5 +2638,14 @@
     ],
     "name": "NDEM Uttar Pradesh yearly flood Innundation 2013",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TS_Yearly_Aggregate_Flood_Innundation_2013.pmtiles"
+  },
+  "/not-so-open/floods/tamil-nadu/yearly/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "tamil nadu"
+    ],
+    "name": "NDEM Tamil Nadu yearly flood Innundation 2012,2021",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TN_Yearly_Aggregate_Flood_Innundation_2012_2021.pmtiles"
   }
 }
