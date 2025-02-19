@@ -2494,5 +2494,14 @@
     ],
     "name": "NDEM Karnataka flood Innundation events",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Floods_Inundation.pmtiles"
+  },
+  "/not-so-open/floods/kerala/events/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "floods",
+      "kerala"
+    ],
+    "name": "NDEM Kerala flood Innundation events",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Floods_Inundation.pmtiles"
   }
 }
