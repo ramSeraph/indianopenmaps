@@ -2887,5 +2887,13 @@
     ],
     "name": "NCOG/NGDR Mineral map",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_NGDR_Mineral_Map.pmtiles"
+  },
+  "/not-so-open/minerals/deposits/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mineral Deposits",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mineral_Deposits.pmtiles"
   }
 }
