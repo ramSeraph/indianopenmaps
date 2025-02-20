@@ -2839,5 +2839,13 @@
     ],
     "name": "NCOG Colleges",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_Colleges.pmtiles"
+  },
+  "/not-so-open/groundwater-prospects/lgeom/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "water"
+    ],
+    "name": "Bhuvan Groundwater prospects",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_LGEOM.pmtiles"
   }
 }
