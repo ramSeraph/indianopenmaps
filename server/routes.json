@@ -2935,5 +2935,13 @@
     ],
     "name": "NGDR Metallozenic Points",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Points.pmtiles"
+  },
+  "/not-so-open/mining/leases/major/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Major Mining Leases 2022",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Major_Mining_Leases_2022.pmtiles"
   }
 }
