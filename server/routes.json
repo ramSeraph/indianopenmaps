@@ -2895,5 +2895,13 @@
     ],
     "name": "NGDR Mineral Deposits",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mineral_Deposits.pmtiles"
+  },
+  "/not-so-open/groundwater-quality/premonsoon/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "water"
+    ],
+    "name": "Bhuvan Groundwater quality premonsoon",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Premonsoon.pmtiles"
   }
 }
