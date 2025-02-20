@@ -2855,5 +2855,13 @@
     ],
     "name": "NCOG/SOI Veternary Hospitals",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Veternary_Hospitals.pmtiles"
+  },
+  "/not-so-open/groundwater-prospects/structures/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "water"
+    ],
+    "name": "Bhuvan Groundwater prospects structures",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_STRU.pmtiles"
   }
 }
