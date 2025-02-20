@@ -2927,5 +2927,13 @@
     ],
     "name": "NGDR Metallozenic Zones",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Zones.pmtiles"
+  },
+  "/not-so-open/metallozenic/points/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Metallozenic Points",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Points.pmtiles"
   }
 }
