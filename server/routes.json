@@ -2975,5 +2975,13 @@
     ],
     "name": "NGDR Mining Exploration Blocks",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Exploration_Blocks.pmtiles"
+  },
+  "/not-so-open/mining/exploration/boreholes/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mining Exploration Drilling Boreholes",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Exploration_Drilling_Boreholes.pmtiles"
   }
 }
