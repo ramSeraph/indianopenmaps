@@ -2911,5 +2911,13 @@
     ],
     "name": "Bhuvan Groundwater quality postmonsoon",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Postmonsoon.pmtiles"
+  },
+  "/not-so-open/minerals/ogp/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mineral Obvious Geological Potential",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Obvious_Geological_Potential.pmtiles"
   }
 }
