@@ -2903,5 +2903,13 @@
     ],
     "name": "Bhuvan Groundwater quality premonsoon",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Premonsoon.pmtiles"
+  },
+  "/not-so-open/groundwater-quality/postmonsoon/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "water"
+    ],
+    "name": "Bhuvan Groundwater quality postmonsoon",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Postmonsoon.pmtiles"
   }
 }
