@@ -208,8 +208,10 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--source-url', type=str, help='source url')
 @click.option('--route', type=str, help='tile route')
 @click.option('--category', type=str, help='category', multiple=True)
-def main(repo, release, file_7z, file_pmtiles, description, source, source_url, route, category):
+@click.option('--no-uploads', is_flag=True, default=False)
+def main(repo, release, file_7z, file_pmtiles, description, source, source_url, route, category, no_uploads):
 
+    
     if file_7z is not None and not file_7z.endswith('.geojsonl.7z'):
         raise Exception(f'{file_7z} does not end with .geojsonl.7z')
 
@@ -231,11 +233,12 @@ def main(repo, release, file_7z, file_pmtiles, description, source, source_url, 
     if not file_pmtiles.exists():
         raise Exception(f'{file_pmtiles} missing')
 
-    # upload files
-    print(f'uploading file {file_7z}')
-    upload_file(repo, release, file_7z)
-    print(f'uploading file {file_pmtiles}')
-    upload_file(repo, release, file_pmtiles)
+    if not no_uploads:
+        # upload files
+        print(f'uploading file {file_7z}')
+        upload_file(repo, release, file_7z)
+        print(f'uploading file {file_pmtiles}')
+        upload_file(repo, release, file_pmtiles)
     # append to release doc
     print('updating release notes')
     update_release_doc(repo, release, description, file_7z, route, source, source_url)
