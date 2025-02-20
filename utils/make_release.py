@@ -210,8 +210,26 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--category', type=str, help='category', multiple=True)
 def main(repo, release, file_7z, file_pmtiles, description, source, source_url, route, category):
 
+    if file_7z is not None and not file_7z.endswith('.geojsonl.7z'):
+        raise Exception(f'{file_7z} does not end with .geojsonl.7z')
+
+    if file_pmtiles is not None and not file_7z.endswith('.pmtiles'):
+        raise Exception(f'{file_pmtiles} does not end with .pmtiles')
+
+    if file_7z is not None and file_pmtiles is None:
+        file_pmtiles = file_7z.replace('.geojsonl.7z', '.pmtiles')
+
+    if file_pmtiles is not None and file_7z is None:
+        file_7z = file_pmtiles.replace('.pmtiles', '.geojsonl.7z')
+
     file_7z = Path(file_7z)
     file_pmtiles = Path(file_pmtiles)
+
+    if not file_7z.exists():
+        raise Exception(f'{file_7z} missing')
+
+    if not file_pmtiles.exists():
+        raise Exception(f'{file_pmtiles} missing')
 
     # upload files
     print(f'uploading file {file_7z}')
