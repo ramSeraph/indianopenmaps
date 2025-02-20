@@ -2967,5 +2967,13 @@
     ],
     "name": "NGDR Minor Mining Leases",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Minor_Mining_Leases.pmtiles"
+  },
+  "/not-so-open/mining/exploration/blocks/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mining Exploration Blocks",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Exploration_Blocks.pmtiles"
   }
 }
