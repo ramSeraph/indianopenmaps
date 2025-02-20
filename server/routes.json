@@ -2919,5 +2919,13 @@
     ],
     "name": "NGDR Mineral Obvious Geological Potential",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Obvious_Geological_Potential.pmtiles"
+  },
+  "/not-so-open/metallozenic/zones/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Metallozenic Zones",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Zones.pmtiles"
   }
 }
