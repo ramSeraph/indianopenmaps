@@ -2951,5 +2951,13 @@
     ],
     "name": "NCOG Major Mining Leases",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Major_Mining_Leases.pmtiles"
+  },
+  "/not-so-open/mining/leases/minor/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NCOG Minor Mining Leases",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Minor_Mining_Leases.pmtiles"
   }
 }
