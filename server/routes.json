@@ -2879,5 +2879,13 @@
     ],
     "name": "NGDR Critical Minerals",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Critical_Minerals.pmtiles"
+  },
+  "/not-so-open/minerals/ngdr/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NCOG/NGDR Mineral map",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_NGDR_Mineral_Map.pmtiles"
   }
 }
