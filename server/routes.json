@@ -2871,5 +2871,13 @@
     ],
     "name": "NCOG/SOI Quarries",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_SOI_Quarries.pmtiles"
+  },
+  "/not-so-open/minerals/critical/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Critical Minerals",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Critical_Minerals.pmtiles"
   }
 }
