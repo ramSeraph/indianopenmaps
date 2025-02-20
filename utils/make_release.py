@@ -213,7 +213,7 @@ def main(repo, release, file_7z, file_pmtiles, description, source, source_url, 
     if file_7z is not None and not file_7z.endswith('.geojsonl.7z'):
         raise Exception(f'{file_7z} does not end with .geojsonl.7z')
 
-    if file_pmtiles is not None and not file_7z.endswith('.pmtiles'):
+    if file_pmtiles is not None and not file_pmtiles.endswith('.pmtiles'):
         raise Exception(f'{file_pmtiles} does not end with .pmtiles')
 
     if file_7z is not None and file_pmtiles is None:
