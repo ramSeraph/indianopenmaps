@@ -2943,5 +2943,13 @@
     ],
     "name": "NGDR Major Mining Leases 2022",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Major_Mining_Leases_2022.pmtiles"
+  },
+  "/not-so-open/mining/leases/major/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NCOG Major Mining Leases",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Major_Mining_Leases.pmtiles"
   }
 }
