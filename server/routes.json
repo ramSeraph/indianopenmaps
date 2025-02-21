@@ -3031,5 +3031,13 @@
     ],
     "name": "NGDR Mining Leases Other",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Leases_Other.pmtiles"
+  },
+  "/mining/coal/mines/dataverse/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "Indian Coal Mine location and production - December 2020",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/Indian_Coal_Mines_dataset.pmtiles"
   }
 }
