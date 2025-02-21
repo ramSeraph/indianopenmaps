@@ -2999,5 +2999,13 @@
     ],
     "name": "NGDR Future Project Blocks",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Blocks_Future_Projects.pmtiles"
+  },
+  "/not-so-open/mining/coal/blocks/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Coal Blocks",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coal_Blocks.pmtiles"
   }
 }
