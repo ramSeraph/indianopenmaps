@@ -2991,5 +2991,13 @@
     ],
     "name": "NGDR Hydrocarbon Blocks",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Hydrocarbon_Blocks.pmtiles"
+  },
+  "/not-so-open/mining/blocks/future/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Future Project Blocks",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Blocks_Future_Projects.pmtiles"
   }
 }
