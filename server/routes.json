@@ -3007,5 +3007,13 @@
     ],
     "name": "NGDR Coal Blocks",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coal_Blocks.pmtiles"
+  },
+  "/not-so-open/mining/coal/fields/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Coal Fields Basinal Area",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coalfields_Basinal_Area.pmtiles"
   }
 }
