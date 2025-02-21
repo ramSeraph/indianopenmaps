@@ -3015,5 +3015,13 @@
     ],
     "name": "NGDR Coal Fields Basinal Area",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coalfields_Basinal_Area.pmtiles"
+  },
+  "/not-so-open/mining/exploration/auction/handed-over/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Auction Handed over Blocks",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Auction_Handed_Over_Blocks.pmtiles"
   }
 }
