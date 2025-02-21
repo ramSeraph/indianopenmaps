@@ -3040,5 +3040,13 @@
     "datameet_attribution": false,
     "name": "Indian Coal Mine location and production - December 2020",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/Indian_Coal_Mines_dataset.pmtiles"
+  },
+  "/not-so-open/mining/quarries/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mining Quarries",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries.pmtiles"
   }
 }
