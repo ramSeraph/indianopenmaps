@@ -3037,6 +3037,7 @@
     "category": [
       "mining"
     ],
+    "datameet_attribution": false,
     "name": "Indian Coal Mine location and production - December 2020",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/Indian_Coal_Mines_dataset.pmtiles"
   }
