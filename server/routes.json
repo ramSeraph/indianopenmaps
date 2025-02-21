@@ -3048,5 +3048,13 @@
     ],
     "name": "NGDR Mining Quarries",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries.pmtiles"
+  },
+  "/not-so-open/mining/quarries/with-commodity/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mining Quarries with commodity",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries_with_commodity.pmtiles"
   }
 }
