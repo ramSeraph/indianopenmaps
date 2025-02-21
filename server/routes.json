@@ -3023,5 +3023,13 @@
     ],
     "name": "NGDR Auction Handed over Blocks",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Auction_Handed_Over_Blocks.pmtiles"
+  },
+  "/not-so-open/mining/leases/other/ngdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "mining"
+    ],
+    "name": "NGDR Mining Leases Other",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Leases_Other.pmtiles"
   }
 }
