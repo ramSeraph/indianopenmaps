@@ -3080,5 +3080,13 @@
     ],
     "name": "Bharatmaps Grammanchitra ITIs",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Grammanchitra_ITIs.pmtiles"
+  },
+  "/not-so-open/agriculture/cold-storages/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "agriculture"
+    ],
+    "name": "Bhuvan Cold Storages",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Cold_Storages.pmtiles"
   }
 }
