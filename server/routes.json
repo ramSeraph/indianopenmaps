@@ -3056,5 +3056,13 @@
     ],
     "name": "NGDR Mining Quarries with commodity",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries_with_commodity.pmtiles"
+  },
+  "/not-so-open/cyclones/ctp/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "cyclones"
+    ],
+    "name": "NDEM Cyclone tracking points",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctp.pmtiles"
   }
 }
