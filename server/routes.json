@@ -3064,5 +3064,13 @@
     ],
     "name": "NDEM Cyclone tracking points",
     "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctp.pmtiles"
+  },
+  "/not-so-open/cyclones/ctl/ndem/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "cyclones"
+    ],
+    "name": "NDEM Cyclone tracking lines",
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctl.pmtiles"
   }
 }
