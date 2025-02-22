@@ -3096,5 +3096,13 @@
     ],
     "name": "Bhuvan Mandis",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Mandis.pmtiles"
+  },
+  "/not-so-open/banking/branches/dfs/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "Bharatmaps DFS 2022 Bank Branches",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Branches_2022.pmtiles"
   }
 }
