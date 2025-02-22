@@ -3112,5 +3112,13 @@
     ],
     "name": "Bharatmaps DFS 2022 Bank Mitras",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Mitras_2022.pmtiles"
+  },
+  "/not-so-open/banking/atms/dfs/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "Bharatmaps DFS 2022 Bank ATMs",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_ATMs_2022.pmtiles"
   }
 }
