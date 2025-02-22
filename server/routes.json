@@ -3088,5 +3088,13 @@
     ],
     "name": "Bhuvan Cold Storages",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Cold_Storages.pmtiles"
+  },
+  "/not-so-open/agriculture/mandis/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "agriculture"
+    ],
+    "name": "Bhuvan Mandis",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Mandis.pmtiles"
   }
 }
