@@ -3136,5 +3136,13 @@
     ],
     "name": "Bharatmaps DoFD 2023 Public Distribution Service",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_DoFD_PDS_2023.pmtiles"
+  },
+  "/not-so-open/govt-services/aadhar-centres/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "government services"
+    ],
+    "name": "Bharatmaps Aadhar Centers",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_Grammanchitra_Aadhar_Centers.pmtiles"
   }
 }
