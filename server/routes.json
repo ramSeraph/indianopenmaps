@@ -3185,5 +3185,13 @@
     "name": "NIN NHP Hospitals from data.gov.in",
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NIN_Health_Facilties_2025.pmtiles"
+  },
+  "/not-so-open/education/schools/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "education"
+    ],
+    "name": "Bharatmaps Schools",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Schooldata.pmtiles"
   }
 }
