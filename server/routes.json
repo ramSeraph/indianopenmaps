@@ -3152,5 +3152,13 @@
     ],
     "name": "Bharatmaps Atal Tinkering Labs",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_AtalTinkeringLabs.pmtiles"
+  },
+  "/not-so-open/education/emrs/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "education"
+    ],
+    "name": "Bharatmaps Ekalabya Model Residential Schools",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Ekalabya_Model_Residential_Schools.pmtiles"
   }
 }
