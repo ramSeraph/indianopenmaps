@@ -3193,5 +3193,13 @@
     ],
     "name": "Bharatmaps Schools",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Schooldata.pmtiles"
+  },
+  "/not-so-open/health/centers/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "Bharatmaps Health Centers",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bharatmaps_Health_Centers.pmtiles"
   }
 }
