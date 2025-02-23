@@ -3209,5 +3209,13 @@
     ],
     "name": "ESRI LivingAtlas India Health Facilities",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/LivingAtlas_Health_Facilities.pmtiles"
+  },
+  "/health/directory/datagov/nhp/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "Datagov NHP Hospital Directory",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.pmtiles"
   }
 }
