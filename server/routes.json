@@ -3128,5 +3128,13 @@
     ],
     "name": "Bharatmaps MeitY 2022 Common Service centers",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_MeitY_CSCs_2022.pmtiles"
+  },
+  "/not-so-open/govt-services/pds/dofd/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "government services"
+    ],
+    "name": "Bharatmaps DoFD 2023 Public Distribution Service",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_DoFD_PDS_2023.pmtiles"
   }
 }
