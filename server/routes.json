@@ -3201,5 +3201,13 @@
     ],
     "name": "Bharatmaps Health Centers",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bharatmaps_Health_Centers.pmtiles"
+  },
+  "/not-so-open/health/facilties/livingatlas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "ESRI LivingAtlas India Health Facilities",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/LivingAtlas_Health_Facilities.pmtiles"
   }
 }
