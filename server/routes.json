@@ -3160,5 +3160,13 @@
     ],
     "name": "Bharatmaps Ekalabya Model Residential Schools",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Ekalabya_Model_Residential_Schools.pmtiles"
+  },
+  "/not-so-open/education/tribal/bharatmaps/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "education"
+    ],
+    "name": "Bharatmaps Tribal Welfare Schools",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Tribal_Welfare_Schools.pmtiles"
   }
 }
