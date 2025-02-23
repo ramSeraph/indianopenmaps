@@ -3168,5 +3168,13 @@
     ],
     "name": "Bharatmaps Tribal Welfare Schools",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Tribal_Welfare_Schools.pmtiles"
+  },
+  "/not-so-open/islands/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "islands"
+    ],
+    "name": "Bhuvan Islands",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/Bhuvan_Islands.pmtiles"
   }
 }
