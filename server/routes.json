@@ -3177,12 +3177,13 @@
     "name": "Bhuvan Islands",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/Bhuvan_Islands.pmtiles"
   },
-  "/not-so-open/health/hospitals/datagov/nhp/": {
+  "/health/hospitals/datagov/nhp/": {
     "handlertype": "pmtiles",
     "category": [
       "health"
     ],
     "name": "NIN NHP Hospitals from data.gov.in",
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NIN_Health_Facilties_2025.pmtiles"
   }
 }
