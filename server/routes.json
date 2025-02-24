@@ -2219,10 +2219,11 @@
     "name": "SOI Power Lines",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles"
   },
-  "/not-so-open/power/lines/vedas/": {
+  "/power/lines/vedas/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Lines",
+    "datameet_attribution': false,
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Transmission_Lines.pmtiles"
   },
   "/not-so-open/power/lines/rec/": {
@@ -2230,6 +2231,13 @@
     "category": "power",
     "name": "REC Power Line Connections",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Bharatmaps_REC_Power_Line_Connections.pmtiles"
+  },
+  "/power/plants/vedas/": {
+    "handlertype": "pmtiles",
+    "category": "power",
+    "name": "VEDAS Power Plants",
+    "datameet_attribution': false,
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Power_Plants.pmtiles"
   },
   "/not-so-open/power/sub-stations/rec/": {
     "handlertype": "pmtiles",
