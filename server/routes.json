@@ -3289,5 +3289,13 @@
     ],
     "name": "Vedas Solar Panels mapped using AI 2023",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panels_AI_2023.pmtiles"
+  },
+  "/power/solar/panels/areas/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Solar Panel Areas",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panel_Areas.pmtiles"
   }
 }
