@@ -3225,5 +3225,13 @@
     ],
     "name": "Datagov NHP Blood banks",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.pmtiles"
+  },
+  "/not-so-open/health/anganwadis/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health"
+    ],
+    "name": "Bhuvan SISDP Anganwadis",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bhuvan_SISDP_Anganwadis.pmtiles"
   }
 }
