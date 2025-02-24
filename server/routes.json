@@ -2223,7 +2223,7 @@
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Lines",
-    "datameet_attribution': false,
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Transmission_Lines.pmtiles"
   },
   "/not-so-open/power/lines/rec/": {
@@ -2236,7 +2236,7 @@
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Plants",
-    "datameet_attribution': false,
+    "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Power_Plants.pmtiles"
   },
   "/not-so-open/power/sub-stations/rec/": {
