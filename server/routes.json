@@ -3241,5 +3241,13 @@
     ],
     "name": "Bhuvan SISDP Anganwadis",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bhuvan_SISDP_Anganwadis.pmtiles"
+  },
+  "/power/ethanol/plants/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Ethanol Plants",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Ethanol_Plants.pmtiles"
   }
 }
