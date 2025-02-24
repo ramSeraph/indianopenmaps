@@ -3249,5 +3249,13 @@
     ],
     "name": "Vedas Ethanol Plants",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Ethanol_Plants.pmtiles"
+  },
+  "/power/oil/refineries/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Oil Refineries",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Refineries.pmtiles"
   }
 }
