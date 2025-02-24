@@ -3281,5 +3281,13 @@
     ],
     "name": "Vedas Solar Panels mapped using AI 2018",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panels_AI_2018.pmtiles"
+  },
+  "/power/solar/panels/ai/2023/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Solar Panels mapped using AI 2023",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panels_AI_2023.pmtiles"
   }
 }
