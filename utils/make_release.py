@@ -28,6 +28,7 @@ known_repos = [
     "indian_land_features",
     "india_natural_disasters",
     "indian_buildings",
+    "indian_power_infra",
 ]
 
 gh_api = None
