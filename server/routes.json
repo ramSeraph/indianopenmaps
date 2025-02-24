@@ -3297,5 +3297,13 @@
     ],
     "name": "Vedas Solar Panel Areas",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panel_Areas.pmtiles"
+  },
+  "/power/solar/plants/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Solar Power Plants",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Power_Plants.pmtiles"
   }
 }
