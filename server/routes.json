@@ -3257,5 +3257,13 @@
     ],
     "name": "Vedas Oil Refineries",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Refineries.pmtiles"
+  },
+  "/power/oil/wells/vedas/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power"
+    ],
+    "name": "Vedas Oil Wells",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Wells.pmtiles"
   }
 }
