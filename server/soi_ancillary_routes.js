@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const ancillaryUrl = 'https://github.com/ramSeraph/opendata/releases/download/soi-ancillary/';
+const releaseBaseUrl = 'https://github.com/ramSeraph/opendata/releases/download';
 
 function getCorsProxyFn(targetUrl, request, reply) {
   return async function(request, reply) {
@@ -12,8 +12,10 @@ function getCorsProxyFn(targetUrl, request, reply) {
 }
 
 function addSOIAncillaryRoutes(fastify) {
-  fastify.get('/soi/osm/index.geojson', getCorsProxyFn(ancillaryUrl + 'index.geojson'));
-  fastify.get('/soi/india_boundary.geojson', getCorsProxyFn(ancillaryUrl + 'polymap15m_area.geojson'));
+  fastify.get('/soi/osm/index.geojson', getCorsProxyFn(`${releaseBaseUrl}/soi-ancillary/index.geojson`));
+  fastify.get('/soi/india_boundary.geojson', getCorsProxyFn(`${releaseBaseUrl}/soi-ancillary/polymap15m_area.geojson`));
+  fastify.get('/soi/pdf_list.txt', getCorsProxyFn(`${releaseBaseUrl}/soi-pdfs/list.txt`));
+  fastify.get('/soi/tiff_list.txt', getCorsProxyFn(`${releaseBaseUrl}/soi-tiffs/list.txt`));
 }
 
 module.exports = addSOIAncillaryRoutes;
