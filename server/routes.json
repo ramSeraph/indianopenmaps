@@ -3355,5 +3355,15 @@
     ],
     "name": "Jammu and Kashmir AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/JK_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/kerala/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "kerala"
+    ],
+    "name": "Kerala AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/KR_AMRUT_ULU.pmtiles"
   }
 }
