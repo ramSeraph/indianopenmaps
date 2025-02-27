@@ -3345,5 +3345,15 @@
     ],
     "name": "Himachal Pradesh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/HP_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/jammu-and-kashmir/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "jammu and kashmir"
+    ],
+    "name": "Jammu and Kashmir AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/JK_AMRUT_ULU.pmtiles"
   }
 }
