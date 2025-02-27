@@ -3415,5 +3415,15 @@
     ],
     "name": "Puducherry AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PD_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/sikkim/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "sikkim"
+    ],
+    "name": "Sikkim AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/SK_AMRUT_ULU.pmtiles"
   }
 }
