@@ -3325,5 +3325,15 @@
     ],
     "name": "Arunachal Pradesh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AR_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/goa/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "goa"
+    ],
+    "name": "Goa AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/GA_AMRUT_ULU.pmtiles"
   }
 }
