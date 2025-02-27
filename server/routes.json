@@ -3405,5 +3405,15 @@
     ],
     "name": "Punjab AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PB_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/puducherry/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "puducherry"
+    ],
+    "name": "Puducherry AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PD_AMRUT_ULU.pmtiles"
   }
 }
