@@ -3395,5 +3395,15 @@
     ],
     "name": "Mizoram AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MZ_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/punjab/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "punjab"
+    ],
+    "name": "Punjab AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PB_AMRUT_ULU.pmtiles"
   }
 }
