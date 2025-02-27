@@ -3305,5 +3305,15 @@
     ],
     "name": "Vedas Solar Power Plants",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Power_Plants.pmtiles"
+  },
+  "/not-so-open/andaman-and-nicobar/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "andaman and nicobar"
+    ],
+    "name": "Andaman and Nicobar AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AN_AMRUT_ULU.pmtiles"
   }
 }
