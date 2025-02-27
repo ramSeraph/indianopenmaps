@@ -3365,5 +3365,15 @@
     ],
     "name": "Kerala AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/KR_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/manipur/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "manipur"
+    ],
+    "name": "Manipur AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MN_AMRUT_ULU.pmtiles"
   }
 }
