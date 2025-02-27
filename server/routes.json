@@ -3455,5 +3455,15 @@
     ],
     "name": "Uttarakhand AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UK_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/assam/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "assam"
+    ],
+    "name": "Assam AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AS_AMRUT_ULU.pmtiles"
   }
 }
