@@ -3315,5 +3315,15 @@
     ],
     "name": "Andaman and Nicobar AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AN_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/arunachal-pradesh/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "arunachal pradesh"
+    ],
+    "name": "Arunachal Pradesh AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AR_AMRUT_ULU.pmtiles"
   }
 }
