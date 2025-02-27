@@ -3445,5 +3445,15 @@
     ],
     "name": "Telangana AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TS_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/uttarakhand/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "uttarakhand"
+    ],
+    "name": "Uttarakhand AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UK_AMRUT_ULU.pmtiles"
   }
 }
