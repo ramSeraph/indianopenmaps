@@ -3335,5 +3335,15 @@
     ],
     "name": "Goa AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/GA_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/himachal-pradesh/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "himachal pradesh"
+    ],
+    "name": "Himachal Pradesh AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/HP_AMRUT_ULU.pmtiles"
   }
 }
