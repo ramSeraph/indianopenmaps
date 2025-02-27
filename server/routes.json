@@ -3376,14 +3376,14 @@
     "name": "Manipur AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MN_AMRUT_ULU.pmtiles"
   },
-  "/not-so-open/null/urban/land-use/amrut/": {
+  "/not-so-open/madhya-pradesh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
     "category": [
       "urban",
       "land use",
-      "null"
+      "madhya pradesh"
     ],
-    "name": "null AMRUT Urban Land Use",
+    "name": "Madhya Pradesh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MP_AMRUT_ULU.pmtiles"
   },
   "/not-so-open/mizoram/urban/land-use/amrut/": {
