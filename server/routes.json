@@ -3435,5 +3435,15 @@
     ],
     "name": "Tamil Nadu AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TN_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/telangana/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "telangana"
+    ],
+    "name": "Telangana AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TS_AMRUT_ULU.pmtiles"
   }
 }
