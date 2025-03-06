@@ -22,7 +22,7 @@ function addLGDWikidataRoutes(fastify) {
   for (const entity of entities) {
     fastify.get(`/lgd/wikidata/reports/${entity}s.json`, getCorsProxyFn(`${releaseBaseUrl}/lgd-wikidata-sync/${entity}s.json`));
   }
-  fastify.get('/lgd/wikidata/reports/status.json`, getCorsProxyFn(`${releaseBaseUrl}/lgd-wikidata-sync/status.json`));
+  fastify.get('/lgd/wikidata/reports/status.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-wikidata-sync/status.json`));
 }
 
 function addSOIRoutes(fastify) {
