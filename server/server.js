@@ -105,6 +105,7 @@ function addRoutes() {
   });
   ancillary_routes.addSOIRoutes(fastify);
   ancillary_routes.addLGDRoutes(fastify);
+  ancillary_routes.addLGDWikidataRoutes(fastify);
   logger.info('done adding routes');
 }
 

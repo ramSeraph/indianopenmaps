@@ -17,6 +17,14 @@ function addLGDRoutes(fastify) {
   fastify.get('/lgd/archive_mapping.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-archive/archive_mapping.json`));
 }
 
+function addLGDWikidataRoutes(fastify) {
+  const entities = [ 'state', 'division', 'district', 'subdivision', 'subdistrict', 'district_panchayat' ];
+  for (const entity of entities) {
+    fastify.get(`/lgd/wikidata/reports/${entity}s.json`, getCorsProxyFn(`${releaseBaseUrl}/lgd-wikidata-sync/${entity}s.json`));
+  }
+  fastify.get('/lgd/wikidata/reports/status.json`, getCorsProxyFn(`${releaseBaseUrl}/lgd-wikidata-sync/status.json`));
+}
+
 function addSOIRoutes(fastify) {
   fastify.get('/soi/osm/index.geojson', getCorsProxyFn(`${releaseBaseUrl}/soi-ancillary/index.geojson`));
   fastify.get('/soi/india_boundary.geojson', getCorsProxyFn(`${releaseBaseUrl}/soi-ancillary/polymap15m_area.geojson`));
@@ -26,5 +34,6 @@ function addSOIRoutes(fastify) {
 
 module.exports =  {
     addSOIRoutes,
-    addLGDRoutes
+    addLGDRoutes,
+    addLGDWikidataRoutes
 }
