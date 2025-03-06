@@ -3475,5 +3475,15 @@
     ],
     "name": "Chhattisgarh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/CG_AMRUT_ULU.pmtiles"
+  },
+  "/not-so-open/uttar-pradesh/urban/land-use/amrut/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "urban",
+      "land use",
+      "uttar pradesh"
+    ],
+    "name": "Uttar Pradesh AMRUT Urban Land Use",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UP_AMRUT_ULU.pmtiles"
   }
 }
