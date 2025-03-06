@@ -9,7 +9,7 @@ const routes = require('./routes.json');
 
 const getLocaterPage = require('./wikidata_locater');
 
-const addSOIAncillaryRoutes = require('./soi_ancillary_routes');
+const ancillary_routes = require('./ancillary_routes');
 
 const logger = fastify.log;
 
@@ -103,7 +103,8 @@ function addRoutes() {
       });
     }
   });
-  addSOIAncillaryRoutes(fastify);
+  ancillary_routes.addSOIRoutes(fastify);
+  ancillary_routes.addLGDRoutes(fastify);
   logger.info('done adding routes');
 }
 
