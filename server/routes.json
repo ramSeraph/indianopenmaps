@@ -3485,5 +3485,14 @@
     ],
     "name": "Uttar Pradesh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UP_AMRUT_ULU.pmtiles"
+  },
+  "/dem/grid/cartodem-v3r1/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "digital elevation model",
+      "grid"
+    ],
+    "name": "Bhuvan CartoDEM 30m v3r1 Grid",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_grid.pmtiles"
   }
 }
