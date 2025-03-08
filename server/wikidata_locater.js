@@ -16,7 +16,6 @@ function getPage(request, markerExpeted) {
                           .split('/')
                           .slice(0,-1)
                           .join('/');
-    console.log(download_url);
 
     const type = ('type' in rInfo) ? rInfo['type'] : 'vector';
     if (type == 'raster') {
