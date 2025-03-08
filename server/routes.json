@@ -3494,5 +3494,14 @@
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Grid",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_grid.pmtiles"
+  },
+  "/dem/water-bodies/cartodem-v3r1/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "digital elevation model",
+      "water"
+    ],
+    "name": "Bhuvan CartoDEM 30m v3r1 Water Bodies",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Waterbodies.pmtiles"
   }
 }
