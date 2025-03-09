@@ -3503,5 +3503,14 @@
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Water Bodies",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Waterbodies.pmtiles"
+  }, 
+  "/dem/contours/cartodem-v3r1/bhuvan/": {
+    "handlertype": "mosaic",
+    "category": [
+      "digital elevation model",
+      "contours"
+    ],
+    "name": "Bhuvan CartoDEM 30m v3r1 Contours",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Contours.mosaic.json"
   }
 }
