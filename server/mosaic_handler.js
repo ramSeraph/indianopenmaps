@@ -3,19 +3,18 @@ const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
 const common = require('./common');
 
-function _getBounds(z,x,y) {
-  const b = tilebelt.tileToBBOX([x, y, z]);
-  const w = b[0], s = b[1], e = b[2], n = b[3];
-  return [[s, w], [n, e]];
-}
 
 function _isInSource(header, bounds) {
-  const corner0 = bounds[0];
-  const corner1 = bounds[1];
-  if (corner0[0] > header['maxLat'] ||
-      corner0[1] > header['maxLon'] ||
-      corner1[0] < header['minLat'] ||
-      corner1[1] < header['minLon']) {
+  // tilebelt.tileToBBOX returns [w, s, e, n]
+  const w = bounds[0];
+  const s = bounds[1];
+  const e = bounds[2];
+  const n = bounds[3];
+  
+  if (s > header['maxLat'] ||
+      e > header['maxLon'] ||
+      n < header['minLat'] ||
+      w < header['minLon']) {
       return false;
   }
   return true;
@@ -124,7 +123,7 @@ class MosaicHandler {
 
   _getSourceKey(z, x, y) {
     let k = null;
-    const bounds = _getBounds(z, x, y);
+    const bounds = tilebelt.tileToBBOX([parseInt(x), parseInt(y), parseInt(z)]);
     for (const [key, entry] of Object.entries(this.pmtilesDict)) {
       if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
         continue;
