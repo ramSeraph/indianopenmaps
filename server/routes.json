@@ -3517,6 +3517,8 @@
     "handlertype": "mosaic",
     "type": "raster",
     "category": [
+      "digital elevation model",
+      "terrain rgb",
       "raster"
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Terrain RGB",
