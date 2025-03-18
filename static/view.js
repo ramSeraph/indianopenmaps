@@ -29,7 +29,6 @@ var lightColors = [
 ];
 
 const soiTileUrl = decodeURI(new URL('/soi/osm/{z}/{x}/{y}.webp', currUrl).href);
-console.log(soiTileUrl);
 // TODO: pick different colors for layers for SOI basemap to make things more visible
 var SOI_OSM_Imagery = {
   'name': 'SOI OSM Imagery',
@@ -184,6 +183,26 @@ let mapConfig = {
   'maxZoom': 30,
 };
 
+const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
+
+const tsource = {
+  'type': 'raster-dem',
+  'tiles': [terrainTileUrl],
+  'tileSize': 256,
+  'maxzoom': 12,
+  'minzoom': 5,
+}
+
+const HILLSHADE_LAYER_ID = 'hills';
+const hlayer = {
+  id: HILLSHADE_LAYER_ID,
+  type: 'hillshade',
+  maxZoom: 14,
+  source: 'hillshadeSource',
+  layout: {visibility: 'visible'},
+  paint: {'hillshade-shadow-color': '#473B24'}
+}
+
 baseLayers.forEach((layerInfo) => {
   if (!layerInfo.initial) {
     return;
@@ -192,13 +211,20 @@ baseLayers.forEach((layerInfo) => {
   for (const [sname, source] of Object.entries(sources)) {
     mapConfig.style.sources[sname] = source;
   }
+  mapConfig.style.sources['terrainSource'] = tsource;
+  mapConfig.style.sources['hillshadeSource'] = tsource;
+
   for (const layer of layers) {
     mapConfig.style.layers.push(layer);
   }
+  mapConfig.style.layers.push(hlayer);
+  mapConfig.style['terrain'] = { 'source': 'terrainSource', 'exaggeration': 1 };
+  mapConfig.style['sky'] = {}
 });
 
+console.log(mapConfig);
+
 var map = null;
-var firstLayerId = null;
 
 function addLayers(e) {
   if (!map.getSource(srcName) || !map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
@@ -209,9 +235,6 @@ function addLayers(e) {
   
   for (layerId of src.vectorLayerIds) {
     var layerColor = '#' + randomColor(lightColors);
-    if (firstLayerId === null) {
-      firstLayerId = `${layerId}-polygons`;
-    }
     map.addLayer({
       'id': `${layerId}-polygons`,
       'type': 'fill',
@@ -499,7 +522,7 @@ class BaseLayerPicker {
           this.map.addSource(sname, source);
         }
         for (const layer of layers) {
-          this.map.addLayer(layer, firstLayerId);
+          this.map.addLayer(layer, HILLSHADE_LAYER_ID);
         }
 	  });
       this.buttons.push(button);
@@ -549,6 +572,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
   }));
   map.addControl(new InspectButton(initialInspect));
   map.addControl(new BaseLayerPicker(baseLayers), 'top-left');
+  map.addControl(new maplibregl.TerrainControl({
+    source: 'terrainSource',
+    exaggeration: 1
+  }));
   map.once('load', function () {
     map.addSource(srcName, {
       'type': 'vector',
