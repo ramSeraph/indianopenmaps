@@ -3512,5 +3512,14 @@
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Contours",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Contours.mosaic.json"
+  },
+  "/dem/terrain-rgb/cartodem-v3r1/bhuvan/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "name": "Bhuvan CartoDEM 30m v3r1 Terrain RGB",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_TerrainRGB.mosaic.json"
   }
 }
