@@ -1,3 +1,4 @@
+#!/usr/bin/env -S uv run 
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
@@ -13,7 +14,7 @@ from pathlib import Path
 from pprint import pprint
 
 import mercantile
-from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
+from pmtiles.tile import zxy_to_tileid, TileType, Compression
 from pmtiles.writer import Writer as PMTilesWriter
 
 
@@ -65,7 +66,7 @@ class MBTilesSource:
             yield (tile, len(data))
 
     def all(self):
-        res = self.con.execute(f'select zoom_level, tile_column, tile_row, tile_data from tiles;')
+        res = self.con.execute('select zoom_level, tile_column, tile_row, tile_data from tiles;')
         while True:
             t = res.fetchone()
             if not t:
@@ -94,7 +95,7 @@ class MBTilesSource:
             all_metadata[k] = v
 
         metadata = {}
-        for k in ['type', 'format', 'attribution', 'description', 'name', 'version', 'vector_layers']:
+        for k in ['type', 'format', 'attribution', 'description', 'name', 'version', 'vector_layers', 'maxzoom', 'minzoom']:
             if k not in all_metadata:
                 continue
             metadata[k] = all_metadata[k]
@@ -112,14 +113,15 @@ size_limit_bytes = (2 * 1024 * 1024 * 1024) - DELTA
 #size_limit_bytes = (100 * 1024 * 1024) - DELTA
 # cloudflare cache size limit
 #size_limit_bytes = (512 * 1024 * 1024) - DELTA
-max_level = 14
-min_level = 0
+max_level = None
+min_level = None
+mbtiles_type = 'vector'
 
 
-def get_layer_info(l, reader):
+def get_layer_info(level, reader):
     tiles = {}
     total_size = 0
-    for tile, size in reader.for_all_z(l):
+    for tile, size in reader.for_all_z(level):
         tiles[tile] = size
         total_size += size
     return total_size, tiles
@@ -178,13 +180,13 @@ def get_top_slice(reader):
     print('getting top slice')
     size_till_now = 0
     tiles = {}
-    for l in range(min_level, max_level + 1):
-        lsize, ltiles = get_layer_info(l, reader)
+    for level in range(min_level, max_level + 1):
+        lsize, ltiles = get_layer_info(level, reader)
         size_till_now += lsize
-        print(f'{l=}, {lsize=}, {size_till_now=}, {size_limit_bytes=}')
+        print(f'{level=}, {lsize=}, {size_till_now=}, {size_limit_bytes=}')
         tiles.update(ltiles)
         if size_till_now > size_limit_bytes:
-            return l - 1, tiles
+            return level - 1, tiles
     return max_level, tiles
 
 def save_partition_info(inp_p_info, partition_file):
@@ -340,7 +342,7 @@ def create_pmtiles(partition_info, to_pmtiles_prefix, reader):
         tile_type = get_tile_type(metadata['format'])
         header = {
             "tile_type": tile_type,
-            "tile_compression": Compression.GZIP,
+            "tile_compression": Compression.GZIP if mbtiles_type == 'vector' else Compression.NONE,
             "min_lon_e7": int(min_lons[suffix] * 10000000),
             "min_lat_e7": int(min_lats[suffix] * 10000000),
             "max_lon_e7": int(max_lons[suffix] * 10000000),
@@ -367,15 +369,23 @@ if __name__ == '__main__':
 
     mbtiles_fname = sys.argv[1]
     if not mbtiles_fname.endswith('.mbtiles'):
-        raise Exception(f'expecting an mbtiles file')
+        raise Exception('expecting an mbtiles file')
     fname_prefix = mbtiles_fname[:-len('.mbtiles')]
 
     to_partition_file = Path(f'{fname_prefix}.partition_info.json')
     reader = MBTilesSource(mbtiles_fname)
     metadata = reader.get_metadata()
     pprint(metadata)
-    max_level = metadata['vector_layers'][0]['maxzoom']
-    min_level = metadata['vector_layers'][0]['minzoom']
+    if 'vector_layers' in metadata:
+        num_layers = len(metadata['vector_layers'])
+        if num_layers != 1:
+            raise Exception(f'got {num_layers} layers, expecting 1')
+        max_level = metadata['vector_layers'][0]['maxzoom']
+        min_level = metadata['vector_layers'][0]['minzoom']
+    else:
+        max_level = int(metadata['maxzoom'])
+        min_level = int(metadata['minzoom'])
+        mbtiles_type = 'raster'
 
     partition_info = get_partition_info(reader)
     if not to_partition_file.exists():
