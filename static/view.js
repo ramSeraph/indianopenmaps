@@ -184,9 +184,10 @@ let mapConfig = {
 };
 
 
+// using tile url as the tilejson setup is causing more rendering artifacts
 const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
 
-const tsource = {
+const terrainSource = {
   'type': 'raster-dem',
   'tiles': [terrainTileUrl],
   'tileSize': 256,
@@ -213,8 +214,8 @@ baseLayers.forEach((layerInfo) => {
   for (const [sname, source] of Object.entries(sources)) {
     mapConfig.style.sources[sname] = source;
   }
-  mapConfig.style.sources['terrainSource'] = tsource;
-  mapConfig.style.sources['hillshadeSource'] = tsource;
+  mapConfig.style.sources['terrainSource'] = terrainSource;
+  mapConfig.style.sources['hillshadeSource'] = terrainSource;
 
   for (const layer of layers) {
     mapConfig.style.layers.push(layer);
@@ -223,8 +224,6 @@ baseLayers.forEach((layerInfo) => {
   mapConfig.style['terrain'] = { 'source': 'terrainSource', 'exaggeration': 1 };
   mapConfig.style['sky'] = {}
 });
-
-console.log(mapConfig);
 
 var map = null;
 
@@ -590,7 +589,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const params = new Proxy(new URLSearchParams(window.location.search), {
     get: (searchParams, prop) => searchParams.get(prop),
   });
-  if (params.markerLon !== undefined && params.markerLat !== undefined) {
+  if ((params.markerLon !== undefined && params.markerLat !== undefined) &&
+      (params.markerLon !== null && params.markerLat !== null))
+  {
     const marker = new maplibregl.Marker({ color: '#DBDBDB',
                                            draggable: false })
                                  .setLngLat([params.markerLon, params.markerLat])
