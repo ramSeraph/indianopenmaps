@@ -6,7 +6,7 @@
       "raster"
     ],
     "name": "SOI Open Series Maps",
-    "url": "https://github.com/ramSeraph/opendata/releases/download/soi-latest/mosaic.json"
+    "url": "https://github.com/ramSeraph/opendata/releases/download/soi-latest/soi.mosaic.json"
   },
   "/not-so-open/states/lgd/": {
     "handlertype": "pmtiles",
