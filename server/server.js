@@ -26,7 +26,17 @@ if (!serverUrl) {
 console.log('server url:', serverUrl);
 
 async function getTile(handler, request, reply) {
-  const { z, x, y } = request.params;
+  var { z, x, y } = request.params;
+  try {
+    z = parseInt(z);
+    x = parseInt(x);
+    y = parseInt(y);
+  } catch(err) {
+    return reply.code(400)
+                .header('Access-Control-Allow-Origin', "*")
+                .send(`non integer values in tile url`);
+  }
+
   const [ arr, mimeType ] = await handler.getTile(z,x,y);
   if (arr) {
     return reply.header('Content-Type', mimeType)

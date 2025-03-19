@@ -123,7 +123,7 @@ class MosaicHandler {
 
   _getSourceKey(z, x, y) {
     let k = null;
-    const bounds = tilebelt.tileToBBOX([parseInt(x), parseInt(y), parseInt(z)]);
+    const bounds = tilebelt.tileToBBOX([x, y, z]);
     for (const [key, entry] of Object.entries(this.pmtilesDict)) {
       if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
         continue;
@@ -134,7 +134,6 @@ class MosaicHandler {
       k = key;
       break;
     }
-    // this.logger.info(`key=${k} for  (${x} ${y} ${z})`);
     return k;
   }
 
