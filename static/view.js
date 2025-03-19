@@ -183,6 +183,7 @@ let mapConfig = {
   'maxZoom': 30,
 };
 
+
 const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
 
 const tsource = {
@@ -191,6 +192,7 @@ const tsource = {
   'tileSize': 256,
   'maxzoom': 12,
   'minzoom': 5,
+  'attribution': 'Terrain: <a href="https://bhuvan-app3.nrsc.gov.in/data/download/index.php" target="_blank">CartoDEM 30m v3r1</a>'
 }
 
 const HILLSHADE_LAYER_ID = 'hills';
