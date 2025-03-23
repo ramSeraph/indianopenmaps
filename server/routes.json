@@ -3523,5 +3523,13 @@
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Terrain RGB",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_TerrainRGB.mosaic.json"
+  },
+  "/not-so-open/landuse/10k/sisdpv2/bhuvan/": {
+    "handlertype": "mosaic",
+    "category": [
+      "landuse"
+    ],
+    "name": "Bhuvan SISDP v2 Landuse 10k",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download//Bhuvan_SISDP_LULC_10k.mosaic.json"
   }
 }
