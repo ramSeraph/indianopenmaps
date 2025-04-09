@@ -138,7 +138,7 @@ def update_release_doc(repo_name, release, description, file_7z, route, source, 
     ### [{file_7z.name}](https://github.com/{user.login}/{repo_name}/releases/download/{release}/{file_7z.name})
     - Description: {description}
     - Source: {source} - {source_url}
-    - License: [CC0 1.0 but attribute datameet where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
+    - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
     - Tiles - https://indianopenmaps.fly.dev{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.fly.dev{route}view)
     """
 
