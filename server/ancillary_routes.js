@@ -13,8 +13,9 @@ function getCorsProxyFn(targetUrl, request, reply) {
 
 function addLGDRoutes(fastify) {
   fastify.get('/lgd/site_map.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-latest/site_map.json`));
-  fastify.get('/lgd/listing_archives.txt', getCorsProxyFn(`${releaseBaseUrl}/lgd-latest/listing_archives.txt`));
-  fastify.get('/lgd/archive_mapping.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-archive/archive_mapping.json`));
+  fastify.get('/lgd/listing.txt', getCorsProxyFn(`${releaseBaseUrl}/lgd-latest/listing_archives.txt`));
+  fastify.get('/lgd/archive/mapping.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-archive/archive_mapping.json`));
+  fastify.get('/lgd/archive/listing.txt', getCorsProxyFn(`${releaseBaseUrl}/lgd-archive/listing_archive.txt`));
 }
 
 function addLGDWikidataRoutes(fastify) {
