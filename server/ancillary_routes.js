@@ -1,10 +1,22 @@
 const fetch = require('node-fetch');
 
 const releaseBaseUrl = 'https://github.com/ramSeraph/opendata/releases/download';
+const egazStatusReleaseUrl = 'https://github.com/ramSeraph/egazette/releases/download/status'
 
-function getCorsProxyFn(targetUrl, request, reply) {
+function getCorsProxyFn(targetUrl) {
   return async function(request, reply) {
-    const tResp = await fetch(targetUrl)
+    const tResp = await fetch(targetUrl);
+    const stream = tResp.body;
+    return reply.header("Access-Control-Allow-Origin", "*")
+                .send(stream);
+  }
+}
+
+function getUrlRewriteCorsProxyFn(rewriteBase, paramName) {
+  return async function(request, reply) {
+    filePath = request.params[paramName];
+    targetUrl = `${rewriteBase}/${filePath}`;
+    const tResp = await fetch(targetUrl);
     const stream = tResp.body;
     return reply.header("Access-Control-Allow-Origin", "*")
                 .send(stream);
@@ -33,8 +45,13 @@ function addSOIRoutes(fastify) {
   fastify.get('/soi/tiff_list.txt', getCorsProxyFn(`${releaseBaseUrl}/soi-tiffs/list.txt`));
 }
 
+function addEGazetteRoutes(fastify) {
+  fastify.get('/egazstatus/:statusfile', getUrlRewriteCorsProxyFn(egazStatusReleaseUrl, 'statusfile'));
+}
+
 module.exports =  {
     addSOIRoutes,
     addLGDRoutes,
-    addLGDWikidataRoutes
+    addLGDWikidataRoutes,
+    addEGazetteRoutes
 }
