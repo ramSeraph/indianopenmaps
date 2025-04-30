@@ -12,17 +12,6 @@ function getCorsProxyFn(targetUrl) {
   }
 }
 
-function getUrlRewriteCorsProxyFn(rewriteBase, paramName) {
-  return async function(request, reply) {
-    filePath = request.params[paramName];
-    targetUrl = `${rewriteBase}/${filePath}`;
-    const tResp = await fetch(targetUrl);
-    const stream = tResp.body;
-    return reply.header("Access-Control-Allow-Origin", "*")
-                .send(stream);
-  }
-}
-
 function addLGDRoutes(fastify) {
   fastify.get('/lgd/site_map.json', getCorsProxyFn(`${releaseBaseUrl}/lgd-latest/site_map.json`));
   fastify.get('/lgd/listing.txt', getCorsProxyFn(`${releaseBaseUrl}/lgd-latest/listing_archives.txt`));
@@ -45,13 +34,8 @@ function addSOIRoutes(fastify) {
   fastify.get('/soi/tiff_list.txt', getCorsProxyFn(`${releaseBaseUrl}/soi-tiffs/list.txt`));
 }
 
-function addEGazetteRoutes(fastify) {
-  fastify.get('/egazstatus/:statusfile', getUrlRewriteCorsProxyFn(egazStatusReleaseUrl, 'statusfile'));
-}
-
 module.exports =  {
     addSOIRoutes,
     addLGDRoutes,
     addLGDWikidataRoutes,
-    addEGazetteRoutes
 }
