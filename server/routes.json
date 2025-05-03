@@ -3541,7 +3541,7 @@
     "name": "OneMapGoaGIS Goa Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Onemapgoa_GA_Cadastrals.pmtiles"
   },
-  "/not-so-open/cadastrals/goa/nbss": {
+  "/not-so-open/cadastrals/goa/nbss/": {
     "handlertype": "pmtiles",
     "category": [
       "cadastrals",
@@ -3550,7 +3550,7 @@
     "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/NBSS_Goa_Cadastrals.pmtiles"
   },
-  "/not-so-open/cadastrals/bihar/nbss": {
+  "/not-so-open/cadastrals/bihar/nbss/": {
     "handlertype": "pmtiles",
     "category": [
       "cadastrals",
