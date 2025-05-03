@@ -3549,5 +3549,14 @@
     ],
     "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/NBSS_Goa_Cadastrals.pmtiles"
+  },
+  "/not-so-open/cadastrals/bihar/nbss": {
+    "handlertype": "pmtiles",
+    "category": [
+      "cadastrals",
+      "bihar"
+    ],
+    "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NBSS_Bihar_Cadastrals.pmtiles"
   }
 }
