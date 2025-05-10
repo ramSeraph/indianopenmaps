@@ -3558,5 +3558,13 @@
     ],
     "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NBSS_Bihar_Cadastrals.pmtiles"
+  },
+  "/pincodes/datagovin": {
+    "handlertype": "pmtiles",
+    "category": [
+      "postal"
+    ],
+    "name": "Data.gov.in Pincode Boundaries",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles"
   }
 }
