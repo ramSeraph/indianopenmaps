@@ -9,8 +9,6 @@ const routes = require('./routes.json');
 
 const getLocaterPage = require('./wikidata_locater');
 
-const ancillary_routes = require('./ancillary_routes');
-
 const logger = fastify.log;
 
 const handlerMap = {};
@@ -114,10 +112,6 @@ function addRoutes() {
     }
   });
 
-  // abusing this server for all my cors proxy requirements
-  ancillary_routes.addSOIRoutes(fastify);
-  ancillary_routes.addLGDRoutes(fastify);
-  ancillary_routes.addLGDWikidataRoutes(fastify);
   logger.info('done adding routes');
 }
 
