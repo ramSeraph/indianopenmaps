@@ -3564,6 +3564,7 @@
     "category": [
       "postal"
     ],
+    "datameet_attribution": false,
     "name": "Data.gov.in Pincode Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles"
   }
