@@ -169,8 +169,7 @@ class RepositoryReleases(click.Choice):
     def update_choices(self, repo: str):
         if self.choices_filled:
             return
-        self.choices.clear()
-        self.choices.extend(get_releases_for_repo(repo))
+        self.choices = tuple(get_releases_for_repo(repo))
         self.choices_filled = True
 
 
