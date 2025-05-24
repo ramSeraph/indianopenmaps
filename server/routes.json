@@ -3567,5 +3567,13 @@
     "datameet_attribution": false,
     "name": "Data.gov.in Pincode Boundaries",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles"
+  },
+  "/not-so-open/banking/business-correspondents/rbi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "RBI Banks Fixed Business Correspondents",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BC_2025.pmtiles"
   }
 }
