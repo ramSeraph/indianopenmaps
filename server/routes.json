@@ -3583,5 +3583,13 @@
     ],
     "name": "RBI Banks ATMs/CDMs/CRMs",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_CSP_2025.pmtiles"
+  },
+  "/not-so-open/banking/branches/rbi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "RBI Banks Branches/Extension Counters",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BRANCH_2025.pmtiles"
   }
 }
