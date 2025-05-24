@@ -3599,5 +3599,13 @@
     ],
     "name": "RBI Banks Offices/Others/CSCs",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_OFFICE_2025.pmtiles"
+  },
+  "/not-so-open/banking/digital-banking-units/rbi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "RBI Banks Digital Banking Units",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_DBU_2025.pmtiles"
   }
 }
