@@ -3575,5 +3575,13 @@
     ],
     "name": "RBI Banks Fixed Business Correspondents",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BC_2025.pmtiles"
+  },
+  "/not-so-open/banking/customer-service-points/rbi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "banking"
+    ],
+    "name": "RBI Banks ATMs/CDMs/CRMs",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_CSP_2025.pmtiles"
   }
 }
