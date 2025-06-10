@@ -13,5 +13,9 @@ A display server for the data hosted at the following repos:
 * [indian_buildings](https://github.com/ramSeraph/indian_buildings)
 * [indian_power_infra](https://github.com/ramSeraph/indian_power_infra)
 
+Contains [code](https://github.com/ramSeraph/indianopenmaps/blob/main/server/mosaic_handler.js) for getting tiles from a big pmtiles file which has been split into multiple shards( to overcome hosting size limits? ).
+
+Also has th [code](https://github.com/ramSeraph/indianopenmaps/blob/main/utils/partition.py) for the splitting.
+
 See the list of data available at https://indianopenmaps.fly.dev/
 
