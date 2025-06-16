@@ -3607,5 +3607,15 @@
     ],
     "name": "RBI Banks Digital Banking Units",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_DBU_2025.pmtiles"
+  },
+  "/nepal/topo/ultrajourneys": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Nepal Topo Maps",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/ultrajourneys/Nepal_Topo_Survey_JICA_Pahar_Ultrajourneys.mosaic.json"
   }
 }
