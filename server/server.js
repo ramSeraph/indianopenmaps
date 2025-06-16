@@ -126,10 +126,15 @@ function createHandlers() {
     if ('type' in rInfo) {
       type = rInfo['type'];
     }
+
     var tilesuffix = 'pbf';
     if (type === 'raster') {
       tilesuffix = 'webp';
+      if ('tilesuffix' in rInfo) {
+        tilesuffix = rInfo['tilesuffix'];
+      }
     }
+
     if (rInfo['handlertype'] === 'mosaic') {
       handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
     } else {

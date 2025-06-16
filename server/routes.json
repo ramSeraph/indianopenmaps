@@ -3616,6 +3616,7 @@
     ],
     "datameet_attribution": false,
     "name": "Nepal Topo Maps",
+    "tilesuffix": "jpg",
     "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/ultrajourneys/Nepal_Topo_Survey_JICA_Pahar_Ultrajourneys.mosaic.json"
   }
 }
