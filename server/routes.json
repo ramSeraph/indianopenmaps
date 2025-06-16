@@ -3608,7 +3608,7 @@
     "name": "RBI Banks Digital Banking Units",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_DBU_2025.pmtiles"
   },
-  "/nepal/topo/ultrajourneys": {
+  "/nepal/topo/ultrajourneys/": {
     "handlertype": "mosaic",
     "type": "raster",
     "category": [
