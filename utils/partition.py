@@ -23,7 +23,7 @@ def get_tile_type(fmt):
         return TileType.MVT
     if fmt == 'png':
         return TileType.PNG
-    if fmt == 'jpeg':
+    if fmt == 'jpg':
         return TileType.JPEG
     if fmt == 'webp':
         return TileType.WEBP
