@@ -3618,5 +3618,25 @@
     "name": "Nepal Topo Maps",
     "tilesuffix": "jpg",
     "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/ultrajourneys/Nepal_Topo_Survey_JICA_Pahar_Ultrajourneys.mosaic.json"
+  },
+  "/nepal/topo/maze/main": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Nepal Topo Maps from Survey Department through 'the maze'",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_main.mosaic.json"
+  },
+  "/nepal/topo/maze/jica": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Nepal Topo Maps from Survey Department through 'the maze', JICA subset",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_jica.mosaic.json"
   }
 }
