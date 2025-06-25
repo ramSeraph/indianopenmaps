@@ -3638,5 +3638,16 @@
     "datameet_attribution": false,
     "name": "Nepal Topo Maps from Survey Department through 'the maze', JICA subset",
     "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_jica.pmtiles"
+  },
+  "/myanmar/topo/50k/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Myanmar Topo Maps from Survey Department through 'Old Survey of India Maps Collection",
+    "url": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-pmtiles/Myanmar_50k.pmtiles"
   }
+
 }
