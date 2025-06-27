@@ -3658,6 +3658,6 @@
     "datameet_attribution": false,
     "name": "Himachal Pradesh Altitude Maps from Ultrajourneys",
     "tilesuffix": "jpg",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/ultrajourneys/HP_Altitude.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/ultrajourneys/HP_altitude.pmtiles"
   }
 }
