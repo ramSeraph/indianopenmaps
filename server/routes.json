@@ -3649,15 +3649,15 @@
     "name": "Myanmar Topo Maps from Survey Department through 'Old Survey of India Maps Collection",
     "url": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-pmtiles/Myanmar_50k.pmtiles"
   },
-  "/ultrajourneys/altitude/hp/": {
+  "/ultrajourneys/altitude/himalayas/": {
     "handlertype": "pmtiles",
     "type": "raster",
     "category": [
       "raster"
     ],
     "datameet_attribution": false,
-    "name": "Himachal Pradesh Altitude Maps from Ultrajourneys",
+    "name": "Himalayan Altitude Maps from Ultrajourneys",
     "tilesuffix": "jpg",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/ultrajourneys/HP_altitude.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/ultrajourneys/Himalayas_Elevation_Topo.pmtiles"
   }
 }
