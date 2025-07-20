@@ -12,6 +12,7 @@ function _isInSource(header, bounds) {
   const s = bounds[1];
   const e = bounds[2];
   const n = bounds[3];
+  console.log(bounds, header);
   
   // TODO: Not happy with this check..
   // this checks if the tile is perfectly inside the source bounds.
