@@ -144,6 +144,7 @@ class MosaicHandler {
     if (k === null) {
       return [null, null];
     }
+    console.log('Fetching tile from source:', k, 'z:', z, 'x:', x, 'y:', y);
 
     let source = this.pmtilesDict[k].pmtiles;
     let arr = await source.getZxy(z,x,y);
