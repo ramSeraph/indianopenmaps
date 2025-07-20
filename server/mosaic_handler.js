@@ -12,7 +12,6 @@ function _isInSource(header, bounds) {
   const s = bounds[1];
   const e = bounds[2];
   const n = bounds[3];
-  console.log(bounds, header);
   
   // TODO: Not happy with this check..
   // this checks if the tile is perfectly inside the source bounds.
@@ -21,6 +20,7 @@ function _isInSource(header, bounds) {
       e > header['maxLon'] ||
       n < header['minLat'] ||
       w < header['minLon']) {
+      console.log('Tile is not in source bounds:', bounds, header);
       return false;
   }
   return true;
@@ -107,7 +107,6 @@ class MosaicHandler {
       header['minZoom'] = header['min_zoom'];
       header['centerZoom'] = header['center_zoom'];
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
-      console.log('Adding source:', key, 'with header:', header);
       this.mimeTypes[key] = common.getMimeType(header.tile_type);
     }
   }
@@ -121,6 +120,7 @@ class MosaicHandler {
     if (this.inited) {
         return;
     }
+    // TODO: multiple simultaneous calls should lead to a single pull from pmtiles
     await this.init();
   }
 
