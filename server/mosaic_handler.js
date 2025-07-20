@@ -3,14 +3,19 @@ const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
 const common = require('./common');
 
+COORD_SCALER = 10000000;
 
 function _isInSource(header, bounds) {
   // tilebelt.tileToBBOX returns [w, s, e, n]
+  bounds = bounds.map((v) => Math.round(v * COORD_SCALER));
   const w = bounds[0];
   const s = bounds[1];
   const e = bounds[2];
   const n = bounds[3];
   
+  // TODO: Not happy with this check..
+  // this checks if the tile is perfectly inside the source bounds.
+  // should that be the check?
   if (s > header['maxLat'] ||
       e > header['maxLon'] ||
       n < header['minLat'] ||
@@ -91,16 +96,17 @@ class MosaicHandler {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
-      header['minLat'] = header['min_lat_e7'] / 10000000;
-      header['minLon'] = header['min_lon_e7'] / 10000000;
-      header['maxLat'] = header['max_lat_e7'] / 10000000;
-      header['maxLon'] = header['max_lon_e7'] / 10000000;
-      header['centerLat'] = header['center_lat_e7'] / 10000000;
-      header['centerLon'] = header['center_lon_e7'] / 10000000;
+      header['minLat'] = header['min_lat_e7'];
+      header['minLon'] = header['min_lon_e7'];
+      header['maxLat'] = header['max_lat_e7'];
+      header['maxLon'] = header['max_lon_e7'];
+      header['centerLat'] = header['center_lat_e7'];
+      header['centerLon'] = header['center_lon_e7'];
       header['maxZoom'] = header['max_zoom'];
       header['minZoom'] = header['min_zoom'];
       header['centerZoom'] = header['center_zoom'];
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
+      console.log('Adding source:', key, 'with header:', header);
       this.mimeTypes[key] = common.getMimeType(header.tile_type);
     }
   }
@@ -166,8 +172,8 @@ class MosaicHandler {
       description: metadata.description,
       name: metadata.name,
       version: metadata.version,
-      bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat],
-      center: [header.centerLon, header.centerLat, header.centerZoom],
+      bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat].map((v) => v / COORD_SCALER),
+      center: [header.centerLon, header.centerLat, header.centerZoom].map((v) => v / COORD_SCALER),
       minzoom: header.minZoom,
       maxzoom: header.maxZoom,
     };
