@@ -20,7 +20,7 @@ function _isInSource(header, bounds) {
       e > header['maxLon'] ||
       n < header['minLat'] ||
       w < header['minLon']) {
-      console.log('Tile is not in source bounds:', bounds, header);
+      //console.log('Tile is not in source bounds:', bounds, header);
       return false;
   }
   return true;
@@ -151,7 +151,7 @@ class MosaicHandler {
     if (k === null) {
       return [null, null];
     }
-    console.log('Fetching tile from source:', k, 'z:', z, 'x:', x, 'y:', y);
+    //console.log('Fetching tile from source:', k, 'z:', z, 'x:', x, 'y:', y);
 
     let source = this.pmtilesDict[k].pmtiles;
     let arr = await source.getZxy(z,x,y);
