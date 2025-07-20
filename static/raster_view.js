@@ -94,7 +94,7 @@ function addLayers(tileJSON) {
   var options = {
     center: center,
     zoom: 10,
-    minZoom: 5,
+    minZoom: 0,
     maxZoom: 20,
     attributionControl: false
   };
