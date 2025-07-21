@@ -90,6 +90,7 @@ class MosaicHandler {
     this.datameetAttribution = datameetAttribution;
     this.title = null;
     this.inited = false;
+    this.initializingPromise = null;
   }
 
   _resolveKey(key) {
@@ -134,8 +135,17 @@ class MosaicHandler {
     if (this.inited) {
         return;
     }
-    // TODO: multiple simultaneous calls should lead to a single pull from pmtiles
-    await this.init();
+    if (this.initializingPromise) {
+        await this.initializingPromise;
+        return;
+    }
+    this.initializingPromise = this.init();
+    try {
+        await this.initializingPromise;
+    } catch (e) {
+        this.initializingPromise = null;
+        throw e;
+    }
   }
 
   _getSource(key) {
