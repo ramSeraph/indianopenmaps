@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
 const common = require('./common');
-const urljoin = require('url-join');
+//const urljoin = require('url-join');
 
 COORD_SCALER = 10000000;
 
@@ -83,7 +83,10 @@ class MosaicHandler {
   }
 
   _resolveKey(key) {
-    return urljoin(this.url, key);
+     if (key.startsWith('../')) {
+      return this.url + '/' + key;
+    }
+    return key;
   }
 
   async _populateMosaic() {
