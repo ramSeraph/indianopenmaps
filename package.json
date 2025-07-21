@@ -9,8 +9,7 @@
     "@mapbox/tilebelt": "^2.0.2",
     "fastify": "^4.21.0",
     "node-fetch": "^2.6.12",
-    "pmtiles": "^2.10.0",
-    "url-join": "^5.0.0"
+    "pmtiles": "^2.10.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.4.3"

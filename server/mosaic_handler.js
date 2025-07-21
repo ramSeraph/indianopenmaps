@@ -2,7 +2,6 @@ const fetch = require('node-fetch');
 const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
 const common = require('./common');
-//const urljoin = require('url-join');
 
 COORD_SCALER = 10000000;
 
@@ -69,6 +68,17 @@ function _merge(config) {
   return merged;
 }
 
+// from https://nodejs.org/api/url.html#class-url
+function resolve(from, to) {
+  const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
+  if (resolvedUrl.protocol === 'resolve:') {
+    // `from` is a relative URL.
+    const { pathname, search, hash } = resolvedUrl;
+    return pathname + search + hash;
+  }
+  return resolvedUrl.toString();
+}
+
 class MosaicHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
     this.url = url;
@@ -82,13 +92,6 @@ class MosaicHandler {
     this.inited = false;
   }
 
-  _resolveKey(key) {
-     if (key.startsWith('../')) {
-      return this.url + '/' + key;
-    }
-    return key;
-  }
-
   async _populateMosaic() {
     let res = await fetch(this.url);
     let data = await res.json();
@@ -96,7 +99,7 @@ class MosaicHandler {
     this.mimeTypes = {};
     for (const [key, entry] of Object.entries(data)) {
       var header = entry.header;
-      var resolvedUrl = this._resolveKey(key);
+      var resolvedUrl = resolve(this.url, key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
       header['minLat'] = header['min_lat_e7'];
       header['minLon'] = header['min_lon_e7'];
