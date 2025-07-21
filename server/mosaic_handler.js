@@ -92,6 +92,16 @@ class MosaicHandler {
     this.inited = false;
   }
 
+  _resolveKey(key) {
+    // this is to undo prior stupidity where i have put ../ in the mosaic keys
+    // given that i was the only idiot who is using this.. should be fine. 
+    if (key.startsWith('../')) {
+      key = key.slice(3);
+    }
+    const resolvedUrl = resolve(this.url, key);
+    return resolvedUrl;
+  }
+
   async _populateMosaic() {
     let res = await fetch(this.url);
     let data = await res.json();
@@ -99,7 +109,7 @@ class MosaicHandler {
     this.mimeTypes = {};
     for (const [key, entry] of Object.entries(data)) {
       var header = entry.header;
-      var resolvedUrl = resolve(this.url, key);
+      var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
       header['minLat'] = header['min_lat_e7'];
       header['minLon'] = header['min_lon_e7'];
