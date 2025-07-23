@@ -95,8 +95,8 @@ class MosaicHandler {
 
   _resolveKey(key) {
     // this is to undo prior stupidity where i have put ../ in the mosaic keys
-    // given that i was the only idiot who is using this.. should be fine. 
-    if (key.startsWith('../')) {
+    // limiting this hack to only my mosaics in case anyone wants to copy this code
+    if (key.startsWith('../') && this.url.startsWith('https://github.com/ramSeraph/')) {
       key = key.slice(3);
     }
     const resolvedUrl = resolve(this.url, key);
