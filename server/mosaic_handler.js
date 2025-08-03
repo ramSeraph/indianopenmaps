@@ -7,7 +7,7 @@ COORD_SCALER = 10000000;
 
 function _isInSource(header, bounds, z) {
 
-  if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
+  if (z > header.max_zoom || z < header.min_zoom) {
       return false;
   }
   // tilebelt.tileToBBOX returns [w, s, e, n]
