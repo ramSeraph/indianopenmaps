@@ -144,7 +144,8 @@ class MosaicHandler {
     if (this.mosaicVersion === 0) {
       this.mosaicConfig = _merge(this.pmtilesDict);
     } else {
-      this.mosiacConfig = { 'header': _extendHeader(data.header), 'metadata': data.metadata };
+      _extendHeader(data.header);
+      this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
     }
   }
 
