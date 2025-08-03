@@ -5,7 +5,11 @@ const common = require('./common');
 
 COORD_SCALER = 10000000;
 
-function _isInSource(header, bounds) {
+function _isInSource(header, bounds, z) {
+
+  if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
+      return false;
+  }
   // tilebelt.tileToBBOX returns [w, s, e, n]
   bounds = bounds.map((v) => Math.round(v * COORD_SCALER));
   const w = bounds[0];
@@ -68,6 +72,18 @@ function _merge(config) {
   return merged;
 }
 
+_extendHeader(header) {
+  header['minLat'] = header['min_lat_e7'];
+  header['minLon'] = header['min_lon_e7'];
+  header['maxLat'] = header['max_lat_e7'];
+  header['maxLon'] = header['max_lon_e7'];
+  header['centerLat'] = header['center_lat_e7'];
+  header['centerLon'] = header['center_lon_e7'];
+  header['maxZoom'] = header['max_zoom'];
+  header['minZoom'] = header['min_zoom'];
+  header['centerZoom'] = header['center_zoom'];
+}
+
 // from https://nodejs.org/api/url.html#class-url
 function resolve(from, to) {
   const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
@@ -91,38 +107,44 @@ class MosaicHandler {
     this.title = null;
     this.inited = false;
     this.initializingPromise = null;
+    this.mosaicVersion = 0;
   }
 
   _resolveKey(key) {
-    // this is to undo prior stupidity where i have put ../ in the mosaic keys
-    // limiting this hack to only my mosaics in case anyone wants to copy this code
-    if (key.startsWith('../') && this.url.startsWith('https://github.com/ramSeraph/')) {
+    if (this.mosaicVersion === 0 && key.startsWith('../')) {
       key = key.slice(3);
     }
     const resolvedUrl = resolve(this.url, key);
     return resolvedUrl;
   }
 
+
   async _populateMosaic() {
     let res = await fetch(this.url);
     let data = await res.json();
+
+    let slices = null;
+    if (data && data.hasOwnProperty('version')) {
+      this.mosaicVersion = data.version;
+      slices = data.slices;
+    } else {
+      slices = data;
+    }
+
     this.pmtilesDict = {};
     this.mimeTypes = {};
-    for (const [key, entry] of Object.entries(data)) {
+    for (const [key, entry] of Object.entries(slices)) {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
-      header['minLat'] = header['min_lat_e7'];
-      header['minLon'] = header['min_lon_e7'];
-      header['maxLat'] = header['max_lat_e7'];
-      header['maxLon'] = header['max_lon_e7'];
-      header['centerLat'] = header['center_lat_e7'];
-      header['centerLon'] = header['center_lon_e7'];
-      header['maxZoom'] = header['max_zoom'];
-      header['minZoom'] = header['min_zoom'];
-      header['centerZoom'] = header['center_zoom'];
+      _extendHeader(header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
       this.mimeTypes[key] = common.getMimeType(header.tile_type);
+    }
+    if (this.mosaicVersion === 0) {
+      this.mosaicConfig = _merge(this.pmtilesDict);
+    } else {
+      this.mosiacConfig = { 'header': _extendHeader(data.header), 'metadata': data.metadata };
     }
   }
 
@@ -155,11 +177,10 @@ class MosaicHandler {
   _getSourceKey(z, x, y) {
     let k = null;
     const bounds = tilebelt.tileToBBOX([x, y, z]);
+    // TODO; this doesn't scale well when the mosaic has too many sources
+    // consider using flatbush in that case
     for (const [key, entry] of Object.entries(this.pmtilesDict)) {
-      if (z > entry.header.max_zoom || z < entry.header.min_zoom) {
-        continue;
-      }
-      if (!_isInSource(entry.header, bounds)) {
+      if (!_isInSource(entry.header, bounds, z)) {
         continue;
       }
       k = key;
@@ -185,14 +206,12 @@ class MosaicHandler {
   async getConfig() {
     await this.initIfNeeded();
 
-    const config = _merge(this.pmtilesDict);
-    const header = config.header;
-    const metadata = config.metadata;
+    const header = this.mosaicConfig.header;
+    const metadata = this.mosaicConfig.metadata;
 
-    return {
+    var out = {
       tilejson: "3.0.0",
       scheme: "xyz",
-      vector_layers: metadata.vector_layers,
       attribution: common.extendAttribution(metadata.attribution, this.datameetAttribution),
       description: metadata.description,
       name: metadata.name,
@@ -202,6 +221,10 @@ class MosaicHandler {
       minzoom: header.minZoom,
       maxzoom: header.maxZoom,
     };
+    if (metadata.hasOwnProperty('vector_layers')) {
+      out['vector_layers'] = metadata.vector_layers;
+    }
+    return out;
   }
 
   getTitle() { return this.title; }
