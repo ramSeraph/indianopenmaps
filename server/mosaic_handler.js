@@ -72,7 +72,7 @@ function _merge(config) {
   return merged;
 }
 
-_extendHeader(header) {
+function _extendHeader(header) {
   header['minLat'] = header['min_lat_e7'];
   header['minLon'] = header['min_lon_e7'];
   header['maxLat'] = header['max_lat_e7'];
