@@ -138,7 +138,7 @@ class MosaicHandler {
       var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
       _extendHeader(header);
-      this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header, 'metadata': entry.metadata };
+      this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
       this.mimeTypes[key] = common.getMimeType(header.tile_type);
     }
     if (this.mosaicVersion === 0) {
