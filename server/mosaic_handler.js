@@ -89,7 +89,8 @@ class MosaicHandler {
     this.tileSuffix = tileSuffix;
     this.type = type;
     this.logger = logger;
-    this.pmtilesDict = null;
+    this.mimeType = null;
+    this.pmtilesDict = {};
     this.mimeTypes = null;
     this.datameetAttribution = datameetAttribution;
     this.title = null;
@@ -125,8 +126,6 @@ class MosaicHandler {
       slices = data.slices;
     }
 
-    this.pmtilesDict = {};
-    this.mimeType = null;
     for (const [key, entry] of Object.entries(slices)) {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
@@ -145,7 +144,6 @@ class MosaicHandler {
     if (this.mosaicVersion === 0) {
       this.mosaicConfig = _merge(this.pmtilesDict);
     } else {
-      //_extendHeader(data.header);
       this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
     }
 
