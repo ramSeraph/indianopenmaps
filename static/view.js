@@ -186,6 +186,7 @@ const INDIA_ZOOM = 4;
 
 const params = new URLSearchParams(window.location.hash.substring(1));
 const initialBaseLayerName = params.get('base') || CARTO_OSM_DARK_LAYER_NAME;
+const initialTerrainSetting = params.get('terrain') || 'false';
 
 let mapConfig = {    
   'container': 'map',
@@ -219,7 +220,7 @@ const hlayer = {
   type: 'hillshade',
   maxZoom: 14,
   source: 'hillshade-source',
-  layout: {visibility: 'visible'},
+  layout: {visibility: initialTerrainSetting === 'false' ? 'none' : 'visible'},
   paint: {'hillshade-shadow-color': '#473B24'}
 }
 
@@ -237,7 +238,6 @@ function updateMapConfig(baseLayerName) {
     mapConfig.style.layers.push(layer);
   }
   mapConfig.style.layers.push(hlayer);
-  mapConfig.style['terrain'] = { 'source': 'terrain-source', 'exaggeration': 1 };
   mapConfig.style['sky'] = {}
 
 }
@@ -251,7 +251,6 @@ function updateUrlHash(paramName, paramValue) {
     window.location.hash = newHash;
 }
 
-let selectedBaseLayerName = initialBaseLayerName;
 updateMapConfig(initialBaseLayerName);
 
 updateUrlHash('base', initialBaseLayerName);
@@ -660,9 +659,26 @@ document.addEventListener("DOMContentLoaded", (event) => {
       'type': 'vector',
       'url': tileJsonUrl,
     });
+
+    if (initialTerrainSetting === 'false') {
+      map.setTerrain(null);
+    } else {
+      map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1 });
+    }
   });
   map.on('sourcedata', addLayers);
   map.on('mousemove', showPopup);
+  map.on('terrain', (e) => {
+    if (map.getTerrain()) {
+      map.setLayoutProperty(HILLSHADE_LAYER_ID, 'visibility', 'visible');
+      updateUrlHash('terrain', 'true');
+    }
+    else {
+      map.setLayoutProperty(HILLSHADE_LAYER_ID, 'visibility', 'none');
+      updateUrlHash('terrain', 'false');
+    }
+  });
+
 
   const params = new Proxy(new URLSearchParams(window.location.search), {
     get: (searchParams, prop) => searchParams.get(prop),
