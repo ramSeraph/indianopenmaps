@@ -1,17 +1,14 @@
 const fetch = require('node-fetch');
 const pmtiles = require('pmtiles');
 const tilebelt = require('@mapbox/tilebelt');
+const Flatbush = require('flatbush').default;
 const common = require('./common');
 
 COORD_SCALER = 10000000;
 
-function _isInSource(header, bounds, z) {
+function _isInSource(header, bounds) {
 
-  if (z > header.max_zoom || z < header.min_zoom) {
-      return false;
-  }
   // tilebelt.tileToBBOX returns [w, s, e, n]
-  bounds = bounds.map((v) => Math.round(v * COORD_SCALER));
   const w = bounds[0];
   const s = bounds[1];
   const e = bounds[2];
@@ -20,16 +17,17 @@ function _isInSource(header, bounds, z) {
   // TODO: Not happy with this check..
   // this checks if the tile is perfectly inside the source bounds.
   // should that be the check?
-  if (s > header['maxLat'] ||
-      e > header['maxLon'] ||
-      n < header['minLat'] ||
-      w < header['minLon']) {
+  if (s > header['max_lat_e7'] ||
+      e > header['max_lon_e7'] ||
+      n < header['min_lat_e7'] ||
+      w < header['min_lon_e7']) {
       //console.log('Tile is not in source bounds:', bounds, header);
       return false;
   }
   return true;
 }
 
+// TODO: This is probably broken but only applies to old mosaics and will be deprecated
 function _merge(config) {
   var merged = {};
   var commonFeaturesAdded = false;
@@ -40,16 +38,16 @@ function _merge(config) {
       const hkeys = [
         'tile_type',
         'tile_compression',
-        'centerLon',
-        'centerLat'
+        'center_lon_e7',
+        'center_lat_e7',
       ];
       for (const hkey of hkeys) {
         merged['header'][hkey] = config[key]['header'][hkey];
       }
       commonFeaturesAdded = true;
     }
-    const minKeys = [ 'minLon', 'minLat', 'minZoom' ];
-    const maxKeys = [ 'maxLon', 'maxLat', 'maxZoom', 'centerZoom' ];
+
+    const minKeys = [ 'min_lon_e7', 'min_lon_e7', 'min_zoom' ];
     for (const hkey of minKeys) {
       if (!(hkey in merged['header'])) {
         merged['header'][hkey] = config[key]['header'][hkey];
@@ -59,6 +57,8 @@ function _merge(config) {
         }
       }
     }
+
+    const maxKeys = [ 'max_lon_e7', 'max_lat_e7', 'max_zoom', 'center_zoom' ];
     for (const hkey of maxKeys) {
       if (!(hkey in merged['header'])) {
         merged['header'][hkey] = config[key]['header'][hkey];
@@ -70,18 +70,6 @@ function _merge(config) {
     }
   });
   return merged;
-}
-
-function _extendHeader(header) {
-  header['minLat'] = header['min_lat_e7'];
-  header['minLon'] = header['min_lon_e7'];
-  header['maxLat'] = header['max_lat_e7'];
-  header['maxLon'] = header['max_lon_e7'];
-  header['centerLat'] = header['center_lat_e7'];
-  header['centerLon'] = header['center_lon_e7'];
-  header['maxZoom'] = header['max_zoom'];
-  header['minZoom'] = header['min_zoom'];
-  header['centerZoom'] = header['center_zoom'];
 }
 
 // from https://nodejs.org/api/url.html#class-url
@@ -108,16 +96,19 @@ class MosaicHandler {
     this.inited = false;
     this.initializingPromise = null;
     this.mosaicVersion = 0;
+    this.index_map = {};
+    this.keys_map = {};
   }
 
   _resolveKey(key) {
+    // to deal with some old mosaics that have keys starting with '../'
+    // version 0 will be deprecated soon
     if (this.mosaicVersion === 0 && key.startsWith('../')) {
       key = key.slice(3);
     }
     const resolvedUrl = resolve(this.url, key);
     return resolvedUrl;
   }
-
 
   async _populateMosaic() {
     let res = await fetch(this.url);
@@ -126,31 +117,58 @@ class MosaicHandler {
     let slices = null;
     if (data && data.hasOwnProperty('version')) {
       this.mosaicVersion = data.version;
-      slices = data.slices;
-    } else {
+    }
+
+    if (this.mosaicVersion === 0) {
       slices = data;
+    } else {
+      slices = data.slices;
     }
 
     this.pmtilesDict = {};
-    this.mimeTypes = {};
+    this.mimeType = null;
     for (const [key, entry] of Object.entries(slices)) {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
-      _extendHeader(header);
+      header = Object.assign({}, entry.header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-      this.mimeTypes[key] = common.getMimeType(header.tile_type);
+
+      for (let z = header.min_zoom; z <= header.max_zoom; z++) {
+        if (!this.keys_map.hasOwnProperty(z)) {
+          this.keys_map[z] = [];
+        }
+        this.keys_map[z].push(key);
+      }
     }
+
     if (this.mosaicVersion === 0) {
       this.mosaicConfig = _merge(this.pmtilesDict);
     } else {
-      _extendHeader(data.header);
+      //_extendHeader(data.header);
       this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
+    }
+
+    this.mimeType = common.getMimeType(this.mosaicConfig.header.tile_type);
+  }
+
+  async _populateIndices() {
+    for (const [z, keys] of Object.entries(this.keys_map)) {
+      const index = new Flatbush(keys.length, 16, Int32Array);
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const entry = this.pmtilesDict[key];
+        const header = entry.header;
+        index.add(header.min_lon_e7, header.min_lat_e7, header.max_lon_e7, header.max_lat_e7);
+      }
+      index.finish();
+      this.index_map[z] = index;
     }
   }
 
   async init() {
     await this._populateMosaic();
+    this._populateIndices();
     this.inited = true;
   }
 
@@ -176,18 +194,24 @@ class MosaicHandler {
   }
 
   _getSourceKey(z, x, y) {
-    let k = null;
-    const bounds = tilebelt.tileToBBOX([x, y, z]);
-    // TODO; this doesn't scale well when the mosaic has too many sources
-    // consider using flatbush in that case
-    for (const [key, entry] of Object.entries(this.pmtilesDict)) {
-      if (!_isInSource(entry.header, bounds, z)) {
-        continue;
-      }
-      k = key;
-      break;
+    if (!this.index_map.hasOwnProperty(z)) {
+      return null;
     }
-    return k;
+
+    const bounds = tilebelt.tileToBBOX([x, y, z]).map((v) => Math.round(v * COORD_SCALER));
+
+    const index = this.index_map[z];
+    const zKeys = this.keys_map[z];
+
+    const found = index.search(bounds[0], bounds[1], bounds[2], bounds[3]);
+    for (const i of found) {
+      const key = zKeys[i];
+      const entry = this.pmtilesDict[key];
+      if (_isInSource(entry.header, bounds)) {
+        return key;
+      }
+    }
+    return null;
   }
 
   async getTile(z, x, y) {
@@ -201,7 +225,7 @@ class MosaicHandler {
 
     let source = this.pmtilesDict[k].pmtiles;
     let arr = await source.getZxy(z,x,y);
-    return [ arr, this.mimeTypes[k] ]
+    return [arr, this.mimeType]
   }
 
   async getConfig() {
@@ -217,10 +241,10 @@ class MosaicHandler {
       description: metadata.description,
       name: metadata.name,
       version: metadata.version,
-      bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat].map((v) => v / COORD_SCALER),
-      center: [header.centerLon, header.centerLat, header.centerZoom].map((v) => v / COORD_SCALER),
-      minzoom: header.minZoom,
-      maxzoom: header.maxZoom,
+      bounds: [header.min_lon_e7, header.min_lat_e7, header.max_lon_e7, header.max_lat_e7].map((v) => v / COORD_SCALER),
+      center: [...[header.center_lon_e7, header.center_lat_e7].map((v) => v / COORD_SCALER), header.center_zoom ],
+      minzoom: header.min_zoom,
+      maxzoom: header.max_zoom,
     };
     if (metadata.hasOwnProperty('vector_layers')) {
       out['vector_layers'] = metadata.vector_layers;
