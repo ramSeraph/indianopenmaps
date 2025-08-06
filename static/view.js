@@ -1,4 +1,3 @@
-
 const currUrl = window.location.href;
 
 
@@ -28,11 +27,27 @@ var lightColors = [
   '00FFFF'  // turquoise
 ];
 
+var soiColors = [
+  'd62728', // red
+  'ff7f0e', // orange
+  '2ca02c', // green
+  '1f77b4', // blue
+  '9467bd', // purple
+  '8c564b', // brown
+  'e377c2', // pink
+  '7f7f7f', // gray
+  'bcbd22', // yellow-green
+  '17becf'  // cyan
+];
+
 const soiTileUrl = decodeURI(new URL('/soi/osm/{z}/{x}/{y}.webp', currUrl).href);
 // TODO: pick different colors for layers for SOI basemap to make things more visible
+const SOI_OSM_IMAGERY_LAYER_NAME = 'SOI OSM Imagery';
+const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
+const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
+
 var SOI_OSM_Imagery = {
-  'name': 'SOI OSM Imagery',
-  'initial': false,
+  'name': SOI_OSM_IMAGERY_LAYER_NAME,
   'sources': {
     'soi-osm-imagery': {
       'type': 'raster',
@@ -52,8 +67,7 @@ var SOI_OSM_Imagery = {
 };
 
 var Esri_WorldImagery = {
-  'name': 'ESRI World Imagery',
-  'initial': false,
+  'name': ESRI_WORLD_IMAGERY_LAYER_NAME,
   'sources': {
     'esri-world-imagery': {
       'type': 'raster',
@@ -73,8 +87,7 @@ var Esri_WorldImagery = {
 };
 
 var Carto_Dark = {
-  'name': 'Carto OSM Dark',
-  'initial': true,
+  'name': CARTO_OSM_DARK_LAYER_NAME,
   'sources': {
     'carto-dark': {
       'type': 'raster',
@@ -154,6 +167,7 @@ function randomColor(colors) {
 }
 
 function getLayersAndSources(layerInfo) {
+  // TODO: why is the jsonification needed?
   var sources = JSON.parse(JSON.stringify(layerInfo.sources));
   var layers = [];
   for (const [sname, source] of Object.entries(sources)) {
@@ -170,9 +184,12 @@ function getLayersAndSources(layerInfo) {
 const INDIA_CENTER = [76.5,22.5];
 const INDIA_ZOOM = 4;
 
+const params = new URLSearchParams(window.location.hash.substring(1));
+const initialBaseLayerName = params.get('base') || CARTO_OSM_DARK_LAYER_NAME;
+
 let mapConfig = {    
   'container': 'map',
-  'hash': true,
+  'hash': 'map',
   'style': {
     'version': 8,
     'sources': {},
@@ -201,31 +218,48 @@ const hlayer = {
   id: HILLSHADE_LAYER_ID,
   type: 'hillshade',
   maxZoom: 14,
-  source: 'hillshadeSource',
+  source: 'hillshade-source',
   layout: {visibility: 'visible'},
   paint: {'hillshade-shadow-color': '#473B24'}
 }
 
-baseLayers.forEach((layerInfo) => {
-  if (!layerInfo.initial) {
-    return;
-  }
-  const [sources, layers] = getLayersAndSources(layerInfo);
+function updateMapConfig(baseLayerName) {
+  let baseLayerInfo = baseLayers.find(l => l.name === baseLayerName);
+
+  const [sources, layers] = getLayersAndSources(baseLayerInfo);
   for (const [sname, source] of Object.entries(sources)) {
     mapConfig.style.sources[sname] = source;
   }
-  mapConfig.style.sources['terrainSource'] = terrainSource;
-  mapConfig.style.sources['hillshadeSource'] = terrainSource;
-
+  mapConfig.style.sources['terrain-source'] = terrainSource;
+  mapConfig.style.sources['hillshade-source'] = terrainSource;
+  
   for (const layer of layers) {
     mapConfig.style.layers.push(layer);
   }
   mapConfig.style.layers.push(hlayer);
-  mapConfig.style['terrain'] = { 'source': 'terrainSource', 'exaggeration': 1 };
+  mapConfig.style['terrain'] = { 'source': 'terrain-source', 'exaggeration': 1 };
   mapConfig.style['sky'] = {}
-});
+
+}
+
+function updateUrlHash(paramName, paramValue) {
+    const currentHash = window.location.hash;
+    const urlParams = new URLSearchParams(currentHash.substring(1));
+    urlParams.set(paramName, paramValue);
+    const newHash = '#' + urlParams.toString();
+    console.log(`Updating URL hash: ${newHash}`);
+    window.location.hash = newHash;
+}
+
+let selectedBaseLayerName = initialBaseLayerName;
+updateMapConfig(initialBaseLayerName);
+
+updateUrlHash('base', initialBaseLayerName);
 
 var map = null;
+var vectorLayerIds = [];
+var lightColorMapping = {};
+var soiColorMapping = {};
 
 function addLayers(e) {
   if (!map.getSource(srcName) || !map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
@@ -233,9 +267,17 @@ function addLayers(e) {
   }
   map.off('sourcedata', addLayers);
   const src = map.getSource(srcName);
+  vectorLayerIds = src.vectorLayerIds;
   
-  for (layerId of src.vectorLayerIds) {
-    var layerColor = '#' + randomColor(lightColors);
+  for (const layerId of vectorLayerIds) {
+    lightColorMapping[layerId] = '#' + randomColor(lightColors);
+    soiColorMapping[layerId] = '#' + randomColor(soiColors);
+  }
+
+  const colorMapping = (initialBaseLayerName === SOI_OSM_IMAGERY_LAYER_NAME) ? soiColorMapping : lightColorMapping;
+
+  for (const layerId of vectorLayerIds) {
+    var layerColor = colorMapping[layerId];
     map.addLayer({
       'id': `${layerId}-polygons`,
       'type': 'fill',
@@ -335,9 +377,32 @@ function addLayers(e) {
   }
 }
 
+function updateVectorColours(baseLayerName) {
+  const colorMapping = (baseLayerName === SOI_OSM_IMAGERY_LAYER_NAME) ? soiColorMapping : lightColorMapping;
+
+  for (const layerId of vectorLayerIds) {
+    const layerColor = colorMapping[layerId];
+    if (this.map.getLayer(`${layerId}-polygons`)) {
+      this.map.setPaintProperty(`${layerId}-polygons`, 'fill-color', layerColor);
+    }
+    if (this.map.getLayer(`${layerId}-polygons-outline`)) {
+      this.map.setPaintProperty(`${layerId}-polygons-outline`, 'line-color', layerColor);
+    }
+    if (this.map.getLayer(`${layerId}-lines`)) {
+      this.map.setPaintProperty(`${layerId}-lines`, 'line-color', layerColor);
+    }
+    if (this.map.getLayer(`${layerId}-pts`)) {
+      this.map.setPaintProperty(`${layerId}-pts`, 'circle-color', layerColor);
+    }
+    if (this.map.getLayer(`${layerId}-polygons-extrusions`)) {
+        this.map.setPaintProperty(`${layerId}-polygons-extrusions`, 'fill-extrusion-color', layerColor);
+    }
+  }
+}
    
+
 function displayValue(value,propName) {
-  if (propName=== '@timestamp'){
+  if (propName === '@timestamp'){
     return value.toString() + "<br>[ " + (new Date(value*1000)).toISOString() + " ]";
   }
   if (typeof value === 'undefined' || value === null) return value;
@@ -479,7 +544,7 @@ class BaseLayerPicker {
   }
 
   updateButtons() {
-	this.buttons.forEach((button) => {
+	  this.buttons.forEach((button) => {
       button.classList.remove('-active');
       let label = button.title;
       const layerInfo = this.getLayerInfo(button.title);
@@ -501,7 +566,8 @@ class BaseLayerPicker {
       button.title = layerInfo.name;
       button.textContent = layerInfo.name;
       button.addEventListener('click', () => {
-		if (button.classList.contains('-active')) return;
+		    if (button.classList.contains('-active')) return;
+
         // remove all layers
         this.buttons.forEach((b) => {
           const layerInfo = this.getLayerInfo(b.title);
@@ -517,17 +583,23 @@ class BaseLayerPicker {
             }
           }
         });
-        const layerInfo = this.getLayerInfo(button.title);
-        const [sources, layers] = getLayersAndSources(layerInfo);
+
+        const label = button.title;
+        const newLayerInfo = this.getLayerInfo(label);
+        const [sources, layers] = getLayersAndSources(newLayerInfo);
         for (const [sname, source] of Object.entries(sources)) {
           this.map.addSource(sname, source);
         }
         for (const layer of layers) {
           this.map.addLayer(layer, HILLSHADE_LAYER_ID);
         }
-	  });
+
+        updateUrlHash('base', label);
+        updateVectorColours(label);
+	    });
       this.buttons.push(button);
       this.container.appendChild(button);
+
     });
 
     this.map.on('styledata', () => { this.updateButtons(); });
@@ -539,7 +611,7 @@ class BaseLayerPicker {
     div.className = "maplibregl-ctrl maplibregl-ctrl-group maplibre-ctrl-styles-expanded";
     this.container = div;
     this.expanded();
-	return div;
+	  return div;
   }
 }
 
@@ -562,19 +634,25 @@ function setTitle() {
 
 setTitle();
 
+let baseLayerPicker = null;
+
 document.addEventListener("DOMContentLoaded", (event) => {
   const tileJsonUrl = new URL('./tiles.json', currUrl).href;
   map = new maplibregl.Map(mapConfig);
   map.addControl(new maplibregl.FullscreenControl());
   map.addControl(new maplibregl.NavigationControl());
+
   map.addControl(new maplibregl.GeolocateControl({
     positionOptions: { enableHighAccuracy: true },
     trackUserLocation: true
   }));
   map.addControl(new InspectButton(initialInspect));
-  map.addControl(new BaseLayerPicker(baseLayers), 'top-left');
+
+  baseLayerPicker = new BaseLayerPicker(baseLayers);
+  map.addControl(baseLayerPicker, 'top-left');
+
   map.addControl(new maplibregl.TerrainControl({
-    source: 'terrainSource',
+    source: 'terrain-source',
     exaggeration: 1
   }));
   map.once('load', function () {
@@ -598,4 +676,3 @@ document.addEventListener("DOMContentLoaded", (event) => {
                                  .addTo(map);
   }
 });
-
