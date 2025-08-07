@@ -5,6 +5,8 @@ const Flatbush = require('flatbush').default;
 const common = require('./common');
 
 COORD_SCALER = 10000000;
+// TODO: measure performance and adjust this threshold
+FLATBUSH_THRESHOLD = 10;
 
 function _isInSource(header, bounds) {
 
@@ -152,6 +154,11 @@ class MosaicHandler {
 
   async _populateIndices() {
     for (const [z, keys] of Object.entries(this.keys_map)) {
+      if (keys.length < FLATBUSH_THRESHOLD) {
+        this.index_map[z] = null;
+        continue;
+      }
+
       const index = new Flatbush(keys.length, 16, Int32Array);
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
@@ -198,12 +205,15 @@ class MosaicHandler {
 
     const bounds = tilebelt.tileToBBOX([x, y, z]).map((v) => Math.round(v * COORD_SCALER));
 
-    const index = this.index_map[z];
     const zKeys = this.keys_map[z];
+    const index = this.index_map[z];
 
-    const found = index.search(bounds[0], bounds[1], bounds[2], bounds[3]);
-    for (const i of found) {
-      const key = zKeys[i];
+    var foundKeys = zKeys;
+    if (index !== null ) {
+      foundKeys = index.search(bounds[0], bounds[1], bounds[2], bounds[3]).map((i) => zKeys[i]);
+    }
+
+    for (const key of foundKeys) {
       const entry = this.pmtilesDict[key];
       if (_isInSource(entry.header, bounds)) {
         return key;
