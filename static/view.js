@@ -28,16 +28,17 @@ var lightColors = [
 ];
 
 var soiColors = [
-  'd62728', // red
-  'ff7f0e', // orange
-  '2ca02c', // green
-  '1f77b4', // blue
-  '9467bd', // purple
-  '8c564b', // brown
-  'e377c2', // pink
-  '7f7f7f', // gray
-  'bcbd22', // yellow-green
-  '17becf'  // cyan
+ 'C71585', // (deep pink)
+ '663399', // (muted violet)
+ '4682B4', // (steel blue)
+ '7B68EE', // (medium slate blue)
+ '228B22', // (forest green)
+ 'DAA520', // (goldenrod)
+ 'D2691E', // (chocolate)
+ 'B22222', // (firebrick)
+ 'FF8C00', // (dark orange)
+ 'DAA520', // (goldenrod)
+ '003366', // (dark blue)
 ];
 
 const soiTileUrl = decodeURI(new URL('/soi/osm/{z}/{x}/{y}.webp', currUrl).href);
