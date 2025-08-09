@@ -202,7 +202,6 @@ let mapConfig = {
   'maxZoom': 30,
 };
 
-
 // using tile url as the tilejson setup is causing more rendering artifacts
 const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
 
@@ -247,14 +246,13 @@ function updateUrlHash(paramName, paramValue) {
     const currentHash = window.location.hash;
     const urlParams = new URLSearchParams(currentHash.substring(1));
     urlParams.set(paramName, paramValue);
-    const newHash = '#' + urlParams.toString();
+    const newHash = '#' + urlParams.toString().replaceAll('%2F', '/');
     console.log(`Updating URL hash: ${newHash}`);
     window.location.hash = newHash;
 }
 
 updateMapConfig(initialBaseLayerName);
 
-updateUrlHash('base', initialBaseLayerName);
 
 var map = null;
 var vectorLayerIds = [];
@@ -666,6 +664,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     } else {
       map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1 });
     }
+
   });
   map.on('sourcedata', addLayers);
   map.on('mousemove', showPopup);
