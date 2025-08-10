@@ -15,7 +15,7 @@ A display server for the data hosted at the following repos:
 
 Contains [code](https://github.com/ramSeraph/indianopenmaps/blob/main/server/mosaic_handler.js) for getting tiles from a big pmtiles file which has been split into multiple shards( to overcome hosting size limits? ).
 
-Also has th [code](https://github.com/ramSeraph/indianopenmaps/blob/main/utils/partition.py) for the splitting.
+Tools for splitting a big pmtiles into smaller ones is at [pmtiles_mosaic](https://github.com/ramSeraph/pmtiles_mosaic).
 
 See the list of data available at https://indianopenmaps.fly.dev/
 
