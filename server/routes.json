@@ -3639,6 +3639,16 @@
     "name": "Nepal Topo Maps from Survey Department through 'the maze', JICA subset",
     "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_jica.pmtiles"
   },
+  "/nepal/topo/border/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Nepal China border alignment 1979",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/border/Nepal_border.pmtiles"
+  },
   "/myanmar/topo/50k/": {
     "handlertype": "mosaic",
     "type": "raster",
