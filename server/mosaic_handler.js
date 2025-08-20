@@ -23,7 +23,6 @@ function _isInSource(header, bounds) {
       e > header['max_lon_e7'] ||
       n < header['min_lat_e7'] ||
       w < header['min_lon_e7']) {
-      //console.log('Tile is not in source bounds:', bounds, header);
       return false;
   }
   return true;
@@ -134,6 +133,9 @@ class MosaicHandler {
       var archive = new pmtiles.PMTiles(resolvedUrl);
       header = Object.assign({}, entry.header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
+      if (this.mosaicVersion === 0) {
+        this.pmtilesDict[key]['metadata'] = await archive.getMetadata();
+      }
 
       for (let z = header.min_zoom; z <= header.max_zoom; z++) {
         if (!this.keys_map.hasOwnProperty(z)) {
@@ -229,7 +231,6 @@ class MosaicHandler {
     if (k === null) {
       return [null, null];
     }
-    //console.log('Fetching tile from source:', k, 'z:', z, 'x:', x, 'y:', y);
 
     let source = this.pmtilesDict[k].pmtiles;
     let arr = await source.getZxy(z,x,y);
