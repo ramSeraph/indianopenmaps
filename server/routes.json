@@ -3679,5 +3679,14 @@
     "name": "Himalayan Altitude Maps from Ultrajourneys",
     "tilesuffix": "jpg",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/ultrajourneys/Himalayas_Elevation_Topo.pmtiles"
+  },
+  "/districts/historical/indiastatestories/1941/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "historical",
+      "districts"
+    ],
+    "name": "Indian State and District Boundaries in 1941",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1941.pmtiles"
   }
 }
