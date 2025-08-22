@@ -3697,5 +3697,14 @@
     ],
     "name": "Indian State and District Boundaries in 1951",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1951.pmtiles"
+  },
+  "/districts/historical/indiastatestories/1961/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "historical",
+      "districts"
+    ],
+    "name": "Indian State and District Boundaries in 1961",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1961.pmtiles"
   }
 }
