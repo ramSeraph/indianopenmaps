@@ -3616,7 +3616,7 @@
     ],
     "datameet_attribution": false,
     "name": "ONC Topographic Maps",
-    "url": "https://github.com/ramSeraph/ams_and_jog_maps/releases/download/onc-pmtiles/ONC.mosaic.json"
+    "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/onc-pmtiles/ONC.mosaic.json"
   },
   "/nepal/topo/ultrajourneys/": {
     "handlertype": "mosaic",
