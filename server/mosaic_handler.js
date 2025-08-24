@@ -97,7 +97,7 @@ class MosaicHandler {
     this.title = null;
     this.inited = false;
     this.initializingPromise = null;
-    this.mosaicVersion = 0;
+    this.mosaicVersion = '0';
     this.index_map = {};
     this.keys_map = {};
   }
@@ -105,7 +105,7 @@ class MosaicHandler {
   _resolveKey(key) {
     // to deal with some old mosaics that have keys starting with '../'
     // version 0 will be deprecated soon
-    if (this.mosaicVersion === 0 && key.startsWith('../')) {
+    if (this.mosaicVersion === '0' && key.startsWith('../')) {
       key = key.slice(3);
     }
     const resolvedUrl = resolve(this.url, key);
@@ -121,7 +121,7 @@ class MosaicHandler {
       this.mosaicVersion = data.version;
     }
 
-    if (this.mosaicVersion === 0) {
+    if (this.mosaicVersion === '0') {
       slices = data;
     } else {
       slices = data.slices;
@@ -133,7 +133,7 @@ class MosaicHandler {
       var archive = new pmtiles.PMTiles(resolvedUrl);
       header = Object.assign({}, entry.header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-      if (this.mosaicVersion === 0) {
+      if (this.mosaicVersion === '0') {
         this.pmtilesDict[key]['metadata'] = await archive.getMetadata();
       }
 
@@ -145,7 +145,7 @@ class MosaicHandler {
       }
     }
 
-    if (this.mosaicVersion === 0) {
+    if (this.mosaicVersion === '0') {
       this.mosaicConfig = _merge(this.pmtilesDict);
     } else {
       this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
