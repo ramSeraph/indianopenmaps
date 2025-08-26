@@ -3618,6 +3618,16 @@
     "name": "ONC Topographic Maps",
     "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/onc-pmtiles/ONC.mosaic.json"
   },
+  "/world/topo/american/tpc/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "TPC Topographic Maps",
+    "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/tpc-pmtiles/TPC.mosaic.json"
+  },
   "/nepal/topo/ultrajourneys/": {
     "handlertype": "mosaic",
     "type": "raster",
