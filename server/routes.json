@@ -8,6 +8,15 @@
     "name": "SOI Open Series Maps",
     "url": "https://github.com/ramSeraph/opendata/releases/download/soi-latest/soi.mosaic.json"
   },
+  "/soi/25k/nhp/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "name": "SOI Flood Risk Area Maps",
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-nhp-pmtiles/SOI-NHP-25k.mosaic.json"
+  },
   "/not-so-open/states/lgd/": {
     "handlertype": "pmtiles",
     "category": "states",
