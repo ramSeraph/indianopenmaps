@@ -6,7 +6,7 @@
       "raster"
     ],
     "name": "SOI Open Series Maps",
-    "url": "https://github.com/ramSeraph/opendata/releases/download/soi-latest/soi.mosaic.json"
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-pmtiles/SOI-OSM-50k.mosaic.json"
   },
   "/soi/25k/nhp/": {
     "handlertype": "mosaic",
