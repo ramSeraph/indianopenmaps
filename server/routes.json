@@ -3637,6 +3637,16 @@
     "name": "TPC Topographic Maps",
     "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/tpc-pmtiles/TPC.mosaic.json"
   },
+  "/world/topo/russian/100k/gs/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Soviet Genshtab 1:100k Topographic Maps",
+    "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/100k-gs-pmtiles/Soviet-GS-100k.mosaic.json"
+  },
   "/nepal/topo/ultrajourneys/": {
     "handlertype": "mosaic",
     "type": "raster",
