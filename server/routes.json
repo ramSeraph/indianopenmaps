@@ -3647,6 +3647,16 @@
     "name": "Soviet Genshtab 1:1m Topographic Maps",
     "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/1m-gs-pmtiles/Soviet-GS-1m.pmtiles"
   },
+  "/world/topo/russian/500k/gs/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Soviet Genshtab 1:500k Topographic Maps",
+    "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/500k-gs-pmtiles/Soviet-GS-500k.mosaic.json"
+  },
   "/world/topo/russian/100k/gs/": {
     "handlertype": "mosaic",
     "type": "raster",
