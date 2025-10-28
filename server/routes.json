@@ -3687,6 +3687,16 @@
     "name": "Soviet Genshtab 1:50k Topographic Maps",
     "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/50k-gs-pmtiles/Soviet-GS-50k.mosaic.json"
   },
+  "/world/topo/russian/25k/gs/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster"
+    ],
+    "datameet_attribution": false,
+    "name": "Soviet Genshtab 1:25k Topographic Maps",
+    "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/25k-gs-pmtiles/Soviet-GS-25k.mosaic.json"
+  },
   "/nepal/topo/ultrajourneys/": {
     "handlertype": "mosaic",
     "type": "raster",
