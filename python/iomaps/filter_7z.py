@@ -156,7 +156,7 @@ def get_shape_from_bounds(bounds):
 
     return filter_shape
 
-def get_shape_from_filter_file(filter_file):
+def get_shape_from_filter_file(filter_file, driver=None):
 
     filter_file_path = Path(filter_file)
 
@@ -164,8 +164,11 @@ def get_shape_from_filter_file(filter_file):
         logging.error(f"Filter file not found: {filter_file}")
         return None
 
+    if driver is None:
+        driver = get_driver_from_filename(filter_file)
+
     try:
-        with fiona.open(filter_file, 'r') as collection:
+        with fiona.open(filter_file, 'r', driver=driver) as collection:
             if len(collection) > 1:
                 logging.error("Filter file contains more than one feature, which is not supported.")
                 return None
@@ -186,18 +189,18 @@ def get_shape_from_filter_file(filter_file):
             return filter_shape
 
     except fiona.errors.DriverError as e:
-        logging.error(f"Error opening filter file {filter_file}: {e}")
+        logging.error(f"Error opening filter file {filter_file}: {e}. If the file type is not recognized, please specify the driver using --filter-file-driver.")
         return None
 
 
-def create_filter(filter_file=None, bounds=None, no_clip=False, limit_to_geom_type=None, strict_geom_type_check=False):
+def create_filter(filter_file=None, filter_file_driver=None, bounds=None, no_clip=False, limit_to_geom_type=None, strict_geom_type_check=False):
 
     clip_features = not no_clip
 
     filter_shape = None
 
     if filter_file:
-        filter_shape = get_shape_from_filter_file(filter_file)
+        filter_shape = get_shape_from_filter_file(filter_file, driver=filter_file_driver)
     else:
         filter_shape = get_shape_from_bounds(bounds)
 
@@ -206,34 +209,13 @@ def create_filter(filter_file=None, bounds=None, no_clip=False, limit_to_geom_ty
 
     return ShapeFilter(filter_shape, clip=clip_features, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
 
-# {'DXF': 'rw', 'CSV': 'raw', 'OpenFileGDB': 'raw', 'ESRIJSON': 'r', 'ESRI Shapefile': 'raw', 'FlatGeobuf': 'raw', 'GeoJSON': 'raw', 'GeoJSONSeq': 'raw', 'GPKG': 'raw', 'GML': 'rw', 'OGR_GMT': 'rw', 'GPX': 'rw', 'MapInfo File': 'raw', 'DGN': 'raw', 'S57': 'r', 'SQLite': 'raw', 'TopoJSON': 'r'}
-special_cases = {
-    'dxf': 'DXF',
-    'dgn': 'DGN',
-    'csv': 'CSV',
-    'tab': 'MapInfo File',
-    'mif': 'MapInfo File',
-    'gmt': 'OGR_GMT',
-    'gdb': 'OpenFileGDB',
-    'gml': 'GML',
-    'sqlite': 'SQLite',
-    'geojsonl': 'GeoJSONSeq',
-    'ndjson': 'GeoJSONSeq',
-    'geojsonseq': 'GeoJSONSeq',
-    'fgb': 'FlatGeobuf',
-    'geojson': 'GeoJSON',
-    'shp': 'ESRI Shapefile',
-    'gpkg': 'GPKG',
-
-}
+from iomaps.helpers import get_driver_from_filename
 
 def create_writer(output_file, schema, crs, output_driver=None):
 
     driver = output_driver
     if driver is None:
-        ext = Path(output_file).suffix.lower().lstrip('.')
-        if ext in special_cases:
-            driver = special_cases[ext]
+        driver = get_driver_from_filename(output_file)
 
     if driver is None:
         logging.error(f"Could not determine output file format from extension: {output_file}, please specify driver explicitly using -d/--output-driver.")

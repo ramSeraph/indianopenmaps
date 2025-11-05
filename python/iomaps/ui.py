@@ -15,6 +15,7 @@ from iomaps.commands.schema_common import get_schema_from_archive
 import py7zr
 import multivolumefile
 from fiona.crs import from_epsg
+from iomaps.helpers import get_supported_input_drivers
 
 def run_streamlit_app():
     st.set_page_config(page_title="Indian Open Maps - Filter 7z", layout="wide")
@@ -26,16 +27,29 @@ def run_streamlit_app():
     # Use a temporary file for output on the server
     # The user will download this file
     output_file_path = Path(tempfile.NamedTemporaryFile(delete=False, suffix=".geojsonl").name)
-    output_filename_for_download = st.sidebar.text_input("Suggested Output Filename", "filtered_output.geojsonl")
+    # Dynamically suggest output filename based on input
+    if input_7z:
+        input_7z_path = Path(input_7z.name)
+        base_name = input_7z_path.stem  # Gets 'a.geojsonl' from 'a.geojsonl.7z'
+        suggested_output_filename = f"{base_name}.filtered.gpkg"
+    else:
+        suggested_output_filename = "filtered_output.gpkg"
+    output_filename_for_download = st.sidebar.text_input("Suggested Output Filename", suggested_output_filename)
 
     st.sidebar.header("Filtering Options")
     filter_method = st.sidebar.radio("Select Filtering Method", ("Filter by File", "Filter by Bounds"))
 
     filter_file = None
     bounds_str = None
+    filter_file_driver = None
 
     if filter_method == "Filter by File":
         filter_file = st.sidebar.file_uploader("Upload Filter File (e.g., Shapefile)", type=["shp", "geojson", "json"])
+        filter_file_driver = st.sidebar.selectbox(
+            "Filter File Driver",
+            ["Infer from extension"] + get_supported_input_drivers(),
+            index=0
+        )
     else:
         bounds_str = st.sidebar.text_input("Bounds (min_lon,min_lat,max_lon,max_lat)", "")
     no_clip = st.sidebar.checkbox("Do not clip features by filter shape/bounds", value=False)
@@ -92,6 +106,7 @@ def run_streamlit_app():
             # Prepare arguments for create_filter
             filter_args = {
                 "filter_file": str(filter_file_path) if filter_file_path else None,
+                "filter_file_driver": filter_file_driver if filter_file_driver != "Infer from extension" else None,
                 "bounds": bounds_str if bounds_str else None,
                 "no_clip": no_clip,
                 "limit_to_geom_type": limit_to_geom_type if limit_to_geom_type != "None" else None,

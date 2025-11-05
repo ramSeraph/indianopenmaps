@@ -2,6 +2,7 @@ import logging
 
 import py7zr
 import fiona
+from pathlib import Path
 
 def get_supported_output_drivers():
     driver_list = []
@@ -12,6 +13,14 @@ def get_supported_output_drivers():
             driver_list.append(k)
     return driver_list
 
+def get_supported_input_drivers():
+    driver_list = []
+    supported_drivers = fiona.supported_drivers
+    for k, v in supported_drivers.items():
+        # Check if the driver supports reading ('r')
+        if 'r' in v:
+            driver_list.append(k)
+    return driver_list
 
 def fix_if_required(p):
     if p.is_valid:
@@ -120,4 +129,28 @@ def get_geojsonl_file_info(archive):
         logging.warning(f"Multiple .geojsonl files found, using the first one: {geojsonl_files_infos[0].filename}")
 
     return geojsonl_files_infos[0]
+
+
+special_cases = {
+    'dxf': 'DXF',
+    'dgn': 'DGN',
+    'csv': 'CSV',
+    'tab': 'MapInfo File',
+    'mif': 'MapInfo File',
+    'gmt': 'OGR_GMT',
+    'gdb': 'OpenFileGDB',
+    'gml': 'GML',
+    'sqlite': 'SQLite',
+    'geojsonl': 'GeoJSONSeq',
+    'ndjson': 'GeoJSONSeq',
+    'geojsonseq': 'GeoJSONSeq',
+    'fgb': 'FlatGeobuf',
+    'geojson': 'GeoJSON',
+    'shp': 'ESRI Shapefile',
+    'gpkg': 'GPKG',
+}
+
+def get_driver_from_filename(filename):
+    ext = Path(filename).suffix.lower().lstrip('.')
+    return special_cases.get(ext)
 

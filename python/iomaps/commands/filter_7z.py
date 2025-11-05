@@ -67,11 +67,12 @@ def process_archive(archive, filter, writer):
 @click.option("-s", "--schema", "schema_file", default=None, type=click.Path(exists=True), help="Path to schema file. If not provided, schema will be inferred from the input archive.")
 @click.option("-l", "--log-level", default="INFO", type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False), help="Set the logging level.")
 @click.option("-f", "--filter-file", type=click.Path(exists=True), default=None, help="Path to an input filter file (e.g., shapefile) for spatial filtering.")
+@click.option("--filter-file-driver", default=None, help="Specify the OGR driver for the filter file. If not specified, it will be inferred from the filter file extension.")
 @click.option("-b", "--bounds", help="Rectangular bounds for spatial filtering, e.g., 'min_lon,min_lat,max_lon,max_lat'. You can get bounding box coordinates from http://bboxfinder.com/.")
 @click.option("--no-clip", is_flag=True, help="Do not clip features by the filter shape or bounding box. Only filter by intersection.")
 @click.option("-g", "--limit-to-geom-type", type=click.Choice(["Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"], case_sensitive=False), help="Limit processing to a specific geometry type. MultiPolygon matches Polygon unless --strict-geom-type-check is used.")
 @click.option("--strict-geom-type-check", is_flag=True, help="If enabled, geometry types must match exactly. Otherwise, MultiPolygon matches Polygon, etc.")
-def filter_7z(input_7z, output_file, log_level, filter_file, bounds, no_clip, schema_file, limit_to_geom_type, strict_geom_type_check, output_driver):
+def filter_7z(input_7z, output_file, log_level, filter_file, filter_file_driver, bounds, no_clip, schema_file, limit_to_geom_type, strict_geom_type_check, output_driver):
     """
     Processes a 7z archive containing a single geojsonl file by streaming.
     """
@@ -84,7 +85,7 @@ def filter_7z(input_7z, output_file, log_level, filter_file, bounds, no_clip, sc
     if not (filter_file or bounds):
         raise click.UsageError("Either --filter-file or --bounds is required.")
 
-    filter = create_filter(filter_file=filter_file, bounds=bounds, no_clip=no_clip, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
+    filter = create_filter(filter_file=filter_file, filter_file_driver=filter_file_driver, bounds=bounds, no_clip=no_clip, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
     if filter is None:
         return 
 
