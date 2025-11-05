@@ -28,24 +28,31 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install
+        run: |
+          cd python
+          uv python install
 
       - name: Install the project
-        run: uv sync --all-extras --dev
+        run: |
+          cd python
+          uv sync --all-extras --dev
 
       - name: Build the project
         run: |
-            uv build
+          cd python
+          uv build
 
       - name: Publish distribution 
-        run: uv publish
+        run: |
+          cd python
+          uv publish
 
       - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
-          inputs: ./dist/*.tar.gz ./dist/*.whl
+          inputs: ./python/dist/*.tar.gz .python/dist/*.whl
 
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: gh release create '${{ github.ref_name }}' --repo '${{ github.repository }}' --generate-notes --latest --verify-tag dist/**
+        run: gh release create '${{ github.ref_name }}' --repo '${{ github.repository }}' --generate-notes --latest --verify-tag python/dist/**
