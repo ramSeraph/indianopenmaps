@@ -2,23 +2,21 @@ import streamlit as st
 import logging
 import json
 from pathlib import Path
-import subprocess
 
 from iomaps.commands.filter_7z import (
     create_filter,
     create_writer,
     process_archive,
-    Updater,
     get_supported_output_drivers,
 )
 from iomaps.commands.schema_common import get_schema_from_archive
 import py7zr
 import multivolumefile
-from fiona.crs import from_epsg
+from fiona.crs import CRS
 from iomaps.helpers import get_supported_input_drivers
 
 def run_streamlit_app():
-    st.set_page_config(page_title="Indian Open Maps - Filter 7z", layout="wide")
+    st.set_page_config(page_title="Indianopenmaps - Filter 7z", layout="wide")
     st.title("Filter 7z Archive")
 
     st.sidebar.header("Input/Output")
@@ -131,7 +129,7 @@ def run_streamlit_app():
                     st.error("Could not infer schema from the archive.")
                     return
             
-            crs = from_epsg(4326)
+            crs = CRS.from_epsg(4326)
             writer = create_writer(str(output_file_path), schema, crs, output_driver if output_driver != "Infer from extension" else None)
             if writer is None:
                 st.error("Failed to create writer.")

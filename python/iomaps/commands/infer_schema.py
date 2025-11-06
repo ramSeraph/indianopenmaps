@@ -30,7 +30,7 @@ def infer_schema(input_7z, output_file, log_level, limit_to_geom_type, strict_ge
     schema = get_schema_from_archive(input_path, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
     if schema is None:
         logging.error("Failed to infer schema.")
-        return
+        raise click.Abort()
 
     base_name = get_base_name(input_path)
 
