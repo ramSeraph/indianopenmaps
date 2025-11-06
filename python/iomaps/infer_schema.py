@@ -91,8 +91,15 @@ class SchemaWriter:
             if 'int' in types and 'float' in types:
                 types.remove('int')
 
+            if 'NoneType' in types and len(types) == 2:
+                types.remove('NoneType')
+
             if len(types) == 1:
-                out_properties[key] = types.pop()
+                inferred_type = types.pop()
+                if inferred_type == 'NoneType':
+                    out_properties[key] = 'str'
+                else:
+                    out_properties[key] = inferred_type
             else:
                 out_properties[key] = 'str'
 
