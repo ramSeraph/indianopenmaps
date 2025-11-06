@@ -179,7 +179,7 @@ class FilterFeaturePicker:
                 logging.error(f"Invalid --pick-filter-feature-kv format: '{kv}'. Expected 'key=value'.")
                 return None
             key, value = kv.split('=', 1)
-            filtered_features = [f for f in filtered_features if f['properties'].get(key) == value]
+            filtered_features = [f for f in filtered_features if str(f['properties'].get(key)) == value]
 
         return filtered_features
 

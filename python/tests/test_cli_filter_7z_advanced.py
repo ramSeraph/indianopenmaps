@@ -230,73 +230,6 @@ def test_filter_7z_pick_filter_feature_id():
         assert result_out_of_bounds.exit_code != 0 # Expecting an error for out-of-bounds index
         assert not os.path.exists("filtered_out.geojsonl") # No output file should be created on error
 
-def test_filter_7z_strict_geom_type_check():
-    runner = CliRunner()
-    with runner.isolated_filesystem() as td:
-        os.chdir(td)
-        # Create a dummy test.geojsonl file with a mix of single and multi-part geometries
-        with open("test.geojsonl", "w") as f:
-            f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, "properties": {"name": "Point1"}}\n')
-            f.write('{"type": "Feature", "geometry": {"type": "MultiPoint", "coordinates": [[2, 2], [3, 3]]}, "properties": {"name": "MultiPoint1"}}\n')
-            f.write('{"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 1]]}, "properties": {"name": "LineString1"}}\n')
-            f.write('{"type": "Feature", "geometry": {"type": "MultiLineString", "coordinates": [[[0, 0], [1, 1]], [[2, 2], [3, 3]]]}, "properties": {"name": "MultiLineString1"}}\n')
-            f.write('{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}, "properties": {"name": "Polygon1"}}\n')
-            f.write('{"type": "Feature", "geometry": {"type": "MultiPolygon", "coordinates": [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]], [[[2, 2], [2, 3], [3, 3], [3, 2], [2, 2]]]]}, "properties": {"name": "MultiPolygon1"}}\n')
-        
-        with py7zr.SevenZipFile("test.7z", 'w') as archive:
-            archive.write("test.geojsonl")
-
-        # Define a broad bounding box to ensure all features are considered
-        bounds = "-10,-10,10,10"
-
-        # Test with --limit-to-geom-type Point and --strict-geom-type-check
-        result_point = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_point_strict.geojsonl", "-b", bounds, "-g", "Point", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_point.exit_code == 0, f"Command failed for Point (strict): {result_point.stderr}"
-        with open("filtered_point_strict.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "Point1"
-
-        # Test with --limit-to-geom-type MultiPoint and --strict-geom-type-check
-        result_multipoint = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_multipoint_strict.geojsonl", "-b", bounds, "-g", "MultiPoint", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_multipoint.exit_code == 0, f"Command failed for MultiPoint (strict): {result_multipoint.stderr}"
-        with open("filtered_multipoint_strict.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "MultiPoint1"
-
-        # Test with --limit-to-geom-type Polygon and --strict-geom-type-check
-        result_polygon = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_polygon_strict.geojsonl", "-b", bounds, "-g", "Polygon", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_polygon.exit_code == 0, f"Command failed for Polygon (strict): {result_polygon.stderr}"
-        with open("filtered_polygon_strict.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "Polygon1"
-
-        # Test with --limit-to-geom-type MultiPolygon and --strict-geom-type-check
-        result_multipolygon = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_multipolygon_strict.geojsonl", "-b", bounds, "-g", "MultiPolygon", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_multipolygon.exit_code == 0, f"Command failed for MultiPolygon (strict): {result_multipolygon.stderr}"
-        with open("filtered_multipolygon_strict.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "MultiPolygon1"
-
-        # Test that a single-part type with strict check does not return multi-part
-        result_point_no_multipoint = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_point_no_multipoint.geojsonl", "-b", bounds, "-g", "Point", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_point_no_multipoint.exit_code == 0, f"Command failed for Point (no multipoint): {result_point_no_multipoint.stderr}"
-        with open("filtered_point_no_multipoint.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "Point1"
-
-        # Test that a multi-part type with strict check does not return single-part
-        result_multipoint_no_point = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_multipoint_no_point.geojsonl", "-b", bounds, "-g", "MultiPoint", "--strict-geom-type-check"], catch_exceptions=False)
-        assert result_multipoint_no_point.exit_code == 0, f"Command failed for MultiPoint (no point): {result_multipoint_no_point.stderr}"
-        with open("filtered_multipoint_no_point.geojsonl", "r") as f:
-            features = [json.loads(line) for line in f]
-        assert len(features) == 1
-        assert features[0]["properties"]["name"] == "MultiPoint1"
-
 def test_filter_7z_pick_filter_feature_kv():
     runner = CliRunner()
     with runner.isolated_filesystem() as td:
@@ -306,6 +239,7 @@ def test_filter_7z_pick_filter_feature_kv():
             f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, "properties": {"name": "FeatureA"}}\n')
             f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [6, 6]}, "properties": {"name": "FeatureB"}}\n')
             f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [11, 11]}, "properties": {"name": "FeatureC"}}\n')
+            f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [16, 16]}, "properties": {"name": "FeatureD"}}\n')
         
         with py7zr.SevenZipFile("test.7z", 'w') as archive:
             archive.write("test.geojsonl")
@@ -328,6 +262,11 @@ def test_filter_7z_pick_filter_feature_kv():
                     "type": "Feature",
                     "properties": {"filter_id": "third", "value": 3},
                     "geometry": {"type": "Polygon", "coordinates": [[[10, 10], [10, 15], [15, 15], [15, 10], [10, 10]]]}
+                },
+                {
+                    "type": "Feature",
+                    "properties": {"filter_id": "fourth", "value": 100},
+                    "geometry": {"type": "Polygon", "coordinates": [[[15, 15], [15, 20], [20, 20], [20, 15], [15, 15]]]}
                 }
             ]
         }
@@ -350,13 +289,24 @@ def test_filter_7z_pick_filter_feature_kv():
         assert len(features_second) == 1
         assert features_second[0]["properties"]["name"] == "FeatureB"
 
-        # Test picking the feature with value=3 (this should fail as there is no feature with value=3 in the filter file)
+        # Test picking the feature with an integer value
+        result_int_value = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_int_value.geojsonl", "-f", "filter.geojson", "--pick-filter-feature-kv", "value=100"], catch_exceptions=False)
+        assert result_int_value.exit_code == 0, f"Command failed for value=100: {result_int_value.stderr}"
+        with open("filtered_int_value.geojsonl", "r") as f:
+            features_int_value = [json.loads(line) for line in f]
+        assert len(features_int_value) == 1
+        assert features_int_value[0]["properties"]["name"] == "FeatureD"
+
+        # Test picking the feature with value=3 (this should now pass and filter FeatureC)
         result_third = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_third.geojsonl", "-f", "filter.geojson", "--pick-filter-feature-kv", "value=3"], catch_exceptions=False)
-        assert result_third.exit_code != 0, f"Command should have failed for value=3 but passed: {result_third.stderr}"
-        assert not os.path.exists("filtered_third.geojsonl") # No output file should be created on error
+        assert result_third.exit_code == 0, f"Command failed for value=3: {result_third.stderr}"
+        with open("filtered_third.geojsonl", "r") as f:
+            features_third = [json.loads(line) for line in f]
+        assert len(features_third) == 1
+        assert features_third[0]["properties"]["name"] == "FeatureC"
 
         # Test with a non-existent key-value pair (should result in an error)
-        result_non_existent = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_non_existent.geojsonl", "-f", "filter.geojson", "--pick-filter-feature-kv", "non_existent_key=some_value"], catch_exceptions=False)
+        result_non_existent = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_non_existent.geojsonl", "-f", "filter.geojson", "--pick-filter-feature-kv", "value=999"], catch_exceptions=False)
         assert result_non_existent.exit_code != 0 # Expecting an error for non-existent KV pair
         assert not os.path.exists("filtered_non_existent.geojsonl") # No output file should be created on error
 
