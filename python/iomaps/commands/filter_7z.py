@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import py7zr
 import multivolumefile
-from fiona.crs import from_epsg
+from fiona.crs import CRS
 from tqdm import tqdm
 
 from iomaps.helpers import (
@@ -72,7 +72,9 @@ def process_archive(archive, filter, writer):
 @click.option("--no-clip", is_flag=True, help="Do not clip features by the filter shape or bounding box. Only filter by intersection.")
 @click.option("-g", "--limit-to-geom-type", type=click.Choice(["Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"], case_sensitive=False), help="Limit processing to a specific geometry type. MultiPolygon matches Polygon unless --strict-geom-type-check is used.")
 @click.option("--strict-geom-type-check", is_flag=True, help="If enabled, geometry types must match exactly. Otherwise, MultiPolygon matches Polygon, etc.")
-def filter_7z(input_7z, output_file, log_level, filter_file, filter_file_driver, bounds, no_clip, schema_file, limit_to_geom_type, strict_geom_type_check, output_driver):
+@click.option("--pick-filter-feature-id", type=int, default=None, help="Select a specific polygon feature by its 0-based index.")
+@click.option("--pick-filter-feature-kv", type=str, default=None, multiple=True, help="Select a specific polygon feature by a key-value pair (e.g., 'key=value') from its properties.")
+def filter_7z(input_7z, output_file, log_level, filter_file, filter_file_driver, bounds, no_clip, schema_file, limit_to_geom_type, strict_geom_type_check, output_driver, pick_filter_feature_id, pick_filter_feature_kv):
     """
     Processes a 7z archive containing a single geojsonl file by streaming.
     """
@@ -85,9 +87,9 @@ def filter_7z(input_7z, output_file, log_level, filter_file, filter_file_driver,
     if not (filter_file or bounds):
         raise click.UsageError("Either --filter-file or --bounds is required.")
 
-    filter = create_filter(filter_file=filter_file, filter_file_driver=filter_file_driver, bounds=bounds, no_clip=no_clip, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
+    filter = create_filter(filter_file=filter_file, filter_file_driver=filter_file_driver, bounds=bounds, no_clip=no_clip, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check, pick_filter_feature_id=pick_filter_feature_id, pick_filter_feature_kv=pick_filter_feature_kv)
     if filter is None:
-        return 
+        raise click.Abort() 
 
     if schema_file:
         schema_path = Path(schema_file)
@@ -101,7 +103,7 @@ def filter_7z(input_7z, output_file, log_level, filter_file, filter_file_driver,
             logging.error("Could not infer schema from the archive.")
             return
         
-    crs = from_epsg(4326)
+    crs = CRS.from_epsg(4326)
     writer = create_writer(output_file, schema, crs, output_driver)
     if writer is None:
         return

@@ -39,6 +39,8 @@ Processes a 7z archive containing a single geojsonl file by streaming, allowing 
 *   `--no-clip`: Do not clip features by the filter shape or bounding box. Only filter by intersection.
 *   `-g, --limit-to-geom-type <type>`: Limit processing to a specific geometry type (choices: `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`). `MultiPolygon` matches `Polygon` unless `--strict-geom-type-check` is used.
 *   `--strict-geom-type-check`: If enabled, geometry types must match exactly. Otherwise, `MultiPolygon` matches `Polygon`, etc.
+*   `--pick-filter-feature-id <id>`: Select a specific polygon feature by its 0-based index.
+*   `--pick-filter-feature-kv <key=value>`: Select a specific polygon feature by a key-value pair (e.g., 'key=value') from its properties.
 
 **Example:**
 

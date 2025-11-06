@@ -7,7 +7,10 @@ import fiona
 from shapely.geometry import shape, box
 from shapely.prepared import prep
 
-from iomaps.helpers import fix_if_required
+from iomaps.helpers import (
+    fix_if_required,
+    get_driver_from_filename,
+)
 
 class Updater:
     def __init__(self, pb):
@@ -80,7 +83,10 @@ class FionaWriter:
 
 
 class ShapeFilter:
-    def __init__(self, filter_shape, clip=True, limit_to_geom_type=None, strict_geom_type_check=False):
+    def __init__(self, filter_shape,
+                 clip=True,
+                 limit_to_geom_type=None,
+                 strict_geom_type_check=False):
         self.filter_shape = prep(filter_shape)
         self.count = 0
         self.passed = 0
@@ -137,6 +143,46 @@ class ShapeFilter:
         return None
 
 
+class FilterFeaturePicker:
+    def __init__(self, polygon_features,
+                 pick_filter_feature_id=None,
+                 pick_filter_feature_kv=None):
+        self.polygon_features = polygon_features
+        self.pick_filter_feature_id = pick_filter_feature_id
+        self.pick_filter_feature_kv = pick_filter_feature_kv
+
+    def pick(self):
+        if self.pick_filter_feature_id is not None and self.pick_filter_feature_kv:
+            logging.error("Only one of pick_filter_feature_id or pick_filter_feature_kv can be used, not both.")
+            return None
+
+        if self.pick_filter_feature_id is not None:
+            return self._pick_by_id()
+        
+        if self.pick_filter_feature_kv:
+            return self._pick_by_kv()
+
+        return self.polygon_features
+
+    def _pick_by_id(self):
+        feature_index = self.pick_filter_feature_id
+        if 0 <= feature_index < len(self.polygon_features):
+            return [self.polygon_features[feature_index]]
+
+        logging.error(f"Invalid feature index '{feature_index}'. Filter file contains {len(self.polygon_features)} polygon features.")
+        return None
+
+    def _pick_by_kv(self):
+        filtered_features = self.polygon_features
+        for kv in self.pick_filter_feature_kv:
+            if '=' not in kv:
+                logging.error(f"Invalid --pick-filter-feature-kv format: '{kv}'. Expected 'key=value'.")
+                return None
+            key, value = kv.split('=', 1)
+            filtered_features = [f for f in filtered_features if f['properties'].get(key) == value]
+
+        return filtered_features
+
 def get_shape_from_bounds(bounds):
     try:
         min_lon, min_lat, max_lon, max_lat = map(float, bounds.split(','))
@@ -156,7 +202,15 @@ def get_shape_from_bounds(bounds):
 
     return filter_shape
 
-def get_shape_from_filter_file(filter_file, driver=None):
+def print_filter_features(filter_features):
+    print("Available polygon features in the filter file:")
+    for idx, feature in enumerate(filter_features):
+        props = feature['properties']
+        props_str = ', '.join([f"{k}={v}" for k, v in props.items()])
+        bbox = shape(feature['geometry']).bounds
+        print(f"  ID {idx}: {props_str}, BBOX={bbox}")
+
+def get_shape_from_filter_file(filter_file, driver=None, pick_filter_feature_id=None, pick_filter_feature_kv=None):
 
     filter_file_path = Path(filter_file)
 
@@ -169,21 +223,30 @@ def get_shape_from_filter_file(filter_file, driver=None):
 
     try:
         with fiona.open(filter_file, 'r', driver=driver) as collection:
-            if len(collection) > 1:
-                logging.error("Filter file contains more than one feature, which is not supported.")
-                return None
-            
-            if len(collection) == 0:
-                logging.error("Filter file is empty.")
+            polygon_features = []
+            for feature in collection:
+                geom_type = feature['geometry']['type']
+                if geom_type in ['Polygon', 'MultiPolygon']:
+                    polygon_features.append(feature)
+
+            picker = FilterFeaturePicker(polygon_features, pick_filter_feature_id, pick_filter_feature_kv)
+            filter_features = picker.pick()
+
+            if filter_features is None:
                 return None
 
-            filter_feature = next(iter(collection))
-            
-            geom_type = filter_feature['geometry']['type']
-            if geom_type not in ['Polygon', 'MultiPolygon']:
-                logging.error(f"Filter feature is not a Polygon or MultiPolygon, but {geom_type}")
+            if len(filter_features) == 0:
+                logging.error("No polygon features in the filter matched the selection criteria.")
                 return None
 
+            if len(filter_features) > 1:
+                logging.error("Multiple polygon features matched the selection criteria. Please refine your selection using --pick-filter-feature-id or --pick-filter-feature-kv.")
+                print_filter_features(filter_features)
+                return None
+
+            filter_feature = filter_features[0]
+
+            
             filter_shape = shape(filter_feature['geometry'])
             filter_shape = fix_if_required(filter_shape)
             return filter_shape
@@ -193,23 +256,35 @@ def get_shape_from_filter_file(filter_file, driver=None):
         return None
 
 
-def create_filter(filter_file=None, filter_file_driver=None, bounds=None, no_clip=False, limit_to_geom_type=None, strict_geom_type_check=False):
+def create_filter(filter_file=None,
+                  filter_file_driver=None,
+                  bounds=None,
+                  no_clip=False,
+                  limit_to_geom_type=None,
+                  strict_geom_type_check=False,
+                  pick_filter_feature_id=None,
+                  pick_filter_feature_kv=None):
 
     clip_features = not no_clip
 
     filter_shape = None
 
     if filter_file:
-        filter_shape = get_shape_from_filter_file(filter_file, driver=filter_file_driver)
+        filter_shape = get_shape_from_filter_file(filter_file,
+                                                  driver=filter_file_driver,
+                                                  pick_filter_feature_id=pick_filter_feature_id,
+                                                  pick_filter_feature_kv=pick_filter_feature_kv)
     else:
         filter_shape = get_shape_from_bounds(bounds)
 
     if filter_shape is None:
         return None
 
-    return ShapeFilter(filter_shape, clip=clip_features, limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
+    return ShapeFilter(filter_shape,
+                       clip=clip_features,
+                       limit_to_geom_type=limit_to_geom_type,
+                       strict_geom_type_check=strict_geom_type_check)
 
-from iomaps.helpers import get_driver_from_filename
 
 def create_writer(output_file, schema, crs, output_driver=None):
 
@@ -222,5 +297,3 @@ def create_writer(output_file, schema, crs, output_driver=None):
         return None
 
     return FionaWriter(output_file, schema, crs, driver)
-
-
