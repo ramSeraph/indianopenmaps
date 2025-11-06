@@ -1,6 +1,6 @@
-# Indian Open Maps
+# Indianopenmaps
 
-This project provides command-line tools and a Streamlit UI for processing geographical data, specifically focusing on Indian Open Maps data. It leverages 7z archives containing geojsonl files for efficient data handling.
+This project provides command-line tools and a Streamlit UI for processing geographical data, specifically focusing on Indianopenmaps data. It leverages 7z archives containing geojsonl files for efficient data handling.
 
 ## Installation
 
@@ -8,8 +8,8 @@ This project uses `uv` for dependency management.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/indianopenmaps/python.git
-    cd python
+    git clone https://github.com/ramseraph/indianopenmaps.git
+    cd indianopenmaps/python
     ```
 
 2.  **Install dependencies using `uv`:**
@@ -19,7 +19,7 @@ This project uses `uv` for dependency management.
 
 ## Usage
 
-The `indianopenmaps` project provides a command-line interface (CLI) with several subcommands. You can run these commands using `uvx iomaps <command>`.
+The `indianopenmaps` project provides a command-line interface (CLI) with several subcommands. You can run these commands using `uvx iomaps <command>`. This invoction automaticlly manages the virtual environments for you.
 
 ### 1. `iomaps cli filter-7z`
 
@@ -30,7 +30,7 @@ Processes a 7z archive containing a single geojsonl file by streaming, allowing 
 *   `-i, --input-7z <path>` (Required): Path to the input 7z archive file.
 *   `-o, --output-file <path>` (Required): Path for the output file where processed data will be saved.
 *   `-d, --output-driver <driver>`: Specify output driver (e.g., `ESRI Shapefile`, `GeoJSON`). If not specified, it will be inferred from the output file extension.
-*   `-s, --schema <path>`: Path to a schema file (JSON format). If not provided, the schema will be inferred from the input archive.
+*   `-s, --schema <path>`: Path to a schema file (JSON format). If not provided, the schema will be inferred from the input archive. This requires an extra pass over the data. So, if required you can ing `infer-schema` command first to generate the schema file and then provide it here.
 *   `-l, --log-level <level>`: Set the logging level (choices: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`; default: `INFO`).
 *   `-f, --filter-file <path>`: Path to an input filter file (e.g., a shapefile) for spatial filtering.
 *   `--filter-file-driver <driver>`: Specify the OGR driver for the filter file. If not specified, it will be inferred from the filter file extension.
@@ -66,7 +66,7 @@ uvx iomaps cli infer-schema -i data.7z -o data_schema.json
 
 ### 3. `iomaps ui`
 
-Launches a Streamlit-based graphical user interface for interacting with the Indian Open Maps tools.
+Launches a Streamlit-based graphical user interface for interacting with the Indianopenmaps tools.
 
 **Example:**
 
