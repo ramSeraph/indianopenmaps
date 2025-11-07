@@ -1,25 +1,66 @@
-# Indianopenmaps
+# Indianopenmaps [![PyPI - Latest Version](https://img.shields.io/pypi/v/iomaps)](https://pypi.org/project/iomaps/) [![GitHub Tag](https://img.shields.io/github/v/tag/ramSeraph/indianopenmaps?filter=v*)](https://github.com/ramSeraph/indianopenmaps/releases/latest)
 
-This project provides command-line tools and a Streamlit UI for processing geographical data, specifically focusing on Indianopenmaps data. It leverages 7z archives containing geojsonl files for efficient data handling.
+This project provides command-line tools and a PyQt UI for processing geographical data, specifically focusing on Indianopenmaps data. It leverages 7z archives containing geojsonl files for efficient data handling.
 
 ## Installation
 
-This project uses `uv` for dependency management.
+The `iomaps` package is available on PyPI. You can install it using `pip` or `uv`.
 
-1.  **Clone the repository:**
+1.  **Using `pip`:**
     ```bash
-    git clone https://github.com/ramseraph/indianopenmaps.git
-    cd indianopenmaps/python
+    pip install iomaps
     ```
 
-2.  **Install dependencies using `uv`:**
-    ```bash
-    uv sync
-    ```
+2.  **Using `uv` (Recommended):**
+    If you have `uv` installed, you can use it to install `iomaps` and manage its dependencies.
+
+    a.  **Install `uv`:**
+        https://docs.astral.sh/uv/getting-started/installation/
+
+    b.  **Install `iomaps`:**
+        ```bash
+        uv pip install iomaps
+        ```
+        *Note: This step is not needed if you are using `uvx` to run commands, as `uvx` handles dependency management automatically.*
 
 ## Usage
 
-The `indianopenmaps` project provides a command-line interface (CLI) with several subcommands. You can run these commands using `uvx iomaps <command>`. This invoction automaticlly manages the virtual environments for you.
+The `indianopenmaps` project provides a command-line interface (CLI) with several subcommands. If no subcommand is provided, the PyQt UI will be launched by default.
+
+### Running with `uvx` (Recommended)
+
+`uvx` is the easiest and recommended way to run the `indianopenmaps` CLI. It automatically manages virtual environments for you, ensuring that the correct dependencies are installed and activated without manual intervention. This means you don't need to explicitly create or activate a virtual environment.
+
+To run commands using `uvx`:
+```bash
+uvx iomaps <command>
+```
+For example:
+```bash
+uvx iomaps cli filter-7z -i data.7z -o filtered_data.geojsonl -b "70,10,90,30"
+```
+
+### Running with `pip`
+
+If you prefer to use `pip` and manage your virtual environments manually, follow these steps:
+
+1.  **Create and activate a virtual environment:**
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    pip install -e .
+    ```
+
+3.  **Run commands:**
+    Once the virtual environment is activated and dependencies are installed, you can run the `iomaps` CLI directly:
+    ```bash
+    iomaps cli filter-7z -i data.7z -o filtered_data.geojsonl -b "70,10,90,30"
+    ```
+    Remember to activate the virtual environment (`source .venv/bin/activate`) each time you open a new terminal session before running `iomaps` commands.
 
 ### 1. `iomaps cli filter-7z`
 
@@ -68,10 +109,16 @@ uvx iomaps cli infer-schema -i data.7z -o data_schema.json
 
 ### 3. `iomaps ui`
 
-Launches a Streamlit-based graphical user interface for interacting with the Indianopenmaps tools.
+Launches a PyQt-based graphical user interface for interacting with the Indianopenmaps tools. This is now the default behavior when `iomaps` is run without any arguments.
 
 **Example:**
 
 ```bash
 uvx iomaps ui
+```
+
+or simply
+
+```bash
+uvx iomaps
 ```

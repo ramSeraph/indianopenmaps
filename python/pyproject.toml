@@ -10,11 +10,7 @@ dependencies = [
     "shapely>=2.1.2",
     "fiona>=1.10.1",
     "tqdm>=4.67.1",
-]
-
-[project.optional-dependencies]
-ui = [
-    "streamlit",
+    "PyQt5>=5.15.0",
 ]
 
 [project.scripts]
@@ -52,4 +48,3 @@ include = [
 dev = [
     "pytest>=8.4.2",
 ]
-
