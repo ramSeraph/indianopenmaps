@@ -1,4 +1,4 @@
-# Indianopenmaps [![PyPI - Latest Version](https://img.shields.io/pypi/v/iomaps)](https://pypi.org/project/iomaps/) [![GitHub Tag](https://img.shields.io/github/v/tag/ramSeraph/indianopenmaps?filter=v*)](https://github.com/ramSeraph/indianopenmaps/releases/latest)
+# Indianopenmaps [![PyPI - Latest Version](https://img.shields.io/pypi/v/iomaps)](https://pypi.org/project/iomaps/)
 
 This project provides command-line tools and a PyQt UI for processing geographical data, specifically focusing on Indianopenmaps data. It leverages 7z archives containing geojsonl files for efficient data handling.
 
