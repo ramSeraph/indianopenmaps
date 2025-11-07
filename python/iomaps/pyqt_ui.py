@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (
     QCheckBox, QLineEdit, QTextEdit, QButtonGroup, QGroupBox, QStackedWidget,
     QScrollArea
 )
-from PyQt5.QtCore import Qt
 
 import fiona
 import py7zr
@@ -44,7 +43,8 @@ class PyQtApp(QMainWindow):
         self.main_layout.addLayout(self.sidebar_layout, 1)
         self.main_layout.addWidget(self.content_stack, 3)
 
-        self.temp_files_to_clean = []
+        self.temp_dir_filter_7z_obj = None
+        self.temp_dir_infer_schema_obj = None
 
         # Internal state variables for Filter 7z
         self.filter_7z_input_7z_path = None
@@ -177,13 +177,14 @@ class PyQtApp(QMainWindow):
         filter_7z_schema_geometry_layout.addWidget(self.filter_7z_strict_geom_type_checkbox)
 
         filter_7z_schema_geometry_group.setLayout(filter_7z_schema_geometry_layout)
-        filter_7z_scroll_layout.addWidget(filter_7z_schema_geometry_group)
 
         # Advanced Options Section for Filter 7z
         filter_7z_advanced_options_group = QGroupBox("Advanced Options")
         filter_7z_advanced_options_group.setCheckable(True)
         filter_7z_advanced_options_group.setChecked(False)
         filter_7z_advanced_options_layout = QVBoxLayout()
+
+        filter_7z_advanced_options_layout.addWidget(filter_7z_schema_geometry_group)
 
         self.filter_7z_log_level_combo = QComboBox()
         self.filter_7z_log_level_combo.addItems(["INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"])
@@ -333,14 +334,21 @@ class PyQtApp(QMainWindow):
         if file_path:
             self.filter_7z_filter_file_path = Path(file_path)
             self.filter_7z_filter_file_label.setText(f"Selected: {self.filter_7z_filter_file_path.name}")
+            count = 0
             try:
                 with fiona.open(file_path, 'r') as collection:
                     for feature in collection:
+                        # if gemotry type is not Polygon, MultiPolygon, skip
+                        if feature['geometry']['type'] not in ['Polygon', 'MultiPolygon']:
+                            continue
                         self.filter_7z_features.append(feature)
                         # Create a display text for the dropdown
-                        properties = feature.get('properties', {})
-                        display_text = f"Feature {feature.get('id', 'N/A')} - {properties}"
+                        properties = None
+                        if 'properties' in feature:
+                            properties = ', '.join([f"{k}: {v}" for k, v in feature['properties'].items()])
+                        display_text = f"Feature {count} - {properties}"
                         self.filter_7z_feature_combo.addItem(display_text)
+                        count += 1
                 if len(self.filter_7z_features) > 1:
                     self.filter_7z_feature_label.show()
                     self.filter_7z_feature_combo.show()
@@ -388,23 +396,25 @@ class PyQtApp(QMainWindow):
         if self.filter_7z_schema_file_path:
             schema_path_for_processing = self.filter_7z_schema_file_path
 
+        # run this in the context of a temporary directory
+        self.temp_dir_filter_7z_obj = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
+        temp_dir_filter_7z = Path(self.temp_dir_filter_7z_obj.name)
+
         filter_file_for_processing = self.filter_7z_filter_file_path
         if len(self.filter_7z_features) > 1:
             selected_index = self.filter_7z_feature_combo.currentIndex()
             selected_feature = self.filter_7z_features[selected_index]
 
             # Write the selected feature to a temporary file
-            temp_filter_file = tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode='w')
-            self.temp_files_to_clean.append(Path(temp_filter_file.name))
+            temp_filter_file = temp_dir_filter_7z / "temp_filter.geojson"
 
             # Create a GeoJSON FeatureCollection with a single feature
             feature_collection = {
                 "type": "FeatureCollection",
                 "features": [to_dict(selected_feature)]
             }
-            json.dump(feature_collection, temp_filter_file)
-            temp_filter_file.close()
-            filter_file_for_processing = Path(temp_filter_file.name)
+            temp_filter_file.write_text(json.dumps(feature_collection))
+            filter_file_for_processing = temp_filter_file
         
         # Prepare arguments for create_filter
         filter_args = {
@@ -434,8 +444,7 @@ class PyQtApp(QMainWindow):
                 self._log_status("Error: Could not infer schema from the archive.", level="error", target_text_edit=self.filter_7z_status_text_edit)
                 return
         
-        self.filter_7z_output_file_path = Path(tempfile.NamedTemporaryFile(delete=False, suffix=".geojsonl").name)
-        self.temp_files_to_clean.append(self.filter_7z_output_file_path)
+        self.filter_7z_output_file_path = temp_dir_filter_7z / self.filter_7z_output_filename_input.text()
 
         output_type = self.filter_7z_output_type_combo.currentText()
         output_driver = output_type
@@ -464,7 +473,21 @@ class PyQtApp(QMainWindow):
             # Clean up temporary files (except the output file for download)
             pass # Cleanup will happen on app exit or explicitly when needed
 
-    def _download_file(self):
+    def clear_temp_files_7z(self):
+        if self.temp_dir_filter_7z_obj:
+            self.temp_dir_filter_7z_obj.cleanup()
+            self.temp_dir_filter_7z_obj = None
+
+    def clear_temp_files_infer_schema(self):
+        if self.temp_dir_infer_schema_obj:
+            self.temp_dir_infer_schema_obj.cleanup()
+            self.temp_dir_infer_schema_obj = None
+
+    def clear_temp_files(self):
+        self.clear_temp_files_7z()
+        self.clear_temp_files_infer_schema()
+
+    def  _download_file(self):
         if self.filter_7z_output_file_path and self.filter_7z_output_file_path.exists():
             file_dialog = QFileDialog()
             save_path, _ = file_dialog.getSaveFileName(self, "Save Filtered File", self.filter_7z_output_filename_input.text(), "All Files (*)")
@@ -473,10 +496,13 @@ class PyQtApp(QMainWindow):
                     Path(self.filter_7z_output_file_path).rename(save_path)
                     self._log_status(f"File saved to: {save_path}", target_text_edit=self.filter_7z_status_text_edit)
                     self.filter_7z_output_file_path = None # Clear path after moving
+                    self.filter_7z_download_button.setEnabled(False) # Disable button after download
                 except Exception as e:
                     self._log_status(f"Error saving file: {e}", level="error", target_text_edit=self.filter_7z_status_text_edit)
         else:
             self._log_status("No filtered file to download.", level="warning", target_text_edit=self.filter_7z_status_text_edit)
+
+        self.clear_temp_files_7z()
 
     def _upload_infer_schema_7z_archive(self):
         file_dialog = QFileDialog()
@@ -509,6 +535,9 @@ class PyQtApp(QMainWindow):
             limit_to_geom_type = None
         strict_geom_type_check = self.infer_schema_strict_geom_type_checkbox.isChecked()
 
+        self.temp_dir_infer_schema_obj = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
+        temp_dir_infer_schema = Path(self.temp_dir_infer_schema_obj.name)
+
         try:
             schema = get_schema_from_archive(
                 str(self.infer_schema_input_7z_path),
@@ -528,8 +557,7 @@ class PyQtApp(QMainWindow):
             if not output_filename:
                 output_filename = f"{self.infer_schema_input_7z_path.stem}.schema.json"
             
-            self.infer_schema_output_file_path = Path(tempfile.NamedTemporaryFile(delete=False, suffix=".json").name)
-            self.temp_files_to_clean.append(self.infer_schema_output_file_path)
+            self.infer_schema_output_file_path = temp_dir_infer_schema / output_filename
             with open(self.infer_schema_output_file_path, 'w') as f:
                 json.dump(schema, f, indent=4)
             
@@ -552,10 +580,13 @@ class PyQtApp(QMainWindow):
                     Path(self.infer_schema_output_file_path).rename(save_path)
                     self._log_status(f"Schema saved to: {save_path}", target_text_edit=self.infer_schema_output_text_edit)
                     self.infer_schema_output_file_path = None # Clear path after moving
+                    self.infer_schema_download_button.setEnabled(False) # Disable button after download
                 except Exception as e:
                     self._log_status(f"Error saving schema file: {e}", level="error", target_text_edit=self.infer_schema_output_text_edit)
         else:
             self._log_status("No inferred schema to download.", level="warning", target_text_edit=self.infer_schema_output_text_edit)
+
+        self.clear_temp_files_infer_schema()
 
     def _log_status(self, message, level="info", target_text_edit=None):
         if target_text_edit is None:
@@ -570,10 +601,7 @@ class PyQtApp(QMainWindow):
         QApplication.processEvents() # Update UI immediately
 
     def closeEvent(self, event):
-        # Clean up temporary files on application exit
-        for temp_file in self.temp_files_to_clean:
-            if temp_file.exists():
-                temp_file.unlink(missing_ok=True)
+        self.clear_temp_files()
         super().closeEvent(event)
 
 def main():
