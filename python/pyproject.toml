@@ -31,6 +31,9 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.version.raw-options]
+tag_regex = "^(?:python-v)?(?P<version>[0-9.]+)$"
+
 [tool.hatch.build.hooks.vcs]
 version-file = "iomaps/_version.py"
 
