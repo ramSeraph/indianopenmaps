@@ -28,13 +28,24 @@ class FionaWriter:
         self.output_file = output_file
         self.schema = schema
         self.crs = crs
-        self.collection = fiona.open(
-            self.output_file,
-            'w',
-            driver=driver,
-            schema=self.schema,
-            crs=self.crs
-        )
+        self._collection = None
+        self.driver = driver
+
+    @property
+    def collection(self):
+        if self._collection is None:
+            output_path = Path(self.output_file)
+            if output_path.exists():
+                output_path.unlink()
+            self._collection = fiona.open(
+                self.output_file,
+                'w',
+                driver=self.driver,
+                schema=self.schema,
+                crs=self.crs
+            )
+
+        return self._collection
 
     def convert_feature(self, feature):
         geom_type = feature['geometry']['type']
