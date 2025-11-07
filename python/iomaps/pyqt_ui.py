@@ -4,11 +4,12 @@ import json
 from pathlib import Path
 import tempfile
 
+from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QFileDialog, QRadioButton, QComboBox,
     QCheckBox, QLineEdit, QTextEdit, QButtonGroup, QGroupBox, QStackedWidget,
-    QScrollArea
+    QScrollArea, QProgressBar
 )
 
 import fiona
@@ -23,7 +24,96 @@ from iomaps.commands.filter_7z import (
     process_archive,
 )
 from iomaps.commands.schema_common import get_schema_from_archive
-from iomaps.helpers import get_supported_input_drivers
+from iomaps.helpers import get_supported_input_drivers, get_geojsonl_file_info
+
+
+class SchemaInferenceWorker(QThread):
+    progress = pyqtSignal(int)
+    finished = pyqtSignal(object)
+    error = pyqtSignal(str)
+
+    def __init__(self, input_7z_path, limit_to_geom_type, strict_geom_type_check):
+        super().__init__()
+        self.input_7z_path = input_7z_path
+        self.limit_to_geom_type = limit_to_geom_type
+        self.strict_geom_type_check = strict_geom_type_check
+
+    def run(self):
+        try:
+            schema = get_schema_from_archive(
+                self.input_7z_path,
+                limit_to_geom_type=self.limit_to_geom_type,
+                strict_geom_type_check=self.strict_geom_type_check,
+                external_updater=self.progress
+            )
+            self.finished.emit(schema)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
+class Filter7zWorker(QThread):
+    progress = pyqtSignal(int)
+    finished = pyqtSignal(object)
+    error = pyqtSignal(str)
+
+    def __init__(self, input_7z_path, filter_args, schema, output_file_path, output_driver):
+        super().__init__()
+        self.input_7z_path = input_7z_path
+        self.filter_args = filter_args
+        self.schema = schema
+        self.output_file_path = output_file_path
+        self.output_driver = output_driver
+
+    def run(self):
+        try:
+            filter_obj = create_filter(**self.filter_args)
+            if filter_obj is None:
+                raise Exception("Failed to create filter.")
+
+            crs = CRS.from_epsg(4326)
+            writer = create_writer(str(self.output_file_path), self.schema, crs, self.output_driver)
+            if writer is None:
+                raise Exception("Failed to create writer.")
+
+            class FilterProgressUpdater:
+                def __init__(self, signal, total_size):
+                    self.signal = signal
+                    self.total_size = total_size
+                    self.processed_size = 0
+
+                def update_size(self, sz):
+                    self.processed_size += sz
+                    if self.total_size > 0:
+                        percentage = int((self.processed_size / self.total_size) * 100)
+                        self.signal.emit(percentage)
+
+                def update_other_info(self, **kwargs):
+                    # This method is called by TQDMUpdater, but we don't need to do anything with it here
+                    pass
+
+            # Get total file size for progress bar
+            archive_file = py7zr.SevenZipFile(str(self.input_7z_path), mode='r')
+            target_file_info = get_geojsonl_file_info(archive_file)
+            archive_file.close() # Close the archive after getting info
+
+            total_size = 0
+            if target_file_info:
+                total_size = target_file_info.uncompressed
+            
+            updater = FilterProgressUpdater(self.progress, total_size)
+
+            if str(self.input_7z_path).endswith('.001'):
+                base_path = str(self.input_7z_path).rsplit('.', 1)[0]
+                with multivolumefile.open(base_path, 'rb') as multivolume_file:
+                    with py7zr.SevenZipFile(multivolume_file, 'r') as archive:
+                        process_archive(archive, filter_obj, writer, external_updater=updater)
+            else:
+                with py7zr.SevenZipFile(str(self.input_7z_path), mode='r') as archive:
+                    process_archive(archive, filter_obj, writer, external_updater=updater)
+            self.finished.emit(True)
+        except Exception as e:
+            self.error.emit(str(e))
+
 
 class PyQtApp(QMainWindow):
     def __init__(self):
@@ -176,6 +266,8 @@ class PyQtApp(QMainWindow):
         self.filter_7z_strict_geom_type_checkbox = QCheckBox("Strict Geometry Type Check")
         filter_7z_schema_geometry_layout.addWidget(self.filter_7z_strict_geom_type_checkbox)
 
+
+
         filter_7z_schema_geometry_group.setLayout(filter_7z_schema_geometry_layout)
 
         # Advanced Options Section for Filter 7z
@@ -200,6 +292,20 @@ class PyQtApp(QMainWindow):
         self.filter_7z_run_filter_button = QPushButton("Run Filter")
         self.filter_7z_run_filter_button.clicked.connect(self._run_filter)
         filter_7z_layout.addWidget(self.filter_7z_run_filter_button)
+
+        self.filter_7z_schema_inference_label = QLabel("Schema Inference Progress:")
+        self.filter_7z_schema_inference_label.hide()
+        self.filter_7z_schema_inference_progress_bar = QProgressBar()
+        self.filter_7z_schema_inference_progress_bar.hide()
+        filter_7z_layout.addWidget(self.filter_7z_schema_inference_label)
+        filter_7z_layout.addWidget(self.filter_7z_schema_inference_progress_bar)
+
+        self.filter_7z_filter_label = QLabel("Filtering Progress:")
+        self.filter_7z_filter_label.hide()
+        self.filter_7z_filter_progress_bar = QProgressBar()
+        self.filter_7z_filter_progress_bar.hide()
+        filter_7z_layout.addWidget(self.filter_7z_filter_label)
+        filter_7z_layout.addWidget(self.filter_7z_filter_progress_bar)
 
         self.filter_7z_status_text_edit = QTextEdit()
         self.filter_7z_status_text_edit.setReadOnly(True)
@@ -255,6 +361,10 @@ class PyQtApp(QMainWindow):
         self.infer_schema_run_button = QPushButton("Infer Schema")
         self.infer_schema_run_button.clicked.connect(self._run_infer_schema)
         infer_schema_layout.addWidget(self.infer_schema_run_button)
+
+        self.infer_schema_progress_bar = QProgressBar()
+        self.infer_schema_progress_bar.hide()
+        infer_schema_layout.addWidget(self.infer_schema_progress_bar)
 
         self.infer_schema_output_text_edit = QTextEdit()
         self.infer_schema_output_text_edit.setReadOnly(True)
@@ -417,7 +527,7 @@ class PyQtApp(QMainWindow):
             filter_file_for_processing = temp_filter_file
         
         # Prepare arguments for create_filter
-        filter_args = {
+        self.filter_args = {
             "filter_file": str(filter_file_for_processing) if filter_file_for_processing and filter_type == "Filter File" else None,
             "filter_file_driver": self.filter_7z_filter_file_driver_combo.currentText() if self.filter_7z_filter_file_driver_combo.currentText() != "Infer from extension" else None,
             "bounds": self.filter_7z_bounds_input.text() if filter_type == "Bounds" else None,
@@ -426,52 +536,87 @@ class PyQtApp(QMainWindow):
             "strict_geom_type_check": self.filter_7z_strict_geom_type_checkbox.isChecked(),
         }
 
-        filter_obj = create_filter(**filter_args)
-        if filter_obj is None:
-            self._log_status("Error: Failed to create filter.", level="error", target_text_edit=self.filter_7z_status_text_edit)
-            return
-
         # Prepare schema
-        schema = None
         if schema_path_for_processing:
             self._log_status(f"Reading schema from {schema_path_for_processing}", target_text_edit=self.filter_7z_status_text_edit)
             with schema_path_for_processing.open('r') as f:
                 schema = json.load(f)
+            self._start_filter_process(schema)
         else:
             self._log_status(f"Inferring schema from {self.filter_7z_input_7z_path}", target_text_edit=self.filter_7z_status_text_edit)
-            schema = get_schema_from_archive(str(self.filter_7z_input_7z_path), limit_to_geom_type=filter_args["limit_to_geom_type"], strict_geom_type_check=filter_args["strict_geom_type_check"])
-            if schema is None:
-                self._log_status("Error: Could not infer schema from the archive.", level="error", target_text_edit=self.filter_7z_status_text_edit)
-                return
-        
-        self.filter_7z_output_file_path = temp_dir_filter_7z / self.filter_7z_output_filename_input.text()
+            self.filter_7z_schema_inference_label.show()
+            self.filter_7z_schema_inference_progress_bar.show()
+            self.filter_7z_schema_inference_progress_bar.setValue(0)
+            self.schema_inference_worker = SchemaInferenceWorker(
+                str(self.filter_7z_input_7z_path),
+                self.filter_args["limit_to_geom_type"],
+                self.filter_args["strict_geom_type_check"]
+            )
+            self.schema_inference_worker.progress.connect(self._update_filter_7z_schema_inference_progress)
+            self.schema_inference_worker.finished.connect(self._handle_filter_7z_schema_inference_finished)
+            self.schema_inference_worker.error.connect(self._handle_filter_7z_schema_inference_error)
+            self.schema_inference_worker.start()
 
+    def _start_filter_process(self, schema):
+        if schema is None:
+            self._log_status("Error: Schema is not available for filtering.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            return
+
+        self._log_status("Starting filtering process...", target_text_edit=self.filter_7z_status_text_edit)
+        self.filter_7z_filter_label.show()
+        self.filter_7z_filter_progress_bar.show()
+        self.filter_7z_filter_progress_bar.setValue(0)
+
+        temp_dir_filter_7z = Path(self.temp_dir_filter_7z_obj.name)
+        self.filter_7z_output_file_path = temp_dir_filter_7z / self.filter_7z_output_filename_input.text()
         output_type = self.filter_7z_output_type_combo.currentText()
         output_driver = output_type
 
-        crs = CRS.from_epsg(4326)
-        writer = create_writer(str(self.filter_7z_output_file_path), schema, crs, output_driver if output_driver else None)
-        if writer is None:
-            self._log_status("Error: Failed to create writer.", level="error", target_text_edit=self.filter_7z_status_text_edit)
-            return
+        self.filter_worker = Filter7zWorker(
+            str(self.filter_7z_input_7z_path),
+            self.filter_args,
+            schema,
+            self.filter_7z_output_file_path,
+            output_driver
+        )
+        self.filter_worker.progress.connect(self._update_filter_7z_progress)
+        self.filter_worker.finished.connect(self._handle_filter_7z_finished)
+        self.filter_worker.error.connect(self._handle_filter_7z_error)
+        self.filter_worker.start()
 
-        try:
-            if str(self.filter_7z_input_7z_path).endswith('.001'):
-                base_path = str(self.filter_7z_input_7z_path).rsplit('.', 1)[0]
-                with multivolumefile.open(base_path, 'rb') as multivolume_file:
-                    with py7zr.SevenZipFile(multivolume_file, 'r') as archive:
-                        process_archive(archive, filter_obj, writer)
-            else:
-                with py7zr.SevenZipFile(str(self.filter_7z_input_7z_path), mode='r') as archive:
-                    process_archive(archive, filter_obj, writer)
+    def _update_filter_7z_schema_inference_progress(self, value):
+        self.filter_7z_schema_inference_progress_bar.setValue(value)
+
+    def _handle_filter_7z_schema_inference_error(self, error_message):
+        self.filter_7z_schema_inference_label.hide()
+        self.filter_7z_schema_inference_progress_bar.hide()
+        self._log_status(f"An error occurred during schema inference: {error_message}", level="error", target_text_edit=self.filter_7z_status_text_edit)
+
+    def _handle_filter_7z_schema_inference_finished(self, schema):
+        self.filter_7z_schema_inference_label.hide()
+        self.filter_7z_schema_inference_progress_bar.hide()
+        if schema is None:
+            self._log_status("Error: Could not infer schema from the archive.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            return
+        self._start_filter_process(schema)
+
+    def _update_filter_7z_progress(self, value):
+        self.filter_7z_filter_progress_bar.setValue(value)
+
+    def _handle_filter_7z_finished(self, success):
+        self.filter_7z_filter_label.hide()
+        self.filter_7z_filter_progress_bar.hide()
+        if success:
             self._log_status("Filtering complete! You can download the output file below.", target_text_edit=self.filter_7z_status_text_edit)
             self.filter_7z_download_button.setEnabled(True)
+        else:
+            self._log_status("Filtering failed.", level="error", target_text_edit=self.filter_7z_status_text_edit)
 
-        except Exception as e:
-            self._log_status(f"An error occurred: {e}", level="error", target_text_edit=self.filter_7z_status_text_edit)
-        finally:
-            # Clean up temporary files (except the output file for download)
-            pass # Cleanup will happen on app exit or explicitly when needed
+    def _handle_filter_7z_error(self, error_message):
+        self.filter_7z_filter_label.hide()
+        self.filter_7z_filter_progress_bar.hide()
+        self._log_status(f"An error occurred during filtering: {error_message}", level="error", target_text_edit=self.filter_7z_status_text_edit)
+
 
     def clear_temp_files_7z(self):
         if self.temp_dir_filter_7z_obj:
@@ -520,9 +665,12 @@ class PyQtApp(QMainWindow):
     def _run_infer_schema(self):
         self.infer_schema_output_text_edit.clear()
         self.infer_schema_download_button.setEnabled(False)
+        self.infer_schema_progress_bar.setValue(0)
+        self.infer_schema_progress_bar.show()
 
         if not self.infer_schema_input_7z_path:
             self._log_status("Error: Please upload an input 7z archive.", level="error", target_text_edit=self.infer_schema_output_text_edit)
+            self.infer_schema_progress_bar.hide()
             return
 
         log_level = self.infer_schema_log_level_combo.currentText()
@@ -536,36 +684,46 @@ class PyQtApp(QMainWindow):
         strict_geom_type_check = self.infer_schema_strict_geom_type_checkbox.isChecked()
 
         self.temp_dir_infer_schema_obj = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
+        
+        self.worker = SchemaInferenceWorker(
+            str(self.infer_schema_input_7z_path),
+            limit_to_geom_type,
+            strict_geom_type_check
+        )
+        self.worker.progress.connect(self._update_infer_schema_progress)
+        self.worker.finished.connect(self._handle_infer_schema_finished)
+        self.worker.error.connect(self._handle_infer_schema_error)
+        self.worker.start()
+
+    def _update_infer_schema_progress(self, value):
+        self.infer_schema_progress_bar.setValue(value)
+
+    def _handle_infer_schema_finished(self, schema):
+        self.infer_schema_progress_bar.hide()
+        if schema is None:
+            self._log_status("Error: Failed to infer schema.", level="error", target_text_edit=self.infer_schema_output_text_edit)
+            return
+
+        self.infer_schema_output_text_edit.setText(json.dumps(schema, indent=4))
+        self._log_status("Schema inferred successfully.", target_text_edit=self.infer_schema_output_text_edit)
+
+        # Save to a temporary file for download
+        output_filename = self.infer_schema_output_file_input.text()
+        if not output_filename:
+            output_filename = f"{self.infer_schema_input_7z_path.stem}.schema.json"
+        
         temp_dir_infer_schema = Path(self.temp_dir_infer_schema_obj.name)
+        self.infer_schema_output_file_path = temp_dir_infer_schema / output_filename
+        with open(self.infer_schema_output_file_path, 'w') as f:
+            json.dump(schema, f, indent=4)
+        
+        self.infer_schema_download_button.setEnabled(True)
+        self._log_status(f"Schema saved temporarily to {self.infer_schema_output_file_path.name} for download.", target_text_edit=self.infer_schema_output_text_edit)
 
-        try:
-            schema = get_schema_from_archive(
-                str(self.infer_schema_input_7z_path),
-                limit_to_geom_type=limit_to_geom_type,
-                strict_geom_type_check=strict_geom_type_check
-            )
+    def _handle_infer_schema_error(self, error_message):
+        self.infer_schema_progress_bar.hide()
+        self._log_status(f"An error occurred during schema inference: {error_message}", level="error", target_text_edit=self.infer_schema_output_text_edit)
 
-            if schema is None:
-                self._log_status("Error: Failed to infer schema.", level="error", target_text_edit=self.infer_schema_output_text_edit)
-                return
-
-            self.infer_schema_output_text_edit.setText(json.dumps(schema, indent=4))
-            self._log_status("Schema inferred successfully.", target_text_edit=self.infer_schema_output_text_edit)
-
-            # Save to a temporary file for download
-            output_filename = self.infer_schema_output_file_input.text()
-            if not output_filename:
-                output_filename = f"{self.infer_schema_input_7z_path.stem}.schema.json"
-            
-            self.infer_schema_output_file_path = temp_dir_infer_schema / output_filename
-            with open(self.infer_schema_output_file_path, 'w') as f:
-                json.dump(schema, f, indent=4)
-            
-            self.infer_schema_download_button.setEnabled(True)
-            self._log_status(f"Schema saved temporarily to {self.infer_schema_output_file_path.name} for download.", target_text_edit=self.infer_schema_output_text_edit)
-
-        except Exception as e:
-            self._log_status(f"An error occurred during schema inference: {e}", level="error", target_text_edit=self.infer_schema_output_text_edit)
 
     def _download_inferred_schema(self):
         if self.infer_schema_output_file_path and self.infer_schema_output_file_path.exists():

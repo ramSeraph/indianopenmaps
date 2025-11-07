@@ -24,7 +24,7 @@ from iomaps.filter_7z import (
 
 from iomaps.commands.schema_common import get_schema_from_archive
 
-class Updater:
+class TQDMUpdater:
     def __init__(self, pb):
         self.pb = pb
 
@@ -39,8 +39,19 @@ class Updater:
         self.pb.set_postfix(processed=kwargs.get('processed', 0),
                             passed=kwargs.get('passed', 0),
                             output_size=output_size_str)
+class CombinedUpdater:
+    def __init__(self, *updaters):
+        self.updaters = updaters
 
-def process_archive(archive, filter, writer):
+    def update_size(self, sz):
+        for updater in self.updaters:
+            updater.update_size(sz)
+
+    def update_other_info(self, **kwargs):
+        for updater in self.updaters:
+            updater.update_other_info(**kwargs)
+
+def process_archive(archive, filter, writer, external_updater=None):
     target_file_info = get_geojsonl_file_info(archive)
     if target_file_info is None:
         return
@@ -52,7 +63,9 @@ def process_archive(archive, filter, writer):
 
     try:
         with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Filtering {target_file}") as pbar:
-            updater = Updater(pbar)
+            updater = TQDMUpdater(pbar)
+            if external_updater:
+                updater = CombinedUpdater(updater, external_updater)
             factory = StreamingWriterFactory(filter, writer, updater)
             archive.extract(targets=[target_file], factory=factory)
             factory.streaming_io.flush_last_line()

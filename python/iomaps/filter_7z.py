@@ -12,17 +12,6 @@ from iomaps.helpers import (
     get_driver_from_filename,
 )
 
-class Updater:
-    def __init__(self, pb):
-        self.pb = pb
-
-    def update_size(self, sz):
-        self.pb.update(sz)
-
-    def update_other_info(self, **kwargs):
-        self.pb.set_postfix(processed=kwargs.get('processed', 0))
-
-
 class FionaWriter:
     def __init__(self, output_file, schema, crs, driver):
         self.output_file = output_file

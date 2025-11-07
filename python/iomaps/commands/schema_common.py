@@ -25,7 +25,35 @@ class Updater:
     def update_other_info(self, **kwargs):
         self.pb.set_postfix(processed=kwargs.get('processed', 0))
 
-def process_archive_for_schema(archive, dummy_filter, schema_writer):
+class CombinedUpdater:
+    def __init__(self, *updaters):
+        self.updaters = updaters
+
+    def update_size(self, sz):
+        for updater in self.updaters:
+            updater.update_size(sz)
+
+    def update_other_info(self, **kwargs):
+        for updater in self.updaters:
+            updater.update_other_info(**kwargs)
+
+
+class QtUpdater:
+    def __init__(self, signal, total_size):
+        self.signal = signal
+        self.total_size = total_size
+        self.processed_size = 0
+
+    def update_size(self, sz):
+        self.processed_size += sz
+        progress = int(self.processed_size * 100 / self.total_size)
+        self.signal.emit(progress)
+
+    def update_other_info(self, **kwargs):
+        pass # Not needed for the progress bar
+
+
+def process_archive_for_schema(archive, dummy_filter, schema_writer, external_updater=None):
     geojsonl_file_info = get_geojsonl_file_info(archive)
     if geojsonl_file_info is None:
         raise FileNotFoundError("No .geojsonl file found in the archive.")
@@ -38,6 +66,9 @@ def process_archive_for_schema(archive, dummy_filter, schema_writer):
     try:
         with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Inferring schema from {target_file}") as pbar:
             updater = Updater(pbar)
+            if external_updater:
+                qt_updater = QtUpdater(external_updater, file_size)
+                updater = CombinedUpdater(qt_updater, updater)
             factory = StreamingWriterFactory(dummy_filter, schema_writer, updater)
             archive.extract(targets=[target_file], factory=factory)
             factory.streaming_io.flush_last_line()
@@ -45,7 +76,7 @@ def process_archive_for_schema(archive, dummy_filter, schema_writer):
         schema_writer.close()
 
 
-def get_schema_from_archive(input_path, limit_to_geom_type=None, strict_geom_type_check=False):
+def get_schema_from_archive(input_path, limit_to_geom_type=None, strict_geom_type_check=False, external_updater=None):
     schema_writer = SchemaWriter()
     schema_filter = SchemaFilter(limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
 
@@ -58,11 +89,11 @@ def get_schema_from_archive(input_path, limit_to_geom_type=None, strict_geom_typ
 
             with multivolumefile.open(base_path, 'rb') as multivolume_file:
                 with py7zr.SevenZipFile(multivolume_file, 'r') as archive:
-                    process_archive_for_schema(archive, schema_filter, schema_writer)
+                    process_archive_for_schema(archive, schema_filter, schema_writer, external_updater)
         else:
 
             with py7zr.SevenZipFile(archive_path, mode='r') as archive:
-                process_archive_for_schema(archive, schema_filter, schema_writer)
+                process_archive_for_schema(archive, schema_filter, schema_writer, external_updater)
         
         return schema_writer.get_schema()
 
