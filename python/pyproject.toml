@@ -1,6 +1,6 @@
 [project]
 name = "iomaps"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Tools to handle data from indianopenmaps"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -33,6 +33,7 @@ source = "vcs"
 
 [tool.hatch.version.raw-options]
 tag_regex = "^(?:python-v)?(?P<version>[0-9.]+)$"
+search_parent_directories = true
 
 [tool.hatch.build.hooks.vcs]
 version-file = "iomaps/_version.py"
