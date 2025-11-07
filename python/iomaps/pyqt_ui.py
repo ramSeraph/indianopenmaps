@@ -234,6 +234,9 @@ class PyQtApp(QMainWindow):
         self.filter_7z_bounds_input = QLineEdit()
         self.filter_7z_bounds_input.setPlaceholderText("min_lon,min_lat,max_lon,max_lat")
         filter_7z_bounds_layout.addWidget(QLabel("Enter Bounds:"))
+        bounds_help_label = QLabel('You can use <a href="http://bboxfinder.com">http://bboxfinder.com</a> to find the bounds.')
+        bounds_help_label.setOpenExternalLinks(True)
+        filter_7z_bounds_layout.addWidget(bounds_help_label)
         filter_7z_bounds_layout.addWidget(self.filter_7z_bounds_input)
         filter_7z_filtering_options_layout.addWidget(self.filter_7z_bounds_widgets)
         self.filter_7z_bounds_widgets.hide() # Hide by default
