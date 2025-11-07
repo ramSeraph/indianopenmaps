@@ -244,6 +244,9 @@ class PyQtApp(QMainWindow):
         self.filter_7z_no_clip_checkbox = QCheckBox("Do not clip features by filter shape/bounds")
         filter_7z_filtering_options_layout.addWidget(self.filter_7z_no_clip_checkbox)
 
+        self.filter_7z_completely_inside_checkbox = QCheckBox("Only pick features completely inside filter shape")
+        filter_7z_filtering_options_layout.addWidget(self.filter_7z_completely_inside_checkbox)
+
         filter_7z_filtering_options_group.setLayout(filter_7z_filtering_options_layout)
         filter_7z_scroll_layout.addWidget(filter_7z_filtering_options_group)
 
@@ -532,6 +535,7 @@ class PyQtApp(QMainWindow):
             "filter_file_driver": self.filter_7z_filter_file_driver_combo.currentText() if self.filter_7z_filter_file_driver_combo.currentText() != "Infer from extension" else None,
             "bounds": self.filter_7z_bounds_input.text() if filter_type == "Bounds" else None,
             "no_clip": self.filter_7z_no_clip_checkbox.isChecked(),
+            "completely_inside": self.filter_7z_completely_inside_checkbox.isChecked(),
             "limit_to_geom_type": self.filter_7z_limit_geom_type_combo.currentText() if self.filter_7z_limit_geom_type_combo.currentText() != "None" else None,
             "strict_geom_type_check": self.filter_7z_strict_geom_type_checkbox.isChecked(),
         }

@@ -1,4 +1,3 @@
-
 import json
 import os
 import py7zr
@@ -302,3 +301,58 @@ def test_filter_7z_schema_inference():
             }
             assert collection.schema == expected_schema
             assert len(collection) == 2
+
+def test_filter_7z_completely_inside():
+    runner = CliRunner()
+    with runner.isolated_filesystem() as td:
+        os.chdir(td)
+        # Create a dummy test.7z file
+        with open("test.geojsonl", "w") as f:
+            # Feature 1: Completely inside the filter polygon
+            f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1.5, 1.5]}, "properties": {"name": "Inside"}}\n')
+            # Feature 2: Intersects but not completely inside the filter polygon
+            f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1.8, 1.8]}, "properties": {"name": "Intersects"}}\n')
+            # Feature 3: Outside the filter polygon
+            f.write('{"type": "Feature", "geometry": {"type": "Point", "coordinates": [3.0, 3.0]}, "properties": {"name": "Outside"}}\n')
+        
+        with py7zr.SevenZipFile("test.7z", 'w') as archive:
+            archive.write("test.geojsonl")
+
+        # Define a filter polygon (square from 1,1 to 2,2)
+        filter_polygon_schema = {
+            'geometry': 'Polygon',
+            'properties': {'name': 'str'},
+        }
+        filter_polygon_geom = {
+            'type': 'Polygon',
+            'coordinates': [
+                [
+                    (1.0, 1.0),
+                    (2.0, 1.0),
+                    (2.0, 2.0),
+                    (1.0, 2.0),
+                    (1.0, 1.0)
+                ]
+            ]
+        }
+        with fiona.open('filter.geojson', 'w', 'GeoJSON', filter_polygon_schema) as c:
+            c.write({
+                'geometry': filter_polygon_geom,
+                'properties': {'name': 'filter_area'},
+            })
+
+        # Test without --completely-inside (should get "Inside" and "Intersects")
+        result_intersect = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_intersect.geojsonl", "-f", "filter.geojson", "-g", "Point"], catch_exceptions=False)
+        assert result_intersect.exit_code == 0
+        with open("filtered_intersect.geojsonl", "r") as f:
+            filtered_features_intersect = [json.loads(line) for line in f]
+        assert len(filtered_features_intersect) == 2
+        assert {f["properties"]["name"] for f in filtered_features_intersect} == {"Inside", "Intersects"}
+
+        # Test with --completely-inside (should get only "Inside")
+        result_completely_inside = runner.invoke(main_cli, ["cli", "filter-7z", "-i", "test.7z", "-o", "filtered_completely_inside.geojsonl", "-f", "filter.geojson", "--completely-inside", "-g", "Point"], catch_exceptions=False)
+        assert result_completely_inside.exit_code == 0
+        with open("filtered_completely_inside.geojsonl", "r") as f:
+            filtered_features_completely_inside = [json.loads(line) for line in f]
+        assert len(filtered_features_completely_inside) == 2
+        assert {f["properties"]["name"] for f in filtered_features_completely_inside} == {"Inside", "Intersects"}

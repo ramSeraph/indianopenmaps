@@ -85,6 +85,7 @@ class FionaWriter:
 class ShapeFilter:
     def __init__(self, filter_shape,
                  clip=True,
+                 completely_inside=False,
                  limit_to_geom_type=None,
                  strict_geom_type_check=False):
         self.filter_shape = prep(filter_shape)
@@ -93,6 +94,7 @@ class ShapeFilter:
         self.unparsed = 0
         self.error_count = 0
         self.clip = clip
+        self.completely_inside = completely_inside
         self.limit_to_geom_type = limit_to_geom_type
         self.strict_geom_type_check = strict_geom_type_check
 
@@ -131,9 +133,18 @@ class ShapeFilter:
         try:
             feature_shape = shape(feature['geometry'])
             feature_shape = fix_if_required(feature_shape)
-            if self.filter_shape.intersects(feature_shape):
+
+            should_pass = False
+            if self.completely_inside:
+                should_pass = self.filter_shape.contains(feature_shape)
+            else:
+                should_pass = self.filter_shape.intersects(feature_shape)
+
+            if should_pass:
                 self.passed += 1
-                if self.clip:
+                # Only clip if 'clip' is True AND 'completely_inside' is False
+                # If 'completely_inside' is True, we don't clip, we preserve the original geometry
+                if self.clip and not self.completely_inside:
                     feature['geometry'] = (self.filter_shape.context.intersection(feature_shape)).__geo_interface__
                 return feature
         except Exception as e:
@@ -260,6 +271,7 @@ def create_filter(filter_file=None,
                   filter_file_driver=None,
                   bounds=None,
                   no_clip=False,
+                  completely_inside=False,
                   limit_to_geom_type=None,
                   strict_geom_type_check=False,
                   pick_filter_feature_id=None,
@@ -282,6 +294,7 @@ def create_filter(filter_file=None,
 
     return ShapeFilter(filter_shape,
                        clip=clip_features,
+                       completely_inside=completely_inside,
                        limit_to_geom_type=limit_to_geom_type,
                        strict_geom_type_check=strict_geom_type_check)
 
