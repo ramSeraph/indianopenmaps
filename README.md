@@ -19,3 +19,5 @@ Tools for splitting a big pmtiles into smaller ones is at [pmtiles_mosaic](https
 
 See the list of data available at https://indianopenmaps.fly.dev/
 
+A tool is available to filter the large .7z files in the repo based on another polygon shape or bounds and export them in other geospatial formats at [iomaps](https://github.com/ramSeraph/indianopenmaps/tree/main/python)
+
