@@ -3541,6 +3541,14 @@
     "name": "Bhuvan SISDP v2 Landuse 10k",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_V2_LULC_10k.mosaic.json"
   },
+  "/not-so-open/landuse/10k/sisdp/phase2/bhuvan/": {
+    "handlertype": "mosaic",
+    "category": [
+      "landuse"
+    ],
+    "name": "Bhuvan SISDP phase2 Landuse 10k",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k.mosaic.json"
+  },
   "/not-so-open/cadastrals/goa/onemapgoagis/": {
     "handlertype": "pmtiles",
     "category": [
