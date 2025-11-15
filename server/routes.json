@@ -3546,8 +3546,8 @@
     "category": [
       "landuse"
     ],
-    "name": "Bhuvan SISDP phase2 Landuse 10k",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k.mosaic.json"
+    "name": "Bhuvan SISDP phase2 Landuse 10k from 2016-2019",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k_2016-2019.mosaic.json"
   },
   "/not-so-open/cadastrals/goa/onemapgoagis/": {
     "handlertype": "pmtiles",
