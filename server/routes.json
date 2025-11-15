@@ -461,7 +461,7 @@
     "category": "buildings",
     "name": "Microsoft Buildings",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/ms_buildings_india/releases/download/MSBI/mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/MSBI/ms_buildings_india.mosaic.json"
   },
   "/essd-building-heights/": {
     "handlertype": "pmtiles",
