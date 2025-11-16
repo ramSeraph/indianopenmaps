@@ -454,7 +454,7 @@
     "category": "buildings",
     "name": "Google Buildings 2023",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/google_buildings_india/releases/download/GOBI-2023/google-open-buildings-india.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/GOBI-2023/google-open-buildings-india.mosaic.json"
   },
   "/ms-buildings/": {
     "handlertype": "mosaic",
