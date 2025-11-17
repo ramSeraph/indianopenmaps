@@ -3495,6 +3495,15 @@
     "name": "Uttar Pradesh AMRUT Urban Land Use",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UP_AMRUT_ULU.pmtiles"
   },
+  "/dem/contours/raw/soi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "digital elevation model",
+      "contours"
+    ],
+    "name": "SOI Raw Contours",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soi-dem/SOI_Contours_raw.pmtiles"
+  },
   "/dem/grid/cartodem-v3r1/bhuvan/": {
     "handlertype": "pmtiles",
     "category": [
