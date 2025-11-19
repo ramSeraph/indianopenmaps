@@ -10,7 +10,8 @@
     "fastify": "^4.21.0",
     "flatbush": "^4.4.1",
     "node-fetch": "^2.6.12",
-    "pmtiles": "^2.10.0"
+    "pmtiles": "^2.10.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.4.3"
