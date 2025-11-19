@@ -2,6 +2,7 @@ const path = require('node:path')
 const fastify = require('fastify')({ logger: true });
 
 const fastifyStatic = require('@fastify/static');
+const sharp = require('sharp');
 const MosaicHandler = require('./mosaic_handler');
 const PMTilesHandler = require('./pmtiles_handler');
 
@@ -41,6 +42,33 @@ async function getTile(handler, request, reply) {
                 .header('Cache-Control', 'max-age=86400000')
                 .header('Access-Control-Allow-Origin', "*")
                 .send(new Uint8Array(arr.data));
+  }
+  return reply.code(404)
+              .header('Access-Control-Allow-Origin', "*")
+              .send('');
+}
+
+async function getTilePng(handler, request, reply) {
+  var { z, x, y } = request.params;
+  try {
+    z = parseInt(z);
+    x = parseInt(x);
+    y = parseInt(y);
+  } catch(err) {
+    return reply.code(400)
+                .header('Access-Control-Allow-Origin', "*")
+                .send(`non integer values in tile url`);
+  }
+
+  const [ arr, mimeType ] = await handler.getTile(z,x,y);
+  if (arr) {
+    const webpBuffer = Buffer.from(arr.data);
+    const pngBuffer = await sharp(webpBuffer).png().toBuffer();
+    
+    return reply.header('Content-Type', 'image/png')
+                .header('Cache-Control', 'max-age=86400000')
+                .header('Access-Control-Allow-Origin', "*")
+                .send(pngBuffer);
   }
   return reply.code(404)
               .header('Access-Control-Allow-Origin', "*")
@@ -99,6 +127,9 @@ function addRoutes() {
     const handler = handlerMap[rPrefix];
     const tileSuffix = handler.tileSuffix;
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
+    if (tileSuffix === 'webp') {
+      fastify.get(`${rPrefix}:z/:x/:y.png`, getTilePng.bind(null, handler));
+    }
     fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
     fastify.get(`${rPrefix}title`, getTitle.bind(null, handler));
     if (handler.type == 'raster') {
