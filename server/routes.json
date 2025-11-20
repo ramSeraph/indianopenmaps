@@ -748,7 +748,7 @@
     "category": "pois",
     "name": "Overture Places",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/overture_places_india/releases/download/overture-places/overture_places_india.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/overture_places_india.pmtiles"
   },
   "/not-so-open/cell-towers/tarangsanchar/": {
     "handlertype": "pmtiles",
