@@ -866,7 +866,7 @@ function renderSourcePanel() {
     
     // Scroll the selected source into view
     setTimeout(() => {
-      sourceToSelect.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      sourceToSelect.element.scrollIntoView({ behavior: 'auto', block: 'center' });
     }, 100);
   } else if (filtered.length > 0 && !currentVectorSource) {
     const firstRadio = document.querySelector('input[name="vector-source"]');
