@@ -5,14 +5,18 @@ const fastifyStatic = require('@fastify/static');
 const sharp = require('sharp');
 const MosaicHandler = require('./mosaic_handler');
 const PMTilesHandler = require('./pmtiles_handler');
+const STACHandler = require('./stac_handler');
+const COGHandler = require('./cog_handler');
+const { HttpError, UnknownError } = require('./errors');
 
 const routes = require('./routes.json');
-
-const getLocaterPage = require('./wikidata_locater');
+const corsWhitelist = require('./cors_whitelist.json');
 
 const logger = fastify.log;
 
 const handlerMap = {};
+let stacHandler = null;
+let cogHandler = null;
 
 const port = 3000;
 
@@ -100,13 +104,234 @@ function addRoutes() {
   logger.info('adding routes');
 
   fastify.get('/', async (request, reply) => {
-      return reply.header('Content-Type', 'text/html; charset=utf-8')
-                  .send(getLocaterPage(request, false));
+      return reply.sendFile("index.html");
   });
+  
+  fastify.get('/vectors', async (request, reply) => {
+      return reply.sendFile("vectors.html");
+  });
+  
+  fastify.get('/rasters', async (request, reply) => {
+      return reply.sendFile("rasters.html");
+  });
+  
+  fastify.get('/api/routes', async (request, reply) => {
+      return reply.header('Content-Type', 'application/json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(routes);
+  });
+  
+  fastify.get('/stac-viewer', async (request, reply) => {
+      return reply.sendFile("stac_viewer.html");
+  });
+  
+  fastify.get('/cog-viewer', async (request, reply) => {
+      return reply.sendFile("cog-viewer.html");
+  });
+  
   fastify.get('/wikidata-locater', async (request, reply) => {
-      return reply.header('Content-Type', 'text/html; charset=utf-8')
-                  .send(getLocaterPage(request, true));
+      // Redirect to /viewer with query parameters preserved
+      const queryString = new URLSearchParams(request.query).toString();
+      const redirectUrl = queryString ? `/viewer?${queryString}` : '/viewer';
+      return reply.redirect(redirectUrl);
   });
+
+  fastify.get('/viewer', async (request, reply) => {
+      return reply.sendFile("viewer.html");
+  });
+
+  fastify.get('/cors-proxy', async (request, reply) => {
+    const { url } = request.query;
+
+    if (!url) {
+      return reply.code(400)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL parameter is required' });
+    }
+
+    // Check if URL is in whitelist
+    const isAllowed = corsWhitelist.allowedPrefixes.some(prefix => url.startsWith(prefix));
+    
+    if (!isAllowed) {
+      return reply.code(403)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL not allowed. Must start with an allowed prefix.' });
+    }
+
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        return reply.code(response.status)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send({ error: `Upstream server returned ${response.status}` });
+      }
+
+      const contentType = response.headers.get('content-type');
+      const buffer = await response.arrayBuffer();
+
+      return reply.header('Content-Type', contentType || 'application/octet-stream')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .header('Cache-Control', 'max-age=3600')
+                  .send(Buffer.from(buffer));
+    } catch (err) {
+      logger.error({ err }, 'Error proxying request');
+      return reply.code(500)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
+    }
+  });
+
+  fastify.get('/cog-info', async (request, reply) => {
+    const { url } = request.query;
+
+    if (!url) {
+      return reply.code(400)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL parameter is required' });
+    }
+
+    try {
+      const info = await cogHandler.getInfo(url);
+      
+      return reply.header('Content-Type', 'application/json')
+                  .header('Cache-Control', 'max-age=86400')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(info);
+    } catch (err) {
+      logger.error({ err }, 'Error getting COG info');
+      
+      const statusCode = err.statusCode || 500;
+      
+      return reply.code(statusCode)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
+    }
+  });
+
+  fastify.get('/cog-tiles/:z/:x/:y', async (request, reply) => {
+    const { z, x, y } = request.params;
+    const { url, format } = request.query;
+
+    if (!url) {
+      return reply.code(400)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL parameter is required' });
+    }
+
+    try {
+      const zNum = parseInt(z);
+      const xNum = parseInt(x);
+      const yNum = parseInt(y);
+      
+      // Default to png, allow webp
+      const outputFormat = (format === 'webp') ? 'webp' : 'png';
+
+      const result = await cogHandler.getTile(url, zNum, xNum, yNum, outputFormat);
+      
+      if (!result) {
+        return reply.code(404)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send('');
+      }
+
+      const { tile, mimeType } = result;
+
+      return reply.header('Content-Type', mimeType)
+                  .header('Cache-Control', 'max-age=86400000')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(tile);
+    } catch (err) {
+      logger.error({ err }, 'Error processing COG tile');
+      
+      // Use error's statusCode if it's an HttpError, otherwise default to 500
+      const statusCode = err.statusCode || 500;
+      
+      return reply.code(statusCode)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
+    }
+  });
+
+  if (stacHandler) {
+    fastify.get('/stac', async (request, reply) => {
+      const landing = await stacHandler.getLandingPage();
+      return reply.header('Content-Type', 'application/json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(landing);
+    });
+
+    fastify.get('/stac/conformance', async (request, reply) => {
+      const conformance = stacHandler.getConformance();
+      return reply.header('Content-Type', 'application/json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(conformance);
+    });
+
+    fastify.get('/stac/collections', async (request, reply) => {
+      const { limit = 100, offset = 0 } = request.query;
+      const collections = await stacHandler.getCollections(parseInt(limit), parseInt(offset));
+      return reply.header('Content-Type', 'application/json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(collections);
+    });
+
+    fastify.get('/stac/collections/:collectionId', async (request, reply) => {
+      const { collectionId } = request.params;
+      const collection = await stacHandler.getCollection(collectionId);
+      if (!collection) {
+        return reply.code(404)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send({ error: 'Collection not found' });
+      }
+      return reply.header('Content-Type', 'application/json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(collection);
+    });
+
+    fastify.get('/stac/collections/:collectionId/items', async (request, reply) => {
+      const { collectionId } = request.params;
+      const { limit = 10, offset = 0, bbox } = request.query;
+      const items = await stacHandler.getItems(collectionId, parseInt(limit), parseInt(offset), bbox);
+      if (!items) {
+        return reply.code(404)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send({ error: 'Collection not found' });
+      }
+      return reply.header('Content-Type', 'application/geo+json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(items);
+    });
+
+    fastify.get('/stac/collections/:collectionId/items/:itemId', async (request, reply) => {
+      const { collectionId, itemId } = request.params;
+      const item = await stacHandler.getItem(collectionId, itemId);
+      if (!item) {
+        return reply.code(404)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send({ error: 'Item not found' });
+      }
+      return reply.header('Content-Type', 'application/geo+json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(item);
+    });
+
+    fastify.get('/stac/search', async (request, reply) => {
+      const results = await stacHandler.search(request.query);
+      return reply.header('Content-Type', 'application/geo+json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(results);
+    });
+
+    fastify.post('/stac/search', async (request, reply) => {
+      const results = await stacHandler.search(request.body);
+      return reply.header('Content-Type', 'application/geo+json')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(results);
+    });
+
+    logger.info('STAC API routes added');
+  }
   fastify.get('/main-dark.css', async (request, reply) => {
     return reply.sendFile("main-dark.css");
   });
@@ -138,7 +363,12 @@ function addRoutes() {
       });
     } else {
       fastify.get(`${rPrefix}view`, async (request, reply) => {
-        return reply.sendFile("view.html");
+        // Redirect to /viewer with source parameter
+        const queryParams = new URLSearchParams(request.query);
+        queryParams.set('source', rPrefix);
+        const hashPart = request.url.includes('#') ? request.url.split('#')[1] : '';
+        const redirectUrl = `/viewer?${queryParams.toString()}${hashPart ? '#' + hashPart : ''}`;
+        return reply.redirect(redirectUrl);
       });
     }
   });
@@ -177,7 +407,19 @@ function createHandlers() {
 
 async function start() {
   try {
+    cogHandler = new COGHandler(logger);
+    
     createHandlers();
+    
+    const catalogPath = path.join(__dirname, 'stac_catalog.json');
+    if (require('fs').existsSync(catalogPath)) {
+      stacHandler = new STACHandler(catalogPath, logger);
+      await stacHandler.init();
+      logger.info('STAC handler initialized');
+    } else {
+      logger.warn('No stac_catalog.json found, STAC API will not be available');
+    }
+
     fastify.register(fastifyStatic, {
       root: path.join(__dirname, '..', 'static'),
     });

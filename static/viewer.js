@@ -1,5 +1,13 @@
 const currUrl = window.location.href;
 
+// Parse URL parameters
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+
+const markerLat = params.markerLat ? parseFloat(params.markerLat) : null;
+const markerLon = params.markerLon ? parseFloat(params.markerLon) : null;
+const initialSourcePath = params.source || null;
 
 const srcName = 'source-to-view';
 
@@ -14,58 +22,17 @@ var layers = {
 };
 
 var lightColors = [
-  'FC49A3', // pink
-  'CC66FF', // purple-ish
-  '66CCFF', // sky blue
-  '66FFCC', // teal
-  '00FF00', // lime green
-  'FFCC66', // light orange
-  'FF6666', // salmon
-  'FF0000', // red
-  'FF8000', // orange
-  'FFFF66', // yellow
-  '00FFFF'  // turquoise
+  'FC49A3', 'CC66FF', '66CCFF', '66FFCC', '00FF00', 'FFCC66',
+  'FF6666', 'FF0000', 'FF8000', 'FFFF66', '00FFFF'
 ];
 
 var soiColors = [
- 'C71585', // (deep pink)
- '663399', // (muted violet)
- '4682B4', // (steel blue)
- '7B68EE', // (medium slate blue)
- '228B22', // (forest green)
- 'DAA520', // (goldenrod)
- 'D2691E', // (chocolate)
- 'B22222', // (firebrick)
- 'FF8C00', // (dark orange)
- 'DAA520', // (goldenrod)
- '003366', // (dark blue)
+  'C71585', '663399', '4682B4', '7B68EE', '228B22', 'DAA520',
+  'D2691E', 'B22222', 'FF8C00', 'DAA520', '003366',
 ];
 
-const soiTileUrl = decodeURI(new URL('/soi/osm/{z}/{x}/{y}.webp', currUrl).href);
-// TODO: pick different colors for layers for SOI basemap to make things more visible
-const SOI_OSM_IMAGERY_LAYER_NAME = 'SOI OSM Imagery';
 const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
-
-var SOI_OSM_Imagery = {
-  'name': SOI_OSM_IMAGERY_LAYER_NAME,
-  'sources': {
-    'soi-osm-imagery': {
-      'type': 'raster',
-      'tiles': [ soiTileUrl ],
-      'attribution': 'Tiles &copy; Survey of India &mdash; Source: <a href="https://onlinemaps.surveyofindia.gov.in/">1:50000 Open Series Maps</a>',
-      'layers': [
-        {
-          'id': 'soi-osm-layer',
-          'type': 'raster',
-          'minZoom': 0,
-          'maxZoom': 14,
-        }
-      ],
-      'maxZoom': 14,
-    }
-  }
-};
 
 var Esri_WorldImagery = {
   'name': ESRI_WORLD_IMAGERY_LAYER_NAME,
@@ -159,7 +126,6 @@ var Carto_Dark = {
 var baseLayers = [
   Carto_Dark,
   Esri_WorldImagery,
-  SOI_OSM_Imagery,
 ];
 
 function randomColor(colors) {
@@ -168,7 +134,6 @@ function randomColor(colors) {
 }
 
 function getLayersAndSources(layerInfo) {
-  // TODO: why is the jsonification needed?
   var sources = JSON.parse(JSON.stringify(layerInfo.sources));
   var layers = [];
   for (const [sname, source] of Object.entries(sources)) {
@@ -185,9 +150,10 @@ function getLayersAndSources(layerInfo) {
 const INDIA_CENTER = [76.5,22.5];
 const INDIA_ZOOM = 4;
 
-const params = new URLSearchParams(window.location.hash.substring(1));
-const initialBaseLayerName = params.get('base') || CARTO_OSM_DARK_LAYER_NAME;
-const initialTerrainSetting = params.get('terrain') || 'false';
+const hashParams = new URLSearchParams(window.location.hash.substring(1));
+const initialBaseLayerName = hashParams.get('base') || CARTO_OSM_DARK_LAYER_NAME;
+const initialTerrainSetting = hashParams.get('terrain') || 'false';
+const initialVectorSource = hashParams.get('source') || null;
 
 let mapConfig = {    
   'container': 'map',
@@ -197,12 +163,11 @@ let mapConfig = {
     'sources': {},
     'layers': [],
   },
-  'center': INDIA_CENTER,
-  'zoom': INDIA_ZOOM,
+  'center': markerLat && markerLon ? [markerLon, markerLat] : INDIA_CENTER,
+  'zoom': markerLat && markerLon ? 14 : INDIA_ZOOM,
   'maxZoom': 30,
 };
 
-// using tile url as the tilejson setup is causing more rendering artifacts
 const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
 
 const terrainSource = {
@@ -227,6 +192,12 @@ const hlayer = {
 function updateMapConfig(baseLayerName) {
   let baseLayerInfo = baseLayers.find(l => l.name === baseLayerName);
 
+  // If layer not found yet (might be a raster layer loaded later), use default
+  if (!baseLayerInfo) {
+    console.log(`Layer ${baseLayerName} not found, using default`);
+    baseLayerInfo = baseLayers[0]; // Use first available layer (Carto Dark)
+  }
+
   const [sources, layers] = getLayersAndSources(baseLayerInfo);
   for (const [sname, source] of Object.entries(sources)) {
     mapConfig.style.sources[sname] = source;
@@ -239,7 +210,6 @@ function updateMapConfig(baseLayerName) {
   }
   mapConfig.style.layers.push(hlayer);
   mapConfig.style['sky'] = {}
-
 }
 
 function updateUrlHash(paramName, paramValue) {
@@ -253,11 +223,15 @@ function updateUrlHash(paramName, paramValue) {
 
 updateMapConfig(initialBaseLayerName);
 
-
 var map = null;
 var vectorLayerIds = [];
 var lightColorMapping = {};
 var soiColorMapping = {};
+var currentVectorSource = null;
+var currentVectorSourceName = null;
+var availableSources = {};
+var allSources = [];
+var selectedCategories = new Set();
 
 function addLayers(e) {
   if (!map.getSource(srcName) || !map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
@@ -272,7 +246,7 @@ function addLayers(e) {
     soiColorMapping[layerId] = '#' + randomColor(soiColors);
   }
 
-  const colorMapping = (initialBaseLayerName === SOI_OSM_IMAGERY_LAYER_NAME) ? soiColorMapping : lightColorMapping;
+  const colorMapping = (initialBaseLayerName && initialBaseLayerName.includes('SOI')) ? soiColorMapping : lightColorMapping;
 
   for (const layerId of vectorLayerIds) {
     var layerColor = colorMapping[layerId];
@@ -375,25 +349,85 @@ function addLayers(e) {
   }
 }
 
+function removeVectorLayers() {
+  for (const layerId of vectorLayerIds) {
+    const layersToRemove = [
+      `${layerId}-polygons`,
+      `${layerId}-polygons-outline`,
+      `${layerId}-polygons-extrusions`,
+      `${layerId}-lines`,
+      `${layerId}-pts`
+    ];
+    for (const layer of layersToRemove) {
+      if (map.getLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    }
+  }
+  layers.polygons = [];
+  layers.lines = [];
+  layers.pts = [];
+  vectorLayerIds = [];
+  lightColorMapping = {};
+  soiColorMapping = {};
+}
+
+function switchVectorSource(sourceInfo) {
+  if (currentVectorSource === sourceInfo.path) {
+    return;
+  }
+
+  removeVectorLayers();
+  
+  if (map.getSource(srcName)) {
+    map.removeSource(srcName);
+  }
+
+  const tileJsonUrl = new URL(`${sourceInfo.path}tiles.json`, window.location.origin).href;
+  
+  map.addSource(srcName, {
+    'type': 'vector',
+    'url': tileJsonUrl,
+  });
+
+  currentVectorSource = sourceInfo.path;
+  currentVectorSourceName = sourceInfo.name;
+  updateUrlHash('source', sourceInfo.path);
+  updatePanelTitle();
+  map.on('sourcedata', addLayers);
+}
+
+function updatePanelTitle() {
+  const panelTitle = document.querySelector('.panel-header h3');
+  if (panelTitle) {
+    const panel = document.getElementById('source-panel');
+    if (panel.classList.contains('collapsed') && currentVectorSourceName) {
+      panelTitle.textContent = currentVectorSourceName;
+    } else {
+      panelTitle.textContent = 'Vector Sources';
+    }
+  }
+}
+
 function updateVectorColours(baseLayerName) {
-  const colorMapping = (baseLayerName === SOI_OSM_IMAGERY_LAYER_NAME) ? soiColorMapping : lightColorMapping;
+  const colorMapping = (baseLayerName && baseLayerName.includes('SOI')) ? soiColorMapping : lightColorMapping;
 
   for (const layerId of vectorLayerIds) {
     const layerColor = colorMapping[layerId];
-    if (this.map.getLayer(`${layerId}-polygons`)) {
-      this.map.setPaintProperty(`${layerId}-polygons`, 'fill-color', layerColor);
+    if (map.getLayer(`${layerId}-polygons`)) {
+      map.setPaintProperty(`${layerId}-polygons`, 'fill-color', layerColor);
     }
-    if (this.map.getLayer(`${layerId}-polygons-outline`)) {
-      this.map.setPaintProperty(`${layerId}-polygons-outline`, 'line-color', layerColor);
+    if (map.getLayer(`${layerId}-polygons-outline`)) {
+      map.setPaintProperty(`${layerId}-polygons-outline`, 'line-color', layerColor);
     }
-    if (this.map.getLayer(`${layerId}-lines`)) {
-      this.map.setPaintProperty(`${layerId}-lines`, 'line-color', layerColor);
+    if (map.getLayer(`${layerId}-lines`)) {
+      map.setPaintProperty(`${layerId}-lines`, 'line-color', layerColor);
     }
-    if (this.map.getLayer(`${layerId}-pts`)) {
-      this.map.setPaintProperty(`${layerId}-pts`, 'circle-color', layerColor);
+    if (map.getLayer(`${layerId}-pts`)) {
+      map.setPaintProperty(`${layerId}-pts`, 'circle-color', layerColor);
     }
-    if (this.map.getLayer(`${layerId}-polygons-extrusions`)) {
-        this.map.setPaintProperty(`${layerId}-polygons-extrusions`, 'fill-extrusion-color', layerColor);
+    if (map.getLayer(`${layerId}-polygons-extrusions`)) {
+        map.setPaintProperty(`${layerId}-polygons-extrusions`, 'fill-extrusion-color', layerColor);
     }
   }
 }
@@ -461,17 +495,16 @@ var initialInspect = true;
 var wantPopup = initialInspect;
 
 function showPopup(e) {
-  // set a bbox around the pointer
   var selectThreshold = 3;
   var queryBox = [
     [
       e.point.x - selectThreshold,
       e.point.y + selectThreshold
-    ], // bottom left (SW)
+    ],
     [
       e.point.x + selectThreshold,
       e.point.y - selectThreshold
-    ] // top right (NE)
+    ]
   ];
 
   var features = map.queryRenderedFeatures(queryBox, {
@@ -529,7 +562,8 @@ class BaseLayerPicker {
     this.baseLayers = baseLayers;
     this.map = null;
     this.container = null;
-    this.buttons = [];
+    this.select = null;
+    this.currentLayerName = null;
   }
 
   getLayerInfo(label) {
@@ -541,101 +575,307 @@ class BaseLayerPicker {
     return null;
   }
 
-  updateButtons() {
-	  this.buttons.forEach((button) => {
-      button.classList.remove('-active');
-      let label = button.title;
-      const layerInfo = this.getLayerInfo(button.title);
-      const [sources, layers] = getLayersAndSources(layerInfo);
-      for (const [sname, source] of Object.entries(sources)) {
-        const src = this.map.getSource(sname);
-        if (src) {
-          button.classList.add('-active');
-          break;
+  async loadRasterSources() {
+    try {
+      const response = await fetch('/api/routes');
+      const routes = await response.json();
+      
+      const rasterSources = [];
+      for (const [path, info] of Object.entries(routes)) {
+        if (info.type === 'raster') {
+          const tileUrl = `${window.location.origin}${path}{z}/{x}/{y}.webp`;
+          rasterSources.push({
+            name: info.name,
+            path: path,
+            url: tileUrl,
+            maxZoom: 15
+          });
         }
       }
-    });
+      
+      return rasterSources;
+    } catch (error) {
+      console.error('Error loading raster sources:', error);
+      return [];
+    }
   }
 
-  expanded() {
-    this.baseLayers.forEach((layerInfo) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.title = layerInfo.name;
-      button.textContent = layerInfo.name;
-      button.addEventListener('click', () => {
-		    if (button.classList.contains('-active')) return;
+  switchLayer(layerName) {
+    if (this.currentLayerName === layerName) return;
 
-        // remove all layers
-        this.buttons.forEach((b) => {
-          const layerInfo = this.getLayerInfo(b.title);
-          const [sources, layers] = getLayersAndSources(layerInfo);
-          for (const layer of layers) {
-            if (this.map.getLayer(layer.id)) {
-              this.map.removeLayer(layer.id);
-            }
-          }
-          for (const [sname, source] of Object.entries(sources)) {
-            if (this.map.getSource(sname)) {
-              this.map.removeSource(sname);
-            }
-          }
-        });
-
-        const label = button.title;
-        const newLayerInfo = this.getLayerInfo(label);
-        const [sources, layers] = getLayersAndSources(newLayerInfo);
-        for (const [sname, source] of Object.entries(sources)) {
-          this.map.addSource(sname, source);
-        }
+    // Remove current layers
+    if (this.currentLayerName) {
+      const currentLayerInfo = this.getLayerInfo(this.currentLayerName);
+      if (currentLayerInfo) {
+        const [sources, layers] = getLayersAndSources(currentLayerInfo);
         for (const layer of layers) {
-          this.map.addLayer(layer, HILLSHADE_LAYER_ID);
+          if (this.map.getLayer(layer.id)) {
+            this.map.removeLayer(layer.id);
+          }
         }
+        for (const [sname, source] of Object.entries(sources)) {
+          if (this.map.getSource(sname)) {
+            this.map.removeSource(sname);
+          }
+        }
+      }
+    }
 
-        updateUrlHash('base', label);
-        updateVectorColours(label);
-	    });
-      this.buttons.push(button);
-      this.container.appendChild(button);
+    // Add new layers
+    const newLayerInfo = this.getLayerInfo(layerName);
+    if (newLayerInfo) {
+      const [sources, layers] = getLayersAndSources(newLayerInfo);
+      for (const [sname, source] of Object.entries(sources)) {
+        this.map.addSource(sname, source);
+      }
+      for (const layer of layers) {
+        this.map.addLayer(layer, HILLSHADE_LAYER_ID);
+      }
+    }
 
+    this.currentLayerName = layerName;
+    updateUrlHash('base', layerName);
+    updateVectorColours(layerName);
+  }
+
+  async initialize() {
+    const rasterSources = await this.loadRasterSources();
+    
+    // Add raster sources to baseLayers
+    for (const raster of rasterSources) {
+      const layerInfo = {
+        name: raster.name,
+        sources: {
+          [`raster-${raster.path.replace(/\//g, '-')}`]: {
+            type: 'raster',
+            tiles: [raster.url],
+            attribution: 'Survey of India',
+            layers: [{
+              id: `raster-layer-${raster.path.replace(/\//g, '-')}`,
+              type: 'raster',
+              minZoom: 0,
+              maxZoom: raster.maxZoom
+            }],
+            maxZoom: raster.maxZoom
+          }
+        }
+      };
+      this.baseLayers.push(layerInfo);
+    }
+
+    // Populate dropdown
+    this.baseLayers.forEach((layerInfo) => {
+      const option = document.createElement('option');
+      option.value = layerInfo.name;
+      option.textContent = layerInfo.name;
+      this.select.appendChild(option);
     });
 
-    this.map.on('styledata', () => { this.updateButtons(); });
+    // Set initial selection and switch to it if needed
+    this.select.value = initialBaseLayerName;
+    
+    // Check if we need to switch from the default layer
+    const initialLayerInfo = this.getLayerInfo(initialBaseLayerName);
+    if (initialLayerInfo && initialBaseLayerName !== this.currentLayerName) {
+      this.switchLayer(initialBaseLayerName);
+    } else {
+      this.currentLayerName = initialBaseLayerName;
+    }
   }
 
   onAdd(map) {
     this.map = map;
     const div = document.createElement("div");
-    div.className = "maplibregl-ctrl maplibregl-ctrl-group maplibre-ctrl-styles-expanded";
-    this.container = div;
-    this.expanded();
-	  return div;
+    div.className = "maplibregl-ctrl maplibregl-ctrl-group";
+    
+    const select = document.createElement('select');
+    select.style.padding = '5px 8px';
+    select.style.fontSize = '12px';
+    select.style.border = 'none';
+    select.style.background = 'white';
+    select.style.cursor = 'pointer';
+    select.style.fontFamily = "'Open Sans', sans-serif";
+    select.style.minWidth = 'auto';
+    select.style.maxWidth = '300px';
+    
+    select.addEventListener('change', (e) => {
+      this.switchLayer(e.target.value);
+    });
+    
+    this.select = select;
+    div.appendChild(select);
+    
+    // Initialize asynchronously
+    this.initialize();
+    
+    return div;
   }
 }
 
-function setTitle() {
-  const titleUrl = new URL('./title', currUrl).href;
-  fetch(titleUrl)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    document.title = data['title'];
-  })
-  .catch(error => {
-    console.error('Title fetch error:', error);
+function loadAvailableSources() {
+  fetch('/api/routes')
+    .then(response => response.json())
+    .then(data => {
+      const sourcesByCategory = {};
+      allSources = [];
+      
+      for (const [path, info] of Object.entries(data)) {
+        const type = info.type || 'vector';
+        if (type === 'raster') continue;
+        
+        const categories = Array.isArray(info.category) ? info.category : [info.category];
+        const source = {
+          name: info.name,
+          path: path,
+          url: info.url,
+          categories: categories
+        };
+        
+        allSources.push(source);
+        
+        for (const category of categories) {
+          if (!sourcesByCategory[category]) {
+            sourcesByCategory[category] = [];
+          }
+          sourcesByCategory[category].push(source);
+        }
+      }
+      
+      availableSources = sourcesByCategory;
+      initializeCategoryFilters();
+      renderSourcePanel();
+    })
+    .catch(error => {
+      console.error('Error loading sources:', error);
+    });
+}
+
+function initializeCategoryFilters() {
+  const categories = Object.keys(availableSources).sort();
+  const filtersEl = document.getElementById('categoryFilters');
+  
+  filtersEl.innerHTML = categories.map(category => 
+    `<div class="category-filter" data-category="${category}">${category}</div>`
+  ).join('');
+  
+  filtersEl.querySelectorAll('.category-filter').forEach(filter => {
+    filter.addEventListener('click', () => {
+      const category = filter.dataset.category;
+      toggleCategoryFilter(category);
+    });
   });
 }
 
-setTitle();
+function toggleCategoryFilter(category) {
+  if (selectedCategories.has(category)) {
+    selectedCategories.delete(category);
+  } else {
+    selectedCategories.add(category);
+  }
+  
+  document.querySelectorAll('.category-filter').forEach(filter => {
+    if (filter.dataset.category === category) {
+      filter.classList.toggle('active', selectedCategories.has(category));
+    }
+  });
+  
+  renderSourcePanel();
+}
+
+function filterSources() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = allSources;
+  
+  // Filter by selected categories (AND logic - source must have ALL selected categories)
+  if (selectedCategories.size > 0) {
+    filtered = filtered.filter(source => {
+      // Check if source has ALL selected categories
+      for (const selectedCat of selectedCategories) {
+        if (!source.categories.includes(selectedCat)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+  
+  // Filter by search query
+  if (query) {
+    filtered = filtered.filter(source => 
+      source.name.toLowerCase().includes(query) || 
+      source.path.toLowerCase().includes(query) ||
+      source.categories.some(cat => cat.toLowerCase().includes(query))
+    );
+  }
+  
+  return filtered;
+}
+
+function renderSourcePanel() {
+  const sourceList = document.getElementById('source-list');
+  const noResultsEl = document.getElementById('noResults');
+  sourceList.innerHTML = '';
+  
+  const filtered = filterSources();
+  
+  if (filtered.length === 0) {
+    noResultsEl.style.display = 'block';
+    return;
+  }
+  
+  noResultsEl.style.display = 'none';
+  
+  let sourceToSelect = null;
+  
+  filtered.forEach((source, index) => {
+    const sourceOption = document.createElement('div');
+    sourceOption.className = 'source-option';
+    
+    const radioId = `source-${index}`;
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'vector-source';
+    radio.id = radioId;
+    radio.value = source.path;
+    
+    const label = document.createElement('label');
+    label.htmlFor = radioId;
+    label.textContent = source.name;
+    
+    radio.addEventListener('change', () => {
+      if (radio.checked) {
+        switchVectorSource(source);
+      }
+    });
+    
+    sourceOption.appendChild(radio);
+    sourceOption.appendChild(label);
+    sourceList.appendChild(sourceOption);
+    
+    // Check if this is the source from URL hash or query parameter
+    if ((initialVectorSource && source.path === initialVectorSource) ||
+        (initialSourcePath && source.path === initialSourcePath)) {
+      sourceToSelect = { radio, source };
+    }
+  });
+  
+  // Select source from URL hash/query param if available, otherwise select first source
+  if (sourceToSelect) {
+    sourceToSelect.radio.checked = true;
+    switchVectorSource(sourceToSelect.source);
+  } else if (filtered.length > 0 && !currentVectorSource) {
+    const firstRadio = document.querySelector('input[name="vector-source"]');
+    if (firstRadio) {
+      firstRadio.checked = true;
+      const firstSource = filtered[0];
+      switchVectorSource(firstSource);
+    }
+  }
+}
 
 let baseLayerPicker = null;
 
 document.addEventListener("DOMContentLoaded", (event) => {
-  const tileJsonUrl = new URL('./tiles.json', currUrl).href;
   map = new maplibregl.Map(mapConfig);
   map.addControl(new maplibregl.FullscreenControl());
   map.addControl(new maplibregl.NavigationControl());
@@ -653,20 +893,17 @@ document.addEventListener("DOMContentLoaded", (event) => {
     source: 'terrain-source',
     exaggeration: 1
   }));
+  
   map.once('load', function () {
-    map.addSource(srcName, {
-      'type': 'vector',
-      'url': tileJsonUrl,
-    });
-
     if (initialTerrainSetting === 'false') {
       map.setTerrain(null);
     } else {
       map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1 });
     }
-
+    
+    loadAvailableSources();
   });
-  map.on('sourcedata', addLayers);
+  
   map.on('mousemove', showPopup);
   map.on('terrain', (e) => {
     if (map.getTerrain()) {
@@ -679,16 +916,26 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
   });
 
-
-  const params = new Proxy(new URLSearchParams(window.location.search), {
-    get: (searchParams, prop) => searchParams.get(prop),
-  });
-  if ((params.markerLon !== undefined && params.markerLat !== undefined) &&
-      (params.markerLon !== null && params.markerLat !== null))
-  {
-    const marker = new maplibregl.Marker({ color: '#DBDBDB',
-                                           draggable: false })
-                                 .setLngLat([params.markerLon, params.markerLat])
+  // Add marker if coordinates provided
+  if (markerLat !== null && markerLon !== null) {
+    const marker = new maplibregl.Marker({ color: '#DBDBDB', draggable: false })
+                                 .setLngLat([markerLon, markerLat])
                                  .addTo(map);
   }
+  
+  // Add search input listener
+  document.getElementById('searchInput').addEventListener('input', renderSourcePanel);
+  
+  // Add collapse/expand functionality for main panel
+  document.getElementById('panelHeader').addEventListener('click', () => {
+    const panel = document.getElementById('source-panel');
+    panel.classList.toggle('collapsed');
+    updatePanelTitle();
+  });
+  
+  // Add collapse/expand functionality for filter section
+  document.getElementById('filterTitle').addEventListener('click', () => {
+    const filterSection = document.getElementById('filterSection');
+    filterSection.classList.toggle('collapsed');
+  });
 });

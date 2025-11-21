@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Open Maps</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            background: #1a1a1a;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #999;
+        }
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .link-card {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+        }
+        
+        .link-card:hover {
+            background: rgba(52, 52, 52, 0.9);
+            border-color: #4a9eff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(74, 158, 255, 0.2);
+        }
+        
+        .link-icon {
+            font-size: 3.5rem;
+        }
+        
+        .link-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+        
+        .link-description {
+            font-size: 0.95rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>India Open Maps</h1>
+            <p>Geospatial Data Services</p>
+        </div>
+        
+        <div class="links-grid">
+            <a href="/vectors" class="link-card">
+                <div class="link-icon">📐</div>
+                <div class="link-title">Vector Data</div>
+                <div class="link-description">
+                    Explore vector datasets including boundaries, roads, buildings and more
+                </div>
+            </a>
+            
+            <a href="/rasters" class="link-card">
+                <div class="link-icon">🗾</div>
+                <div class="link-title">Raster Data</div>
+                <div class="link-description">
+                    Access raster datasets including topographic maps and satellite imagery
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

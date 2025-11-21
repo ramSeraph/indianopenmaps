@@ -89,11 +89,30 @@ function addLayers(tileJSON) {
   };
 
   const b = tileJSON['bounds'];
-  var center = [(b[1] + b[3])/2, (b[0] + b[2])/2];
+  var defaultCenter = [(b[1] + b[3])/2, (b[0] + b[2])/2];
+  var defaultZoom = 10;
+
+  // Parse URL hash for initial position
+  var center = defaultCenter;
+  var zoom = defaultZoom;
+  
+  if (window.location.hash) {
+    const hash = window.location.hash.substring(1);
+    const parts = hash.split('/');
+    if (parts.length >= 3) {
+      const hashZoom = parseFloat(parts[0]);
+      const hashLat = parseFloat(parts[1]);
+      const hashLng = parseFloat(parts[2]);
+      if (!isNaN(hashZoom) && !isNaN(hashLat) && !isNaN(hashLng)) {
+        zoom = hashZoom;
+        center = [hashLat, hashLng];
+      }
+    }
+  }
 
   var options = {
     center: center,
-    zoom: 10,
+    zoom: zoom,
     minZoom: 0,
     maxZoom: 20,
     attributionControl: false
@@ -118,5 +137,18 @@ function addLayers(tileJSON) {
   map1.sync(map2, {offsetFn: L.Sync.offsetHelper([1, 1], [0, 1])});
   map2.sync(map1, {offsetFn: L.Sync.offsetHelper([0, 1], [1, 1])});
 
+  // Update URL hash when map moves
+  function updateHash() {
+    const center = map1.getCenter();
+    const zoom = map1.getZoom();
+    const hash = `#${zoom.toFixed(1)}/${center.lat.toFixed(5)}/${center.lng.toFixed(5)}`;
+    window.history.replaceState(null, null, hash);
+  }
+
+  // Update hash on move end
+  map1.on('moveend', updateHash);
+  
+  // Initial hash update
+  updateHash();
 }
 

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Data - India Open Maps</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            background: #1a1a1a;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #999;
+        }
+        
+        .header a {
+            color: #4a9eff;
+            text-decoration: none;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .search-box {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .search-box input {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+        
+        .dataset-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .dataset-item {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .dataset-item:hover {
+            background: rgba(52, 52, 52, 0.9);
+            border-color: #4a9eff;
+            transform: translateX(5px);
+        }
+        
+        .dataset-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 8px;
+        }
+        
+        .dataset-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .dataset-links a {
+            font-size: 0.9rem;
+            color: #888;
+            text-decoration: none;
+            padding: 5px 12px;
+            background: rgba(74, 158, 255, 0.1);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .dataset-links a:hover {
+            color: #4a9eff;
+            background: rgba(74, 158, 255, 0.2);
+        }
+        
+        .dataset-categories {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .category-label {
+            font-size: 0.75rem;
+            color: #999;
+            padding: 3px 10px;
+            background: rgba(100, 100, 100, 0.2);
+            border: 1px solid #555;
+            border-radius: 12px;
+            text-transform: capitalize;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .category-label:hover {
+            border-color: #4a9eff;
+            color: #4a9eff;
+            background: rgba(74, 158, 255, 0.1);
+        }
+        
+        .category-label.active {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        
+        .filter-title {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .category-filter {
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 16px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: capitalize;
+        }
+        
+        .category-filter:hover {
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+        
+        .category-filter.active {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Vector Datasets</h1>
+            <p>Explore vector tile datasets</p>
+            <a href="/">← Back to Home</a>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search datasets..." />
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-title">Filter by category:</div>
+            <div class="category-filters" id="categoryFilters"></div>
+        </div>
+        
+        <div class="dataset-list" id="datasetList"></div>
+        <div class="no-results" id="noResults" style="display: none;">
+            No datasets found
+        </div>
+    </div>
+    
+    <script>
+        let allDatasets = [];
+        let selectedCategories = new Set();
+        
+        async function loadDatasets() {
+            const response = await fetch('/api/routes');
+            const routes = await response.json();
+            
+            allDatasets = Object.entries(routes)
+                .filter(([path, info]) => info.type !== 'raster')
+                .map(([path, info]) => ({
+                    path,
+                    name: info.name,
+                    type: info.type || 'vector',
+                    categories: Array.isArray(info.category) ? info.category : (info.category ? [info.category] : []),
+                    url: info.url || null
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            
+            initializeCategoryFilters();
+            loadFromURL();
+            filterAndDisplayDatasets();
+        }
+        
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Load search term
+            const search = params.get('search');
+            if (search) {
+                document.getElementById('searchInput').value = search;
+            }
+            
+            // Load categories
+            const categories = params.get('categories');
+            if (categories) {
+                categories.split(',').forEach(cat => {
+                    selectedCategories.add(cat);
+                });
+                
+                // Update filter buttons
+                document.querySelectorAll('.category-filter').forEach(filter => {
+                    if (selectedCategories.has(filter.dataset.category)) {
+                        filter.classList.add('active');
+                    }
+                });
+            }
+        }
+        
+        function updateURL() {
+            const params = new URLSearchParams();
+            
+            // Add search term
+            const search = document.getElementById('searchInput').value;
+            if (search) {
+                params.set('search', search);
+            }
+            
+            // Add categories
+            if (selectedCategories.size > 0) {
+                params.set('categories', Array.from(selectedCategories).sort().join(','));
+            }
+            
+            // Update URL without reload
+            const newURL = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+            window.history.replaceState({}, '', newURL);
+        }
+        
+        function initializeCategoryFilters() {
+            const categoriesSet = new Set();
+            allDatasets.forEach(dataset => {
+                dataset.categories.forEach(cat => categoriesSet.add(cat));
+            });
+            
+            const categories = Array.from(categoriesSet).sort();
+            const filtersEl = document.getElementById('categoryFilters');
+            
+            filtersEl.innerHTML = categories.map(category => 
+                `<div class="category-filter" data-category="${category}">${category}</div>`
+            ).join('');
+            
+            filtersEl.querySelectorAll('.category-filter').forEach(filter => {
+                filter.addEventListener('click', () => {
+                    const category = filter.dataset.category;
+                    toggleCategory(category);
+                });
+            });
+        }
+        
+        function toggleCategory(category) {
+            if (selectedCategories.has(category)) {
+                selectedCategories.delete(category);
+            } else {
+                selectedCategories.add(category);
+            }
+            
+            // Update filter buttons
+            document.querySelectorAll('.category-filter').forEach(filter => {
+                if (filter.dataset.category === category) {
+                    filter.classList.toggle('active', selectedCategories.has(category));
+                }
+            });
+            
+            filterAndDisplayDatasets();
+        }
+        
+        function filterAndDisplayDatasets() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = allDatasets;
+            
+            // Filter by selected categories (AND logic - dataset must have ALL selected categories)
+            if (selectedCategories.size > 0) {
+                filtered = filtered.filter(d => {
+                    // Check if dataset has ALL selected categories
+                    for (const selectedCat of selectedCategories) {
+                        if (!d.categories.includes(selectedCat)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            }
+            
+            // Filter by search query
+            if (query) {
+                filtered = filtered.filter(d => 
+                    d.name.toLowerCase().includes(query) || 
+                    d.path.toLowerCase().includes(query) ||
+                    d.categories.some(cat => cat.toLowerCase().includes(query))
+                );
+            }
+            
+            displayDatasets(filtered);
+            updateURL();
+        }
+        
+        function displayDatasets(datasets) {
+            const listEl = document.getElementById('datasetList');
+            const noResultsEl = document.getElementById('noResults');
+            
+            if (datasets.length === 0) {
+                listEl.innerHTML = '';
+                noResultsEl.style.display = 'block';
+                return;
+            }
+            
+            noResultsEl.style.display = 'none';
+            listEl.innerHTML = datasets.map(dataset => {
+                // Generate download URL from the dataset URL if it exists
+                let downloadLink = '';
+                if (dataset.url) {
+                    const downloadUrl = dataset.url
+                        .replace('/releases/download/', '/releases/tag/')
+                        .split('/')
+                        .slice(0, -1)
+                        .join('/');
+                    downloadLink = `<a href="${downloadUrl}" target="_blank">Download</a>`;
+                }
+                
+                return `
+                    <div class="dataset-item">
+                        <div class="dataset-name">${dataset.name}</div>
+                        ${dataset.categories.length > 0 ? `
+                            <div class="dataset-categories">
+                                ${dataset.categories.map(cat => `<span class="category-label${selectedCategories.has(cat) ? ' active' : ''}" data-category="${cat}">${cat}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="dataset-links">
+                            <a href="${dataset.path}tiles.json" target="_blank">TileJSON</a>
+                            <a href="${dataset.path}view" target="_blank">View Map</a>
+                            ${downloadLink}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add click handlers to category labels
+            listEl.querySelectorAll('.category-label').forEach(label => {
+                label.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const category = label.dataset.category;
+                    toggleCategory(category);
+                });
+            });
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', filterAndDisplayDatasets);
+        
+        loadDatasets();
+    </script>
+</body>
+</html>

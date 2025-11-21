@@ -1,0 +1,26 @@
+{
+  "stac_version": "1.0.0",
+  "type": "Catalog",
+  "id": "india-stac-catalog",
+  "title": "India Open Maps STAC Catalog",
+  "description": "A STAC catalog serving geospatial collections from geoparquet files",
+  "links": [
+    {
+      "rel": "self",
+      "type": "application/json",
+      "href": "./stac_catalog.json"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "./stac_catalog.json"
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./india-topo-50k",
+      "title": "India Topographic Maps 50k",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/collection.parquet"
+    }
+  ]
+}

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>COG Viewer</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        html {
+            background: #1a1a1a;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+        .url-input-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .url-input-container label {
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+        .url-input-container input[type="text"] {
+            width: 500px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .url-input-container input[type="text"]:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+        .url-input-container button {
+            padding: 8px 20px;
+            background: #4a9eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .url-input-container button:hover {
+            background: #3a8eef;
+        }
+        .url-input-container button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status-popup {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            max-width: 600px;
+            word-wrap: break-word;
+            animation: slideDown 0.3s ease;
+        }
+        .status-popup.info {
+            background: #4a9eff;
+            color: white;
+        }
+        .status-popup.error {
+            background: #ff6b6b;
+            color: white;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        .leaflet-control-opacity {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        .opacity-slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .opacity-slider-container label {
+            font-size: 12px;
+            font-weight: bold;
+            min-width: auto;
+            color: #333;
+        }
+        .opacity-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .opacity-slider-row input[type="range"] {
+            flex: 1;
+            min-width: 150px;
+        }
+        .opacity-slider-row .opacity-value {
+            min-width: 35px;
+            text-align: right;
+            font-size: 12px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="url-input-container">
+        <label for="cogUrl">COG URL:</label>
+        <input type="text" id="cogUrl" 
+               placeholder="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif"
+               value="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif">
+        <button id="loadBtn">Load COG</button>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([20, 78], 5);
+        
+        // Add OSM base layer
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        let cogLayer = null;
+        let currentCogUrl = null;
+
+        // Custom tile layer for COG
+        const COGTileLayer = L.TileLayer.extend({
+            getTileUrl: function(coords) {
+                const url = this.options.cogUrl;
+                console.log('Fetching tile for coords:', coords);
+                const z = coords.z;
+                const x = coords.x;
+                const y = coords.y;
+                const tileUrl = `/cog-tiles/${z}/${x}/${y}?url=${encodeURIComponent(url)}`;
+                return tileUrl;
+            }
+        });
+
+        // UI Elements
+        const cogUrlInput = document.getElementById('cogUrl');
+        const loadBtn = document.getElementById('loadBtn');
+        
+        let statusPopup = null;
+        let statusTimeout = null;
+
+        // Create opacity control
+        const OpacityControl = L.Control.extend({
+            options: {
+                position: 'topright'
+            },
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-control-opacity leaflet-bar');
+                container.innerHTML = `
+                    <div class="opacity-slider-container">
+                        <label>Opacity</label>
+                        <div class="opacity-slider-row">
+                            <input type="range" id="opacity" min="0" max="100" value="100">
+                            <span class="opacity-value"><span id="opacityValue">100</span>%</span>
+                        </div>
+                    </div>
+                `;
+                
+                L.DomEvent.disableClickPropagation(container);
+                L.DomEvent.disableScrollPropagation(container);
+                
+                return container;
+            }
+        });
+        
+        map.addControl(new OpacityControl());
+
+        // Load COG
+        async function loadCOG() {
+            const url = cogUrlInput.value.trim();
+            if (!url) {
+                showError('Please enter a COG URL');
+                return;
+            }
+
+            showInfo('Loading COG...');
+            loadBtn.disabled = true;
+
+            try {
+                // Remove existing COG layer
+                if (cogLayer) {
+                    map.removeLayer(cogLayer);
+                    cogLayer = null;
+                }
+
+                // Fetch COG info first
+                const infoUrl = `/cog-info?url=${encodeURIComponent(url)}`;
+                const infoResponse = await fetch(infoUrl);
+                
+                if (!infoResponse.ok) {
+                    const error = await infoResponse.json();
+                    throw new Error(error.error || `Failed to load COG info: ${infoResponse.statusText}`);
+                }
+                
+                const cogInfo = await infoResponse.json();
+                console.log('COG Info:', cogInfo);
+
+                // Create new COG layer
+                const opacitySlider = document.getElementById('opacity');
+                cogLayer = new COGTileLayer('', {
+                    cogUrl: url,
+                    opacity: opacitySlider.value / 100,
+                    maxZoom: 19,
+                    errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+                }).addTo(map);
+
+                currentCogUrl = url;
+
+                // Update URL in address bar
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('url', url);
+                const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+                window.history.pushState({ cogUrl: url }, '', newUrl);
+
+                // Fit map to COG bounds
+                const bounds = [
+                    [cogInfo.bounds.south, cogInfo.bounds.west],
+                    [cogInfo.bounds.north, cogInfo.bounds.east]
+                ];
+                map.fitBounds(bounds);
+
+                showInfo(`COG loaded successfully. Bounds: [${cogInfo.bounds.west.toFixed(4)}, ${cogInfo.bounds.south.toFixed(4)}, ${cogInfo.bounds.east.toFixed(4)}, ${cogInfo.bounds.north.toFixed(4)}]`);
+                
+                // Listen for tile load events
+                cogLayer.on('tileload', () => {
+                    showInfo('COG tiles loaded');
+                });
+
+                cogLayer.on('tileerror', (e) => {
+                    console.error('Tile error:', e);
+                });
+
+            } catch (err) {
+                showError(`Error loading COG: ${err.message}`);
+                console.error(err);
+            } finally {
+                loadBtn.disabled = false;
+            }
+        }
+
+        // Opacity control - need to wait for DOM to be ready
+        setTimeout(() => {
+            const opacitySlider = document.getElementById('opacity');
+            const opacityValue = document.getElementById('opacityValue');
+            
+            if (opacitySlider && opacityValue) {
+                opacitySlider.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    opacityValue.textContent = value;
+                    if (cogLayer) {
+                        cogLayer.setOpacity(value / 100);
+                    }
+                });
+            }
+        }, 100);
+
+        // Load button
+        loadBtn.addEventListener('click', loadCOG);
+
+        // Enter key to load
+        cogUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadCOG();
+            }
+        });
+
+        // Helper functions
+        function showStatus(message, type = 'info') {
+            // Remove existing popup if any
+            if (statusPopup) {
+                statusPopup.remove();
+            }
+            if (statusTimeout) {
+                clearTimeout(statusTimeout);
+            }
+            
+            // Create new popup
+            statusPopup = document.createElement('div');
+            statusPopup.className = `status-popup ${type}`;
+            statusPopup.textContent = message;
+            document.body.appendChild(statusPopup);
+            
+            // Auto-hide after 5 seconds for info, 8 seconds for errors
+            const duration = type === 'error' ? 8000 : 5000;
+            statusTimeout = setTimeout(() => {
+                if (statusPopup) {
+                    statusPopup.remove();
+                    statusPopup = null;
+                }
+            }, duration);
+        }
+
+        function showInfo(message) {
+            showStatus(message, 'info');
+        }
+
+        function showError(message) {
+            showStatus(message, 'error');
+        }
+
+        // Load default COG on page load
+        window.addEventListener('load', () => {
+            // Check for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlFromParam = urlParams.get('url');
+            
+            if (urlFromParam) {
+                // Update input field with URL from parameter
+                cogUrlInput.value = urlFromParam;
+                // Load the COG
+                loadCOG();
+            } else if (cogUrlInput.value) {
+                // Load default URL if present
+                loadCOG();
+            }
+        });
+
+        // Add map click handler to show coordinates
+        map.on('click', (e) => {
+            console.log('Clicked:', e.latlng);
+        });
+    </script>
+</body>
+</html>

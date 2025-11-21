@@ -1,0 +1,9 @@
+{
+  "allowedPrefixes": [
+    "https://github.com/",
+    "https://raw.githubusercontent.com/",
+    "https://release-assets.githubusercontent.com/",
+    "https://objects.githubusercontent.com/",
+    "https://api.github.com/"
+  ]
+}

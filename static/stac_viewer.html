@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAC Collections Viewer - India Open Maps</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: #2a2a2a;
+            border-right: 1px solid #444;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #444;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #4a9eff;
+        }
+        
+        .header p {
+            font-size: 0.875rem;
+            color: #999;
+        }
+        
+        .collections-list {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .collection-item {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .collection-item:hover {
+            background: #3a3a3a;
+            border-color: #4a9eff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .collection-item.active {
+            background: #2a4a6a;
+            border-color: #4a9eff;
+        }
+        
+        .collection-title {
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 5px;
+        }
+        
+        .collection-id {
+            font-size: 0.75rem;
+            color: #999;
+            font-family: monospace;
+        }
+        
+        .collection-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        
+        .loading.hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #444;
+            border-top-color: #4a9eff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        
+        .info-panel.hidden {
+            display: none;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 10px;
+        }
+        
+        .info-item {
+            font-size: 0.875rem;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        
+        .info-label {
+            color: #999;
+            margin-right: 5px;
+        }
+        
+        .error-message {
+            background: #4a2020;
+            border: 1px solid #8a4040;
+            color: #ff8080;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px;
+        }
+        
+        /* Leaflet popup customization */
+        .leaflet-popup-content-wrapper {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
+        
+        .leaflet-popup-tip {
+            background: #2a2a2a;
+        }
+        
+        .popup-title {
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 8px;
+        }
+        
+        .popup-item {
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+        
+        .popup-label {
+            color: #999;
+        }
+        
+        .popup-assets {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #444;
+        }
+        
+        .asset-link {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #3a3a3a;
+            color: #4a9eff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin: 2px;
+        }
+        
+        .asset-link:hover {
+            background: #4a4a4a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>STAC Collections</h1>
+                <p>India Open Maps</p>
+            </div>
+            <div class="collections-list" id="collections-list">
+                <div class="loading">
+                    <span class="loading-spinner"></span>
+                    Loading collections...
+                </div>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="loading hidden" id="map-loading">
+                <span class="loading-spinner"></span>
+                <span id="loading-text">Loading items...</span>
+            </div>
+            <div class="info-panel hidden" id="info-panel">
+                <div class="info-title">Collection Info</div>
+                <div id="info-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- STAC Layer -->
+    <script src="https://unpkg.com/stac-layer@0.15.0/dist/stac-layer.min.js"></script>
+    
+    <script src="stac_viewer.js"></script>
+</body>
+</html>

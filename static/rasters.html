@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raster Data - India Open Maps</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            background: #1a1a1a;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #999;
+        }
+        
+        .header a {
+            color: #4a9eff;
+            text-decoration: none;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .search-box {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .search-box input {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+        
+        .dataset-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .dataset-item {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .dataset-item:hover {
+            background: rgba(52, 52, 52, 0.9);
+            border-color: #4a9eff;
+            transform: translateX(5px);
+        }
+        
+        .dataset-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 8px;
+        }
+        
+        .dataset-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .dataset-links a {
+            font-size: 0.9rem;
+            color: #888;
+            text-decoration: none;
+            padding: 5px 12px;
+            background: rgba(74, 158, 255, 0.1);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .dataset-links a:hover {
+            color: #4a9eff;
+            background: rgba(74, 158, 255, 0.2);
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            color: #4a9eff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #444;
+        }
+        
+        .api-section {
+            background: rgba(42, 42, 42, 0.6);
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        
+        .api-section h3 {
+            color: #4a9eff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .stac-links {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .stac-link-card {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stac-link-card:hover {
+            background: rgba(36, 36, 36, 0.9);
+            border-color: #4a9eff;
+            transform: translateX(5px);
+        }
+        
+        .stac-link-icon {
+            font-size: 2rem;
+        }
+        
+        .stac-link-content h4 {
+            color: #4a9eff;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .stac-link-content p {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .api-endpoint {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .api-endpoint:hover {
+            border-color: #4a9eff;
+            background: rgba(36, 36, 36, 0.9);
+        }
+        
+        .endpoint-method {
+            color: #4caf50;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .endpoint-path {
+            color: #4a9eff;
+            flex: 1;
+        }
+        
+        .endpoint-link {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        
+        .endpoint-link:hover {
+            color: #4a9eff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Raster Datasets</h1>
+            <p>Explore raster tile datasets</p>
+            <a href="/">← Back to Home</a>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">STAC</h2>
+            <p style="color: #ff9800; margin-bottom: 15px; font-style: italic;">⚠️ Work in Progress - STAC API is under active development</p>
+            <div class="stac-links">
+                <a href="/stac-viewer" class="stac-link-card">
+                    <div class="stac-link-icon">📡</div>
+                    <div class="stac-link-content">
+                        <h4>STAC Viewer</h4>
+                        <p>Interactive map viewer for STAC collections with Leaflet</p>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="api-section" style="margin-top: 30px;">
+                <h3>API Endpoints</h3>
+                
+                <div class="api-endpoint">
+                    <span class="endpoint-method">GET</span>
+                    <span class="endpoint-path">/stac</span>
+                    <a href="/stac" class="endpoint-link" target="_blank">Try →</a>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="endpoint-method">GET</span>
+                    <span class="endpoint-path">/stac/collections</span>
+                    <a href="/stac/collections" class="endpoint-link" target="_blank">Try →</a>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="endpoint-method">GET</span>
+                    <span class="endpoint-path">/stac/collections/{id}</span>
+                    <a href="/stac/collections/india-topo-50k" class="endpoint-link" target="_blank">Try →</a>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="endpoint-method">GET</span>
+                    <span class="endpoint-path">/stac/collections/{id}/items</span>
+                    <a href="/stac/collections/india-topo-50k/items?limit=10" class="endpoint-link" target="_blank">Try →</a>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="endpoint-method">GET</span>
+                    <span class="endpoint-path">/stac/search</span>
+                    <a href="/stac/search?limit=10" class="endpoint-link" target="_blank">Try →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Tilesets</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search datasets..." />
+            </div>
+            <div class="dataset-list" id="datasetList"></div>
+            <div class="no-results" id="noResults" style="display: none;">
+                No datasets found
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allDatasets = [];
+        
+        async function loadDatasets() {
+            const response = await fetch('/api/routes');
+            const routes = await response.json();
+            
+            allDatasets = Object.entries(routes)
+                .filter(([path, info]) => info.type === 'raster')
+                .map(([path, info]) => ({
+                    path,
+                    name: info.name,
+                    url: info.url || null
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            
+            displayDatasets(allDatasets);
+        }
+        
+        function displayDatasets(datasets) {
+            const listEl = document.getElementById('datasetList');
+            const noResultsEl = document.getElementById('noResults');
+            
+            if (datasets.length === 0) {
+                listEl.innerHTML = '';
+                noResultsEl.style.display = 'block';
+                return;
+            }
+            
+            noResultsEl.style.display = 'none';
+            listEl.innerHTML = datasets.map(dataset => {
+                // Generate download URL from the dataset URL if it exists
+                let downloadLink = '';
+                if (dataset.url) {
+                    const downloadUrl = dataset.url
+                        .replace('/releases/download/', '/releases/tag/')
+                        .split('/')
+                        .slice(0, -1)
+                        .join('/');
+                    downloadLink = `<a href="${downloadUrl}" target="_blank">Download</a>`;
+                }
+                
+                return `
+                    <div class="dataset-item">
+                        <div class="dataset-name">${dataset.name}</div>
+                        <div class="dataset-links">
+                            <a href="${dataset.path}tiles.json" target="_blank">TileJSON</a>
+                            <a href="${dataset.path}rasterview" target="_blank">View Map</a>
+                            ${downloadLink}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allDatasets.filter(d => 
+                d.name.toLowerCase().includes(query) || 
+                d.path.toLowerCase().includes(query)
+            );
+            displayDatasets(filtered);
+        });
+        
+        loadDatasets();
+    </script>
+</body>
+</html>
