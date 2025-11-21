@@ -26,7 +26,8 @@
     }
     #source-panel.collapsed {
       min-width: auto;
-      max-height: 40px;
+      max-height: none;
+      height: auto;
     }
     .panel-header {
       display: flex;
@@ -37,6 +38,7 @@
       border-bottom: 1px solid #ddd;
       cursor: pointer;
       user-select: none;
+      min-height: 40px;
     }
     .panel-header:hover {
       background: #efefef;

@@ -163,12 +163,37 @@
             font-size: 0.9rem;
             color: #999;
             margin-bottom: 10px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+        }
+        
+        .filter-title:hover {
+            color: #4a9eff;
+        }
+        
+        .filter-toggle-icon {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .filter-section.collapsed .filter-toggle-icon {
+            transform: rotate(-90deg);
         }
         
         .category-filters {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+        }
+        
+        .filter-section.collapsed .category-filters {
+            display: none;
         }
         
         .category-filter {
@@ -200,6 +225,13 @@
             padding: 40px;
             font-size: 1.1rem;
         }
+        
+        .results-header {
+            font-size: 1rem;
+            color: #999;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -214,11 +246,15 @@
             <input type="text" id="searchInput" placeholder="Search datasets..." />
         </div>
         
-        <div class="filter-section">
-            <div class="filter-title">Filter by category:</div>
+        <div class="filter-section collapsed" id="filterSection">
+            <div class="filter-title" id="filterTitle">
+                <span class="filter-toggle-icon">▼</span>
+                <span>Filter by category:</span>
+            </div>
             <div class="category-filters" id="categoryFilters"></div>
         </div>
         
+        <div class="results-header">Filtered Results:</div>
         <div class="dataset-list" id="datasetList"></div>
         <div class="no-results" id="noResults" style="display: none;">
             No datasets found
@@ -412,6 +448,12 @@
         }
         
         document.getElementById('searchInput').addEventListener('input', filterAndDisplayDatasets);
+        
+        // Add collapse/expand functionality for filter section
+        document.getElementById('filterTitle').addEventListener('click', () => {
+            const filterSection = document.getElementById('filterSection');
+            filterSection.classList.toggle('collapsed');
+        });
         
         loadDatasets();
     </script>
