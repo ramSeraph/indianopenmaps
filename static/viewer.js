@@ -151,9 +151,10 @@ const INDIA_CENTER = [76.5,22.5];
 const INDIA_ZOOM = 4;
 
 const hashParams = new URLSearchParams(window.location.hash.substring(1));
-const initialBaseLayerName = hashParams.get('base') || CARTO_OSM_DARK_LAYER_NAME;
-const initialTerrainSetting = hashParams.get('terrain') || 'false';
-const initialVectorSource = hashParams.get('source') || null;
+const queryParams = new URLSearchParams(window.location.search);
+const initialBaseLayerName = hashParams.get('base') || queryParams.get('base') || CARTO_OSM_DARK_LAYER_NAME;
+const initialTerrainSetting = hashParams.get('terrain') || queryParams.get('terrain') || 'false';
+const initialVectorSource = hashParams.get('source') || queryParams.get('source') || null;
 
 let mapConfig = {    
   'container': 'map',
@@ -189,14 +190,18 @@ const hlayer = {
   paint: {'hillshade-shadow-color': '#473B24'}
 }
 
+var actualInitialBaseLayerName = null;
+
 function updateMapConfig(baseLayerName) {
   let baseLayerInfo = baseLayers.find(l => l.name === baseLayerName);
 
   // If layer not found yet (might be a raster layer loaded later), use default
   if (!baseLayerInfo) {
-    console.log(`Layer ${baseLayerName} not found, using default`);
     baseLayerInfo = baseLayers[0]; // Use first available layer (Carto Dark)
   }
+
+  // Track which layer was actually loaded
+  actualInitialBaseLayerName = baseLayerInfo.name;
 
   const [sources, layers] = getLayersAndSources(baseLayerInfo);
   for (const [sname, source] of Object.entries(sources)) {
@@ -217,7 +222,6 @@ function updateUrlHash(paramName, paramValue) {
     const urlParams = new URLSearchParams(currentHash.substring(1));
     urlParams.set(paramName, paramValue);
     const newHash = '#' + urlParams.toString().replaceAll('%2F', '/');
-    console.log(`Updating URL hash: ${newHash}`);
     window.location.hash = newHash;
 }
 
@@ -601,23 +605,35 @@ class BaseLayerPicker {
   }
 
   switchLayer(layerName) {
-    if (this.currentLayerName === layerName) return;
+    if (this.currentLayerName === layerName) {
+      return;
+    }
 
     // Remove current layers
     if (this.currentLayerName) {
       const currentLayerInfo = this.getLayerInfo(this.currentLayerName);
       if (currentLayerInfo) {
         const [sources, layers] = getLayersAndSources(currentLayerInfo);
+        
+        // Remove layers first (important: must remove layers before sources)
         for (const layer of layers) {
           if (this.map.getLayer(layer.id)) {
             this.map.removeLayer(layer.id);
+          } else {
+            console.warn(`Layer ${layer.id} not found in map`);
           }
         }
+        
+        // Now remove sources
         for (const [sname, source] of Object.entries(sources)) {
           if (this.map.getSource(sname)) {
             this.map.removeSource(sname);
+          } else {
+            console.warn(`Source ${sname} not found in map`);
           }
         }
+      } else {
+        console.error(`Could not find layer info for: ${this.currentLayerName}`);
       }
     }
 
@@ -625,12 +641,18 @@ class BaseLayerPicker {
     const newLayerInfo = this.getLayerInfo(layerName);
     if (newLayerInfo) {
       const [sources, layers] = getLayersAndSources(newLayerInfo);
+      
+      // Add sources first
       for (const [sname, source] of Object.entries(sources)) {
         this.map.addSource(sname, source);
       }
+      
+      // Then add layers
       for (const layer of layers) {
         this.map.addLayer(layer, HILLSHADE_LAYER_ID);
       }
+    } else {
+      console.error(`Could not find layer info for: ${layerName}`);
     }
 
     this.currentLayerName = layerName;
@@ -674,17 +696,19 @@ class BaseLayerPicker {
     // Set initial selection and switch to it if needed
     this.select.value = initialBaseLayerName;
     
-    // Check if we need to switch from the default layer
-    const initialLayerInfo = this.getLayerInfo(initialBaseLayerName);
-    if (initialLayerInfo && initialBaseLayerName !== this.currentLayerName) {
+    // If the requested layer is now available and different from what's currently loaded, switch to it
+    if (initialBaseLayerName !== this.currentLayerName && this.getLayerInfo(initialBaseLayerName)) {
       this.switchLayer(initialBaseLayerName);
-    } else {
-      this.currentLayerName = initialBaseLayerName;
     }
   }
 
   onAdd(map) {
     this.map = map;
+    
+    // Set the current layer name to what was ACTUALLY loaded in the initial map config
+    // (might be different from initialBaseLayerName if that layer wasn't available yet)
+    this.currentLayerName = actualInitialBaseLayerName;
+    
     const div = document.createElement("div");
     div.className = "maplibregl-ctrl maplibregl-ctrl-group";
     
