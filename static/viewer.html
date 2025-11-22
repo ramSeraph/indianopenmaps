@@ -10,21 +10,63 @@
   <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet'/>
   <link href='/view.css' rel='stylesheet'/>
   <style>
-    #source-panel {
-      position: absolute;
-      top: 65px;
-      left: 10px;
+    .maplibregl-ctrl-geocoder {
+      width: 300px;
+      max-width: 300px;
+    }
+    .maplibregl-ctrl-geocoder input {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Open Sans', sans-serif;
+      background: white;
+      box-sizing: border-box;
+    }
+    .maplibregl-ctrl-geocoder input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.5);
+    }
+    .geocoder-results {
+      margin-top: 5px;
       background: white;
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      z-index: 1;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+    }
+    .geocoder-result {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .geocoder-result:hover {
+      background: #f5f5f5;
+    }
+    .geocoder-result:last-child {
+      border-bottom: none;
+    }
+    .geocoder-loading {
+      padding: 10px;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .maplibregl-ctrl-source-panel {
+      background: white;
+      border-radius: 4px;
       min-width: 300px;
       max-width: 400px;
       max-height: calc(80vh - 75px);
       overflow: hidden;
       transition: all 0.3s ease;
     }
-    #source-panel.collapsed {
+    .maplibregl-ctrl-source-panel.collapsed {
       min-width: auto;
       max-height: none;
       height: auto;
@@ -43,7 +85,7 @@
     .panel-header:hover {
       background: #efefef;
     }
-    #source-panel.collapsed .panel-header {
+    .maplibregl-ctrl-source-panel.collapsed .panel-header {
       border-bottom: none;
     }
     .panel-header h3 {
@@ -59,7 +101,7 @@
       transition: transform 0.3s ease;
       flex-shrink: 0;
     }
-    #source-panel.collapsed .toggle-icon {
+    .maplibregl-ctrl-source-panel.collapsed .toggle-icon {
       transform: rotate(-90deg);
     }
     .panel-content {
@@ -67,7 +109,7 @@
       overflow-y: auto;
       max-height: calc(80vh - 155px);
     }
-    #source-panel.collapsed .panel-content {
+    .maplibregl-ctrl-source-panel.collapsed .panel-content {
       display: none;
     }
     .search-box {
@@ -181,29 +223,6 @@
 
 <body>
 <div id='map'></div>
-<div id='source-panel'>
-  <div class='panel-header' id='panelHeader'>
-    <h3>Vector Sources</h3>
-    <span class='toggle-icon'>▼</span>
-  </div>
-  <div class='panel-content'>
-    <div class='search-box'>
-      <input type='text' id='searchInput' placeholder='Search sources...' />
-    </div>
-    <div class='filter-section collapsed' id='filterSection'>
-      <div class='filter-title' id='filterTitle'>
-        <span>Filter by category:</span>
-        <span class='filter-toggle-icon'>▼</span>
-      </div>
-      <div class='category-filters' id='categoryFilters'></div>
-    </div>
-    <div class='layers-heading'>Filtered Layers:</div>
-    <div id='source-list'></div>
-    <div class='no-results' id='noResults' style='display: none;'>
-      No sources found
-    </div>
-  </div>
-</div>
 <script src='/viewer.js'></script>
 </body>
 </html>

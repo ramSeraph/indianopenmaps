@@ -402,14 +402,8 @@ function switchVectorSource(sourceInfo) {
 }
 
 function updatePanelTitle() {
-  const panelTitle = document.querySelector('.panel-header h3');
-  if (panelTitle) {
-    const panel = document.getElementById('source-panel');
-    if (panel.classList.contains('collapsed') && currentVectorSourceName) {
-      panelTitle.textContent = currentVectorSourceName;
-    } else {
-      panelTitle.textContent = 'Vector Sources';
-    }
+  if (sourcePanelControl) {
+    sourcePanelControl.updatePanelTitle();
   }
 }
 
@@ -736,173 +730,388 @@ class BaseLayerPicker {
   }
 }
 
-function loadAvailableSources() {
-  fetch('/api/routes')
-    .then(response => response.json())
-    .then(data => {
-      const sourcesByCategory = {};
-      allSources = [];
-      
-      for (const [path, info] of Object.entries(data)) {
-        const type = info.type || 'vector';
-        if (type === 'raster') continue;
-        
-        const categories = Array.isArray(info.category) ? info.category : [info.category];
-        const source = {
-          name: info.name,
-          path: path,
-          url: info.url,
-          categories: categories
-        };
-        
-        allSources.push(source);
-        
-        for (const category of categories) {
-          if (!sourcesByCategory[category]) {
-            sourcesByCategory[category] = [];
-          }
-          sourcesByCategory[category].push(source);
-        }
-      }
-      
-      availableSources = sourcesByCategory;
-      initializeCategoryFilters();
-      renderSourcePanel();
-    })
-    .catch(error => {
-      console.error('Error loading sources:', error);
-    });
-}
 
-function initializeCategoryFilters() {
-  const categories = Object.keys(availableSources).sort();
-  const filtersEl = document.getElementById('categoryFilters');
-  
-  filtersEl.innerHTML = categories.map(category => 
-    `<div class="category-filter" data-category="${category}">${category}</div>`
-  ).join('');
-  
-  filtersEl.querySelectorAll('.category-filter').forEach(filter => {
-    filter.addEventListener('click', () => {
-      const category = filter.dataset.category;
-      toggleCategoryFilter(category);
-    });
-  });
-}
-
-function toggleCategoryFilter(category) {
-  if (selectedCategories.has(category)) {
-    selectedCategories.delete(category);
-  } else {
-    selectedCategories.add(category);
-  }
-  
-  document.querySelectorAll('.category-filter').forEach(filter => {
-    if (filter.dataset.category === category) {
-      filter.classList.toggle('active', selectedCategories.has(category));
-    }
-  });
-  
-  renderSourcePanel();
-}
-
-function filterSources() {
-  const query = document.getElementById('searchInput').value.toLowerCase();
-  let filtered = allSources;
-  
-  // Filter by selected categories (AND logic - source must have ALL selected categories)
-  if (selectedCategories.size > 0) {
-    filtered = filtered.filter(source => {
-      // Check if source has ALL selected categories
-      for (const selectedCat of selectedCategories) {
-        if (!source.categories.includes(selectedCat)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }
-  
-  // Filter by search query
-  if (query) {
-    filtered = filtered.filter(source => 
-      source.name.toLowerCase().includes(query) || 
-      source.path.toLowerCase().includes(query) ||
-      source.categories.some(cat => cat.toLowerCase().includes(query))
-    );
-  }
-  
-  return filtered;
-}
-
-function renderSourcePanel() {
-  const sourceList = document.getElementById('source-list');
-  const noResultsEl = document.getElementById('noResults');
-  sourceList.innerHTML = '';
-  
-  const filtered = filterSources();
-  
-  if (filtered.length === 0) {
-    noResultsEl.style.display = 'block';
-    return;
-  }
-  
-  noResultsEl.style.display = 'none';
-  
-  let sourceToSelect = null;
-  
-  filtered.forEach((source, index) => {
-    const sourceOption = document.createElement('div');
-    sourceOption.className = 'source-option';
-    
-    const radioId = `source-${index}`;
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'vector-source';
-    radio.id = radioId;
-    radio.value = source.path;
-    
-    const label = document.createElement('label');
-    label.htmlFor = radioId;
-    label.textContent = source.name;
-    
-    radio.addEventListener('change', () => {
-      if (radio.checked) {
-        switchVectorSource(source);
-      }
-    });
-    
-    sourceOption.appendChild(radio);
-    sourceOption.appendChild(label);
-    sourceList.appendChild(sourceOption);
-    
-    // Check if this is the source from URL hash or query parameter
-    if ((initialVectorSource && source.path === initialVectorSource) ||
-        (initialSourcePath && source.path === initialSourcePath)) {
-      sourceToSelect = { radio, source, element: sourceOption };
-    }
-  });
-  
-  // Select source from URL hash/query param if available, otherwise select first source
-  if (sourceToSelect) {
-    sourceToSelect.radio.checked = true;
-    switchVectorSource(sourceToSelect.source);
-    
-    // Scroll the selected source into view
-    setTimeout(() => {
-      sourceToSelect.element.scrollIntoView({ behavior: 'auto', block: 'center' });
-    }, 100);
-  } else if (filtered.length > 0 && !currentVectorSource) {
-    const firstRadio = document.querySelector('input[name="vector-source"]');
-    if (firstRadio) {
-      firstRadio.checked = true;
-      const firstSource = filtered[0];
-      switchVectorSource(firstSource);
-    }
-  }
-}
 
 let baseLayerPicker = null;
+let geocoderMarker = null;
+
+class GeocoderControl {
+  constructor() {
+    this.map = null;
+    this.container = null;
+    this.input = null;
+    this.resultsEl = null;
+    this.timeout = null;
+  }
+
+  async geocodeSearch(query) {
+    if (!query || query.trim().length < 3) {
+      this.resultsEl.style.display = 'none';
+      return;
+    }
+    
+    this.resultsEl.style.display = 'block';
+    this.resultsEl.innerHTML = '<div class="geocoder-loading">Searching...</div>';
+    
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=5`);
+      const results = await response.json();
+      
+      if (results.length === 0) {
+        this.resultsEl.innerHTML = '<div class="geocoder-loading">No results found</div>';
+        return;
+      }
+      
+      this.resultsEl.innerHTML = results.map(result => {
+        return `<div class="geocoder-result" data-lat="${result.lat}" data-lon="${result.lon}">
+          ${result.display_name}
+        </div>`;
+      }).join('');
+      
+      this.resultsEl.querySelectorAll('.geocoder-result').forEach(resultEl => {
+        resultEl.addEventListener('click', () => {
+          const lat = parseFloat(resultEl.dataset.lat);
+          const lon = parseFloat(resultEl.dataset.lon);
+          this.flyToLocation(lat, lon, resultEl.textContent);
+          this.resultsEl.style.display = 'none';
+          this.input.value = resultEl.textContent;
+        });
+      });
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      this.resultsEl.innerHTML = '<div class="geocoder-loading">Error searching</div>';
+    }
+  }
+
+  flyToLocation(lat, lon, name) {
+    this.map.flyTo({
+      center: [lon, lat],
+      zoom: 14,
+      essential: true
+    });
+    
+    if (geocoderMarker) {
+      geocoderMarker.remove();
+    }
+    
+    geocoderMarker = new maplibregl.Marker({ color: '#FF5733' })
+      .setLngLat([lon, lat])
+      .setPopup(new maplibregl.Popup().setHTML(`<strong>${name}</strong>`))
+      .addTo(this.map)
+      .togglePopup();
+  }
+
+  onAdd(map) {
+    this.map = map;
+    
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group maplibregl-ctrl-geocoder';
+    
+    this.input = document.createElement('input');
+    this.input.type = 'text';
+    this.input.placeholder = 'Search for a place...';
+    
+    this.resultsEl = document.createElement('div');
+    this.resultsEl.className = 'geocoder-results';
+    
+    this.input.addEventListener('input', (e) => {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.geocodeSearch(e.target.value);
+      }, 500);
+    });
+    
+    this.input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(this.timeout);
+        this.geocodeSearch(e.target.value);
+      }
+    });
+    
+    this.container.appendChild(this.input);
+    this.container.appendChild(this.resultsEl);
+    
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!this.container.contains(e.target)) {
+        this.resultsEl.style.display = 'none';
+      }
+    });
+    
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+}
+
+class SourcePanelControl {
+  constructor() {
+    this.map = null;
+    this.container = null;
+    this.panelHeader = null;
+    this.panelContent = null;
+    this.searchInput = null;
+    this.filterSection = null;
+    this.filterTitle = null;
+    this.categoryFilters = null;
+    this.sourceList = null;
+    this.noResults = null;
+  }
+
+  updatePanelTitle() {
+    const panelTitle = this.panelHeader.querySelector('h3');
+    if (panelTitle) {
+      if (this.container.classList.contains('collapsed') && currentVectorSourceName) {
+        panelTitle.textContent = currentVectorSourceName;
+      } else {
+        panelTitle.textContent = 'Vector Sources';
+      }
+    }
+  }
+
+  initializeCategoryFilters() {
+    const categories = Object.keys(availableSources).sort();
+    
+    this.categoryFilters.innerHTML = categories.map(category => 
+      `<div class="category-filter" data-category="${category}">${category}</div>`
+    ).join('');
+    
+    this.categoryFilters.querySelectorAll('.category-filter').forEach(filter => {
+      filter.addEventListener('click', () => {
+        const category = filter.dataset.category;
+        this.toggleCategoryFilter(category);
+      });
+    });
+  }
+
+  toggleCategoryFilter(category) {
+    if (selectedCategories.has(category)) {
+      selectedCategories.delete(category);
+    } else {
+      selectedCategories.add(category);
+    }
+    
+    this.categoryFilters.querySelectorAll('.category-filter').forEach(filter => {
+      if (filter.dataset.category === category) {
+        filter.classList.toggle('active', selectedCategories.has(category));
+      }
+    });
+    
+    this.renderSourcePanel();
+  }
+
+  filterSources() {
+    const query = this.searchInput.value.toLowerCase();
+    let filtered = allSources;
+    
+    if (selectedCategories.size > 0) {
+      filtered = filtered.filter(source => {
+        for (const selectedCat of selectedCategories) {
+          if (!source.categories.includes(selectedCat)) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+    
+    if (query) {
+      filtered = filtered.filter(source => 
+        source.name.toLowerCase().includes(query) || 
+        source.path.toLowerCase().includes(query) ||
+        source.categories.some(cat => cat.toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
+  }
+
+  renderSourcePanel() {
+    this.sourceList.innerHTML = '';
+    
+    const filtered = this.filterSources();
+    
+    if (filtered.length === 0) {
+      this.noResults.style.display = 'block';
+      return;
+    }
+    
+    this.noResults.style.display = 'none';
+    
+    let sourceToSelect = null;
+    
+    filtered.forEach((source, index) => {
+      const sourceOption = document.createElement('div');
+      sourceOption.className = 'source-option';
+      
+      const radioId = `source-${index}`;
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'vector-source';
+      radio.id = radioId;
+      radio.value = source.path;
+      
+      const label = document.createElement('label');
+      label.htmlFor = radioId;
+      label.textContent = source.name;
+      
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          switchVectorSource(source);
+        }
+      });
+      
+      sourceOption.appendChild(radio);
+      sourceOption.appendChild(label);
+      this.sourceList.appendChild(sourceOption);
+      
+      if ((initialVectorSource && source.path === initialVectorSource) ||
+          (initialSourcePath && source.path === initialSourcePath)) {
+        sourceToSelect = { radio, source, element: sourceOption };
+      }
+    });
+    
+    if (sourceToSelect) {
+      sourceToSelect.radio.checked = true;
+      switchVectorSource(sourceToSelect.source);
+      
+      setTimeout(() => {
+        sourceToSelect.element.scrollIntoView({ behavior: 'auto', block: 'center' });
+      }, 100);
+    } else if (filtered.length > 0 && !currentVectorSource) {
+      const firstRadio = this.sourceList.querySelector('input[name="vector-source"]');
+      if (firstRadio) {
+        firstRadio.checked = true;
+        const firstSource = filtered[0];
+        switchVectorSource(firstSource);
+      }
+    }
+  }
+
+  loadAvailableSources() {
+    fetch('/api/routes')
+      .then(response => response.json())
+      .then(data => {
+        const sourcesByCategory = {};
+        allSources = [];
+        
+        for (const [path, info] of Object.entries(data)) {
+          const type = info.type || 'vector';
+          if (type === 'raster') continue;
+          
+          const categories = Array.isArray(info.category) ? info.category : [info.category];
+          const source = {
+            name: info.name,
+            path: path,
+            url: info.url,
+            categories: categories
+          };
+          
+          allSources.push(source);
+          
+          for (const category of categories) {
+            if (!sourcesByCategory[category]) {
+              sourcesByCategory[category] = [];
+            }
+            sourcesByCategory[category].push(source);
+          }
+        }
+        
+        availableSources = sourcesByCategory;
+        this.initializeCategoryFilters();
+        this.renderSourcePanel();
+      })
+      .catch(error => {
+        console.error('Error loading sources:', error);
+      });
+  }
+
+  onAdd(map) {
+    this.map = map;
+    
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group maplibregl-ctrl-source-panel';
+    
+    this.panelHeader = document.createElement('div');
+    this.panelHeader.className = 'panel-header';
+    this.panelHeader.innerHTML = `
+      <h3>Vector Sources</h3>
+      <span class='toggle-icon'>▼</span>
+    `;
+    
+    this.panelContent = document.createElement('div');
+    this.panelContent.className = 'panel-content';
+    
+    const searchBox = document.createElement('div');
+    searchBox.className = 'search-box';
+    this.searchInput = document.createElement('input');
+    this.searchInput.type = 'text';
+    this.searchInput.placeholder = 'Search sources...';
+    searchBox.appendChild(this.searchInput);
+    
+    this.filterSection = document.createElement('div');
+    this.filterSection.className = 'filter-section collapsed';
+    
+    this.filterTitle = document.createElement('div');
+    this.filterTitle.className = 'filter-title';
+    this.filterTitle.innerHTML = `
+      <span>Filter by category:</span>
+      <span class='filter-toggle-icon'>▼</span>
+    `;
+    
+    this.categoryFilters = document.createElement('div');
+    this.categoryFilters.className = 'category-filters';
+    
+    this.filterSection.appendChild(this.filterTitle);
+    this.filterSection.appendChild(this.categoryFilters);
+    
+    const layersHeading = document.createElement('div');
+    layersHeading.className = 'layers-heading';
+    layersHeading.textContent = 'Filtered Layers:';
+    
+    this.sourceList = document.createElement('div');
+    
+    this.noResults = document.createElement('div');
+    this.noResults.className = 'no-results';
+    this.noResults.style.display = 'none';
+    this.noResults.textContent = 'No sources found';
+    
+    this.panelContent.appendChild(searchBox);
+    this.panelContent.appendChild(this.filterSection);
+    this.panelContent.appendChild(layersHeading);
+    this.panelContent.appendChild(this.sourceList);
+    this.panelContent.appendChild(this.noResults);
+    
+    this.container.appendChild(this.panelHeader);
+    this.container.appendChild(this.panelContent);
+    
+    // Add event listeners
+    this.panelHeader.addEventListener('click', () => {
+      this.container.classList.toggle('collapsed');
+      this.updatePanelTitle();
+    });
+    
+    this.filterTitle.addEventListener('click', () => {
+      this.filterSection.classList.toggle('collapsed');
+    });
+    
+    this.searchInput.addEventListener('input', () => {
+      this.renderSourcePanel();
+    });
+    
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+}
+
+let sourcePanelControl = null;
 
 document.addEventListener("DOMContentLoaded", (event) => {
   map = new maplibregl.Map(mapConfig);
@@ -915,8 +1124,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
   }));
   map.addControl(new InspectButton(initialInspect));
 
+  map.addControl(new GeocoderControl(), 'top-left');
+  
   baseLayerPicker = new BaseLayerPicker(baseLayers);
   map.addControl(baseLayerPicker, 'top-left');
+  
+  sourcePanelControl = new SourcePanelControl();
+  map.addControl(sourcePanelControl, 'top-left');
 
   map.addControl(new maplibregl.TerrainControl({
     source: 'terrain-source',
@@ -930,7 +1144,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       map.setTerrain({ 'source': 'terrain-source', 'exaggeration': 1 });
     }
     
-    loadAvailableSources();
+    sourcePanelControl.loadAvailableSources();
   });
   
   map.on('mousemove', showPopup);
@@ -951,20 +1165,4 @@ document.addEventListener("DOMContentLoaded", (event) => {
                                  .setLngLat([markerLon, markerLat])
                                  .addTo(map);
   }
-  
-  // Add search input listener
-  document.getElementById('searchInput').addEventListener('input', renderSourcePanel);
-  
-  // Add collapse/expand functionality for main panel
-  document.getElementById('panelHeader').addEventListener('click', () => {
-    const panel = document.getElementById('source-panel');
-    panel.classList.toggle('collapsed');
-    updatePanelTitle();
-  });
-  
-  // Add collapse/expand functionality for filter section
-  document.getElementById('filterTitle').addEventListener('click', () => {
-    const filterSection = document.getElementById('filterSection');
-    filterSection.classList.toggle('collapsed');
-  });
 });
