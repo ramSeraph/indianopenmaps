@@ -79,15 +79,6 @@ async function getTilePng(handler, request, reply) {
               .send('');
 }
 
-async function getTitle(handler, request, reply) {
-  const title = handler.getTitle();
-
-  return reply.header('Content-Type', 'application/json')
-              .header('Cache-Control', 'max-age=86400000')
-              .header('Access-Control-Allow-Origin', "*")
-              .send(JSON.stringify({ 'title': title }));
-}
-
 async function getTileJson(handler, request, reply) {
   const config = await handler.getConfig();
   const tileJsonUrl = request.url;
@@ -254,6 +245,7 @@ function addRoutes() {
   });
 
   if (stacHandler) {
+
     fastify.get('/stac', async (request, reply) => {
       const landing = await stacHandler.getLandingPage();
       return reply.header('Content-Type', 'application/json')
@@ -332,60 +324,44 @@ function addRoutes() {
 
     logger.info('STAC API routes added');
   }
-  fastify.get('/main-dark.css', async (request, reply) => {
-    return reply.sendFile("main-dark.css");
-  });
-  fastify.get('/view.css', async (request, reply) => {
-    return reply.sendFile("view.css");
-  });
-  fastify.get('/view.js', async (request, reply) => {
-    return reply.sendFile("view.js");
-  });
-  fastify.get('/raster_view.css', async (request, reply) => {
-    return reply.sendFile("raster_view.css");
-  });
-  fastify.get('/static_view.js', async (request, reply) => {
-    return reply.sendFile("raster_view.js");
-  });
 
   Object.keys(handlerMap).forEach((rPrefix, _) => {
+
     const handler = handlerMap[rPrefix];
     const tileSuffix = handler.tileSuffix;
+
     fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
+
     if (tileSuffix === 'webp') {
       fastify.get(`${rPrefix}:z/:x/:y.png`, getTilePng.bind(null, handler));
     }
+
     fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
-    fastify.get(`${rPrefix}title`, getTitle.bind(null, handler));
+
     if (handler.type == 'raster') {
+
       fastify.get(`${rPrefix}rasterview`, async (request, reply) => {
         return reply.sendFile("raster_view.html");
       });
+
     } else {
+
       fastify.get(`${rPrefix}view`, async (request, reply) => {
+
         // Redirect to /viewer with source in hash parameter
         const hashParams = new URLSearchParams();
         hashParams.set('source', rPrefix);
         
-        // Preserve any existing hash parameters from the request
-        const existingHash = request.url.includes('#') ? request.url.split('#')[1] : '';
-        if (existingHash) {
-          const existingHashParams = new URLSearchParams(existingHash);
-          for (const [key, value] of existingHashParams) {
-            if (key !== 'source') {
-              hashParams.set(key, value);
-            }
-          }
+        // preserve existing query parameters in the redirect
+        let queryString = new URLSearchParams(request.query).toString();
+        if (queryString) {
+          queryString = '?' + queryString;
         }
-        
-        // Preserve query parameters (like markerLat/markerLon)
-        const queryString = request.url.includes('?') && !request.url.includes('?#') 
-          ? '?' + request.url.split('?')[1].split('#')[0]
-          : '';
-        
+
         const redirectUrl = `/viewer${queryString}#${hashParams.toString()}`;
         return reply.redirect(redirectUrl);
       });
+
     }
   });
 
