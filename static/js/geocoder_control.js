@@ -44,7 +44,7 @@ export class GeocoderControl {
   }
 
   flyToLocation(lat, lon, name) {
-    this.map.flyTo({ center: [lon, lat], zoom: 14, essential: true });
+    this.map.flyTo({ center: [lon, lat], zoom: 14 });
     if (geocoderMarker) geocoderMarker.remove();
     geocoderMarker = new maplibregl.Marker({ color: '#FF5733' })
       .setLngLat([lon, lat])

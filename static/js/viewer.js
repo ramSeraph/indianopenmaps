@@ -62,8 +62,10 @@ function setupMarker(map) {
                                .setLngLat([markerLon, markerLat])
                                .addTo(map);
 
-  map.setCenter([markerLon, markerLat]);
-  map.setZoom(14);
+  map.flyTo({
+    center: [markerLon, markerLat],
+    zoom: 14
+  });
 }
 
 
