@@ -8,15 +8,22 @@
   <script src='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js'></script>
   <script src='https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js'></script>
   <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet'/>
-  <link href='/view.css' rel='stylesheet'/>
+  <link href='/css/view.css' rel='stylesheet'/>
   <style>
     .maplibregl-ctrl-geocoder {
       width: 300px;
       max-width: 300px;
     }
+    
+    .geocoder-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
     .maplibregl-ctrl-geocoder input {
       width: 100%;
-      padding: 10px;
+      padding: 10px 30px 10px 10px;
       font-size: 14px;
       border: none;
       border-radius: 4px;
@@ -24,10 +31,35 @@
       background: white;
       box-sizing: border-box;
     }
+    
     .maplibregl-ctrl-geocoder input:focus {
       outline: none;
       box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.5);
     }
+    
+    .geocoder-clear {
+      position: absolute;
+      right: 5px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .geocoder-clear:hover {
+      color: #333;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+    }
+    
     .geocoder-results {
       margin-top: 5px;
       background: white;
@@ -211,6 +243,62 @@
     .source-option label {
       cursor: pointer;
     }
+    .selected-sources-list {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+    }
+    .selected-sources-heading {
+      font-size: 11px;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 5px;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .selected-sources-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .selected-source-item {
+      font-size: 11px;
+      padding: 4px 8px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      color: #333;
+      font-family: 'Open Sans', sans-serif;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .remove-source-btn {
+      background: none;
+      border: none;
+      color: #999;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .remove-source-btn:hover {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+    .remove-source-btn:active {
+      background: #ffcdd2;
+    }
     .no-results {
       text-align: center;
       color: #999;
@@ -223,6 +311,6 @@
 
 <body>
 <div id='map'></div>
-<script src='/viewer.js'></script>
+<script type='module' src='/js/viewer.js'></script>
 </body>
 </html>

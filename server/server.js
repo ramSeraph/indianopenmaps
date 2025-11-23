@@ -363,11 +363,27 @@ function addRoutes() {
       });
     } else {
       fastify.get(`${rPrefix}view`, async (request, reply) => {
-        // Redirect to /viewer with source parameter
-        const queryParams = new URLSearchParams(request.query);
-        queryParams.set('source', rPrefix);
-        const hashPart = request.url.includes('#') ? request.url.split('#')[1] : '';
-        const redirectUrl = `/viewer?${queryParams.toString()}${hashPart ? '#' + hashPart : ''}`;
+        // Redirect to /viewer with source in hash parameter
+        const hashParams = new URLSearchParams();
+        hashParams.set('source', rPrefix);
+        
+        // Preserve any existing hash parameters from the request
+        const existingHash = request.url.includes('#') ? request.url.split('#')[1] : '';
+        if (existingHash) {
+          const existingHashParams = new URLSearchParams(existingHash);
+          for (const [key, value] of existingHashParams) {
+            if (key !== 'source') {
+              hashParams.set(key, value);
+            }
+          }
+        }
+        
+        // Preserve query parameters (like markerLat/markerLon)
+        const queryString = request.url.includes('?') && !request.url.includes('?#') 
+          ? '?' + request.url.split('?')[1].split('#')[0]
+          : '';
+        
+        const redirectUrl = `/viewer${queryString}#${hashParams.toString()}`;
         return reply.redirect(redirectUrl);
       });
     }
