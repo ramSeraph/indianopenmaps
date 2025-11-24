@@ -14,7 +14,6 @@ function getTileJSON(cb) {
     return response.json();
   })
   .then(data => {
-    console.log(data);
     if (data['name']) {
       document.title = data['name'];
     }
@@ -74,8 +73,8 @@ function addLayers(tileJSON) {
   };
 
   const b = tileJSON['bounds'];
-  var defaultCenter = [(b[1] + b[3])/2, (b[0] + b[2])/2];
-  var defaultZoom = 10;
+  var defaultCenter = tileJSON['center'] ? [tileJSON['center'][1], tileJSON['center'][0]] : [(b[1] + b[3])/2, (b[0] + b[2])/2];
+  var defaultZoom = tileJSON['center'] && tileJSON['center'][2] ? tileJSON['center'][2] : 10;
 
   // Parse URL hash for initial position
   var center = defaultCenter;

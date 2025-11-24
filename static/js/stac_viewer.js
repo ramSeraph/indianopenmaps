@@ -94,8 +94,6 @@ async function loadCollection(collectionId) {
         const itemsResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}/items?limit=100`);
         const itemsData = await itemsResponse.json();
         
-        console.log('Loaded items:', itemsData);
-        
         if (itemsData.features && itemsData.features.length > 0) {
             renderItems(itemsData.features, collection);
             showInfo(collection, itemsData.features.length);
