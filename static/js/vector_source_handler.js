@@ -213,8 +213,6 @@ export class VectorSourceHandler {
     const srcName = this.getSourceName(sourceInfo.path);
     const tileJsonUrl = new URL(`${sourceInfo.path}tiles.json`, window.location.origin).href;
     
-    console.log(`Adding vector source: ${sourceInfo.name} with URL: ${tileJsonUrl}`);
-    
     // Fetch TileJSON first to get attribution, then add source
     fetch(tileJsonUrl)
       .then(response => response.json())
@@ -229,8 +227,6 @@ export class VectorSourceHandler {
           sourceData.vectorLayers = vectorLayerIds;
         }
         
-        console.log(`Adding source ${srcName} with attribution and layers:`, vectorLayerIds);
-        
         // Add source with modified TileJSON
         this.map.addSource(srcName, {
           'type': 'vector',
@@ -244,10 +240,8 @@ export class VectorSourceHandler {
         
         const handler = (e) => {
           if (e.sourceId === srcName && e.isSourceLoaded) {
-            console.log(`Source ${srcName} is now loaded.`);
             const sourceData = this.selectedSources.get(sourceInfo.path);
             if (sourceData && sourceData.vectorLayers && sourceData.vectorLayers.length > 0) {
-              console.log(`Source ${srcName} loaded with layers:`, sourceData.vectorLayers);
               this.addLayers(e, sourceInfo.path);
               this.map.off('sourcedata', handler);
             }
