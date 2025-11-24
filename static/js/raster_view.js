@@ -4,23 +4,6 @@
 
 const currUrl = window.location.href;
 
-function setTitle() {
-  const titleUrl = new URL('./title', currUrl).href;
-  fetch(titleUrl)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    document.title = data['title'];
-  })
-  .catch(error => {
-    console.error('Title fetch error:', error);
-  });
-}
-
 function getTileJSON(cb) {
   const tileJsonUrl = new URL('./tiles.json', currUrl).href;
   fetch(tileJsonUrl)
@@ -32,6 +15,9 @@ function getTileJSON(cb) {
   })
   .then(data => {
     console.log(data);
+    if (data['name']) {
+      document.title = data['name'];
+    }
     cb(data);
   })
   .catch(error => {
@@ -39,7 +25,6 @@ function getTileJSON(cb) {
   });
 
 }
-setTitle();
 getTileJSON(addLayers);
 
 function addLayers(tileJSON) {
