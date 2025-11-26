@@ -115,6 +115,43 @@ function addLayers(tileJSON) {
   L.control.scale({metric:true, imperial:false, position: "bottomright"}).addTo(map2);
   L.control.zoom({ position: 'bottomright' }).addTo(map2);
 
+  // Add Nominatim geocoder search control
+  var geocoderMarker = null;
+  var geocoder = L.Control.geocoder({
+    defaultMarkGeocode: false,
+    position: 'topleft',
+    geocoder: new L.Control.Geocoder.Nominatim({
+      geocodingQueryParams: {
+        limit: 5
+      }
+    }),
+    placeholder: 'Search using Nominatim..',
+    errorMessage: 'No results found',
+    showResultIcons: true,
+    suggestMinLength: 3,
+    suggestTimeout: 250
+  })
+    .on('markgeocode', function (e) {
+      if (geocoderMarker) {
+        map1.removeLayer(geocoderMarker);
+      }
+      var latlng = e.geocode.center;
+      map1.setView(latlng, 14);
+      geocoderMarker = L.marker(latlng, { icon: L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })})
+        .addTo(map1)
+        .bindPopup(e.geocode.name)
+        .openPopup();
+    })
+    .addTo(map1);
+
   // Use the Leaflet Sync extension to sync the right bottom corner
   // of the left map to the left bottom corner of the right map, and
   // vice versa.

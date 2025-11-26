@@ -6,7 +6,7 @@ import { SearchParamHandler } from '/js/search_param_handler.js';
 import { ColorHandler } from '/js/color_handler.js';
 import { VectorSourceHandler } from '/js/vector_source_handler.js';
 import { PopupHandler, InspectButton } from '/js/inspect_control.js';
-import { GeocoderControl } from '/js/geocoder_control.js';
+import { nominatimGeocoder } from '/js/nominatim_geocoder.js';
 import { SourcePanelControl } from '/js/source_panel_control.js';
 import { RoutesHandler } from '/js/routes_handler.js';
 import { TerrainHandler } from '/js/terrain_handler.js';
@@ -82,7 +82,28 @@ function setupMap() {
     trackUserLocation: true
   }), 'top-right');
 
-  map.addControl(new GeocoderControl(), 'top-left');
+  let geocoderMarker = null;
+
+  const geocoder = new MaplibreGeocoder(nominatimGeocoder, {
+    maplibregl: maplibregl,
+    placeholder: 'Search using Nominatim..',
+    showResultsWhileTyping: true,
+    minLength: 3,
+    marker: false
+  });
+  
+  geocoder.on('result', (e) => {
+    if (geocoderMarker) {
+      geocoderMarker.remove();
+    }
+    geocoderMarker = new maplibregl.Marker({ color: '#FF5733' })
+      .setLngLat(e.result.center)
+      .setPopup(new maplibregl.Popup().setHTML(`<strong>${e.result.place_name}</strong>`))
+      .addTo(map)
+      .togglePopup();
+  });
+  
+  map.addControl(geocoder, 'top-left');
   
   let vectorSourceHandler = new VectorSourceHandler(map, colorHandler, searchParams);
 
