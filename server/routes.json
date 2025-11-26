@@ -3852,6 +3852,7 @@
       "water bodies",
       "ponds"
     ],
+    "datameet_attribution": false,
     "name": "Amritsarovar Water Observatory data",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles"
   }
