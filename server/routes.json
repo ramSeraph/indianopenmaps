@@ -3845,5 +3845,11 @@
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 2001",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-2001.pmtiles"
+  },
+  "null": {
+    "handlertype": "pmtiles",
+    "category": [],
+    "name": "Amritsarovar Water Observatory data",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles"
   }
 }
