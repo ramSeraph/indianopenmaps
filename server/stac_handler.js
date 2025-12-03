@@ -150,7 +150,7 @@ class STACHandler {
       id: collectionId,
       title: collectionInfo.title,
       description: `Collection ${collectionId}`,
-      license: 'proprietary',
+      license: 'various',
       extent: {
         spatial: {
           bbox: [[-180, -90, 180, 90]]
@@ -343,68 +343,59 @@ class STACHandler {
       await this.parquetRead({
         file: buffer,
         onComplete: (data) => {
-          this.logger.info(`Parquet read complete, processing ${Object.keys(data).length} columns`);
+          // hyparquet returns data with row indices as keys
+          // Each row is an array of column values in schema order:
+          // [id, assets, bbox, geometry, links, stac_extensions, stac_version, type, datetime, proj:epsg, proj:shape, proj:transform]
+          const rowKeys = Object.keys(data);
+          this.logger.info(`Parquet read complete, processing ${rowKeys.length} rows`);
           
-          const numRows = data[Object.keys(data)[0]]?.length || 0;
-          this.logger.info(`Processing ${numRows} rows`);
-          this.logger.info(`Available columns: ${Object.keys(data).slice(0, 20).join(', ')}...`);
-          
-          for (let i = 0; i < numRows; i++) {
-            const row = {};
-            for (const key in data) {
-              row[key] = data[key][i];
+          for (const rowKey of rowKeys) {
+            const row = data[rowKey];
+            if (!Array.isArray(row)) continue;
+            
+            const [id, assets, bbox, geometryWkb, links, stacExtensions, stacVersion, type, datetime, projEpsg, projShape, projTransform] = row;
+            
+            // Convert bbox struct to array format and create geometry from it
+            let bboxArray = null;
+            let geometry = null;
+            if (bbox && typeof bbox === 'object') {
+              bboxArray = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax];
+              // Create polygon geometry from bbox
+              geometry = {
+                type: 'Polygon',
+                coordinates: [[
+                  [bbox.xmin, bbox.ymin],
+                  [bbox.xmax, bbox.ymin],
+                  [bbox.xmax, bbox.ymax],
+                  [bbox.xmin, bbox.ymax],
+                  [bbox.xmin, bbox.ymin]
+                ]]
+              };
             }
             
-            // Try to parse geometry if it's a string or binary
-            if (row.geometry) {
-              if (typeof row.geometry === 'string') {
-                try {
-                  row.geometry = JSON.parse(row.geometry);
-                } catch (e) {
-                  this.logger.warn(`Failed to parse geometry for row ${i}`);
-                }
-              }
+            // Build properties from extra columns
+            const properties = {};
+            if (datetime) {
+              properties.datetime = datetime instanceof Date ? datetime.toISOString() : datetime;
             }
-            
-            // Try to parse properties if it's a string
-            if (row.properties) {
-              if (typeof row.properties === 'string') {
-                try {
-                  row.properties = JSON.parse(row.properties);
-                } catch (e) {
-                  row.properties = {};
-                }
-              }
-            } else {
-              row.properties = {};
-            }
-
-            // Try to parse assets if it's a string
-            if (row.assets) {
-              if (typeof row.assets === 'string') {
-                try {
-                  row.assets = JSON.parse(row.assets);
-                } catch (e) {
-                  row.assets = {};
-                }
-              }
-            } else {
-              row.assets = {};
-            }
+            if (projEpsg) properties['proj:epsg'] = Number(projEpsg);
+            if (projShape) properties['proj:shape'] = Array.isArray(projShape) ? projShape.map(Number) : projShape;
+            if (projTransform) properties['proj:transform'] = projTransform;
 
             const item = {
               type: 'Feature',
-              stac_version: row.stac_version || '1.0.0',
-              id: row.id || `item-${i}`,
-              geometry: row.geometry || null,
-              properties: row.properties,
-              assets: row.assets,
-              collection: row.collection || null,
+              stac_version: stacVersion || '1.0.0',
+              id: id || `item-${rowKey}`,
+              geometry: geometry,
+              bbox: bboxArray,
+              properties: properties,
+              assets: assets || {},
+              collection: null,
               links: []
             };
 
-            if (row.bbox) {
-              item.bbox = typeof row.bbox === 'string' ? JSON.parse(row.bbox) : row.bbox;
+            if (stacExtensions && Array.isArray(stacExtensions) && stacExtensions.length > 0) {
+              item.stac_extensions = stacExtensions;
             }
 
             items.push(item);
@@ -416,6 +407,7 @@ class STACHandler {
       return items;
     } catch (err) {
       this.logger.error(`Error reading geoparquet: ${err.message}`);
+      this.logger.error(err.stack);
       return [];
     }
   }

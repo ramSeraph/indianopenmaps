@@ -1,8 +1,10 @@
 // STAC Viewer JavaScript
 const STAC_API_BASE = window.location.origin + '/stac';
+const COG_TILER_BASE = window.location.origin + '/cog-tiles';
 
 let map;
 let currentLayers = [];
+let cogTileLayers = {}; // Track COG tile layers by item ID
 let collections = [];
 let selectedCollection = null;
 
@@ -10,11 +12,10 @@ let selectedCollection = null;
 function initMap() {
     map = L.map('map').setView([20.5937, 78.9629], 5); // Center of India
     
-    // Add dark tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+    // Add ESRI World Imagery as default base layer
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19
     }).addTo(map);
 }
 
@@ -90,8 +91,8 @@ async function loadCollection(collectionId) {
         const collectionResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}`);
         const collection = await collectionResponse.json();
         
-        // Load items (limiting to 100 for performance)
-        const itemsResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}/items?limit=100`);
+        // Load all items
+        const itemsResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}/items?limit=10000`);
         const itemsData = await itemsResponse.json();
         
         if (itemsData.features && itemsData.features.length > 0) {
@@ -138,7 +139,8 @@ function renderItems(features, collection) {
             if (feature.properties) {
                 popupContent += '<div class="popup-item">';
                 const props = feature.properties;
-                Object.keys(props).slice(0, 5).forEach(key => {
+                // Filter out proj: properties
+                Object.keys(props).filter(key => !key.startsWith('proj:')).forEach(key => {
                     popupContent += `<div><span class="popup-label">${key}:</span> ${props[key]}</div>`;
                 });
                 popupContent += '</div>';
@@ -150,10 +152,18 @@ function renderItems(features, collection) {
                 Object.entries(feature.assets).forEach(([key, asset]) => {
                     if (asset.href) {
                         popupContent += `<a href="${asset.href}" target="_blank" class="asset-link">${key}</a>`;
-                    } else {
-                        popupContent += `<span class="asset-link" style="opacity: 0.5;">${key}</span>`;
                     }
                 });
+                
+                // Add Show/Hide toggle if COG asset exists
+                const cogAsset = feature.assets.cog || feature.assets.data;
+                if (cogAsset && cogAsset.href) {
+                    const cogUrl = encodeURIComponent(cogAsset.href);
+                    const isActive = cogTileLayers[feature.id] ? true : false;
+                    const btnText = isActive ? 'Hide' : 'Show';
+                    const btnClass = isActive ? 'show-cog-btn active' : 'show-cog-btn';
+                    popupContent += `<button class="${btnClass}" id="cog-btn-${feature.id}" onclick="toggleCogTiles('${cogUrl}', '${feature.id}')">${btnText}</button>`;
+                }
                 popupContent += '</div>';
             }
             
@@ -226,6 +236,40 @@ function showInfo(collection, itemCount) {
     `;
     
     infoPanel.classList.remove('hidden');
+}
+
+// Toggle COG tiles on the map
+function toggleCogTiles(encodedUrl, itemId) {
+    const btn = document.getElementById(`cog-btn-${itemId}`);
+    
+    // If layer already exists, remove it (toggle off)
+    if (cogTileLayers[itemId]) {
+        map.removeLayer(cogTileLayers[itemId]);
+        delete cogTileLayers[itemId];
+        if (btn) {
+            btn.textContent = 'Show';
+            btn.classList.remove('active');
+        }
+        return;
+    }
+    
+    // Create tile layer URL: /cog-tiles/{z}/{x}/{y}?url={cogUrl}
+    const tileUrl = `${COG_TILER_BASE}/{z}/{x}/{y}?url=${encodedUrl}`;
+    
+    // Add new tile layer
+    // TODO: Pick maxZoom from /cog-info API instead of hardcoding to 20
+    const tileLayer = L.tileLayer(tileUrl, {
+        maxZoom: 20,
+        attribution: 'COG Tiles'
+    });
+    
+    tileLayer.addTo(map);
+    cogTileLayers[itemId] = tileLayer;
+    
+    if (btn) {
+        btn.textContent = 'Hide';
+        btn.classList.add('active');
+    }
 }
 
 // Initialize the application
