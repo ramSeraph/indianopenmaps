@@ -4,6 +4,7 @@
     "https://raw.githubusercontent.com/",
     "https://release-assets.githubusercontent.com/",
     "https://objects.githubusercontent.com/",
-    "https://api.github.com/"
+    "https://api.github.com/",
+    "http://127.0.0.1:8080/"
   ]
 }

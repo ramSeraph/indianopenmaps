@@ -1,4 +1,4 @@
-const { Tiff } = require('@cogeotiff/core');
+const { Tiff, TiffTag, SubFileType, Compression } = require('@cogeotiff/core');
 const { SourceUrl } = require('@cogeotiff/source-url');
 const { Tiler } = require('@basemaps/tiler');
 const { TileMakerSharp } = require('@basemaps/tiler-sharp');
@@ -7,11 +7,201 @@ const sharp = require('sharp');
 const { inflateSync } = require('zlib');
 const { ForbiddenError, ResourceUnavailableError, UnknownError } = require('./errors');
 
+/**
+ * IMPORTANT: This COG handler with mask support assumes that ALL source TIFFs
+ * either have internal masks or none of them do. Mixing TIFFs with and without
+ * masks will produce incorrect results - tiles from mask-less TIFFs will appear
+ * fully transparent when composited with tiles from masked TIFFs.
+ * 
+ * If you need to support mixed sources, you'll need to modify the alpha channel
+ * handling to default to fully opaque (255) for TIFFs without masks.
+ */
+
 const URL_WHITELIST = [
-  'https://github.com/ramSeraph/'
+  'https://github.com/ramSeraph/',
+  'http://127.0.0.1:8080/',
 ];
 
-const tiler = new Tiler(GoogleTms);
+const TIFF_CACHE_SIZE = 100;
+
+// Utility function for mask image detection
+function isMaskImage(img) {
+  const subfileType = img.value(TiffTag.SubFileType);
+  return !!(subfileType & SubFileType.Mask);
+}
+
+// Convert Web Mercator (EPSG:3857) to lat/lng (EPSG:4326)
+function webMercatorToLatLng(x, y) {
+  const lng = (x / 6378137) * (180 / Math.PI);
+  const lat = (Math.atan(Math.exp(y / 6378137)) * 2 - Math.PI / 2) * (180 / Math.PI);
+  return { lat, lng };
+}
+
+function isUrlAllowed(url) {
+  return URL_WHITELIST.some(prefix => url.startsWith(prefix));
+}
+
+class FilteredTiff extends Tiff {
+  constructor(tiff, filterFn) {
+    // Call parent constructor with the same source
+    super(tiff.source);
+    this._originalTiff = tiff;
+    this.filterFn = filterFn;
+    this._filteredImages = null;
+    
+    // Copy over initialized state from original tiff
+    this.isLittleEndian = tiff.isLittleEndian;
+    this.version = tiff.version;
+    this.options = tiff.options;
+    this.ifdConfig = tiff.ifdConfig;
+    this.isInitialized = tiff.isInitialized;
+    
+    // Delete parent's images property so our getter is used
+    delete this.images;
+  }
+
+  _applyImageModifications() {
+    // Get the first non-mask image for geo transformation reference
+    const refImage = this._originalTiff.images.find(img => !isMaskImage(img));
+    
+    for (const img of this._filteredImages) {
+      if (img._modified) continue;
+      img._modified = true;
+
+      const originalGetTile = img.getTile;
+      
+      // Fix isSubImage to use bitwise check for proper overview detection
+      Object.defineProperty(img, 'isSubImage', {
+        get: function() {
+          const subfileType = this.value(TiffTag.SubFileType);
+          return !!(subfileType & SubFileType.ReducedImage);
+        },
+        configurable: true
+      });
+      
+      // For mask images, use origin and resolution from corresponding RGB image
+      if (isMaskImage(img) && refImage) {
+        Object.defineProperty(img, 'origin', {
+          get: function() {
+            return refImage.origin;
+          },
+          configurable: true
+        });
+        
+        Object.defineProperty(img, 'resolution', {
+          get: function() {
+            const [resX, resY, resZ] = refImage.resolution;
+            const refSize = refImage.size;
+            const imgSize = this.size;
+            return [
+              (resX * refSize.width) / imgSize.width,
+              (resY * refSize.height) / imgSize.height,
+              resZ
+            ];
+          },
+          configurable: true
+        });
+      }
+      
+      img.getTile = async function(tx, ty) {
+        const tile = await originalGetTile.call(this, tx, ty);
+        
+        if (!isMaskImage(this)) {
+          return tile;
+        }
+
+        // Validate single channel for mask
+        const bitsPerSampleArr = this.value(TiffTag.BitsPerSample);
+        if (bitsPerSampleArr.length !== 1) {
+          throw new UnknownError('Mask image must have exactly 1 channel');
+        }
+
+        // Decompress if needed
+        let maskData;
+        if (tile.compression === Compression.Deflate || tile.compression === Compression.DeflateOther) {
+          maskData = inflateSync(Buffer.from(tile.bytes));
+        } else if (tile.compression === Compression.None) {
+          maskData = Buffer.from(tile.bytes);
+        } else {
+          throw new UnknownError(`Unsupported mask compression: ${tile.compression}`);
+        }
+
+        const bitsPerSample = bitsPerSampleArr[0];
+        const tileWidth = this.tileSize.width;
+        const tileHeight = this.tileSize.height;
+
+        // Expand to 8-bit alpha
+        let alphaChannel;
+        if (bitsPerSample === 1) {
+          // 1-bit packed: manual expansion (sharp can't read 1-bit packed)
+          alphaChannel = Buffer.alloc(tileWidth * tileHeight);
+          for (let i = 0; i < tileWidth * tileHeight; i++) {
+            const byteIdx = Math.floor(i / 8);
+            const bitIdx = 7 - (i % 8);
+            const bit = (maskData[byteIdx] >> bitIdx) & 1;
+            alphaChannel[i] = bit * 255;
+          }
+        } else if (bitsPerSample === 8) {
+          alphaChannel = maskData;
+        } else {
+          throw new UnknownError(`Unsupported mask bitsPerSample: ${bitsPerSample}`);
+        }
+
+        // Create RGBA PNG with black RGB + alpha (so TileMakerSharp can decode it)
+        const pngBuffer = await sharp(Buffer.alloc(tileWidth * tileHeight * 3, 0), {
+          raw: { width: tileWidth, height: tileHeight, channels: 3 }
+        })
+          .joinChannel(alphaChannel, { raw: { width: tileWidth, height: tileHeight, channels: 1 } })
+          .png()
+          .toBuffer();
+
+        return {
+          mimeType: 'image/png',
+          bytes: pngBuffer,
+          compression: Compression.None
+        };
+      };
+    }
+  }
+
+  get images() {
+    if (this._filteredImages === null) {
+      this._filteredImages = this._originalTiff.images.filter(this.filterFn);
+      this._applyImageModifications();
+    }
+    return this._filteredImages;
+  }
+}
+
+class MaskAwareTiler extends Tiler {
+  tile(sources, x, y, z) {
+    const result = {
+      rgbComps: [],
+      maskComps: []
+    };
+    
+    for (const source of sources) {
+      // Always create both RGB and mask filtered views
+      const rgbTiff = new FilteredTiff(source, img => !isMaskImage(img));
+      const maskTiff = new FilteredTiff(source, img => isMaskImage(img));
+      
+      // Only call super.tile if there are images to process
+      if (rgbTiff.images.length > 0) {
+        const rgbComps = super.tile([rgbTiff], x, y, z);
+        if (rgbComps) result.rgbComps.push(...rgbComps);
+      }
+      
+      if (maskTiff.images.length > 0) {
+        const maskComps = super.tile([maskTiff], x, y, z);
+        if (maskComps) result.maskComps.push(...maskComps);
+      }
+    }
+    
+    return result;
+  }
+}
+
+const tiler = new MaskAwareTiler(GoogleTms);
 
 class COGHandler {
   constructor(logger) {
@@ -19,15 +209,11 @@ class COGHandler {
     this.tiffCache = new Map();
   }
 
-  isUrlAllowed(url) {
-    return URL_WHITELIST.some(prefix => url.startsWith(prefix));
-  }
-
   calculateGeotransform(image) {
-    // ModelPixelScale tag (33550): [ScaleX, ScaleY, ScaleZ]
-    const pixelScale = image.value(33550);
-    // ModelTiepoint tag (33922): [I, J, K, X, Y, Z]
-    const tiepoint = image.value(33922);
+    // ModelPixelScale tag: [ScaleX, ScaleY, ScaleZ]
+    const pixelScale = image.value(TiffTag.ModelPixelScale);
+    // ModelTiepoint tag: [I, J, K, X, Y, Z]
+    const tiepoint = image.value(TiffTag.ModelTiePoint);
     
     if (!pixelScale || !tiepoint) {
       return null;
@@ -44,7 +230,7 @@ class COGHandler {
   }
 
   async getTiff(url) {
-    if (!this.isUrlAllowed(url)) {
+    if (!isUrlAllowed(url)) {
       throw new ForbiddenError('URL not in whitelist');
     }
 
@@ -67,7 +253,7 @@ class COGHandler {
       
       this.tiffCache.set(url, tiff);
       
-      if (this.tiffCache.size > 50) {
+      if (this.tiffCache.size > TIFF_CACHE_SIZE) {
         const firstKey = this.tiffCache.keys().next().value;
         this.tiffCache.delete(firstKey);
       }
@@ -89,203 +275,65 @@ class COGHandler {
     }
   }
 
-  // Convert Web Mercator (EPSG:3857) to lat/lng (EPSG:4326)
-  webMercatorToLatLng(x, y) {
-    const lng = (x / 6378137) * (180 / Math.PI);
-    const lat = (Math.atan(Math.exp(y / 6378137)) * 2 - Math.PI / 2) * (180 / Math.PI);
-    return { lat, lng };
-  }
-
-  async extractMaskTile(maskImage, comp) {
-    // Get tile coordinates from composition
-    const { source } = comp;
-    const tileX = Math.floor(source.x / maskImage.tileSize.width);
-    const tileY = Math.floor(source.y / maskImage.tileSize.height);
-    
-    try {
-      const maskTile = await maskImage.getTile(tileX, tileY);
-      if (!maskTile || !maskTile.bytes) {
-        return null;
-      }
-      
-      // Decode tile data
-      let maskData = Buffer.from(maskTile.bytes);
-      if (maskTile.mimeType === 'application/deflate') {
-        maskData = inflateSync(maskData);
-      }
-      
-      // Get tile bounds
-      const tileBounds = maskImage.getTileBounds(tileX, tileY);
-      const { width, height } = tileBounds;
-      
-      // Check bits per sample
-      const bitsPerSample = maskImage.value(258)?.[0] || 1;
-      let alphaBuffer;
-      
-      if (bitsPerSample === 1) {
-        // Unpack 1-bit mask
-        alphaBuffer = Buffer.alloc(width * height);
-        for (let i = 0; i < width * height; i++) {
-          const byteIdx = Math.floor(i / 8);
-          const bitIdx = 7 - (i % 8);
-          const bit = (maskData[byteIdx] >> bitIdx) & 1;
-          alphaBuffer[i] = bit * 255;
-        }
-      } else {
-        alphaBuffer = maskData;
-      }
-      
-      return { buffer: alphaBuffer, width, height };
-    } catch (err) {
-      if (err.message && err.message.includes('outside of range')) {
-        return null;
-      }
-      throw err;
-    }
-  }
-
-  async applyMask(tileBuffer, maskBuffer, width, height) {
-    // Convert tile to raw RGBA
-    const tileImage = sharp(tileBuffer);
-    const tileRaw = await tileImage.ensureAlpha().raw().toBuffer();
-    
-    // Ensure we have an alpha channel (4 channels)
-    if (tileRaw.length !== width * height * 4) {
-      throw new Error('Expected RGBA data');
-    }
-    
-    // Apply mask to alpha channel
-    for (let i = 0; i < width * height; i++) {
-      tileRaw[i * 4 + 3] = maskBuffer[i];
-    }
-    
-    return tileRaw;
-  }
-
   async getTile(url, z, x, y, format = 'png') {
     try {
       const tiff = await this.getTiff(url);
       
-      // Build map of RGB images to their corresponding masks
-      const imageMaskMap = new Map();
-      const maskImages = [];
+      const { rgbComps, maskComps } = tiler.tile([tiff], x, y, z);
       
-      for (const img of tiff.images) {
-        const subfileType = img.value(254);
-        if (subfileType === 4 || subfileType === 5) {
-          maskImages.push(img);
-        }
-      }
-      
-      // Match masks to RGB images by dimensions
-      for (const maskImg of maskImages) {
-        for (const rgbImg of tiff.images) {
-          const subfileType = rgbImg.value(254);
-          if (subfileType !== 4 && subfileType !== 5 &&
-              rgbImg.size.width === maskImg.size.width &&
-              rgbImg.size.height === maskImg.size.height) {
-            imageMaskMap.set(rgbImg, maskImg);
-            break;
-          }
-        }
-      }
-      
-      // Create a filtered view of the tiff with only valid RGB images
-      const validImages = tiff.images.filter(img => {
-        try {
-          // Filter out masks and images without resolution
-          const subfileType = img.value(254);
-          if (subfileType === 4 || subfileType === 5) return false;
-          return img.resolution;
-        } catch (e) {
-          return false;
-        }
-      });
-      
-      // Create a wrapper tiff object with filtered images
-      const wrappedTiff = Object.create(tiff);
-      wrappedTiff.images = validImages.map(img => {
-        // Wrap getTile to catch out-of-bounds errors
-        const wrappedImg = Object.create(img);
-        const originalGetTile = img.getTile.bind(img);
-        wrappedImg.getTile = function(x, y) {
-          try {
-            return originalGetTile(x, y);
-          } catch (err) {
-            if (err.message && err.message.includes('outside of range')) {
-              return null;
-            }
-            throw err;
-          }
-        };
-        return wrappedImg;
-      });
-      
-      const compositions = tiler.tile([wrappedTiff], x, y, z);
-      
-      if (!compositions || compositions.length === 0) {
+      if (!rgbComps || rgbComps.length === 0) {
         return null;
       }
-      
-      const tileMaker = new TileMakerSharp(256);
+
       const outputFormat = (format === 'webp') ? 'webp' : 'png';
-      
-      const result = await tileMaker.compose({
-        layers: compositions,
-        format: outputFormat,
-        background: { r: 0, g: 0, b: 0, alpha: 255 },
-        resizeKernel: { in: 'nearest', out: 'lanczos3' }
-      });
-      
-      // Try to apply mask if available
-      try {
-        if (compositions.length > 0 && compositions[0].type === 'tiff') {
-          // Get the RGB image that was used
-          const comp = compositions[0];
-          const usedRgbImage = comp.asset.images.find(img => img.id === comp.source.imageId);
-          
-          if (usedRgbImage && imageMaskMap.has(usedRgbImage)) {
-            const maskImage = imageMaskMap.get(usedRgbImage);
-            
-            // Manually extract and process mask tile
-            const maskData = await this.extractMaskTile(maskImage, comp);
-            
-            if (maskData) {
-              const { buffer: maskBuffer, width, height } = maskData;
-              
-              // Resize mask to 256x256 if needed
-              let resizedMask;
-              if (width !== 256 || height !== 256) {
-                resizedMask = await sharp(maskBuffer, {
-                  raw: { width, height, channels: 1 }
-                })
-                .resize(256, 256, { kernel: 'nearest' })
-                .raw()
-                .toBuffer();
-              } else {
-                resizedMask = maskBuffer;
-              }
-              
-              const maskedRgba = await this.applyMask(result.buffer, resizedMask, 256, 256);
-              
-              const finalBuffer = await sharp(maskedRgba, {
-                raw: { width: 256, height: 256, channels: 4 }
-              })
-              .toFormat(outputFormat === 'webp' ? 'webp' : 'png')
-              .toBuffer();
-              
-              return { tile: finalBuffer, mimeType: `image/${outputFormat}` };
-            }
-          }
-        }
-      } catch (maskErr) {
-        // Log but don't fail - return tile without mask
-        this.logger.warn({ err: maskErr }, 'Failed to apply mask');
+      const tileMaker = new TileMakerSharp(256);
+
+      // If no mask layers, just render RGB
+      if (!maskComps || maskComps.length === 0) {
+        const rgbResult = await tileMaker.compose({
+          layers: rgbComps,
+          format: outputFormat,
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
+        });
+        return { tile: rgbResult.buffer, mimeType: `image/${outputFormat}` };
       }
+
+      // Compose RGB and mask tiles in parallel
+      const [rgbResult, maskResult] = await Promise.all([
+        tileMaker.compose({
+          layers: rgbComps,
+          format: 'png',
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
+        }),
+        tileMaker.compose({
+          layers: maskComps,
+          format: 'png',
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
+        })
+      ]);
+
+      // Extract RGB from rgbResult and alpha from maskResult, then combine
+      const [rgbRaw, maskRaw] = await Promise.all([
+        sharp(rgbResult.buffer).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+        sharp(maskResult.buffer).extractChannel('alpha').raw().toBuffer()
+      ]);
+
+      // Join RGB with mask alpha
+      const finalSharp = sharp(rgbRaw.data, {
+        raw: { width: rgbRaw.info.width, height: rgbRaw.info.height, channels: 3 }
+      }).joinChannel(maskRaw, {
+        raw: { width: 256, height: 256, channels: 1 }
+      });
+
+      const result = outputFormat === 'webp' 
+        ? await finalSharp.webp().toBuffer()
+        : await finalSharp.png().toBuffer();
       
-      return { tile: result.buffer, mimeType: `image/${outputFormat}` };
+      return { tile: result, mimeType: `image/${outputFormat}` };
     } catch (err) {
-      // Re-throw known errors
       if (err.statusCode) {
         throw err;
       }
@@ -323,8 +371,8 @@ class COGHandler {
         bbox = [minX, minY, maxX, maxY];
       }
       
-      const sw = this.webMercatorToLatLng(bbox[0], bbox[1]);
-      const ne = this.webMercatorToLatLng(bbox[2], bbox[3]);
+      const sw = webMercatorToLatLng(bbox[0], bbox[1]);
+      const ne = webMercatorToLatLng(bbox[2], bbox[3]);
       let bboxLatLng = [sw.lng, sw.lat, ne.lng, ne.lat];
       
       // Get resolution
