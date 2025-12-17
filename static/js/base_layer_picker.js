@@ -5,7 +5,7 @@
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
 
-const boundaryPmtilesUrl = 'https://raw.githubusercontent.com/ramSeraph/indianopenmaps/main/india_boundary_correcter/osm_corrections.pmtiles';
+const boundaryPmtilesUrl = 'https://raw.githubusercontent.com/ramSeraph/india_boundary_corrector/main/packages/data/india_bounndary_corrections.pmtiles';
 
 export function getDefaultBaseLayers() {
   const Esri_WorldImagery = {
@@ -55,8 +55,8 @@ export function getDefaultBaseLayers() {
         'url': `pmtiles://${boundaryPmtilesUrl}`,
         'layers': [
           {
-            'id': 'to-add',
-            'source-layer': 'to-add',
+            'id': 'to-add-osm',
+            'source-layer': 'to-add-osm',
             'type': 'line',
             'layout': {
               'line-join': 'round',
@@ -74,8 +74,8 @@ export function getDefaultBaseLayers() {
             }
           },
           {
-            'id': 'to-del',
-            'source-layer': 'to-del',
+            'id': 'to-del-osm',
+            'source-layer': 'to-del-osm',
             'type': 'line',
             'layout': {
               'line-join': 'round',
