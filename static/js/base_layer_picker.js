@@ -5,7 +5,7 @@
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
 
-const boundaryPmtilesUrl = 'https://raw.githubusercontent.com/ramSeraph/india_boundary_corrector/main/packages/data/india_bounndary_corrections.pmtiles';
+const boundaryPmtilesUrl = 'https://raw.githubusercontent.com/ramSeraph/india_boundary_corrector/main/packages/data/india_boundary_corrections.pmtiles';
 
 export function getDefaultBaseLayers() {
   const Esri_WorldImagery = {
