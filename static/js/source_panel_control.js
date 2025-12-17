@@ -306,6 +306,11 @@ export class SourcePanelControl {
       this.container.classList.toggle('collapsed');
     });
     
+    // Collapse panel on mobile by default
+    if (window.innerWidth <= 480) {
+      this.container.classList.add('collapsed');
+    }
+    
     this.filterTitle.addEventListener('click', () => {
       this.filterSection.classList.toggle('collapsed');
     });

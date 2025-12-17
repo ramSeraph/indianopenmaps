@@ -13,8 +13,22 @@
   <link href='/css/view.css' rel='stylesheet'/>
   <style>
     .maplibregl-ctrl-geocoder {
-      width: 300px;
-      max-width: 300px;
+      width: 200px;
+      max-width: 200px;
+      font-size: 11px;
+    }
+    .maplibregl-ctrl-geocoder input {
+      font-size: 11px;
+      padding: 4px 8px;
+      height: 28px;
+    }
+    .maplibregl-ctrl-geocoder--icon-search {
+      display: none;
+    }
+    .maplibregl-ctrl-group select {
+      padding: 3px 4px !important;
+      font-size: 10px !important;
+      max-width: 140px !important;
     }
     .maplibregl-ctrl-source-panel {
       background: white;
@@ -25,6 +39,59 @@
       overflow: hidden;
       transition: all 0.3s ease;
     }
+    /* Mobile responsive styles */
+    @media (max-width: 480px) {
+      .maplibregl-ctrl-geocoder {
+        width: 180px;
+        max-width: 180px;
+        font-size: 12px;
+      }
+      .maplibregl-ctrl-geocoder input {
+        font-size: 12px;
+        padding: 4px 8px;
+        height: 28px;
+      }
+      .maplibregl-ctrl-source-panel {
+        min-width: 200px;
+        max-width: 240px;
+        max-height: calc(70vh - 60px);
+      }
+      .panel-header {
+        padding: 6px 10px;
+        min-height: 32px;
+      }
+      .panel-header h3 {
+        font-size: 12px;
+      }
+      .panel-content {
+        padding: 10px;
+        max-height: calc(70vh - 120px);
+      }
+      .search-box input {
+        padding: 6px;
+        font-size: 11px;
+      }
+      .category-filter {
+        font-size: 9px;
+        padding: 3px 8px;
+      }
+      .source-option {
+        font-size: 10px;
+      }
+      .filter-title {
+        font-size: 10px;
+      }
+      .layers-heading {
+        font-size: 10px;
+      }
+      .category-section h4 {
+        font-size: 11px;
+      }
+      .selected-source-item {
+        font-size: 10px;
+        padding: 3px 6px;
+      }
+    }
     .maplibregl-ctrl-source-panel.collapsed {
       min-width: auto;
       max-height: none;
@@ -34,12 +101,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 15px;
+      padding: 5px 10px;
       background: #f5f5f5;
       border-bottom: 1px solid #ddd;
       cursor: pointer;
       user-select: none;
-      min-height: 40px;
+      min-height: 28px;
     }
     .panel-header:hover {
       background: #efefef;
@@ -50,7 +117,7 @@
     .panel-header h3 {
       margin: 0;
       font-family: 'Open Sans', sans-serif;
-      font-size: 14px;
+      font-size: 11px;
       font-weight: bold;
       margin-right: 10px;
     }

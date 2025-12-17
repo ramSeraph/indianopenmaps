@@ -72,7 +72,28 @@ function setupMarker(map) {
 function setupMap() {
 
   const mapConfig = getMapConfig();
+  mapConfig.attributionControl = false; // Disable default attribution
+  
   map = new maplibregl.Map(mapConfig);
+  
+  // Add custom attribution control - always collapsible, collapsed by default on mobile
+  const isMobile = window.innerWidth <= 480;
+  const attributionControl = new maplibregl.AttributionControl({
+    compact: true
+  });
+  map.addControl(attributionControl);
+  
+  // Collapse attribution on mobile after attributions are loaded
+  if (isMobile) {
+    const collapseAttribution = () => {
+      const container = document.querySelector('.maplibregl-ctrl-attrib');
+      if (container) {
+        container.removeAttribute('open');
+        container.classList.remove('maplibregl-compact-show');
+      }
+    };
+    map.once('styledata', () => setTimeout(collapseAttribution, 100));
+  }
 
   map.addControl(new maplibregl.FullscreenControl(), 'top-right');
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
