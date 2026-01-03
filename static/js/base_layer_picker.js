@@ -33,10 +33,10 @@ export function getDefaultBaseLayers() {
       'carto-dark': {
         'type': 'raster',
         'tiles': [
-          "ibc://https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}",
-          "ibc://https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}",
-          "ibc://https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}",
-          "ibc://https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}"
+          "ibc://https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
         ],
         'attribution': '<strong>Carto OSM Dark:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         'layers': [
