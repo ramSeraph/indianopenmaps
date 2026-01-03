@@ -11,6 +11,8 @@ import { SourcePanelControl } from '/js/source_panel_control.js';
 import { RoutesHandler } from '/js/routes_handler.js';
 import { TerrainHandler } from '/js/terrain_handler.js';
 
+import { registerCorrectionProtocol } from 'https://esm.sh/@india-boundary-corrector/maplibre-protocol@latest';
+
 
 // Initialize search param handler
 const searchParams = new SearchParamHandler();
@@ -130,6 +132,8 @@ function setupMap() {
 
   let baseLayerPicker = new BaseLayerPicker(map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler);
   map.addControl(baseLayerPicker, 'top-left');
+
+  registerCorrectionProtocol(maplibregl);
   
   let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
   map.addControl(sourcePanelControl, 'top-left');

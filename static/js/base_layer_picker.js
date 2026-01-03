@@ -4,8 +4,7 @@
 // Base layer definitions
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
-
-const boundaryPmtilesUrl = 'https://raw.githubusercontent.com/ramSeraph/india_boundary_corrector/main/packages/data/india_boundary_corrections.pmtiles';
+export const OSM_CARTO_LAYER_NAME = 'OSM Carto';
 
 export function getDefaultBaseLayers() {
   const Esri_WorldImagery = {
@@ -34,10 +33,10 @@ export function getDefaultBaseLayers() {
       'carto-dark': {
         'type': 'raster',
         'tiles': [
-          "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+          "ibc://https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
         ],
         'attribution': '<strong>Carto OSM Dark:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         'layers': [
@@ -49,56 +48,38 @@ export function getDefaultBaseLayers() {
           }
         ],
         'maxZoom': 20,
-      },
-      'india-boundary-correcter': {
-        'type': 'vector',
-        'url': `pmtiles://${boundaryPmtilesUrl}`,
+      }
+    }
+  };
+
+  const OSM_Carto = {
+    'name': OSM_CARTO_LAYER_NAME,
+    'sources': {
+      'osm-carto': {
+        'type': 'raster',
+        'tiles': [
+          "ibc://https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "ibc://https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "ibc://https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        ],
+        'attribution': '<strong>OSM Carto:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         'layers': [
           {
-            'id': 'to-add-osm',
-            'source-layer': 'to-add-osm',
-            'type': 'line',
-            'layout': {
-              'line-join': 'round',
-              'line-cap': 'round',
-            },
-            'paint': {
-              'line-color': "#262626",
-              'line-width': [
-                  "step",
-                  ["zoom"],
-                  2, 5,
-                  3, 6,
-                  4 
-              ]
-            }
-          },
-          {
-            'id': 'to-del-osm',
-            'source-layer': 'to-del-osm',
-            'type': 'line',
-            'layout': {
-              'line-join': 'round',
-              'line-cap': 'round',
-            },
-            'paint': {
-              'line-color': "#090909",
-              'line-width': [
-                  "step",
-                  ["zoom"],
-                  3, 5,
-                  4, 6,
-                  5 
-              ]
-            }
+            'id': 'osm-carto-layer',
+            'type': 'raster',
+            'minZoom': 0,
+            'maxZoom': 19,
           }
-        ]
+        ],
+        'maxZoom': 19,
+        'tileSize': 256,
       }
     }
   };
 
   return [
     Carto_Dark,
+    OSM_Carto,
     Esri_WorldImagery,
   ];
 }

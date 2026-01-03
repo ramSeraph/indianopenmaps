@@ -5,7 +5,6 @@
   <title>Indianopenmaps RasterView</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
   <script src='https://unpkg.com/leaflet@latest/dist/leaflet.js'></script>
-  <!-- <script src='https://unpkg.com/pmtiles@latest/dist/pmtiles.js'></script> -->
   <script src="https://cdn.jsdelivr.net/npm/leaflet.sync@0.2.4/L.Map.Sync.min.js"></script>
   <link href='https://unpkg.com/leaflet@latest/dist/leaflet.css' rel='stylesheet'/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
@@ -14,7 +13,7 @@
 </head>
 
 <body>
-<script src='/js/raster_view.js'></script>
+<script type="module" src='/js/raster_view.js'></script>
 <div id="map-wrapper">
     <div id="map-left"></div>
     <div id="map-right"></div>

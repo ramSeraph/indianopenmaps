@@ -2,6 +2,8 @@
 // default zoom levels, and other Leaflet map options here.
 // some of this html/js was copied from https://kokoalberti.com/articles/georeferencing-and-digitizing-old-maps-with-gdal/ and https://server.nikhilvj.co.in/pmgsy
 
+import { extendLeaflet } from 'https://esm.sh/@india-boundary-corrector/leaflet-layer@latest';
+
 const currUrl = window.location.href;
 
 function getTileJSON(cb) {
@@ -27,11 +29,14 @@ function getTileJSON(cb) {
 getTileJSON(addLayers);
 
 function addLayers(tileJSON) {
-  var OSM =  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Extend Leaflet with India boundary corrector
+  extendLeaflet(L);
+  
+  var OSM =  L.tileLayer.indiaBoundaryCorrected('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
   });
-  var OTM = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  var OTM = L.tileLayer.indiaBoundaryCorrected('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     maxZoom: 17,
     attribution: 'Map data: {attribution.OpenStreetMap}, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
   });

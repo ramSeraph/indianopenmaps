@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@india-boundary-corrector/leaflet-layer/dist/index.global.js"></script>
     <style>
         html {
             background: #1a1a1a;
@@ -146,13 +148,15 @@
 
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Extend Leaflet with corrected tile layer
+        IndiaBoundaryCorrector.extendLeaflet(L);
+
         // Initialize map
         const map = L.map('map').setView([20, 78], 5);
         
-        // Add OSM base layer
-        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Add OSM base layer with India boundary correction
+        const osmLayer = L.tileLayer.indiaBoundaryCorrected('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19
         }).addTo(map);
