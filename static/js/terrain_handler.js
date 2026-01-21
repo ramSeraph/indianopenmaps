@@ -47,7 +47,7 @@ export class TerrainHandler {
       'type': 'hillshade',
       'id': this.HILLSHADE_LAYER_ID,
       'source': this.HILLSHADE_SOURCE_ID,
-      'maxzoom': 14,
+      'maxzoom': 22,
       'layout': { 'visibility': visibility },
       'paint' : { 'hillshade-shadow-color': '#473B24' }
     };
