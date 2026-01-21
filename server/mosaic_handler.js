@@ -28,51 +28,6 @@ function _isInSource(header, bounds) {
   return true;
 }
 
-// TODO: This is probably broken but only applies to old mosaics and will be deprecated
-function _merge(config) {
-  var merged = {};
-  var commonFeaturesAdded = false;
-  Object.keys(config).forEach((key, _) => {
-    if (!commonFeaturesAdded) {
-      merged['metadata'] = config[key]['metadata'];
-      merged['header'] = {};
-      const hkeys = [
-        'tile_type',
-        'tile_compression',
-        'center_lon_e7',
-        'center_lat_e7',
-      ];
-      for (const hkey of hkeys) {
-        merged['header'][hkey] = config[key]['header'][hkey];
-      }
-      commonFeaturesAdded = true;
-    }
-
-    const minKeys = [ 'min_lon_e7', 'min_lon_e7', 'min_zoom' ];
-    for (const hkey of minKeys) {
-      if (!(hkey in merged['header'])) {
-        merged['header'][hkey] = config[key]['header'][hkey];
-      } else {
-        if (merged['header'][hkey] > config[key]['header'][hkey]) {
-          merged['header'][hkey] = config[key]['header'][hkey];
-        }
-      }
-    }
-
-    const maxKeys = [ 'max_lon_e7', 'max_lat_e7', 'max_zoom', 'center_zoom' ];
-    for (const hkey of maxKeys) {
-      if (!(hkey in merged['header'])) {
-        merged['header'][hkey] = config[key]['header'][hkey];
-      } else {
-        if (merged['header'][hkey] < config[key]['header'][hkey]) {
-          merged['header'][hkey] = config[key]['header'][hkey];
-        }
-      }
-    }
-  });
-  return merged;
-}
-
 // from https://nodejs.org/api/url.html#class-url
 function resolve(from, to) {
   const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
@@ -97,17 +52,12 @@ class MosaicHandler {
     this.title = null;
     this.inited = false;
     this.initializingPromise = null;
-    this.mosaicVersion = '0';
+    this.mosaicVersion = null;
     this.index_map = {};
     this.keys_map = {};
   }
 
   _resolveKey(key) {
-    // to deal with some old mosaics that have keys starting with '../'
-    // version 0 will be deprecated soon
-    if (this.mosaicVersion === '0' && key.startsWith('../')) {
-      key = key.slice(3);
-    }
     const resolvedUrl = resolve(this.url, key);
     return resolvedUrl;
   }
@@ -116,26 +66,18 @@ class MosaicHandler {
     let res = await fetch(this.url);
     let data = await res.json();
 
-    let slices = null;
-    if (data && data.hasOwnProperty('version')) {
-      this.mosaicVersion = data.version;
+    if (!data || data.version !== 1) {
+      throw new Error('Unsupported mosaic format: version must be 1');
     }
 
-    if (this.mosaicVersion === '0') {
-      slices = data;
-    } else {
-      slices = data.slices;
-    }
+    this.mosaicVersion = data.version;
 
-    for (const [key, entry] of Object.entries(slices)) {
+    for (const [key, entry] of Object.entries(data.slices)) {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
       var archive = new pmtiles.PMTiles(resolvedUrl);
       header = Object.assign({}, entry.header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-      if (this.mosaicVersion === '0') {
-        this.pmtilesDict[key]['metadata'] = await archive.getMetadata();
-      }
 
       for (let z = header.min_zoom; z <= header.max_zoom; z++) {
         if (!this.keys_map.hasOwnProperty(z)) {
@@ -145,12 +87,7 @@ class MosaicHandler {
       }
     }
 
-    if (this.mosaicVersion === '0') {
-      this.mosaicConfig = _merge(this.pmtilesDict);
-    } else {
-      this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
-    }
-
+    this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
     this.mimeType = common.getMimeType(this.mosaicConfig.header.tile_type);
   }
 
