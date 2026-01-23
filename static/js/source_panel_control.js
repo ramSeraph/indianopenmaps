@@ -21,6 +21,7 @@ export class SourcePanelControl {
     this.allSources = [];
     this.selectedCategories = new Set();
     this.sourcesByCategory = {};
+    this.initialSourcesApplied = false;
   }
 
   initializeCategoryFilters() {
@@ -87,7 +88,7 @@ export class SourcePanelControl {
     this.noResults.style.display = filteredSources.length === 0 ? 'block' : 'none';
     
     const sourcesToSelect = [];
-    const initialSourcePaths = this.searchParams.getSourcePaths();
+    const initialSourcePaths = this.initialSourcesApplied ? [] : this.searchParams.getSourcePaths();
     
     filteredSources.forEach(source => {
       const sourceOption = document.createElement('div');
@@ -136,6 +137,8 @@ export class SourcePanelControl {
           this.vectorSourceHandler.addVectorSource(item.source);
         }
       }
+      
+      this.initialSourcesApplied = true;
       
       setTimeout(() => {
         sourcesToSelect[0].element.scrollIntoView({ behavior: 'auto', block: 'center' });
