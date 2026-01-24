@@ -7,12 +7,15 @@
   <script src='https://unpkg.com/leaflet@latest/dist/leaflet.js'></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet.sync@0.2.4/L.Map.Sync.min.js"></script>
   <link href='https://unpkg.com/leaflet@latest/dist/leaflet.css' rel='stylesheet'/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tomickigrzegorz/autocomplete@2.0.2/dist/css/autocomplete.min.css" />
+  <script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/autocomplete@2.0.2/dist/js/autocomplete.min.js"></script>
   <link href='/css/raster_view.css' rel='stylesheet'/>
 </head>
 
 <body>
+<div class="auto-search-wrapper" id="search-wrapper">
+  <input type="text" autocomplete="off" id="search" placeholder="Search location..." />
+</div>
 <script type="module" src='/js/raster_view.js'></script>
 <div id="map-wrapper">
     <div id="map-left"></div>

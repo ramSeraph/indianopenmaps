@@ -120,42 +120,68 @@ function addLayers(tileJSON) {
   L.control.scale({metric:true, imperial:false, position: "bottomright"}).addTo(map2);
   L.control.zoom({ position: 'bottomright' }).addTo(map2);
 
-  // Add Nominatim geocoder search control
+  // Add autocomplete geocoder search
   var geocoderMarker = null;
-  var geocoder = L.Control.geocoder({
-    defaultMarkGeocode: false,
-    position: 'topleft',
-    geocoder: new L.Control.Geocoder.Nominatim({
-      geocodingQueryParams: {
-        limit: 5
-      }
-    }),
-    placeholder: 'Search using Nominatim..',
-    errorMessage: 'No results found',
-    showResultIcons: true,
-    suggestMinLength: 3,
-    suggestTimeout: 250
-  })
-    .on('markgeocode', function (e) {
+  
+  new Autocomplete("search", {
+    selectFirst: true,
+    howManyCharacters: 3,
+    
+    onSearch: ({ currentValue }) => {
+      const api = `https://nominatim.openstreetmap.org/search?format=geojson&limit=5&q=${encodeURIComponent(currentValue)}`;
+      return new Promise((resolve) => {
+        fetch(api)
+          .then((response) => response.json())
+          .then((data) => {
+            resolve(data.features);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+    },
+    
+    onResults: ({ currentValue, matches, template }) => {
+      const regex = new RegExp(currentValue, "gi");
+      return matches === 0
+        ? template
+        : matches
+            .map((element) => {
+              return `<li><p>${element.properties.display_name.replace(
+                regex,
+                (str) => `<b>${str}</b>`
+              )}</p></li>`;
+            })
+            .join("");
+    },
+    
+    onSubmit: ({ object }) => {
       if (geocoderMarker) {
         map1.removeLayer(geocoderMarker);
       }
-      var latlng = e.geocode.center;
-      map1.setView(latlng, 14);
-      geocoderMarker = L.marker(latlng, { icon: L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })})
-        .addTo(map1)
-        .bindPopup(e.geocode.name)
-        .openPopup();
-    })
-    .addTo(map1);
+      
+      const { display_name } = object.properties;
+      const [lng, lat] = object.geometry.coordinates;
+      
+      geocoderMarker = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41]
+        })
+      });
+      
+      geocoderMarker.addTo(map1).bindPopup(display_name).openPopup();
+      map1.setView([lat, lng], 14);
+    },
+    
+    noResults: ({ currentValue, template }) =>
+      template(`<li>No results found: "${currentValue}"</li>`)
+  });
 
   // Use the Leaflet Sync extension to sync the right bottom corner
   // of the left map to the left bottom corner of the right map, and

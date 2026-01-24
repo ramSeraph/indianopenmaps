@@ -25,6 +25,26 @@
     .maplibregl-ctrl-geocoder--icon-search {
       display: none;
     }
+    .maplibregl-ctrl-geocoder--suggestions-wrapper {
+      position: absolute;
+      width: 350px;
+    }
+    .maplibregl-ctrl-geocoder .suggestions {
+      min-width: 350px;
+    }
+    .maplibregl-ctrl-geocoder .suggestions li {
+      overflow-x: auto;
+    }
+    .maplibregl-ctrl-geocoder .suggestions li a {
+      display: block;
+      min-width: max-content;
+    }
+    .maplibregl-ctrl-geocoder--button {
+      top: 0 !important;
+      bottom: 0 !important;
+      height: auto !important;
+      margin: auto !important;
+    }
     .maplibregl-ctrl-group select {
       padding: 3px 4px !important;
       font-size: 10px !important;

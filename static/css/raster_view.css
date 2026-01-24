@@ -12,3 +12,46 @@ div#map-wrapper div {
 div#map-left {
     border-right:1px solid #000;
 }
+/* Autocomplete search positioning */
+#search-wrapper {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    width: 250px;
+}
+#search-wrapper input {
+    width: 100%;
+    padding: 8px 30px 8px 12px;
+    font-size: 14px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background: white;
+}
+#search-wrapper .auto-search-wrapper .loupe,
+#search-wrapper .auto-search-wrapper .auto-clear {
+    opacity: 0.4;
+}
+#search-wrapper .auto-clear {
+    top: 0 !important;
+    bottom: 0 !important;
+    height: auto !important;
+    margin: auto !important;
+}
+#search-wrapper .auto-clear:before {
+    height: 18px;
+    width: 18px;
+}
+#search-wrapper .auto-is-loading:after {
+    top: 0 !important;
+    bottom: 0 !important;
+    margin: auto !important;
+}
+#search-wrapper .auto-search-wrapper ul {
+    max-height: 300px;
+    overflow-y: auto;
+}
+#search-wrapper .auto-search-wrapper ul li p {
+    white-space: normal;
+    word-wrap: break-word;
+}
