@@ -5,6 +5,8 @@
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
 export const OSM_CARTO_LAYER_NAME = 'OSM Carto';
+export const GOOGLE_STREETS_LAYER_NAME = 'Google Streets';
+export const GOOGLE_HYBRID_LAYER_NAME = 'Google Hybrid';
 
 export function getDefaultBaseLayers() {
   const Esri_WorldImagery = {
@@ -77,10 +79,62 @@ export function getDefaultBaseLayers() {
     }
   };
 
+  const Google_Streets = {
+    'name': GOOGLE_STREETS_LAYER_NAME,
+    'sources': {
+      'google-streets': {
+        'type': 'raster',
+        'tiles': [
+          'https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+          'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+          'https://mt2.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+          'https://mt3.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
+        ],
+        'attribution': '<strong>Google Streets:</strong> Map data &copy; 2026 Google',
+        'layers': [
+          {
+            'id': 'google-streets-layer',
+            'type': 'raster',
+            'minZoom': 0,
+            'maxZoom': 20,
+          }
+        ],
+        'maxZoom': 20,
+      }
+    }
+  };
+
+  const Google_Hybrid = {
+    'name': GOOGLE_HYBRID_LAYER_NAME,
+    'sources': {
+      'google-hybrid': {
+        'type': 'raster',
+        'tiles': [
+          'https://mt0.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+          'https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+          'https://mt2.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+          'https://mt3.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}'
+        ],
+        'attribution': '<strong>Google Hybrid:</strong> Map data &copy; 2026 Google, Imagery &copy; 2026 TerraMetrics',
+        'layers': [
+          {
+            'id': 'google-hybrid-layer',
+            'type': 'raster',
+            'minZoom': 0,
+            'maxZoom': 20,
+          }
+        ],
+        'maxZoom': 20,
+      }
+    }
+  };
+
   return [
     Carto_Dark,
     OSM_Carto,
     Esri_WorldImagery,
+    Google_Streets,
+    Google_Hybrid,
   ];
 }
 
@@ -123,7 +177,7 @@ export class BaseLayerPicker {
   }
 
   colorChoice() {
-    if (this.currentLayerName !== CARTO_OSM_DARK_LAYER_NAME && this.currentLayerName !== ESRI_WORLD_IMAGERY_LAYER_NAME) {
+    if (this.currentLayerName !== CARTO_OSM_DARK_LAYER_NAME && this.currentLayerName !== ESRI_WORLD_IMAGERY_LAYER_NAME && this.currentLayerName !== GOOGLE_HYBRID_LAYER_NAME) {
       return this.colorHandler.DARK;
     }
     return this.colorHandler.LIGHT;
