@@ -54,9 +54,6 @@ class PMTilesHandler {
       maxzoom: this.header.maxZoom,
     };
   }
-
-  getTitle() { return this.title; }
-  setTitle(title) { this.title = title; }
 }
 
 module.exports = PMTilesHandler;

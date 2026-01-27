@@ -91,7 +91,7 @@ class MosaicHandler {
     this.mimeType = common.getMimeType(this.mosaicConfig.header.tile_type);
   }
 
-  async _populateIndices() {
+  _populateIndices() {
     for (const [z, keys] of Object.entries(this.keys_map)) {
       if (keys.length < FLATBUSH_THRESHOLD) {
         this.index_map[z] = null;
@@ -197,9 +197,6 @@ class MosaicHandler {
     }
     return out;
   }
-
-  getTitle() { return this.title; }
-  setTitle(title) { this.title = title; }
 }
 
 module.exports = MosaicHandler;
