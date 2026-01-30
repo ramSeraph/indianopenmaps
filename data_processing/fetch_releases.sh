@@ -1,8 +1,25 @@
 #!/bin/bash
 # Resumable script to fetch all repos, their releases, and release assets
 # Creates: data/<repo>/<release>/description.md and data/<repo>/<release>/files.txt
+# Usage: ./fetch_releases.sh [-f|--force]
 
 set -e
+
+# Parse arguments
+FORCE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -f|--force)
+            FORCE=true
+            shift
+            ;;
+        *)
+            echo "Usage: $0 [-f|--force]"
+            echo "  -f, --force  Force re-fetch even if files already exist"
+            exit 1
+            ;;
+    esac
+done
 
 DATA_DIR="data"
 mkdir -p "$DATA_DIR"
@@ -19,7 +36,7 @@ for repo in $repos; do
     echo "Processing repo: $repo"
     
     # Check if repo directory exists and has a .done marker
-    if [[ -f "$repo_dir/.done" ]]; then
+    if [[ "$FORCE" == "false" && -f "$repo_dir/.done" ]]; then
         echo "  Skipping $repo (already completed)"
         continue
     fi
@@ -41,7 +58,7 @@ for repo in $repos; do
         release_dir="$repo_dir/$safe_tag"
         
         # Check if this release is already done
-        if [[ -f "$release_dir/.done" ]]; then
+        if [[ "$FORCE" == "false" && -f "$release_dir/.done" ]]; then
             echo "  Skipping release $tag (already completed)"
             continue
         fi
@@ -50,12 +67,12 @@ for repo in $repos; do
         mkdir -p "$release_dir"
         
         # Get release description (body) and save as markdown
-        if [[ ! -f "$release_dir/description.md" ]]; then
+        if [[ "$FORCE" == "true" || ! -f "$release_dir/description.md" ]]; then
             gh release view "$tag" --repo "$repo" --json body -q '.body' > "$release_dir/description.md" 2>/dev/null || echo "" > "$release_dir/description.md"
         fi
         
         # Get list of assets/files in the release
-        if [[ ! -f "$release_dir/files.txt" ]]; then
+        if [[ "$FORCE" == "true" || ! -f "$release_dir/files.txt" ]]; then
             gh release view "$tag" --repo "$repo" --json assets -q '.assets[].name' > "$release_dir/files.txt" 2>/dev/null || echo "" > "$release_dir/files.txt"
         fi
         
