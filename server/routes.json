@@ -2147,6 +2147,15 @@
     "name": "Madhya Pradesh MPSSDI Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPSSDI_MP_Cadastrals.mosaic.json"
   },
+  "/not-so-open/cadastrals/madhya-pradesh/plots/mpbhulekh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "cadastrals",
+      "madhya pradesh"
+    ],
+    "name": "Madhya Pradesh MPBhulekh Plot Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Plot_Cadastrals.pmtiles"
+  },
   "/not-so-open/cadastrals/jharkhand/jsac/": {
     "handlertype": "mosaic",
     "category": [
