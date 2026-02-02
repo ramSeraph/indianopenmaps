@@ -393,7 +393,6 @@ function createHandlers() {
     } else {
       handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
     }
-    handlerMap[rPrefix].setTitle(rInfo['name']);
   });
 }
 
