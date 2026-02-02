@@ -461,7 +461,8 @@
     "category": "buildings",
     "name": "Microsoft Buildings",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/MSBI/ms_buildings_india.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/MSBI/ms_buildings_india.mosaic.json",
+    "partitioned_parquet": true
   },
   "/essd-building-heights/": {
     "handlertype": "pmtiles",
@@ -882,7 +883,8 @@
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "NIC Roads",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/nic-roads/NIC_Roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/nic-roads/NIC_Roads.pmtiles",
+    "partitioned_parquet": true
   },
   "/not-so-open/soi-bridges/": {
     "handlertype": "pmtiles",
@@ -1323,7 +1325,8 @@
     "handlertype": "pmtiles",
     "category": "water",
     "name": "nCOG SOI Streams",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/NCOG_SOI_Streams.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/NCOG_SOI_Streams.pmtiles",
+    "partitioned_parquet": true
   },
   "/not-so-open/water-channels/soi/": {
     "handlertype": "pmtiles",
@@ -1864,7 +1867,8 @@
       "rajasthan"
     ],
     "name": "NCOG Rajasthan cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/rajasthan/NCOG_Rajasthan_Cadastrals.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/rajasthan/NCOG_Rajasthan_Cadastrals.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/uttar-pradesh/ncog/": {
     "handlertype": "pmtiles",
@@ -1873,7 +1877,8 @@
       "uttar pradesh"
     ],
     "name": "NCOG UttarPradesh cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/uttar-pradesh/NCOG_UttarPradesh_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/uttar-pradesh/NCOG_UttarPradesh_Cadastrals.pmtiles",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
@@ -2145,7 +2150,8 @@
       "madhya pradesh"
     ],
     "name": "Madhya Pradesh MPSSDI Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPSSDI_MP_Cadastrals.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPSSDI_MP_Cadastrals.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/madhya-pradesh/plots/mpbhulekh/": {
     "handlertype": "pmtiles",
@@ -2163,7 +2169,8 @@
       "madhya pradesh"
     ],
     "name": "Madhya Pradesh MPBhulekh Survey Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Survey_Cadastrals.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Survey_Cadastrals.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/jharkhand/jsac/": {
     "handlertype": "mosaic",
@@ -2172,7 +2179,8 @@
       "jharkhand"
     ],
     "name": "Jharkhand JSAC Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jharkhand/JSAC_JH_Cadastrals.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jharkhand/JSAC_JH_Cadastrals.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/haryana/hrsac/": {
     "handlertype": "pmtiles",
@@ -2190,7 +2198,8 @@
       "odisha"
     ],
     "name": "Odisha Odisha4kgeo Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/odisha/Odisha4kgeo_OD_Cadastrals.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/odisha/Odisha4kgeo_OD_Cadastrals.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/goa/bhunaksha/": {
     "handlertype": "pmtiles",
@@ -2881,7 +2890,8 @@
       "water"
     ],
     "name": "Bhuvan Groundwater prospects",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_LGEOM.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_LGEOM.pmtiles",
+    "partitioned_parquet": true
   },
   "/not-so-open/health/veternary-hospitals/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -3520,7 +3530,8 @@
       "contours"
     ],
     "name": "SOI Raw Contours",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soi-dem/SOI_Contours_raw.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soi-dem/SOI_Contours_raw.pmtiles",
+    "partitioned_parquet": true
   },
   "/dem/grid/cartodem-v3r1/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3566,7 +3577,8 @@
       "landuse"
     ],
     "name": "Bhuvan SISDP v2 Landuse 10k",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_V2_LULC_10k.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_V2_LULC_10k.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/landuse/10k/sisdp/phase2/bhuvan/": {
     "handlertype": "mosaic",
@@ -3574,7 +3586,8 @@
       "landuse"
     ],
     "name": "Bhuvan SISDP phase2 Landuse 10k from 2016-2019",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k_2016-2019.mosaic.json"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k_2016-2019.mosaic.json",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/goa/onemapgoagis/": {
     "handlertype": "pmtiles",
