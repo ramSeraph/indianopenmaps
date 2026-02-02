@@ -140,7 +140,6 @@ function addRoutes() {
                   .send({ error: 'URL parameter is required' });
     }
 
-    // Check if URL is in whitelist
     const isAllowed = corsWhitelist.allowedPrefixes.some(prefix => url.startsWith(prefix));
     
     if (!isAllowed) {
