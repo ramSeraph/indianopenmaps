@@ -67,13 +67,13 @@ def get_geojsonl_base_from_pmtiles(pmtiles_name: str) -> str:
 
 
 def find_geojsonl_files(files_txt: Path, base_name: str) -> list[str]:
-    """Find all geojsonl.7z files matching the base name in files.txt."""
+    """Find all geojsonl.7z files matching the base name in files.txt (case insensitive)."""
     if not files_txt.exists():
         return []
     
     files = files_txt.read_text().strip().split('\n')
-    # Match files like: base_name.geojsonl.7z or base_name.geojsonl.7z.001
-    pattern = re.compile(rf'^{re.escape(base_name)}\.geojsonl\.7z(\.\d+)?$')
+    # Match files like: base_name.geojsonl.7z or base_name.geojsonl.7z.001 (case insensitive)
+    pattern = re.compile(rf'^{re.escape(base_name)}\.geojsonl\.7z(\.\d+)?$', re.IGNORECASE)
     return sorted([f for f in files if pattern.match(f)])
 
 
@@ -236,7 +236,7 @@ def convert_to_geoparquet(geojsonl_file: Path, output_file: Path, dry_run: bool 
         return True
     
     try:
-        cmd = ["uvx", "--from", "geoparquet-io", "gpio", "convert",
+        cmd = ["uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io.git", "gpio", "convert",
                "--geoparquet-version", "2.0",
                "--compression", "zstd",
                "--compression-level", "15",
@@ -270,7 +270,7 @@ def partition_geoparquet(parquet_file: Path, output_dir: Path, partitions: int, 
     output_dir.mkdir(parents=True, exist_ok=True)
     
     try:
-        cmd = ["uvx", "--from", "geoparquet-io", "gpio", "partition", "kdtree",
+        cmd = ["uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io.git", "gpio", "partition", "kdtree",
                str(parquet_file), str(output_dir),
                "--partitions", str(partitions), "-v"]
         run_cmd(cmd)
@@ -280,8 +280,15 @@ def partition_geoparquet(parquet_file: Path, output_dir: Path, partitions: int, 
         return False
 
 
-def get_bbox_from_parquet(parquet_path: Path) -> list | None:
-    """Extract bounding box from a parquet file using gpio inspect meta."""
+def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
+    """Get parquet metadata from a file using gpio inspect meta.
+    
+    Returns: (geo_metadata, parquet_metadata)
+    """
+    geo_meta = None
+    parquet_meta = None
+    
+    # Get geo metadata (for bbox)
     try:
         result = subprocess.run(
             ["uvx", "--from", "geoparquet-io", "gpio", "inspect", "meta", "--json", str(parquet_path)],
@@ -289,23 +296,66 @@ def get_bbox_from_parquet(parquet_path: Path) -> list | None:
             text=True,
             check=True
         )
-        metadata = json.loads(result.stdout)
-        geo_meta = metadata.get("geoparquet_metadata", {})
-        columns = geo_meta.get("columns", {})
-        primary = geo_meta.get("primary_column", "geometry")
-        if primary in columns:
-            return columns[primary].get("bbox")
-        for col_data in columns.values():
-            if "bbox" in col_data:
-                return col_data["bbox"]
-        return None
+        geo_meta = json.loads(result.stdout)
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-        print(f"  Warning: Failed to get bbox for {parquet_path}: {e}", file=sys.stderr)
-        return None
+        print(f"  Warning: Failed to get geo metadata for {parquet_path}: {e}", file=sys.stderr)
+    
+    # Get parquet metadata (for schema)
+    try:
+        result = subprocess.run(
+            ["uvx", "--from", "geoparquet-io", "gpio", "inspect", "meta", "--parquet", "--json", str(parquet_path)],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        parquet_meta = json.loads(result.stdout)
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print(f"  Warning: Failed to get parquet metadata for {parquet_path}: {e}", file=sys.stderr)
+    
+    return geo_meta, parquet_meta
 
 
-def rename_partitions_and_create_extents(parquet_file: Path, partitioned_dir: Path, dry_run: bool = False) -> tuple[list[Path], Path | None]:
-    """Rename partitioned files and create extents.json."""
+def extract_schema(parquet_meta: dict) -> dict:
+    """Extract schema (column descriptions) from parquet metadata."""
+    schema = {}
+    
+    # Schema is in format: "schema: None, col1: TYPE1, col2: TYPE2, ..."
+    schema_str = parquet_meta.get("schema", "")
+    if not schema_str:
+        return schema
+    
+    # Parse the schema string
+    parts = schema_str.split(", ")
+    for part in parts:
+        if ": " not in part:
+            continue
+        name, type_str = part.split(": ", 1)
+        # Skip the "schema" entry itself
+        if name == "schema":
+            continue
+        schema[name] = {"type": type_str}
+    
+    return schema
+
+
+def extract_bbox(geo_meta: dict) -> list | None:
+    """Extract bounding box from geoparquet metadata."""
+    geoparquet_meta = geo_meta.get("geoparquet_metadata", {})
+    columns = geoparquet_meta.get("columns", {})
+    primary = geoparquet_meta.get("primary_column", "geometry")
+    
+    if primary in columns:
+        return columns[primary].get("bbox")
+    
+    for col_data in columns.values():
+        if "bbox" in col_data:
+            return col_data["bbox"]
+    
+    return None
+
+
+def rename_partitions_and_create_meta(parquet_file: Path, partitioned_dir: Path, dry_run: bool = False) -> tuple[list[Path], Path | None]:
+    """Rename partitioned files and create meta.json with schema and extents."""
     prefix = parquet_file.stem
     partition_files = sorted(partitioned_dir.glob("*.parquet"))
     
@@ -315,7 +365,10 @@ def rename_partitions_and_create_extents(parquet_file: Path, partitioned_dir: Pa
     
     print(f"  Found {len(partition_files)} partition files")
     
-    extents = {}
+    meta = {
+        "schema": {},
+        "extents": {}
+    }
     renamed_files = []
     
     for partition_file in partition_files:
@@ -336,26 +389,40 @@ def rename_partitions_and_create_extents(parquet_file: Path, partitioned_dir: Pa
         
         renamed_files.append(new_path)
         
-        # Get bbox
-        bbox = get_bbox_from_parquet(partition_file if dry_run else new_path)
-        if bbox:
-            extents[new_name] = {
-                "minx": bbox[0],
-                "miny": bbox[1],
-                "maxx": bbox[2],
-                "maxy": bbox[3]
-            }
+        # Get metadata
+        file_to_inspect = partition_file if dry_run else new_path
+        geo_meta, parquet_meta = get_parquet_metadata(file_to_inspect)
+        
+        # Merge schema from all partitions
+        if parquet_meta:
+            partition_schema = extract_schema(parquet_meta)
+            for col_name, col_info in partition_schema.items():
+                if col_name not in meta["schema"]:
+                    meta["schema"][col_name] = col_info
+        
+        # Get bbox for this partition
+        if geo_meta:
+            bbox = extract_bbox(geo_meta)
+            if bbox:
+                meta["extents"][new_name] = {
+                    "minx": bbox[0],
+                    "miny": bbox[1],
+                    "maxx": bbox[2],
+                    "maxy": bbox[3]
+                }
     
-    # Write extents.json
-    extents_file = partitioned_dir / f"{prefix}.extents.json"
+    # Write meta.json
+    meta_file = partitioned_dir / f"{prefix}.parquet.meta.json"
     if not dry_run:
-        with open(extents_file, "w") as f:
-            json.dump(extents, f, indent=2)
-        print(f"  Created extents file: {extents_file.name}")
+        with open(meta_file, "w") as f:
+            json.dump(meta, f, indent=2)
+        print(f"  Created meta file: {meta_file.name}")
+        print(f"    Schema columns: {len(meta['schema'])}")
+        print(f"    Extents entries: {len(meta['extents'])}")
     else:
-        print(f"  [DRY-RUN] Would create extents file: {extents_file.name}")
+        print(f"  [DRY-RUN] Would create meta file: {meta_file.name}")
     
-    return renamed_files, extents_file
+    return renamed_files, meta_file
 
 
 def upload_to_release(repo: str, tag: str, files: list[Path], dry_run: bool = False) -> bool:
@@ -479,7 +546,10 @@ def process_entry(route_key: str, entry: dict, data_dir: Path, dry_run: bool = F
     if dry_run:
         geojsonl_file = staging_dir / f"{base_name}.geojsonl"
     else:
-        archive_files = sorted(staging_dir.glob(f"{base_name}.geojsonl.7z*"))
+        # Find archive files case-insensitively
+        all_files = list(staging_dir.iterdir())
+        pattern = re.compile(rf'^{re.escape(base_name)}\.geojsonl\.7z(\.\d+)?$', re.IGNORECASE)
+        archive_files = sorted([f for f in all_files if pattern.match(f.name)])
         geojsonl_file = extract_7z_files(archive_files, staging_dir, dry_run)
         if not geojsonl_file:
             return False
@@ -509,14 +579,14 @@ def process_entry(route_key: str, entry: dict, data_dir: Path, dry_run: bool = F
             if not partition_geoparquet(parquet_file, partitioned_dir, partition_count, dry_run):
                 return False
             
-            # Rename partitions and create extents
-            renamed_files, extents_file = rename_partitions_and_create_extents(
+            # Rename partitions and create meta.json
+            renamed_files, meta_file = rename_partitions_and_create_meta(
                 parquet_file, partitioned_dir, dry_run
             )
             
             files_to_upload = renamed_files
-            if extents_file:
-                files_to_upload.append(extents_file)
+            if meta_file:
+                files_to_upload.append(meta_file)
             new_file_names = [f.name for f in files_to_upload]
         else:
             # Upload single file
