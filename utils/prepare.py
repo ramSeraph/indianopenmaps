@@ -32,6 +32,84 @@ def calculate_partition_count(file_size_bytes: int) -> int:
     return 2 ** power
 
 
+def filter_empty_geometries(geojsonl_file: Path) -> tuple[int, int]:
+    """Filter out features with empty or null geometries from a geojsonl file.
+    Also renames properties containing 'geom' to avoid DuckDB geometry detection issues.
+    
+    Returns: (original_count, filtered_count)
+    """
+    filtered_file = geojsonl_file.parent / f"{geojsonl_file.stem}.filtered.geojsonl"
+    original_count = 0
+    filtered_count = 0
+    renamed_props: dict[str, str] = {}
+    rename_counter = 0
+
+    print("filtering empty geometries...")
+
+    with open(geojsonl_file, 'r') as infile, open(filtered_file, 'w') as outfile:
+        for line in infile:
+            original_count += 1
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                feature = json.loads(line)
+                geometry = feature.get("geometry")
+
+                # Skip if geometry is null or empty
+                if geometry is None:
+                    continue
+
+                coords = geometry.get("coordinates")
+                if coords is None:
+                    continue
+
+                # Check for empty coordinate arrays
+                if isinstance(coords, list) and len(coords) == 0:
+                    continue
+
+                # For nested coordinate arrays (Polygon, MultiLineString, etc.)
+                if isinstance(coords, list) and len(coords) > 0:
+                    if isinstance(coords[0], list) and len(coords[0]) == 0:
+                        continue
+
+                # Rename properties containing 'geom' to avoid DuckDB issues
+                props = feature.get("properties", {})
+                if props:
+                    new_props = {}
+                    for key, value in props.items():
+                        if "geom" in key.lower():
+                            if key not in renamed_props:
+                                renamed_props[key] = f"geom_renamed_{rename_counter}"
+                                rename_counter += 1
+                            new_props[renamed_props[key]] = value
+                        else:
+                            new_props[key] = value
+                    feature["properties"] = new_props
+
+                # Valid geometry, write it
+                outfile.write(json.dumps(feature) + '\n')
+                filtered_count += 1
+
+            except json.JSONDecodeError:
+                # Skip malformed lines
+                continue
+
+    removed_count = original_count - filtered_count
+    print(f"  original features: {original_count}")
+    print(f"  after filtering: {filtered_count}")
+    print(f"  removed (empty/null geometry): {removed_count}")
+    if renamed_props:
+        print(f"  renamed properties: {renamed_props}")
+
+    # Replace original with filtered file
+    geojsonl_file.unlink()
+    filtered_file.rename(geojsonl_file)
+
+    return original_count, filtered_count
+
+
 def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
     """Get parquet metadata from a file using gpio inspect meta."""
     geo_meta = None
@@ -134,6 +212,9 @@ def main():
     work_dir = args.file.parent
 
     os.chdir(work_dir)
+
+    # Filter out empty geometries first
+    filter_empty_geometries(Path(fbase))
 
     # Create archive unless --no-zip is set
     if not args.no_zip:
