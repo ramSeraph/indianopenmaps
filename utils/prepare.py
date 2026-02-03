@@ -74,7 +74,9 @@ def filter_empty_geometries(geojsonl_file: Path) -> tuple[int, int]:
                     if isinstance(coords[0], list) and len(coords[0]) == 0:
                         continue
 
-                # Rename properties containing 'geom' to avoid DuckDB issues
+                # Rename properties containing 'geom' to avoid GDAL confusion.
+                # GDAL assigns 'geom' as the default geometry field name, so a property named 'geom'
+                # clashes with it and would require special handling elsewhere during conversion.
                 props = feature.get("properties", {})
                 if props:
                     new_props = {}
