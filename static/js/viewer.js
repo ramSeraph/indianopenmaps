@@ -128,7 +128,7 @@ function setupMap() {
   
   map.addControl(geocoder, 'top-left');
   
-  let vectorSourceHandler = new VectorSourceHandler(map, colorHandler, searchParams);
+  let vectorSourceHandler = new VectorSourceHandler(map, colorHandler, searchParams, routesHandler);
 
   let baseLayerPicker = new BaseLayerPicker(map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler);
   map.addControl(baseLayerPicker, 'top-left');
@@ -138,7 +138,7 @@ function setupMap() {
   let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
   map.addControl(sourcePanelControl, 'top-left');
 
-  let popupHandler = new PopupHandler(map, vectorSourceHandler.layers);
+  let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
   map.addControl(new InspectButton(true, (enabled) => popupHandler.enable(enabled)), 'top-right');
 
   map.addControl(terrainHandler.getControl(), 'top-right');

@@ -84,6 +84,7 @@ def find_related_files(base_path: Path) -> dict:
         'mosaic': [],
         'parquet': [],
         'parquet_meta': [],
+        'analysis': [],
     }
     
     # Find 7z files (single or split)
@@ -118,10 +119,15 @@ def find_related_files(base_path: Path) -> dict:
         if parquet_meta.exists():
             files['parquet_meta'].append(parquet_meta)
     
+    # Find analysis.json file
+    analysis_file = parent_dir / f"{base_name}.analysis.json"
+    if analysis_file.exists():
+        files['analysis'] = [analysis_file]
+    
     return files
 
 
-def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False):
+def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None):
     code_repo_name = 'indianopenmaps'
     branch = 'main' 
     file_path = 'server/routes.json'
@@ -153,6 +159,8 @@ def update_routes_file(repo_name, release, file_pmtiles, route, description, cat
     }
     if is_partitioned_parquet:
         entry['partitioned_parquet'] = True
+    if promoteid:
+        entry['promoteid'] = promoteid
     route_data.update({route: entry})
 
     content = json.dumps(route_data, indent=2)
@@ -351,12 +359,26 @@ def main(repo, release, base_file, description, source, source_url, route, categ
     print(f"  parquet_meta: {[f.name for f in related['parquet_meta']]}")
     print(f"  Route file: {route_file.name} (mosaic: {is_mosaic}, partitioned_parquet: {is_partitioned_parquet})")
     
+    # Read promoteid from analysis file if present
+    promoteid = None
+    if related['analysis']:
+        analysis_file = related['analysis'][0]
+        try:
+            with open(analysis_file) as f:
+                analysis_data = json.load(f)
+            picked_id = analysis_data.get("picked_id", {})
+            promoteid = picked_id.get("field")
+            if promoteid:
+                print(f"  promoteid: {promoteid}")
+        except Exception as e:
+            print(f"  warning: failed to read analysis file: {e}")
+    
     # append to release doc
     print('updating release notes')
     update_release_doc(repo, release, description, related['7z'], route, source, source_url)
     # update route
     print('updating routes file')
-    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet)
+    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet, promoteid)
 
 
 if __name__ == "__main__":

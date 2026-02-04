@@ -1,6 +1,9 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.10"
+# dependencies = [
+#     "duckdb",
+# ]
 # ///
 """
 Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtiles.
@@ -13,6 +16,8 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+
+import duckdb
 
 TWO_GB = 2 * 1024 * 1024 * 1024
 
@@ -192,6 +197,197 @@ def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
     print(f"created: {meta_file.name}")
 
 
+def analyze_unique_fields(parquet_files: list[Path]) -> dict:
+    """
+    Analyze parquet files to find which fields can uniquely identify features.
+    
+    Returns dict with field analysis results.
+    """
+    if not parquet_files:
+        return {"error": "No parquet files provided"}
+    
+    conn = duckdb.connect()
+    file_list = [str(f) for f in parquet_files]
+    
+    try:
+        if len(file_list) == 1:
+            conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet('{file_list[0]}')")
+        else:
+            file_str = ", ".join([f"'{f}'" for f in file_list])
+            conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet([{file_str}])")
+        
+        total_rows = conn.execute("SELECT COUNT(*) FROM data").fetchone()[0]
+        columns_result = conn.execute("DESCRIBE data").fetchall()
+        property_columns = [col[0] for col in columns_result if col[0] != 'geometry']
+        
+        results = {
+            "total_features": total_rows,
+            "fields": {}
+        }
+        
+        for col in property_columns:
+            try:
+                distinct_count = conn.execute(f'SELECT COUNT(DISTINCT "{col}") FROM data').fetchone()[0]
+                null_count = conn.execute(f'SELECT COUNT(*) FROM data WHERE "{col}" IS NULL').fetchone()[0]
+                
+                results["fields"][col] = {
+                    "distinct_values": distinct_count,
+                    "null_count": null_count,
+                    "is_unique": distinct_count == total_rows and null_count == 0
+                }
+            except Exception as e:
+                results["fields"][col] = {"error": str(e)}
+        
+        conn.close()
+        return results
+        
+    except Exception as e:
+        conn.close()
+        return {"error": str(e)}
+
+
+def score_field_name(name: str) -> int | None:
+    """Score a field name for ID-likeness. Higher is better. Returns None to exclude."""
+    name_lower = name.lower()
+    
+    shape_patterns = ["shape", "length", "area", "perimeter", "centroid", "st_area", "st_length", "starea", "stlength"]
+    if any(p in name_lower for p in shape_patterns):
+        return None
+    
+    if name_lower == "id":
+        return 100
+    if name_lower == "uid" or name_lower == "uuid":
+        return 95
+    if name_lower.endswith("_id") or name_lower.endswith("id"):
+        return 80
+    if name_lower.startswith("id_") or name_lower.startswith("id"):
+        return 75
+    if "id" in name_lower:
+        return 60
+    if "code" in name_lower:
+        return 50
+    if "key" in name_lower:
+        return 45
+    if "name" in name_lower:
+        return 20
+    if any(x in name_lower for x in ["objectid", "fid", "inpoly", "simpgn", "simptol"]):
+        return -5
+    
+    return 0
+
+
+def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
+    """
+    Pick the best unique ID field from analysis results.
+    
+    Returns dict with:
+        - field: chosen field name (or None)
+        - is_unique: whether field is truly unique
+        - uniqueness_ratio: distinct_values / total_features
+        - reason: explanation for choice
+    """
+    fields = analysis.get("fields", {})
+    total = analysis.get("total_features", 0)
+    
+    if not fields or total == 0:
+        return {"field": None, "reason": "no fields or no features"}
+    
+    unique_fields = []
+    candidate_fields = []
+    all_fields = []
+    
+    for name, info in fields.items():
+        if isinstance(info, dict) and "error" not in info:
+            name_score = score_field_name(name)
+            if name_score is None:
+                continue
+            
+            distinct = info.get("distinct_values", 0)
+            null_count = info.get("null_count", 0)
+            is_unique = info.get("is_unique", False)
+            ratio = distinct / total if total > 0 else 0
+            
+            field_info = {
+                "name": name,
+                "distinct": distinct,
+                "null_count": null_count,
+                "ratio": ratio,
+                "is_unique": is_unique,
+                "name_score": name_score
+            }
+            
+            all_fields.append(field_info)
+            
+            if is_unique:
+                unique_fields.append(field_info)
+            elif ratio >= threshold:
+                candidate_fields.append(field_info)
+    
+    if unique_fields:
+        unique_fields.sort(key=lambda x: (-x["name_score"], len(x["name"])))
+        best = unique_fields[0]
+        return {
+            "field": best["name"],
+            "is_unique": True,
+            "uniqueness_ratio": best["ratio"],
+            "reason": f"unique field with name_score={best['name_score']}"
+        }
+    
+    if candidate_fields:
+        candidate_fields.sort(key=lambda x: (-x["ratio"], -x["name_score"]))
+        best = candidate_fields[0]
+        return {
+            "field": best["name"],
+            "is_unique": False,
+            "uniqueness_ratio": best["ratio"],
+            "reason": f"best candidate above threshold ({threshold})"
+        }
+    
+    if all_fields:
+        all_fields.sort(key=lambda x: (-x["ratio"], x["null_count"], -x["name_score"]))
+        best = all_fields[0]
+        return {
+            "field": None, 
+            "reason": f"no unique or high-cardinality fields above {threshold}",
+            "best_below_threshold": {
+                "field": best["name"],
+                "ratio": best["ratio"],
+                "null_count": best["null_count"]
+            }
+        }
+    
+    return {"field": None, "reason": f"no unique or high-cardinality fields above {threshold}"}
+
+
+def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
+    """Analyze parquet files and create field analysis JSON with picked unique ID."""
+    print("analyzing fields for unique ID...")
+    analysis = analyze_unique_fields(parquet_files)
+    
+    if "error" in analysis:
+        print(f"  error: {analysis['error']}")
+        return
+    
+    picked = pick_best_id(analysis)
+    
+    result = {
+        "base_name": lname,
+        "analysis": analysis,
+        "picked_id": picked
+    }
+    
+    analysis_file = Path(f"{lname}.analysis.json")
+    with open(analysis_file, "w") as f:
+        json.dump(result, f, indent=2)
+    print(f"created: {analysis_file.name}")
+    
+    if picked.get("field"):
+        unique_str = "unique" if picked.get("is_unique") else f"{picked.get('uniqueness_ratio', 0):.2%}"
+        print(f"  picked ID: {picked['field']} ({unique_str})")
+    else:
+        print(f"  no suitable ID field found: {picked.get('reason', 'unknown')}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtiles."
@@ -302,6 +498,9 @@ def main():
             ],
             check=True,
         )
+
+        # Analyze fields for unique ID before potential partitioning
+        create_field_analysis(lname, [parquet_file])
 
         if parquet_file.stat().st_size > TWO_GB:
             print("parquet file > 2GB, splitting...")

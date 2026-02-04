@@ -21,92 +21,107 @@
     "handlertype": "pmtiles",
     "category": "states",
     "name": "LGD States",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/LGD_States.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/LGD_States.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/states/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "states",
     "name": "Bhuvan States",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/bhuvan_states.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/bhuvan_states.pmtiles",
+    "promoteid": "s_code"
   },
   "/states/soi/": {
     "handlertype": "pmtiles",
     "category": "states",
     "name": "SOI States",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/SOI_States.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/states/SOI_States.pmtiles",
+    "promoteid": "STATE"
   },
   "/not-so-open/districts/lgd/": {
     "handlertype": "pmtiles",
     "category": "districts",
     "name": "LGD Districts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/LGD_Districts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/LGD_Districts.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/districts/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "districts",
     "name": "Bhuvan Districts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/bhuvan_districts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/bhuvan_districts.pmtiles",
+    "promoteid": "d_name"
   },
   "/districts/soi/": {
     "handlertype": "pmtiles",
     "category": "districts",
     "name": "SOI Districts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/SOI_Districts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/districts/SOI_Districts.pmtiles",
+    "promoteid": "District"
   },
   "/not-so-open/subdistricts/lgd/": {
     "handlertype": "pmtiles",
     "category": "subdistricts",
     "name": "LGD Subdistricts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/subdistricts/LGD_Subdistricts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/subdistricts/LGD_Subdistricts.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/subdistricts/soi/": {
     "handlertype": "pmtiles",
     "category": "subdistricts",
     "name": "SOI Subdistricts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/subdistricts/SOI_Subdistricts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/subdistricts/SOI_Subdistricts.pmtiles",
+    "promoteid": "TEHSIL"
   },
   "/not-so-open/blocks/lgd/": {
     "handlertype": "pmtiles",
     "category": "blocks",
     "name": "LGD Blocks",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/LGD_Blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/LGD_Blocks.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/blocks/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "blocks",
     "name": "Bhuvan Blocks",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/bhuvan_blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/bhuvan_blocks.pmtiles",
+    "promoteid": "b_name"
   },
   "/blocks/pmgsy/": {
     "handlertype": "pmtiles",
     "category": "blocks",
     "name": "PMGSY Blocks",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/PMGSY_Blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/blocks/PMGSY_Blocks.pmtiles",
+    "promoteid": "BLOCK_ID"
   },
   "/not-so-open/panchayats/lgd/": {
     "handlertype": "pmtiles",
     "category": "panchayats",
     "name": "LGD Panchayats",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/LGD_panchayats.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/LGD_panchayats.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/panchayats/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "panchayats",
     "name": "Bhuvan Panchayats",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/bhuvan_panchayats.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/bhuvan_panchayats.pmtiles",
+    "promoteid": "gp_code"
   },
   "/not-so-open/villages/lgd/": {
     "handlertype": "pmtiles",
     "category": "villages",
     "name": "LGD Villages",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/LGD_Villages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/LGD_Villages.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/villages/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "villages",
     "name": "Bhuvan Villages",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/bhuvan_villages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/bhuvan_villages.pmtiles",
+    "promoteid": "v_code"
   },
   "/not-so-open/villages/jammu-and-kashmir/bhuvan/": {
     "handlertype": "pmtiles",
@@ -115,7 +130,8 @@
       "jammu and kashmir"
     ],
     "name": "Bhuvan Jammu and Kashmir Villages",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/Bhuvan_JK_Villages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/Bhuvan_JK_Villages.pmtiles",
+    "promoteid": "id"
   },
   "/villages/soi/": {
     "handlertype": "pmtiles",
@@ -127,59 +143,68 @@
     "handlertype": "pmtiles",
     "category": "villages",
     "name": "SOI Village Points",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/SOI_VILLAGE_POINT.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/villages/SOI_VILLAGE_POINT.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/habitations/soi/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "SOI Habitations",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_places.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_places.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/habitations/soi-village-blocks/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "SOI Village Blocks",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_HumanSettlements_VILLAGE_BLOCKS.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_HumanSettlements_VILLAGE_BLOCKS.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/habitations/soi-huts/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "SOI Huts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_HumanSettlements_HUTS.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/SOI_HumanSettlements_HUTS.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/habitations/pmgsy/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "PMGSY Habitations",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Habitations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Habitations.pmtiles",
+    "promoteid": "HAB_ID"
   },
   "/habitations/karmashapes-polys/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "Karmashapes Polygons",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_polygons_v0.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_polygons_v0.pmtiles",
+    "promoteid": "KS_ID"
   },
   "/habitations/karmashapes-points/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "Karmashapes Points",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_points_v0.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/karmashapes_points_v0.pmtiles",
+    "promoteid": "KS_ID"
   },
   "/habitations/esri-sentinel2-10m-builtup/": {
     "handlertype": "pmtiles",
     "category": "habitations",
     "name": "ESRI Sentinel2 Builtup Area",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/ESRI_Sentinel2_10m_2023_Builtup_Area.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/ESRI_Sentinel2_10m_2023_Builtup_Area.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/ulbs/sbm/": {
     "handlertype": "pmtiles",
     "category": "urban",
     "name": "SBM ULBs",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_ULBs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_ULBs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban/wards/sbm/": {
     "handlertype": "pmtiles",
@@ -188,7 +213,8 @@
       "wards"
     ],
     "name": "SBM ULB Wards",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Wards.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Wards.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban/wards/living-atlas/": {
     "handlertype": "pmtiles",
@@ -203,13 +229,15 @@
     "handlertype": "pmtiles",
     "category": "urban",
     "name": "SBM ULB Areas",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Areas.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/SBM_Areas.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban/ulbs/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": "urban",
     "name": "WB AMRUT ULBs",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_ULBs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_ULBs.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/wards/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -218,7 +246,8 @@
       "wards"
     ],
     "name": "WB AMRUT ULB Wards",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Wards.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Wards.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/wards/shillong/megh-cm-dashboard/": {
     "handlertype": "pmtiles",
@@ -227,19 +256,22 @@
       "wards"
     ],
     "name": "Shillong Wards",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/Shillong_Wards.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/Shillong_Wards.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/areas/wb-amrut/": {
     "handlertype": "pmtiles",
     "category": "urban",
     "name": "WB AMRUT Localities",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Localities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Localities.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/areas/delhi/gsdl/": {
     "handlertype": "pmtiles",
     "category": "urban",
     "name": "GSDL Delhi Localities",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/GSDL_Localities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/GSDL_Localities.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/slums/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -249,7 +281,8 @@
       "west bengal"
     ],
     "name": "WB AMRUT Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Slum_boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/WB_AMRUT_Slum_boundaries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/slums/ghmc/tracgis/": {
     "handlertype": "pmtiles",
@@ -260,7 +293,8 @@
       "telangana"
     ],
     "name": "Hyderabad Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TRACGIS_GHMC_Slums.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TRACGIS_GHMC_Slums.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/urban/slums/telangana/cdma/bhuvan/": {
     "handlertype": "pmtiles",
@@ -270,7 +304,8 @@
       "telangana"
     ],
     "name": "Telangana Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TS_CDMA_Slum_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TS_CDMA_Slum_Boundaries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/slums/tamil-nadu/tngis/": {
     "handlertype": "pmtiles",
@@ -280,7 +315,8 @@
       "tamil nadu"
     ],
     "name": "Tamil Nadu Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TNGIS_TN_Slum_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/TNGIS_TN_Slum_Boundaries.pmtiles",
+    "promoteid": "object_id"
   },
   "/not-so-open/urban/slums/bbmp/kgis/": {
     "handlertype": "pmtiles",
@@ -291,7 +327,8 @@
       "karnataka"
     ],
     "name": "Bangalore Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/BBMP_Bangalore_Slum_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/BBMP_Bangalore_Slum_Boundaries.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/urban/slums/mcgm/umd/": {
     "handlertype": "pmtiles",
@@ -302,7 +339,8 @@
       "maharashtra"
     ],
     "name": "Mumbai Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/UMD_Mumbai_Slum_Boundaries_2016.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/UMD_Mumbai_Slum_Boundaries_2016.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban/slums/delhi/gsdl/": {
     "handlertype": "pmtiles",
@@ -312,43 +350,50 @@
       "delhi"
     ],
     "name": "Delhi Slum boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/DUSIB_Delhi_Slum_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/urban/DUSIB_Delhi_Slum_Boundaries.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/geomorphology/50k/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "geomorphology",
     "name": "Bhuvan Geomorphology 50k from 05-06",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Geomorphology_50k_0506.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Geomorphology_50k_0506.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/lineament/50k/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "lineament",
     "name": "Bhuvan Lineament 50k from 05-06",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Lineament_50k_0506.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/Bhuvan_Lineament_50k_0506.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/geomorphology/250k/ngdr/": {
     "handlertype": "pmtiles",
     "category": "geomorphology",
     "name": "NGDR Geomorphology at 250k",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Geomorphology_250k.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Geomorphology_250k.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/lineament/250k/ngdr/": {
     "handlertype": "pmtiles",
     "category": "lineament",
     "name": "NGDR Lineament at 250k",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Lineament_250k.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geomorphology/NGDR_Lineament_250k.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/geology/2m/ngdr/": {
     "handlertype": "pmtiles",
     "category": "geology",
     "name": "NGDR Geology 2M",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Geology_2M.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Geology_2M.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/lithology/50k/ngdr/": {
     "handlertype": "pmtiles",
     "category": "lithology",
     "name": "NGDR Lithology 50k",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Lithology_50k.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/geology/NGDR_Lithology_50k.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/west-bengal/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -358,7 +403,8 @@
       "land use"
     ],
     "name": "WB AMRUT Urban Land Use Polygons",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/WB_AMRUT_ULU_polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/WB_AMRUT_ULU_polygons.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/kerala/land-use/lsgdp/": {
     "handlertype": "pmtiles",
@@ -378,19 +424,22 @@
       "land use"
     ],
     "name": "Tamil Nadu DTCP Urban Land Use Polygons",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/constituencies/parliament/lgd/": {
     "handlertype": "pmtiles",
     "category": "constituencies",
     "name": "Parliament Constituencies",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/LGD_Parliament_Constituencies.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/LGD_Parliament_Constituencies.pmtiles",
+    "promoteid": "pc_id"
   },
   "/not-so-open/constituencies/assembly/lgd/": {
     "handlertype": "pmtiles",
     "category": "constituencies",
     "name": "Assembly Constituencies",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/LGD_Assembly_Constituencies.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/LGD_Assembly_Constituencies.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/census2011/districts/": {
     "handlertype": "pmtiles",
@@ -399,7 +448,8 @@
       "census2011"
     ],
     "name": "Census 2011 Districts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/Districts_2011.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/Districts_2011.pmtiles",
+    "promoteid": "OBJECTID_1"
   },
   "/not-so-open/census2011/subdistricts/": {
     "handlertype": "pmtiles",
@@ -408,7 +458,8 @@
       "census2011"
     ],
     "name": "Census 2011 Subdistricts",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/SubDistricts_2011.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/SubDistricts_2011.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/census2011/village-points/": {
     "handlertype": "pmtiles",
@@ -417,7 +468,8 @@
       "census2011"
     ],
     "name": "Census 2011 Village Points",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/Census_Villages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/Census_Villages.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/shrug-census2011/districts/": {
     "handlertype": "pmtiles",
@@ -427,7 +479,8 @@
     ],
     "name": "SHRUG Census 2011 Districts",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-district-pc11.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-district-pc11.pmtiles",
+    "promoteid": "pc11_district_id"
   },
   "/shrug-census2011/subdistricts/": {
     "handlertype": "pmtiles",
@@ -437,7 +490,8 @@
     ],
     "name": "SHRUG Census 2011 Subdistricts",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-subdistrict-pc11.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-subdistrict-pc11.pmtiles",
+    "promoteid": "pc11_sd_id"
   },
   "/shrug-census2011/villages/": {
     "handlertype": "pmtiles",
@@ -447,7 +501,8 @@
     ],
     "name": "SHRUG Census 2011 Villages",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-village-pc11.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/census-2011/shrug-village-pc11.pmtiles",
+    "promoteid": "pc11_tv_id"
   },
   "/google-buildings/": {
     "handlertype": "mosaic",
@@ -469,7 +524,8 @@
     "category": "buildings",
     "name": "ESSD Copernicus Building heights",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles"
+    "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/buildings/west-bengal/amrut/": {
     "handlertype": "pmtiles",
@@ -479,7 +535,8 @@
       "west bengal"
     ],
     "name": "West Bengal AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/WB_AMRUT_buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/andaman-and-nicobar/amrut/": {
     "handlertype": "pmtiles",
@@ -489,7 +546,8 @@
       "andaman and nicobar"
     ],
     "name": "Andaman and Nicobar AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AN_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AN_AMRUT_Buildings.pmtiles",
+    "promoteid": "Bldg_Id"
   },
   "/not-so-open/urban/buildings/arunachal-pradesh/amrut/": {
     "handlertype": "pmtiles",
@@ -499,7 +557,8 @@
       "arunachal pradesh"
     ],
     "name": "Arunachal Pradesh AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AR_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/AR_AMRUT_Buildings.pmtiles",
+    "promoteid": "Building_I"
   },
   "/not-so-open/urban/buildings/assam/amrut/": {
     "handlertype": "pmtiles",
@@ -529,7 +588,8 @@
       "goa"
     ],
     "name": "Goa AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GA_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GA_AMRUT_Buildings.pmtiles",
+    "promoteid": "Bldg_ID"
   },
   "/not-so-open/urban/buildings/himachal-pradesh/amrut/": {
     "handlertype": "pmtiles",
@@ -539,7 +599,8 @@
       "himachal pradesh"
     ],
     "name": "Himachal Pradesh AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Hp_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Hp_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/jammu-and-kashmir/amrut/": {
     "handlertype": "pmtiles",
@@ -549,7 +610,8 @@
       "jammu and kashmir"
     ],
     "name": "Jammu and Kashmir AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/JK_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/JK_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/kerala/amrut/": {
     "handlertype": "pmtiles",
@@ -559,7 +621,8 @@
       "kerala"
     ],
     "name": "Kerala AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/KL_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/KL_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/ladakh/amrut/": {
     "handlertype": "pmtiles",
@@ -569,7 +632,8 @@
       "ladakh"
     ],
     "name": "Ladakh AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/LD_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/LD_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/madhya-pradesh/amrut/": {
     "handlertype": "pmtiles",
@@ -579,7 +643,8 @@
       "madhya pradesh"
     ],
     "name": "Madhya Pradesh AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MP_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MP_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/manipur/amrut/": {
     "handlertype": "pmtiles",
@@ -589,7 +654,8 @@
       "manipur"
     ],
     "name": "Manipur AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MN_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MN_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/mizoram/amrut/": {
     "handlertype": "pmtiles",
@@ -599,7 +665,8 @@
       "mizoram"
     ],
     "name": "Mizoram AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MZ_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/MZ_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/puducherry/amrut/": {
     "handlertype": "pmtiles",
@@ -609,7 +676,8 @@
       "puducherry"
     ],
     "name": "Puducherry AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PD_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PD_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/punjab/amrut/": {
     "handlertype": "pmtiles",
@@ -619,7 +687,8 @@
       "punjab"
     ],
     "name": "Punjab AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PB_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/PB_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/tamil-nadu/amrut/": {
     "handlertype": "pmtiles",
@@ -629,7 +698,8 @@
       "tamil nadu"
     ],
     "name": "Tamil Nadu AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TN_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TN_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/telangana/amrut/": {
     "handlertype": "pmtiles",
@@ -639,7 +709,8 @@
       "telangana"
     ],
     "name": "Telangana AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/uttarakhand/amrut/": {
     "handlertype": "pmtiles",
@@ -649,7 +720,8 @@
       "uttarakhand"
     ],
     "name": "Uttarakhand AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UK_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UK_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/uttar-pradesh/amrut/": {
     "handlertype": "pmtiles",
@@ -659,7 +731,8 @@
       "uttar pradesh"
     ],
     "name": "UttarPradesh AMRUT Urban Building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UP_AMRUT_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/UP_AMRUT_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/gsdl/": {
     "handlertype": "pmtiles",
@@ -669,7 +742,8 @@
       "delhi"
     ],
     "name": "GSDL Delhi buildings",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GSDL_buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/GSDL_buildings.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/buildings/ahmedabad/vedas/": {
     "handlertype": "pmtiles",
@@ -679,7 +753,8 @@
       "ahmedabad"
     ],
     "name": "Vedas Ahmedabad buildings",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Vedas_Ahmedabad_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Vedas_Ahmedabad_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/gandhinagar/vedas/": {
     "handlertype": "pmtiles",
@@ -689,7 +764,8 @@
       "gandhinagar"
     ],
     "name": "Vedas Gandhinagar buildings",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Vedas_Gandhinagar_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Vedas_Gandhinagar_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/buildings/rajdharaa/": {
     "handlertype": "pmtiles",
@@ -699,7 +775,8 @@
       "rajasthan"
     ],
     "name": "Rajasthan Urban building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Rajdharaa_ULB_Building_footprints.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/Rajdharaa_ULB_Building_footprints.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/urban/hyderabad/buildings/tracgis/": {
     "handlertype": "pmtiles",
@@ -710,7 +787,8 @@
       "telangana"
     ],
     "name": "Hyderabad building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Hyderabad_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Hyderabad_Buildings.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/khammam/buildings/tracgis/": {
     "handlertype": "pmtiles",
@@ -721,7 +799,8 @@
       "telangana"
     ],
     "name": "Khammam building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Khammam_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TRACGIS_Khammam_Buildings.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/urban/telangana/cdma/buildings/bhuvan/": {
     "handlertype": "pmtiles",
@@ -731,7 +810,8 @@
       "telangana"
     ],
     "name": "Telangana CDMA building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_CDMA_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TS_CDMA_Buildings.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/chennai/buildings/tngis/": {
     "handlertype": "pmtiles",
@@ -742,81 +822,94 @@
       "tamil nadu"
     ],
     "name": "Chennai building footprints",
-    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TNGIS_GCC_Chennai_Buildings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/TNGIS_GCC_Chennai_Buildings.pmtiles",
+    "promoteid": "object_id"
   },
   "/overture-places/": {
     "handlertype": "pmtiles",
     "category": "pois",
     "name": "Overture Places",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/overture_places_india.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/overture_places_india.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cell-towers/tarangsanchar/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "TarangSanchar Cell Towers",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/cell-towers/TS_Celltower_locations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/cell-towers/TS_Celltower_locations.pmtiles",
+    "promoteid": "site_id"
   },
   "/not-so-open/cell-towers/nic/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "NIC Cell Towers",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/cell-towers/NIC_Celltower_locations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/cell-towers/NIC_Celltower_locations.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/onts/bbnl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "BBNL ONTs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_ONTs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_ONTs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/olts/bbnl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "BBNL OLTs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OLTs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OLTs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/ofcs/bbnl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "BBNL OFCs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OFCs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/BBNL_OFCs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/andhra-pradesh/gps/apsfl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "APSFL BBNL Gram Panchayat Endpoints",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_GPs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_GPs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/andhra-pradesh/olts/apsfl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "APSFL BBNL OLTs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OLTs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OLTs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/bharatnet/andhra-pradesh/ofcs/apsfl/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "APSFL BBNL OFCs",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OFCs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/APSFL_BBNL_Phase2_OFCs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/tanfinet/tamil-nadu/nodes/tngis/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "TANFINET Nodes",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Nodes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Nodes.pmtiles",
+    "promoteid": "latitude"
   },
   "/not-so-open/tanfinet/tamil-nadu/links/tngis/": {
     "handlertype": "pmtiles",
     "category": "communications",
     "name": "TANFINET Links",
-    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Links.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/TNGIS_TANFINET_Links.pmtiles",
+    "promoteid": "object_id"
   },
   "/fb-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "Facebook Roads",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/fb-roads/fb_roads_india.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/fb-roads/fb_roads_india.pmtiles",
+    "promoteid": "way_fbid"
   },
   "/ms-roads/": {
     "handlertype": "pmtiles",
@@ -830,21 +923,24 @@
     "category": "roads",
     "name": "PMGSY Roads",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads.pmtiles",
+    "promoteid": "ER_ID"
   },
   "/pmgsy-roads-candidates/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Candidates",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_candidates.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_candidates.pmtiles",
+    "promoteid": "ER_ID"
   },
   "/pmgsy-roads-proposals-i/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals I",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_i.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_i.pmtiles",
+    "promoteid": "MRL_ID"
   },
   "/pmgsy-roads-proposals-ii/": {
     "handlertype": "pmtiles",
@@ -871,13 +967,15 @@
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Roads",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Roads.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/soi-tracks/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Tracks",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tracks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tracks.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/nic-roads/": {
     "handlertype": "pmtiles",
@@ -893,43 +991,50 @@
       "railways"
     ],
     "name": "SOI Bridges",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Bridges.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Bridges.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/soi-tolls/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Tolls",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tolls.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tolls.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/soi-passes/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Passes",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Passes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Passes.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/soi-glacial-routes/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Glacial Routes",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/soi-causeways/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Causeways",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Causeways.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Causeways.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/soi-culverts/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Culverts",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Culverts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Culverts.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/soi-viaducts/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Viaducts",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/soi-fords/": {
     "handlertype": "pmtiles",
@@ -947,7 +1052,8 @@
       "urban"
     ],
     "name": "NUIS Road Center Lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Urban_Roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Urban_Roads.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/roads/center-lines/amrut/bhuvan/": {
     "handlertype": "pmtiles",
@@ -956,7 +1062,8 @@
       "urban"
     ],
     "name": "AMRUT Road Center Lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/urban/telangana/roads/polys/cdma/bhuvan/": {
     "handlertype": "pmtiles",
@@ -966,109 +1073,127 @@
       "telangana"
     ],
     "name": "Telangana CDMA Road Polygons",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/TS_CDMA_Roads.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/TS_CDMA_Roads.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/railways/tracks/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railways Tracks",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Tracks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Tracks.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/railways/track-pois/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railways Track POIs",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Track_POIs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Track_POIs.pmtiles",
+    "promoteid": "longitude"
   },
   "/not-so-open/railways/tracks/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Railway Tracks",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Tracks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Tracks.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/railways/track-sidings/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Railway Track Sidings",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Sidings.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Sidings.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/railways/stations/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railway Stations",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Stations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Stations.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/railways/stations/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Stations",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Stations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Stations.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/railways/metros/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Metros",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Metros.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Metros.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/forests/circles/fsi/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "FSI Circles",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Circles.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Circles.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/forests/divisions/fsi/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "FSI Divisions",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Divisions.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Divisions.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/forests/ranges/fsi/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "FSI Ranges",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Ranges.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Ranges.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/forests/beats/fsi/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "FSI Beats",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Beats.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/FSI_Beats.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/forests/soi/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "SOI Forests",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/SOI_Forests.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/SOI_Forests.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/forests/bharatmaps/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "Bharatmaps Forests",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_RFA.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_RFA.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/forests/esz/ncog/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "NCOG Eco Sensitive Zones",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/NCOG_Eco_Sensitive_Zones.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/NCOG_Eco_Sensitive_Zones.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/forests/esz/parivesh/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "Bharatmaps/Parivesh Eco Sensitive Zones",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zones.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zones.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/forests/esz/buffers/parivesh/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "Bharatmaps/Parivesh Eco Sensitive Zone Buffers",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zone_Buffers.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Eco_Sensitive_Zone_Buffers.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/forests/wildlife/reserves-and-corridors/parivesh/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "Bharatmaps/Parivesh Wildlife Reserves and Corridors",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Wildlife_Reserves_and_Corridors.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/Bharatmaps_Parivesh_Wildlife_Reserves_and_Corridors.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/coastal/regulation-zones/ncscm/": {
     "handlertype": "pmtiles",
@@ -1121,7 +1246,8 @@
     "handlertype": "pmtiles",
     "category": "postal",
     "name": "PINCode Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/PincodeBoundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/PincodeBoundaries.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/pincodes/delhi/gsdl/": {
     "handlertype": "pmtiles",
@@ -1130,7 +1256,8 @@
       "delhi"
     ],
     "name": "GSDL Delhi PINCode/sublocality Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/GSDL_Pincodes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/GSDL_Pincodes.pmtiles",
+    "promoteid": "FID"
   },
   "/basins/wris/": {
     "handlertype": "pmtiles",
@@ -1139,7 +1266,8 @@
       "hydro_boundaries"
     ],
     "name": "WRIS Basins",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_Basin.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_Basin.pmtiles",
+    "promoteid": "objectid"
   },
   "/sub-basins/wris/": {
     "handlertype": "pmtiles",
@@ -1148,7 +1276,8 @@
       "hydro_boundaries"
     ],
     "name": "WRIS SubBasins",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_SubBasin.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_SubBasin.pmtiles",
+    "promoteid": "objectid"
   },
   "/watersheds/wris/": {
     "handlertype": "pmtiles",
@@ -1157,7 +1286,8 @@
       "hydro_boundaries"
     ],
     "name": "WRIS watersheds",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_Watershed.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/WRIS_Watershed.pmtiles",
+    "promoteid": "objectid"
   },
   "/micro-watersheds/slusi/": {
     "handlertype": "pmtiles",
@@ -1166,31 +1296,36 @@
       "hydro_boundaries"
     ],
     "name": "SLUSI Micro Watersheds",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_MicroWatersheds.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_MicroWatersheds.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/wetlands/parivesh/": {
     "handlertype": "pmtiles",
     "category": "wetlands",
     "name": "Bharatmaps/Parivesh Wetland Boundaries",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/Bharatmaps_Parivesh_Wetland_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/Bharatmaps_Parivesh_Wetland_Boundaries.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/wetlands/ramsar/parivesh/": {
     "handlertype": "pmtiles",
     "category": "wetlands",
     "name": "Bharatmaps/Parivesh Ramsar Wetland Boundaries",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/Bharatmaps_Parivesh_Ramsar_Wetlands.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/Bharatmaps_Parivesh_Ramsar_Wetlands.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/forests/ftm/parivesh/": {
     "handlertype": "pmtiles",
     "category": "forests",
     "name": "Bharatmaps/Parivesh Forest Type Mapping",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/forests/Bharatmaps_Parivesh_Forest_Type_Mapping.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/forests/Bharatmaps_Parivesh_Forest_Type_Mapping.pmtiles",
+    "promoteid": "objectid"
   },
   "/soil-health/slusi/": {
     "handlertype": "pmtiles",
     "category": "soil health",
     "name": "SLUSI Soil Health data",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soil-health/SLUSI_SHC.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soil-health/SLUSI_SHC.pmtiles",
+    "promoteid": "id"
   },
   "/micro-watersheds/priorities/slusi/": {
     "handlertype": "pmtiles",
@@ -1199,115 +1334,134 @@
       "hydro_boundaries"
     ],
     "name": "SLUSI Micro Watershed Soil Preservation Priorities",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_Priority_MicroWatersheds.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/hydro-boundaries/SLUSI_Priority_MicroWatersheds.pmtiles",
+    "promoteid": "id"
   },
   "/waterbodies/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS waterbodies",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Waterbodies.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Waterbodies.pmtiles",
+    "promoteid": "objectid"
   },
   "/waterbodies/lakes/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Lakes",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Lakes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Lakes.pmtiles",
+    "promoteid": "objectid"
   },
   "/waterbodies/reservoirs/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Reservoirs",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Reservoirs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/WRIS_Reservoirs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/waterbodies/lakes/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Lakes",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Lakes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Lakes.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/waterbodies/tanks/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Tanks",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tanks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tanks.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/waterbodies/tank-points/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Tank Points",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tank_Points.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/SOI_Tank_Points.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/natural-water-features/springs/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Springs",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/natural-water-features/geothermal-springs/ngdr/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "NGDR Geothermal Springs",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/NGDR_Geothermal_Springs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/NGDR_Geothermal_Springs.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/points/ngdr/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NGDR Landslide Points",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Points.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Points.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/points/gsi/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "GSI Landslide Inventory",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/GSI_Landslide_Inventory.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/GSI_Landslide_Inventory.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/landslides/polygons/ngdr/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NGDR Landslide Polygons",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NGDR_Landslide_Polygons.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/polygons/ndem/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NDEM Landslide Polygons",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslides.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslides.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/polygons/bhuvan/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "Bhuvan Landslide Polygons",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/Bhuvan_Landslides.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/Bhuvan_Landslides.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/hazard/ndem/": {
     "handlertype": "pmtiles",
     "category": "landslides",
     "name": "NDEM Landslide Hazard",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslide_Hazard.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NDEM_Landslide_Hazard.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/natural-water-features/springs-compiled/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Springs Compiled",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs_compiled.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Springs_compiled.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/natural-water-features/waterfalls/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Waterfalls",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Waterfalls.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/SOI_Waterfalls.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/river-polygons/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS River Polygons",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_River_Polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_River_Polygons.pmtiles",
+    "promoteid": "objectid"
   },
   "/rivers/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Rivers",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Rivers.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/WRIS_Rivers.pmtiles",
+    "promoteid": "objectid"
   },
   "/streams/wris/": {
     "handlertype": "pmtiles",
@@ -1319,110 +1473,128 @@
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Streams",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Streams.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/streams/ncog/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "nCOG SOI Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/NCOG_SOI_Streams.pmtiles",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/water-channels/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Water Channels",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channels.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channels.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/water-channel-polys/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Water Channel Polygons",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channel_Polygons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/SOI_Water_Channel_Polygons.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/irrigation/canals/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Canals",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Canals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Canals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/irrigation/drains/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Drains",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Drains.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Drains.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/irrigation/sluices/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Sluices",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Sluices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Sluices.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/irrigation/siphons/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Siphons",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Siphons.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/irrigation/weirs/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Weirs",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weirs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weirs.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/irrigation/weir-locks/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Weir Locks",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weir_Locks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Weir_Locks.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/irrigation/aqueducts/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Aqueducts",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Aqueducts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Aqueducts.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/irrigation/hand-pumps/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Hand Pumps",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Hand_Pumps.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Hand_Pumps.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/irrigation/tube-wells/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Tube Wells",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Tube_Wells.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Tube_Wells.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/irrigation/wells/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Wells",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Wells.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/SOI_Wells.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/irrigation/anicuts/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Anicuts/weirs/barrages",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Anicuts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Anicuts.pmtiles",
+    "promoteid": "objectid"
   },
   "/irrigation/lift-stations/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS LIFT stations",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_LIFT_Stations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_LIFT_Stations.pmtiles",
+    "promoteid": "objectid"
   },
   "/irrigation/dams/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Dams",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Dams.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/WRIS_Dams.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/irrigation/dams/bharatmaps/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "Bharatmaps Dams",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Dams.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Dams.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/irrigation/canals/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -1440,31 +1612,36 @@
     "handlertype": "pmtiles",
     "category": "water",
     "name": "Bharatmaps Canal Names",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canals_with_names.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/irrigation/Bharatmaps_Canals_with_names.pmtiles",
+    "promoteid": "objectid"
   },
   "/water-body-census/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Jaldharohar First Water body Census",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbody-census/JalDharohar_Waterbody_Census.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbody-census/JalDharohar_Waterbody_Census.pmtiles",
+    "promoteid": "mi_id"
   },
   "/water-ways/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Inland Waterways",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways.pmtiles",
+    "promoteid": "objectid"
   },
   "/water-ways/with-depth/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Inland Waterways with depth",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways_with_depth.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterways_with_depth.pmtiles",
+    "promoteid": "objectid"
   },
   "/water-ways/navigation-canals/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Navigation canals",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Navigation_Canals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Navigation_Canals.pmtiles",
+    "promoteid": "objectid"
   },
   "/water-ways/facilities/wris/": {
     "handlertype": "pmtiles",
@@ -1473,13 +1650,15 @@
       "facilities"
     ],
     "name": "WRIS Waterway facilities",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterway_facilities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Waterway_facilities.pmtiles",
+    "promoteid": "name"
   },
   "/water-ways/spurs/wris/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "WRIS Spurs",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Spurs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/WRIS_Spurs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/water-ways/facilities/soi/": {
     "handlertype": "pmtiles",
@@ -1488,25 +1667,29 @@
       "facilities"
     ],
     "name": "SOI Waterway facilities",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Waterway_facilities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Waterway_facilities.pmtiles",
+    "promoteid": "unique_id"
   },
   "/not-so-open/water-ways/navigation-locks/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Navigation Locks",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Navigation_Locks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Navigation_Locks.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/water-ways/ferries/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Ferries",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Ferries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Ferries.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/water-ways/steamer-service/soi/": {
     "handlertype": "pmtiles",
     "category": "water",
     "name": "SOI Steamer Service",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Steamer_service.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/inland-waterways/SOI_Steamer_service.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/cultural/forts/soi/": {
     "handlertype": "pmtiles",
@@ -1515,7 +1698,8 @@
       "forts"
     ],
     "name": "SOI Forts",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_FORTS_Surveyed.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_FORTS_Surveyed.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cultural/monuments/asi/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1524,7 +1708,8 @@
       "mounuments"
     ],
     "name": "Bhuvan ASI Monuments",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Monuments.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Monuments.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cultural/monuments/zones/asi/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1533,7 +1718,8 @@
       "mounuments"
     ],
     "name": "Bhuvan ASI Zones",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ASI_Boundaries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cultural/monuments/soi/": {
     "handlertype": "pmtiles",
@@ -1542,7 +1728,8 @@
       "mounuments"
     ],
     "name": "SOI Monuments",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Monuments.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Monuments.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/cultural/religious/soi/": {
     "handlertype": "pmtiles",
@@ -1551,7 +1738,8 @@
       "religious"
     ],
     "name": "SOI Religious Places",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Religious_Places.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/SOI_Religious_Places.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cultural/sacred-places/envis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1561,7 +1749,8 @@
       "environmental"
     ],
     "name": "Bhuvan ENVIS Sacred Places",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ENVIS_SacredPlaces.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_ENVIS_SacredPlaces.pmtiles",
+    "promoteid": "id"
   },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
@@ -1570,7 +1759,8 @@
       "facilities"
     ],
     "name": "PMGSY Facilities",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pmgsy-facilities/PMGSY_facilities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pmgsy-facilities/PMGSY_facilities.pmtiles",
+    "promoteid": "FACILITY_I"
   },
   "/not-so-open/facilities/jjm/": {
     "handlertype": "pmtiles",
@@ -1582,7 +1772,8 @@
       "water sources"
     ],
     "name": "JJM Facilities",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/jjm-facilities/JJM_facilities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/jjm-facilities/JJM_facilities.pmtiles",
+    "promoteid": "orig_location"
   },
   "/not-so-open/egramswaraj-activities/": {
     "handlertype": "pmtiles",
@@ -1591,7 +1782,8 @@
       "facilities"
     ],
     "name": "Egramswaraj activities",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/egramswaraj_activities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/panchayats/egramswaraj_activities.pmtiles",
+    "promoteid": "Date of Upload"
   },
   "/not-so-open/facilities/post-offices/soi/": {
     "handlertype": "pmtiles",
@@ -1600,7 +1792,8 @@
       "postal"
     ],
     "name": "SOI Post Offices",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/SOI_PostOffices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/SOI_PostOffices.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/facilities/post-offices/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1609,7 +1802,8 @@
       "postal"
     ],
     "name": "Bhuvan Post Offices",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/Bhuvan_PostOffices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/Bhuvan_PostOffices.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/facilities/post-offices/postalgis/": {
     "handlertype": "pmtiles",
@@ -1618,7 +1812,8 @@
       "postal"
     ],
     "name": "PostalGIS Post Offices",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/PostalGIS_PostOffices.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/post-offices/PostalGIS_PostOffices.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/facilities/police-stations/soi/": {
     "handlertype": "pmtiles",
@@ -1627,7 +1822,8 @@
       "police"
     ],
     "name": "SOI PoliceStations",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/SOI_PoliceStations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/SOI_PoliceStations.pmtiles",
+    "promoteid": "objectid_12"
   },
   "/not-so-open/facilities/police-stations/living-atlas/": {
     "handlertype": "pmtiles",
@@ -1636,7 +1832,8 @@
       "police"
     ],
     "name": "ESRI LivingAtlas PoliceStations",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/LivingAtlas_PoliceStations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/LivingAtlas_PoliceStations.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/bulk-waste/sbm/": {
     "handlertype": "pmtiles",
@@ -1645,7 +1842,8 @@
       "sanitation"
     ],
     "name": "SBM Urban Bulkwaste locations",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Bulkwaste.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Bulkwaste.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/public-toilets/sbm/": {
     "handlertype": "pmtiles",
@@ -1654,7 +1852,8 @@
       "sanitation"
     ],
     "name": "SBM Urban Community and Public Toilets",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Community_and_public_toilets.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Community_and_public_toilets.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/dumpsites/sbm/": {
     "handlertype": "pmtiles",
@@ -1663,7 +1862,8 @@
       "sanitation"
     ],
     "name": "SBM Urban Dumpsites",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Dumpsites.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Dumpsites.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/landfills/sbm/": {
     "handlertype": "pmtiles",
@@ -1672,7 +1872,8 @@
       "sanitation"
     ],
     "name": "SBM Urban Landfills",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Landfills.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Landfills.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/processing-plants/sbm/": {
     "handlertype": "pmtiles",
@@ -1681,7 +1882,8 @@
       "sanitation"
     ],
     "name": "SBM Urban Processing plants",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Processing_plants.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Processing_plants.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/secondary-storages/sbm/": {
     "handlertype": "pmtiles",
@@ -1690,7 +1892,8 @@
       "sanitation"
     ],
     "name": "SBM Urban secondary storage locations",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Secondary_storages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Secondary_storages.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/transfer-stations/sbm/": {
     "handlertype": "pmtiles",
@@ -1699,7 +1902,8 @@
       "sanitation"
     ],
     "name": "SBM Urban transfer station locations",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Transfer_stations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/SBM_Transfer_stations.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/facilities/sanitation/sewage-lines/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -1708,7 +1912,8 @@
       "sanitation"
     ],
     "name": "Wb AMRUT Urban Sewage lines",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_lines.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/facilities/sanitation/sewage-manholes/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -1717,7 +1922,8 @@
       "sanitation"
     ],
     "name": "Wb AMRUT Urban Sewage Manholes",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_manholes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Sewage_manholes.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/facilities/sanitation/community-toilets/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -1735,7 +1941,8 @@
       "sanitation"
     ],
     "name": "Wb AMRUT Garbage Collection points",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Garbage_Collection_points.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Garbage_Collection_points.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/facilities/pois/sbm/": {
     "handlertype": "pmtiles",
@@ -1744,7 +1951,8 @@
       "pois"
     ],
     "name": "SBM Points of Interest",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/SBM_POIs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/pois/SBM_POIs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban-ghats/sbm/": {
     "handlertype": "pmtiles",
@@ -1753,7 +1961,8 @@
       "ghats"
     ],
     "name": "SBM Urban Ghats",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Ghats.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Ghats.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/urban-water-bodies/sbm/": {
     "handlertype": "pmtiles",
@@ -1761,7 +1970,8 @@
       "waterbodies"
     ],
     "name": "SBM Urban Water Bodies",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Water_bodies.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Water_bodies.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/stormwater-drains/sbm/": {
     "handlertype": "pmtiles",
@@ -1769,7 +1979,8 @@
       "waterbodies"
     ],
     "name": "SBM Stormwater Drains",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Stormwater_drains.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/SBM_Stormwater_drains.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/stormwater-drains/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -1777,7 +1988,8 @@
       "waterbodies"
     ],
     "name": "WB AMRUT Stormwater Drains",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_drains.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_drains.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/stormwater-vents/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -1785,7 +1997,8 @@
       "waterbodies"
     ],
     "name": "WB AMRUT Stormwater vents",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_vents.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/urban-water-features/WB_AMRUT_Stormwater_vents.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/delhi/urban/gsdl/": {
     "handlertype": "pmtiles",
@@ -1794,7 +2007,8 @@
       "delhi"
     ],
     "name": "GSDL Delhi cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/delhi/GSDL_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/delhi/GSDL_Cadastrals.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/cadastrals/tripura/nesdr/": {
     "handlertype": "pmtiles",
@@ -1803,7 +2017,8 @@
       "tripura"
     ],
     "name": "NESDR Tripura cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/NESDR_Tripura_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/NESDR_Tripura_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/tripura/matribhoomi/": {
     "handlertype": "pmtiles",
@@ -1812,7 +2027,8 @@
       "tripura"
     ],
     "name": "Matribhoomi Tripura cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/Matribhoomi_Tripura_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tripura/Matribhoomi_Tripura_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/bihar/matribhoomi/": {
     "handlertype": "pmtiles",
@@ -1830,7 +2046,8 @@
       "bihar"
     ],
     "name": "NCOG Bihar cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NCOG_Bihar_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NCOG_Bihar_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/punjab/punjabgis/": {
     "handlertype": "pmtiles",
@@ -1839,7 +2056,8 @@
       "punjab"
     ],
     "name": "PunjabGIS Punjab cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/PunjabGIS_PB_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/PunjabGIS_PB_Cadastrals.pmtiles",
+    "promoteid": "fid"
   },
   "/not-so-open/cadastrals/punjab/ncog/": {
     "handlertype": "pmtiles",
@@ -1848,7 +2066,8 @@
       "punjab"
     ],
     "name": "NCOG Punjab cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_Punjab_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_Punjab_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/punjab/jalandhar/ncog/": {
     "handlertype": "pmtiles",
@@ -1858,7 +2077,8 @@
       "jalandhar"
     ],
     "name": "NCOG Punjab Jalandhar cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_PB_Jalandhar_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/punjab/NCOG_PB_Jalandhar_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/rajasthan/ncog/": {
     "handlertype": "mosaic",
@@ -1868,7 +2088,8 @@
     ],
     "name": "NCOG Rajasthan cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/rajasthan/NCOG_Rajasthan_Cadastrals.mosaic.json",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/uttar-pradesh/ncog/": {
     "handlertype": "pmtiles",
@@ -1878,7 +2099,8 @@
     ],
     "name": "NCOG UttarPradesh cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/uttar-pradesh/NCOG_UttarPradesh_Cadastrals.pmtiles",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
@@ -1887,7 +2109,8 @@
       "jammu and kashmir"
     ],
     "name": "Jammu and Kashmir LRIS Khasra cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_Khasra_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_Khasra_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/jammu-and-kashmir/matribhoomi/": {
     "handlertype": "pmtiles",
@@ -1896,7 +2119,8 @@
       "jammu and kashmir"
     ],
     "name": "Matribhoomi Jammu and Kashmir cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/Matribhoomi_JK_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/Matribhoomi_JK_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/jammu-and-kashmir/ulpins/lris/": {
     "handlertype": "pmtiles",
@@ -1905,7 +2129,8 @@
       "jammu and kashmir"
     ],
     "name": "Jammu and Kashmir LRIS ULPIN cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_ULPIN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/jammu-and-kashmir/LRIS_JK_ULPIN_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/telangana/bhunaksha/tracgis/": {
     "handlertype": "pmtiles",
@@ -1914,7 +2139,8 @@
       "telangana"
     ],
     "name": "Telangana Bhunaksha cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/telangana/TRACGIS_Bhunaksha_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/telangana/TRACGIS_Bhunaksha_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/cadastrals/andhra-pradesh/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -1923,7 +2149,8 @@
       "andhra pradesh"
     ],
     "name": "NCSCM Andhra Pradesh Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/NCSCM_AP_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/NCSCM_AP_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/andhra-pradesh/apsac/": {
     "handlertype": "pmtiles",
@@ -1932,7 +2159,8 @@
       "andhra pradesh"
     ],
     "name": "Andhra Pradesh APSAC cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/APSAC_AP_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/andhra-pradesh/APSAC_AP_Cadastrals.pmtiles",
+    "promoteid": "objectid_1"
   },
   "/not-so-open/cadastrals/andhra-pradesh/forest/apsac/": {
     "handlertype": "pmtiles",
@@ -1951,7 +2179,8 @@
       "tamil nadu"
     ],
     "name": "NCSCM Tamil Nadu Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/NCSCM_TN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/NCSCM_TN_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/tamil-nadu/tngis/": {
     "handlertype": "pmtiles",
@@ -1960,7 +2189,8 @@
       "tamil nadu"
     ],
     "name": "TNGIS Tamil Nadu cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/TNGIS_TN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/tamil-nadu/TNGIS_TN_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/kerala/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -1969,7 +2199,8 @@
       "kerala"
     ],
     "name": "NCSCM Kerala Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/NCSCM_KL_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/kerala/NCSCM_KL_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/kerala/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1987,7 +2218,8 @@
       "west bengal"
     ],
     "name": "Bhuvan West Bengal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_WestBengal_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_WestBengal_Cadastrals.pmtiles",
+    "promoteid": "Parcel_num"
   },
   "/not-so-open/cadastrals/west-bengal/sisdp/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2005,7 +2237,8 @@
       "chhattisgarh"
     ],
     "name": "Bhuvan Chhattisgarh cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/Bhuvan_Chhattisgarh_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/Bhuvan_Chhattisgarh_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/chhattisgarh/dhamtari/ncog/": {
     "handlertype": "pmtiles",
@@ -2015,7 +2248,8 @@
       "dhamtari"
     ],
     "name": "NCOG Chhattisgarh Dhamtari cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/NCOG_CG_Dhamtari_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/NCOG_CG_Dhamtari_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/kerala/urban/lsgdp/": {
     "handlertype": "pmtiles",
@@ -2033,7 +2267,8 @@
       "karnataka"
     ],
     "name": "NCSCM Karnataka Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/NCSCM_KN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/NCSCM_KN_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/karnataka/kgismaps/": {
     "handlertype": "pmtiles",
@@ -2042,7 +2277,8 @@
       "karnataka"
     ],
     "name": "Karnataka KGSIMAPS cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/KGISMAPS_KN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/karnataka/KGISMAPS_KN_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/gujarat/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -2051,7 +2287,8 @@
       "gujarat"
     ],
     "name": "NCSCM Gujarat Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCSCM_GJ_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCSCM_GJ_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/gujarat/vedas/": {
     "handlertype": "pmtiles",
@@ -2060,7 +2297,8 @@
       "gujarat"
     ],
     "name": "VEDAS Gujarat cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Vedas_GJ_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Vedas_GJ_Cadastrals.pmtiles",
+    "promoteid": "title"
   },
   "/not-so-open/cadastrals/gujarat/matribhoomi/": {
     "handlertype": "pmtiles",
@@ -2069,7 +2307,8 @@
       "gujarat"
     ],
     "name": "Matribhoomi Gujarat cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Matribhoomi_GJ_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/Matribhoomi_GJ_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/gujarat/ncog/": {
     "handlertype": "pmtiles",
@@ -2078,7 +2317,8 @@
       "gujarat"
     ],
     "name": "NCOG Gujarat cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCOG_Gujarat_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/gujarat/NCOG_Gujarat_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/maharashtra/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -2087,7 +2327,8 @@
       "maharashtra"
     ],
     "name": "NCSCM Maharashtra Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/NCSCM_MH_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/NCSCM_MH_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/maharashtra/mrsac/": {
     "handlertype": "pmtiles",
@@ -2114,7 +2355,8 @@
       "dadra and nagar haveli and daman and diu"
     ],
     "name": "NCSCM Dadra and Nagar Haveli and Daman and Diu Coastal cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/dadra-and-nagar-haveli-and-daman-and-diu/NCSCM_DNHDD_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/dadra-and-nagar-haveli-and-daman-and-diu/NCSCM_DNHDD_Cadastrals.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/cadastrals/lakshadweep/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -2132,7 +2374,8 @@
       "lakshadweep"
     ],
     "name": "Bharatmaps Lakshadweep cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/Bharatmaps_Lakshadweep_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/lakshadweep/Bharatmaps_Lakshadweep_Cadastrals.pmtiles",
+    "promoteid": "PARCEL_ID"
   },
   "/not-so-open/cadastrals/andaman-and-nicobar/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -2160,7 +2403,8 @@
       "madhya pradesh"
     ],
     "name": "Madhya Pradesh MPBhulekh Plot Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Plot_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Plot_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/madhya-pradesh/surveys/mpbhulekh/": {
     "handlertype": "mosaic",
@@ -2170,7 +2414,8 @@
     ],
     "name": "Madhya Pradesh MPBhulekh Survey Cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/madhya-pradesh/MPBhulekh_MP_Survey_Cadastrals.mosaic.json",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/jharkhand/jsac/": {
     "handlertype": "mosaic",
@@ -2189,7 +2434,8 @@
       "haryana"
     ],
     "name": "Haryana HARSAC Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/haryana/HRSAC_HR_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/haryana/HRSAC_HR_Cadastrals.pmtiles",
+    "promoteid": "uq"
   },
   "/not-so-open/cadastrals/odisha/odisha4kgeo/": {
     "handlertype": "mosaic",
@@ -2208,7 +2454,8 @@
       "goa"
     ],
     "name": "Goa Bhunaksha Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Goa_Bhunaksha_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Goa_Bhunaksha_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/manipur/marsac/": {
     "handlertype": "pmtiles",
@@ -2217,7 +2464,8 @@
       "manipur"
     ],
     "name": "Manipur MARSAC Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/manipur/MARSAC_MN_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/manipur/MARSAC_MN_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/west-bengal/urban/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -2226,7 +2474,8 @@
       "west bengal"
     ],
     "name": "WB AMRUT urban cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/WB_AMRUT_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/assam/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2235,51 +2484,59 @@
       "assam"
     ],
     "name": "Assam Bhuvan cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/assam/Bhuvan_Assam_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/assam/Bhuvan_Assam_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/power/lines/ncog/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "NCOG/SOI Power Lines",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_lines.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/power/line-pylons/ncog/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "NCOG/SOI Power Line Pylons",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_line_pylons.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/NCOG_SOI_Power_line_pylons.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/power/lines/soi/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "SOI Power Lines",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/SOI_Power_Lines.pmtiles",
+    "promoteid": "objectid"
   },
   "/power/lines/vedas/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Lines",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Transmission_Lines.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Vedas_Power_Transmission_Lines.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/power/lines/rec/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "REC Power Line Connections",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Bharatmaps_REC_Power_Line_Connections.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/Bharatmaps_REC_Power_Line_Connections.pmtiles",
+    "promoteid": "objectid"
   },
   "/power/plants/vedas/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "VEDAS Power Plants",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Power_Plants.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Power_Plants.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/power/sub-stations/rec/": {
     "handlertype": "pmtiles",
     "category": "power",
     "name": "REC Power Sub Stations",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-stations/Bharatmaps_REC_Power_Sub_Stations.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-stations/Bharatmaps_REC_Power_Sub_Stations.pmtiles",
+    "promoteid": "ss_name"
   },
   "/not-so-open/power/transformers/rec/": {
     "handlertype": "pmtiles",
@@ -2294,7 +2551,8 @@
       "marine"
     ],
     "name": "NCOG Marine Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/NCOG_Marine_Police_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/NCOG_Marine_Police_Boundaries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/police/tamil-nadu/station-boundaries/tngis/": {
     "handlertype": "pmtiles",
@@ -2303,7 +2561,8 @@
       "tamil nadu"
     ],
     "name": "TNGIS Tamil Nadu Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Police_Station_Boundaries.pmtiles",
+    "promoteid": "object_id"
   },
   "/not-so-open/police/tamil-nadu/traffic/station-boundaries/tngis/": {
     "handlertype": "pmtiles",
@@ -2313,7 +2572,8 @@
       "tamil nadu"
     ],
     "name": "TNGIS Tamil Nadu Traffic Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Traffic_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TNGIS_TN_Traffic_Police_Station_Boundaries.pmtiles",
+    "promoteid": "object_id"
   },
   "/not-so-open/police/rajasthan/station-boundaries/rajdharaa/": {
     "handlertype": "pmtiles",
@@ -2322,7 +2582,8 @@
       "rajasthan"
     ],
     "name": "Rajdharaa Rajasthan Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_Police_Thana_Boundary.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_Police_Thana_Boundary.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/police/karnataka/station-boundaries/kgismaps/": {
     "handlertype": "pmtiles",
@@ -2331,7 +2592,8 @@
       "karnataka"
     ],
     "name": "KGISMAPS Karnataka Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Police_Station_Boundaries.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/police/grp/karnataka/station-boundaries/kgismaps/": {
     "handlertype": "pmtiles",
@@ -2341,7 +2603,8 @@
       "railway"
     ],
     "name": "KGISMAPS Karnataka Railway Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Railway_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Railway_Police_Station_Boundaries.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/police/traffic/karnataka/station-boundaries/kgismaps/": {
     "handlertype": "pmtiles",
@@ -2351,7 +2614,8 @@
       "traffic"
     ],
     "name": "KGISMAPS Karnataka traffic Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Traffic_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/KGISMAPS_KN_Traffic_Police_Station_Boundaries.pmtiles",
+    "promoteid": "OBJECTID_12"
   },
   "/not-so-open/police/delhi/station-boundaries/gsdl/": {
     "handlertype": "pmtiles",
@@ -2360,7 +2624,8 @@
       "delhi"
     ],
     "name": "GSDL Delhi Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/GSDL_DL_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/GSDL_DL_Police_Station_Boundaries.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/police/rajasthan/grp/station-boundaries/rajdharaa/": {
     "handlertype": "pmtiles",
@@ -2370,7 +2635,8 @@
       "rajasthan"
     ],
     "name": "Rajdharaa Rajasthan Railway Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_GRP_Thana_Boundary.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Rajdharaa_RJ_GRP_Thana_Boundary.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/police/bihar/station-boundaries/bhugoal/": {
     "handlertype": "pmtiles",
@@ -2379,7 +2645,8 @@
       "bihar"
     ],
     "name": "Bhugoal Bihar Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Bhugoal_BH_Police_Thana_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/Bhugoal_BH_Police_Thana_Boundaries.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/police/telangana/station-boundaries/tracgis/": {
     "handlertype": "pmtiles",
@@ -2388,7 +2655,8 @@
       "telangana"
     ],
     "name": "TRACGIS Telnagana Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TRACGIS_TG_Police_Station_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/TRACGIS_TG_Police_Station_Boundaries.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/police/andhra-pradesh/station-boundaries/apsac/": {
     "handlertype": "pmtiles",
@@ -2405,7 +2673,8 @@
       "earthquakes"
     ],
     "name": "NGDR Earthquakes",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquakes.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquakes.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/earthquakes/cmt/ngdr/": {
     "handlertype": "pmtiles",
@@ -2413,7 +2682,8 @@
       "earthquakes"
     ],
     "name": "NGDR Earthquake CMT Beachballs",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquake_CMT_Beachballs.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/earthquakes/NGDR_Earthquake_CMT_Beachballs.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/all-india/1998-2022/ndem/": {
     "handlertype": "pmtiles",
@@ -2421,7 +2691,8 @@
       "floods"
     ],
     "name": "NDEM All India aggregate flood Innundation 1998 to 2022",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Flood_Innundation_1998_to_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Flood_Innundation_1998_to_2022.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/all-india/2003-2020/ndem/": {
     "handlertype": "pmtiles",
@@ -2429,7 +2700,8 @@
       "floods"
     ],
     "name": "NDEM All India aggregate flood Innundation 2003 to 2020",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Aggregate_Flood_Innundation_by_state_2003_to_2020.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_All_India_Aggregate_Flood_Innundation_by_state_2003_to_2020.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/andhra-pradesh/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2447,7 +2719,8 @@
       "arunachal pradesh"
     ],
     "name": "NDEM Arunachal Pradesh flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/assam/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2519,7 +2792,8 @@
       "jharkand"
     ],
     "name": "NDEM Jharkand flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JH_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JH_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/jammu-and-kashmir/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2528,7 +2802,8 @@
       "jammu and kashmir"
     ],
     "name": "NDEM Jammu and Kashmir flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JK_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_JK_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/karnataka/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2546,7 +2821,8 @@
       "kerala"
     ],
     "name": "NDEM Kerala flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/maharashtra/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2555,7 +2831,8 @@
       "maharashtra"
     ],
     "name": "NDEM Maharashtra flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MH_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MH_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/meghalaya/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2573,7 +2850,8 @@
       "manipur"
     ],
     "name": "NDEM Manipur flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MN_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MN_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/madhya-pradesh/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2582,7 +2860,8 @@
       "madhya pradesh"
     ],
     "name": "NDEM Madhya Pradesh flood Innundation events",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Floods_Inundation.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Floods_Inundation.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/odisha/events/ndem/": {
     "handlertype": "pmtiles",
@@ -2690,7 +2969,8 @@
       "tamil nadu"
     ],
     "name": "NDEM Tamil Nadu yearly flood Innundation 2012,2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TN_Yearly_Aggregate_Flood_Innundation_2012_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_TN_Yearly_Aggregate_Flood_Innundation_2012_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/rajasthan/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2699,7 +2979,8 @@
       "rajasthan"
     ],
     "name": "NDEM Rajasthan yearly flood Innundation 2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_RJ_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_RJ_Yearly_Aggregate_Flood_Innundation_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/punjab/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2708,7 +2989,8 @@
       "punjab"
     ],
     "name": "NDEM Punjab yearly flood Innundation 1997 to 2010",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_PB_Yearly_Aggregate_Flood_Innundation_1997_to_2010.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_PB_Yearly_Aggregate_Flood_Innundation_1997_to_2010.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/odisha/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2726,7 +3008,8 @@
       "madhya pradesh"
     ],
     "name": "NDEM Madhya Pradesh yearly flood Innundation 2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_MP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/maharashtra/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2744,7 +3027,8 @@
       "kerala"
     ],
     "name": "NDEM Kerala yearly flood Innundation 2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KL_Yearly_Aggregate_Flood_Innundation_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/karnataka/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2753,7 +3037,8 @@
       "karnataka"
     ],
     "name": "NDEM Karnataka yearly flood Innundation 2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_KA_Yearly_Aggregate_Flood_Innundation_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/himachal-pradesh/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2762,7 +3047,8 @@
       "himachal pradesh"
     ],
     "name": "NDEM Himachal Pradesh yearly flood Innundation 2021",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_HP_Yearly_Aggregate_Flood_Innundation_2021.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/gujarat/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2780,7 +3066,8 @@
       "delhi"
     ],
     "name": "NDEM Delhi yearly flood Innundation 2013",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_DL_Yearly_Aggregate_Flood_Innundation_2013.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_DL_Yearly_Aggregate_Flood_Innundation_2013.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/bihar/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2816,7 +3103,8 @@
       "arunachal pradesh"
     ],
     "name": "NDEM Arunachal Pradesh yearly flood Innundation 2014",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Yearly_Aggregate_Flood_Innundation_2014.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/floods/NDEM_AR_Yearly_Aggregate_Flood_Innundation_2014.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/floods/andhra-pradesh/yearly/ndem/": {
     "handlertype": "pmtiles",
@@ -2833,7 +3121,8 @@
       "wetlands"
     ],
     "name": "NCOG/SOI Swamps",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_Swamps.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_Swamps.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/wetlands/saltpans/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2842,7 +3131,8 @@
       "religious"
     ],
     "name": "NCOG/SOI Christ Memorials",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/NCOG_SOI_Christ_Memorials.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/NCOG_SOI_Christ_Memorials.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/health/hospitals/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2850,7 +3140,8 @@
       "health"
     ],
     "name": "NCOG/SOI Hospitals",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Hospitals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Hospitals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/health/dispensaries/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2858,7 +3149,8 @@
       "health"
     ],
     "name": "NCOG/SOI Dispensaries",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Dispensaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Dispensaries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/landslides/prone-areas/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2866,7 +3158,8 @@
       "landslides"
     ],
     "name": "NCOG/SOI Landslide prone areas",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NCOG_SOI_Landslide_Prone_Areas.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/landslides/NCOG_SOI_Landslide_Prone_Areas.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/education/schools/udise/ncog/": {
     "handlertype": "pmtiles",
@@ -2874,7 +3167,8 @@
       "education"
     ],
     "name": "NCOG UDISE Schools",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_UDISE_Schools.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_UDISE_Schools.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/education/colleges/ncog/": {
     "handlertype": "pmtiles",
@@ -2882,7 +3176,8 @@
       "education"
     ],
     "name": "NCOG Colleges",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_Colleges.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/NCOG_Colleges.pmtiles",
+    "promoteid": "gid"
   },
   "/not-so-open/groundwater-prospects/lgeom/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2891,7 +3186,8 @@
     ],
     "name": "Bhuvan Groundwater prospects",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_LGEOM.pmtiles",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/health/veternary-hospitals/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2899,7 +3195,8 @@
       "health"
     ],
     "name": "NCOG/SOI Veternary Hospitals",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Veternary_Hospitals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NCOG_SOI_Veternary_Hospitals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/groundwater-prospects/structures/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2907,7 +3204,8 @@
       "water"
     ],
     "name": "Bhuvan Groundwater prospects structures",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_STRU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Prospects_STRU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/quarries/soi/ncog/": {
     "handlertype": "pmtiles",
@@ -2915,7 +3213,8 @@
       "mining"
     ],
     "name": "NCOG/SOI Quarries",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_SOI_Quarries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_SOI_Quarries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/minerals/critical/ngdr/": {
     "handlertype": "pmtiles",
@@ -2923,7 +3222,8 @@
       "mining"
     ],
     "name": "NGDR Critical Minerals",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Critical_Minerals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Critical_Minerals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/minerals/ngdr/ncog/": {
     "handlertype": "pmtiles",
@@ -2931,7 +3231,8 @@
       "mining"
     ],
     "name": "NCOG/NGDR Mineral map",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_NGDR_Mineral_Map.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_NGDR_Mineral_Map.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/minerals/deposits/ngdr/": {
     "handlertype": "pmtiles",
@@ -2939,7 +3240,8 @@
       "mining"
     ],
     "name": "NGDR Mineral Deposits",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mineral_Deposits.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mineral_Deposits.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/groundwater-quality/premonsoon/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2947,7 +3249,8 @@
       "water"
     ],
     "name": "Bhuvan Groundwater quality premonsoon",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Premonsoon.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Premonsoon.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/groundwater-quality/postmonsoon/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2955,7 +3258,8 @@
       "water"
     ],
     "name": "Bhuvan Groundwater quality postmonsoon",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Postmonsoon.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/groundwater-prospects/Bhuvan_Groundwater_Quality_Postmonsoon.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/minerals/ogp/ngdr/": {
     "handlertype": "pmtiles",
@@ -2971,7 +3275,8 @@
       "mining"
     ],
     "name": "NGDR Metallozenic Zones",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Zones.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Zones.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/metallozenic/points/ngdr/": {
     "handlertype": "pmtiles",
@@ -2979,7 +3284,8 @@
       "mining"
     ],
     "name": "NGDR Metallozenic Points",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Points.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGSR_Metallozenic_Points.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/leases/major/ngdr/": {
     "handlertype": "pmtiles",
@@ -2987,7 +3293,8 @@
       "mining"
     ],
     "name": "NGDR Major Mining Leases 2022",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Major_Mining_Leases_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Major_Mining_Leases_2022.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/leases/major/ncog/": {
     "handlertype": "pmtiles",
@@ -2995,7 +3302,8 @@
       "mining"
     ],
     "name": "NCOG Major Mining Leases",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Major_Mining_Leases.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Major_Mining_Leases.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/leases/minor/ncog/": {
     "handlertype": "pmtiles",
@@ -3003,7 +3311,8 @@
       "mining"
     ],
     "name": "NCOG Minor Mining Leases",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Minor_Mining_Leases.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NCOG_Minor_Mining_Leases.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/leases/minor/ngdr/": {
     "handlertype": "pmtiles",
@@ -3011,7 +3320,8 @@
       "mining"
     ],
     "name": "NGDR Minor Mining Leases",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Minor_Mining_Leases.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Minor_Mining_Leases.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/exploration/blocks/ngdr/": {
     "handlertype": "pmtiles",
@@ -3027,7 +3337,8 @@
       "mining"
     ],
     "name": "NGDR Mining Exploration Drilling Boreholes",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Exploration_Drilling_Boreholes.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Exploration_Drilling_Boreholes.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/hydrocarbons/blocks/ngdr/": {
     "handlertype": "pmtiles",
@@ -3035,7 +3346,8 @@
       "mining"
     ],
     "name": "NGDR Hydrocarbon Blocks",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Hydrocarbon_Blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Hydrocarbon_Blocks.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/blocks/future/ngdr/": {
     "handlertype": "pmtiles",
@@ -3043,7 +3355,8 @@
       "mining"
     ],
     "name": "NGDR Future Project Blocks",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Blocks_Future_Projects.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Blocks_Future_Projects.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/coal/blocks/ngdr/": {
     "handlertype": "pmtiles",
@@ -3051,7 +3364,8 @@
       "mining"
     ],
     "name": "NGDR Coal Blocks",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coal_Blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coal_Blocks.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/coal/fields/ngdr/": {
     "handlertype": "pmtiles",
@@ -3059,7 +3373,8 @@
       "mining"
     ],
     "name": "NGDR Coal Fields Basinal Area",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coalfields_Basinal_Area.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Coalfields_Basinal_Area.pmtiles",
+    "promoteid": "gid"
   },
   "/not-so-open/mining/exploration/auction/handed-over/ngdr/": {
     "handlertype": "pmtiles",
@@ -3067,7 +3382,8 @@
       "mining"
     ],
     "name": "NGDR Auction Handed over Blocks",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Auction_Handed_Over_Blocks.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Auction_Handed_Over_Blocks.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/leases/other/ngdr/": {
     "handlertype": "pmtiles",
@@ -3075,7 +3391,8 @@
       "mining"
     ],
     "name": "NGDR Mining Leases Other",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Leases_Other.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Leases_Other.pmtiles",
+    "promoteid": "id"
   },
   "/mining/coal/mines/dataverse/": {
     "handlertype": "pmtiles",
@@ -3084,7 +3401,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian Coal Mine location and production - December 2020",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/Indian_Coal_Mines_dataset.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/Indian_Coal_Mines_dataset.pmtiles",
+    "promoteid": "SL No."
   },
   "/not-so-open/mining/quarries/ngdr/": {
     "handlertype": "pmtiles",
@@ -3092,7 +3410,8 @@
       "mining"
     ],
     "name": "NGDR Mining Quarries",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mining/quarries/with-commodity/ngdr/": {
     "handlertype": "pmtiles",
@@ -3100,7 +3419,8 @@
       "mining"
     ],
     "name": "NGDR Mining Quarries with commodity",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries_with_commodity.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/mining/NGDR_Mining_Quarries_with_commodity.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cyclones/ctp/ndem/": {
     "handlertype": "pmtiles",
@@ -3108,7 +3428,8 @@
       "cyclones"
     ],
     "name": "NDEM Cyclone tracking points",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctp.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctp.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cyclones/ctl/ndem/": {
     "handlertype": "pmtiles",
@@ -3116,7 +3437,8 @@
       "cyclones"
     ],
     "name": "NDEM Cyclone tracking lines",
-    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctl.pmtiles"
+    "url": "https://github.com/ramSeraph/india_natural_disasters/releases/download/cyclones/NDEM_Cyclones_ctl.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/education/itis/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3124,7 +3446,8 @@
       "education"
     ],
     "name": "Bharatmaps Grammanchitra ITIs",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Grammanchitra_ITIs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Grammanchitra_ITIs.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/agriculture/cold-storages/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3132,7 +3455,8 @@
       "agriculture"
     ],
     "name": "Bhuvan Cold Storages",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Cold_Storages.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Cold_Storages.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/agriculture/mandis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3140,7 +3464,8 @@
       "agriculture"
     ],
     "name": "Bhuvan Mandis",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Mandis.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/agriculture/Bhuvan_Mandis.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/banking/branches/dfs/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3148,7 +3473,8 @@
       "banking"
     ],
     "name": "Bharatmaps DFS 2022 Bank Branches",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Branches_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Branches_2022.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/banking/mitras/dfs/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3156,7 +3482,8 @@
       "banking"
     ],
     "name": "Bharatmaps DFS 2022 Bank Mitras",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Mitras_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_Mitras_2022.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/banking/atms/dfs/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3164,7 +3491,8 @@
       "banking"
     ],
     "name": "Bharatmaps DFS 2022 Bank ATMs",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_ATMs_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/Bharatmaps_DFS_Bank_ATMs_2022.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/govt-services/cscs/meity/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3172,7 +3500,8 @@
       "government services"
     ],
     "name": "Bharatmaps MeitY 2022 Common Service centers",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_MeitY_CSCs_2022.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_MeitY_CSCs_2022.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/govt-services/pds/dofd/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3180,7 +3509,8 @@
       "government services"
     ],
     "name": "Bharatmaps DoFD 2023 Public Distribution Service",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_DoFD_PDS_2023.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_DoFD_PDS_2023.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/govt-services/aadhar-centres/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3188,7 +3518,8 @@
       "government services"
     ],
     "name": "Bharatmaps Aadhar Centers",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_Grammanchitra_Aadhar_Centers.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/Bharatmaps_Grammanchitra_Aadhar_Centers.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/education/atal-tinkering-labs/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3196,7 +3527,8 @@
       "education"
     ],
     "name": "Bharatmaps Atal Tinkering Labs",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_AtalTinkeringLabs.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_AtalTinkeringLabs.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/education/emrs/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3204,7 +3536,8 @@
       "education"
     ],
     "name": "Bharatmaps Ekalabya Model Residential Schools",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Ekalabya_Model_Residential_Schools.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Ekalabya_Model_Residential_Schools.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/education/tribal/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3212,7 +3545,8 @@
       "education"
     ],
     "name": "Bharatmaps Tribal Welfare Schools",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Tribal_Welfare_Schools.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Tribal_Welfare_Schools.pmtiles",
+    "promoteid": "FID"
   },
   "/not-so-open/islands/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3220,7 +3554,8 @@
       "islands"
     ],
     "name": "Bhuvan Islands",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/Bhuvan_Islands.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/natural/Bhuvan_Islands.pmtiles",
+    "promoteid": "id"
   },
   "/health/hospitals/datagov/nhp/": {
     "handlertype": "pmtiles",
@@ -3229,7 +3564,8 @@
     ],
     "name": "NIN NHP Hospitals from data.gov.in",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NIN_Health_Facilties_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NIN_Health_Facilties_2025.pmtiles",
+    "promoteid": "srno"
   },
   "/not-so-open/education/schools/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3237,7 +3573,8 @@
       "education"
     ],
     "name": "Bharatmaps Schools",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Schooldata.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/education/Bharatmaps_Schooldata.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/health/centers/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -3245,7 +3582,8 @@
       "health"
     ],
     "name": "Bharatmaps Health Centers",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bharatmaps_Health_Centers.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Bharatmaps_Health_Centers.pmtiles",
+    "promoteid": "objectid"
   },
   "/not-so-open/health/facilties/livingatlas/": {
     "handlertype": "pmtiles",
@@ -3253,7 +3591,8 @@
       "health"
     ],
     "name": "ESRI LivingAtlas India Health Facilities",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/LivingAtlas_Health_Facilities.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/LivingAtlas_Health_Facilities.pmtiles",
+    "promoteid": "objectid"
   },
   "/health/directory/datagov/nhp/": {
     "handlertype": "pmtiles",
@@ -3261,7 +3600,8 @@
       "health"
     ],
     "name": "Datagov NHP Hospital Directory",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.pmtiles",
+    "promoteid": "Sr_No"
   },
   "/health/blood-banks/datagov/nhp/": {
     "handlertype": "pmtiles",
@@ -3269,7 +3609,8 @@
       "health"
     ],
     "name": "Datagov NHP Blood banks",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/health/anganwadis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3285,7 +3626,8 @@
       "power"
     ],
     "name": "Vedas Ethanol Plants",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Ethanol_Plants.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Ethanol_Plants.pmtiles",
+    "promoteid": "id"
   },
   "/power/oil/refineries/vedas/": {
     "handlertype": "pmtiles",
@@ -3293,7 +3635,8 @@
       "power"
     ],
     "name": "Vedas Oil Refineries",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Refineries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Refineries.pmtiles",
+    "promoteid": "id"
   },
   "/power/oil/wells/vedas/": {
     "handlertype": "pmtiles",
@@ -3301,7 +3644,8 @@
       "power"
     ],
     "name": "Vedas Oil Wells",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Wells.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Oil_Wells.pmtiles",
+    "promoteid": "id"
   },
   "/power/wind/farms/vedas/": {
     "handlertype": "pmtiles",
@@ -3309,7 +3653,8 @@
       "power"
     ],
     "name": "Vedas Wind Farms",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Wind_Farms.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Wind_Farms.pmtiles",
+    "promoteid": "id"
   },
   "/power/solar/panels/ai/2018/vedas/": {
     "handlertype": "pmtiles",
@@ -3333,7 +3678,8 @@
       "power"
     ],
     "name": "Vedas Solar Panel Areas",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panel_Areas.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Panel_Areas.pmtiles",
+    "promoteid": "id"
   },
   "/power/solar/plants/vedas/": {
     "handlertype": "pmtiles",
@@ -3341,7 +3687,8 @@
       "power"
     ],
     "name": "Vedas Solar Power Plants",
-    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Power_Plants.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-sources/Vedas_Solar_Power_Plants.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/andaman-and-nicobar/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3351,7 +3698,8 @@
       "andaman and nicobar"
     ],
     "name": "Andaman and Nicobar AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AN_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AN_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/arunachal-pradesh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3361,7 +3709,8 @@
       "arunachal pradesh"
     ],
     "name": "Arunachal Pradesh AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AR_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AR_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/goa/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3371,7 +3720,8 @@
       "goa"
     ],
     "name": "Goa AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/GA_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/GA_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/himachal-pradesh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3381,7 +3731,8 @@
       "himachal pradesh"
     ],
     "name": "Himachal Pradesh AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/HP_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/HP_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/jammu-and-kashmir/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3391,7 +3742,8 @@
       "jammu and kashmir"
     ],
     "name": "Jammu and Kashmir AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/JK_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/JK_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/kerala/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3401,7 +3753,8 @@
       "kerala"
     ],
     "name": "Kerala AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/KR_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/KR_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/manipur/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3411,7 +3764,8 @@
       "manipur"
     ],
     "name": "Manipur AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MN_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MN_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/madhya-pradesh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3421,7 +3775,8 @@
       "madhya pradesh"
     ],
     "name": "Madhya Pradesh AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MP_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MP_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/mizoram/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3431,7 +3786,8 @@
       "mizoram"
     ],
     "name": "Mizoram AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MZ_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/MZ_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/punjab/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3441,7 +3797,8 @@
       "punjab"
     ],
     "name": "Punjab AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PB_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PB_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/puducherry/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3451,7 +3808,8 @@
       "puducherry"
     ],
     "name": "Puducherry AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PD_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/PD_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/sikkim/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3461,7 +3819,8 @@
       "sikkim"
     ],
     "name": "Sikkim AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/SK_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/SK_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/tamil-nadu/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3471,7 +3830,8 @@
       "tamil nadu"
     ],
     "name": "Tamil Nadu AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TN_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TN_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/telangana/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3481,7 +3841,8 @@
       "telangana"
     ],
     "name": "Telangana AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TS_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TS_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/uttarakhand/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3491,7 +3852,8 @@
       "uttarakhand"
     ],
     "name": "Uttarakhand AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UK_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UK_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/assam/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3501,7 +3863,8 @@
       "assam"
     ],
     "name": "Assam AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AS_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/AS_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/chhattisgarh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3511,7 +3874,8 @@
       "chhattisgarh"
     ],
     "name": "Chhattisgarh AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/CG_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/CG_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/uttar-pradesh/urban/land-use/amrut/": {
     "handlertype": "pmtiles",
@@ -3521,7 +3885,8 @@
       "uttar pradesh"
     ],
     "name": "Uttar Pradesh AMRUT Urban Land Use",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UP_AMRUT_ULU.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/UP_AMRUT_ULU.pmtiles",
+    "promoteid": "id"
   },
   "/dem/contours/raw/soi/": {
     "handlertype": "pmtiles",
@@ -3531,7 +3896,8 @@
     ],
     "name": "SOI Raw Contours",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/soi-dem/SOI_Contours_raw.pmtiles",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/dem/grid/cartodem-v3r1/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3540,7 +3906,8 @@
       "grid"
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Grid",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1-orig/Bhuvan_CartoDEM_v3r1_grid.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1-orig/Bhuvan_CartoDEM_v3r1_grid.pmtiles",
+    "promoteid": "id"
   },
   "/dem/water-bodies/cartodem-v3r1/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3549,7 +3916,8 @@
       "water"
     ],
     "name": "Bhuvan CartoDEM 30m v3r1 Water Bodies",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1-orig/Bhuvan_CartoDEM_v3r1_Waterbodies.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1-orig/Bhuvan_CartoDEM_v3r1_Waterbodies.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/dem/contours/cartodem-v3r1/bhuvan/": {
     "handlertype": "mosaic",
@@ -3578,7 +3946,8 @@
     ],
     "name": "Bhuvan SISDP v2 Landuse 10k",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_V2_LULC_10k.mosaic.json",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/landuse/10k/sisdp/phase2/bhuvan/": {
     "handlertype": "mosaic",
@@ -3587,7 +3956,8 @@
     ],
     "name": "Bhuvan SISDP phase2 Landuse 10k from 2016-2019",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/landuse/Bhuvan_SISDP_Phase2_LULC_10k_2016-2019.mosaic.json",
-    "partitioned_parquet": true
+    "partitioned_parquet": true,
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/goa/onemapgoagis/": {
     "handlertype": "pmtiles",
@@ -3596,7 +3966,8 @@
       "cadastrals"
     ],
     "name": "OneMapGoaGIS Goa Cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Onemapgoa_GA_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/Onemapgoa_GA_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/goa/nbss/": {
     "handlertype": "pmtiles",
@@ -3605,7 +3976,8 @@
       "goa"
     ],
     "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/NBSS_Goa_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/NBSS_Goa_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/cadastrals/bihar/nbss/": {
     "handlertype": "pmtiles",
@@ -3614,7 +3986,8 @@
       "bihar"
     ],
     "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NBSS_Bihar_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NBSS_Bihar_Cadastrals.pmtiles",
+    "promoteid": "id"
   },
   "/pincodes/datagovin/": {
     "handlertype": "pmtiles",
@@ -3623,7 +3996,8 @@
     ],
     "datameet_attribution": false,
     "name": "Data.gov.in Pincode Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles",
+    "promoteid": "Pincode"
   },
   "/not-so-open/banking/business-correspondents/rbi/": {
     "handlertype": "pmtiles",
@@ -3631,7 +4005,8 @@
       "banking"
     ],
     "name": "RBI Banks Fixed Business Correspondents",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BC_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BC_2025.pmtiles",
+    "promoteid": "part1Code"
   },
   "/not-so-open/banking/customer-service-points/rbi/": {
     "handlertype": "pmtiles",
@@ -3639,7 +4014,8 @@
       "banking"
     ],
     "name": "RBI Banks ATMs/CDMs/CRMs",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_CSP_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_CSP_2025.pmtiles",
+    "promoteid": "part1Code"
   },
   "/not-so-open/banking/branches/rbi/": {
     "handlertype": "pmtiles",
@@ -3647,7 +4023,8 @@
       "banking"
     ],
     "name": "RBI Banks Branches/Extension Counters",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BRANCH_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_BRANCH_2025.pmtiles",
+    "promoteid": "part1Code"
   },
   "/not-so-open/banking/offices/rbi/": {
     "handlertype": "pmtiles",
@@ -3655,7 +4032,8 @@
       "banking"
     ],
     "name": "RBI Banks Offices/Others/CSCs",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_OFFICE_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_OFFICE_2025.pmtiles",
+    "promoteid": "part1Code"
   },
   "/not-so-open/banking/digital-banking-units/rbi/": {
     "handlertype": "pmtiles",
@@ -3663,7 +4041,8 @@
       "banking"
     ],
     "name": "RBI Banks Digital Banking Units",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_DBU_2025.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/banking/RBI_Banks_DBU_2025.pmtiles",
+    "promoteid": "part1Code"
   },
   "/world/topo/american/onc/": {
     "handlertype": "mosaic",
@@ -3815,7 +4194,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1941",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1941.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1941.pmtiles",
+    "promoteid": "Districts"
   },
   "/districts/historical/indiastatestories/1951/": {
     "handlertype": "pmtiles",
@@ -3825,7 +4205,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1951",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1951.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1951.pmtiles",
+    "promoteid": "District"
   },
   "/districts/historical/indiastatestories/1961/": {
     "handlertype": "pmtiles",
@@ -3835,7 +4216,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1961",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1961.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1961.pmtiles",
+    "promoteid": "District"
   },
   "/districts/historical/indiastatestories/1971/": {
     "handlertype": "pmtiles",
@@ -3845,7 +4227,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1971",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1971.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1971.pmtiles",
+    "promoteid": "District"
   },
   "/districts/historical/indiastatestories/1981/": {
     "handlertype": "pmtiles",
@@ -3855,7 +4238,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1981",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1981.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1981.pmtiles",
+    "promoteid": "District"
   },
   "/districts/historical/indiastatestories/1991/": {
     "handlertype": "pmtiles",
@@ -3865,7 +4249,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 1991",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1991.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-1991.pmtiles",
+    "promoteid": "District"
   },
   "/districts/historical/indiastatestories/2001/": {
     "handlertype": "pmtiles",
@@ -3875,7 +4260,8 @@
     ],
     "datameet_attribution": false,
     "name": "Indian State and District Boundaries in 2001",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-2001.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/historical/India-State-Districts-2001.pmtiles",
+    "promoteid": "District"
   },
   "/waterbodies/ponds/hydrosense/": {
     "handlertype": "pmtiles",
@@ -3885,6 +4271,7 @@
     ],
     "datameet_attribution": false,
     "name": "Amritsarovar Water Observatory data",
-    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles",
+    "promoteid": "Sarovar_ID"
   }
 }

@@ -2,7 +2,7 @@
 import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
 
 export class VectorSourceHandler {
-  constructor(map, colorHandler, searchParams) {
+  constructor(map, colorHandler, searchParams, routesHandler) {
     this.map = map;
     this.layers = {
       pts: [],
@@ -13,6 +13,7 @@ export class VectorSourceHandler {
 
     this.colorHandler = colorHandler;
     this.searchParams = searchParams;
+    this.routesHandler = routesHandler;
     this.colorType = colorHandler.LIGHT;
   }
 
@@ -58,7 +59,12 @@ export class VectorSourceHandler {
         'filter': ["==", "$type", "Polygon"],
         'layout': {},
         'paint': {
-          'fill-opacity': 0.1,
+          'fill-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            0.25,
+            0.1
+          ],
           'fill-color': layerColor
         }
       });
@@ -75,8 +81,18 @@ export class VectorSourceHandler {
         },
         'paint': {
           'line-color': layerColor,
-          'line-width': 1,
-          'line-opacity': 0.75
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            2,
+            1
+          ],
+          'line-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            0.9,
+            0.75
+          ]
         }
       });
 
@@ -124,8 +140,18 @@ export class VectorSourceHandler {
         },
         'paint': {
           'line-color': layerColor,
-          'line-width': 1,
-          'line-opacity': 0.75
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            2,
+            1
+          ],
+          'line-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            0.9,
+            0.75
+          ]
         }
       });
       
@@ -137,8 +163,18 @@ export class VectorSourceHandler {
         'filter': ["==", "$type", "Point"],
         'paint': {
           'circle-color': layerColor,
-          'circle-radius': 2.5,
-          'circle-opacity': 0.75
+          'circle-radius': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            4,
+            2.5
+          ],
+          'circle-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'highlight'], false],
+            0.9,
+            0.75
+          ]
         }
       });
       
@@ -227,8 +263,13 @@ export class VectorSourceHandler {
           sourceData.vectorLayers = vectorLayerIds;
         }
         
+        // Get promoteId from routes if available
+        const routes = this.routesHandler.getVectorSources();
+        const routeInfo = routes[sourceInfo.path];
+        const promoteId = routeInfo ? routeInfo.promoteid : null;
+        
         // Add source with modified TileJSON
-        this.map.addSource(srcName, {
+        const sourceSpec = {
           'type': 'vector',
           'tiles': tileJson.tiles,
           'attribution': attributionWithName,
@@ -236,7 +277,13 @@ export class VectorSourceHandler {
           'maxzoom': tileJson.maxzoom,
           'bounds': tileJson.bounds,
           'scheme': tileJson.scheme
-        });
+        };
+        
+        if (promoteId) {
+          sourceSpec.promoteId = promoteId;
+        }
+        
+        this.map.addSource(srcName, sourceSpec);
         
         const handler = (e) => {
           if (e.sourceId === srcName && e.isSourceLoaded) {

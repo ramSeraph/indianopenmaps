@@ -54,18 +54,69 @@ function renderPopup(features, lngLat) {
 }
 
 export class PopupHandler {
-  constructor(map, layers) {
+  constructor(map, layers, routesHandler, vectorSourceHandler) {
     this.map = map;
     this.layers = layers;
+    this.routesHandler = routesHandler;
+    this.vectorSourceHandler = vectorSourceHandler;
     this.wantPopup = true;
     this.popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false
     });
+    this.highlightedFeatures = [];
   }
 
   enable(enabled) {
     this.wantPopup = enabled;
+  }
+
+  clearHighlight() {
+    for (const { source, sourceLayer, id } of this.highlightedFeatures) {
+      this.map.setFeatureState(
+        { source, sourceLayer, id },
+        { highlight: false }
+      );
+    }
+    this.highlightedFeatures = [];
+  }
+
+  highlightFeatures(features) {
+    this.clearHighlight();
+    
+    const routes = this.routesHandler.getVectorSources();
+    
+    for (const feature of features) {
+      const sourceId = feature.source;
+      
+      // Find the source path from vectorSourceHandler
+      let sourcePath = null;
+      for (const [path, _] of this.vectorSourceHandler.selectedSources) {
+        if (this.vectorSourceHandler.getSourceName(path) === sourceId) {
+          sourcePath = path;
+          break;
+        }
+      }
+      
+      if (!sourcePath || !routes[sourcePath]) continue;
+      
+      const promoteId = routes[sourcePath].promoteid;
+      if (!promoteId) continue;
+      
+      // Get the feature id from the promoteId property
+      const featureId = feature.properties[promoteId];
+      if (featureId === undefined || featureId === null) continue;
+      
+      const sourceLayer = feature.sourceLayer || feature.layer['source-layer'];
+      if (!sourceLayer) continue;
+      
+      this.map.setFeatureState(
+        { source: sourceId, sourceLayer, id: featureId },
+        { highlight: true }
+      );
+      
+      this.highlightedFeatures.push({ source: sourceId, sourceLayer, id: featureId });
+    }
   }
 
   showPopup(e) {
@@ -88,10 +139,12 @@ export class PopupHandler {
 
     if (!features.length || !this.wantPopup) {
       this.popup.remove();
+      this.clearHighlight();
     } else {
       this.popup.setLngLat(e.lngLat)
         .setHTML(renderPopup(features, e.lngLat))
         .addTo(this.map);
+      this.highlightFeatures(features);
     }
   }
 }
