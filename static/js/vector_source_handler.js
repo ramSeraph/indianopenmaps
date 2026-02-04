@@ -14,7 +14,6 @@ export class VectorSourceHandler {
     this.colorHandler = colorHandler;
     this.searchParams = searchParams;
     this.routesHandler = routesHandler;
-    this.colorType = colorHandler.LIGHT;
   }
 
   getSourceName(sourcePath) {
@@ -26,13 +25,8 @@ export class VectorSourceHandler {
     this.searchParams.updateSources(sourcePaths);
   }
 
-  updateColorChoice(colorType) {
-    this.colorType = colorType;
-    this.updateVectorColours();
-  }
-
   getColor(sourceData) {
-    return sourceData.colors[this.colorType];
+    return sourceData.color;
   }
 
   getColorForPath(sourcePath) {
@@ -224,7 +218,7 @@ export class VectorSourceHandler {
       this.map.removeSource(srcName);
     }
     
-    this.colorHandler.releaseColors(sourceData.colors);
+    this.colorHandler.releaseColors(sourceData.color);
     this.selectedSources.delete(sourcePath);
     this.updateUrlWithSelectedSources();
   }
@@ -245,13 +239,13 @@ export class VectorSourceHandler {
       return;
     }
     
-    const colors = this.colorHandler.assignColors(
+    const color = this.colorHandler.assignColors(
       sourceInfo.path,
       () => Array.from(this.selectedSources.keys())
     );
     this.selectedSources.set(sourceInfo.path, {
       name: sourceInfo.name,
-      colors: colors,
+      color: color,
       vectorLayers: null
     });
     
@@ -311,43 +305,12 @@ export class VectorSourceHandler {
         // Remove from selected sources since it failed
         const sourceData = this.selectedSources.get(sourceInfo.path);
         if (sourceData) {
-          this.colorHandler.releaseColors(sourceData.colors);
+          this.colorHandler.releaseColors(sourceData.color);
         }
         this.selectedSources.delete(sourceInfo.path);
         this.updateUrlWithSelectedSources();
       });
     
     this.updateUrlWithSelectedSources();
-  }
-
-  updateVectorColours() {
-    for (const [sourcePath, sourceData] of this.selectedSources) {
-      const srcName = this.getSourceName(sourcePath);
-      if (!this.map.getSource(srcName)) continue;
-      
-      const src = this.map.getSource(srcName);
-      const vectorLayerIds = src.vectorLayerIds || [];
-      const layerColor = '#' + this.colorHandler.getColor(sourceData);
-      
-      for (const layerId of vectorLayerIds) {
-        const fullLayerId = `${sourcePath}-${layerId}`;
-        
-        if (this.map.getLayer(`${fullLayerId}-polygons`)) {
-          this.map.setPaintProperty(`${fullLayerId}-polygons`, 'fill-color', layerColor);
-        }
-        if (this.map.getLayer(`${fullLayerId}-polygons-outline`)) {
-          this.map.setPaintProperty(`${fullLayerId}-polygons-outline`, 'line-color', layerColor);
-        }
-        if (this.map.getLayer(`${fullLayerId}-lines`)) {
-          this.map.setPaintProperty(`${fullLayerId}-lines`, 'line-color', layerColor);
-        }
-        if (this.map.getLayer(`${fullLayerId}-pts`)) {
-          this.map.setPaintProperty(`${fullLayerId}-pts`, 'circle-color', layerColor);
-        }
-        if (this.map.getLayer(`${fullLayerId}-polygons-extrusions`)) {
-          this.map.setPaintProperty(`${fullLayerId}-polygons-extrusions`, 'fill-extrusion-color', layerColor);
-        }
-      }
-    }
   }
 }

@@ -1,25 +1,23 @@
 // Color management for vector sources
 export class ColorHandler {
   constructor() {
-    this.LIGHT = 'light';
-    this.DARK = 'dark';
-
-    this.colorLists = {};
-
-    this.colorLists[this.LIGHT] = [
-      'FC49A3', 'CC66FF', '66CCFF', '66FFCC', '00FF00', 'FFCC66',
-      'FF6666', 'FF0000', 'FF8000', 'FFFF66', '00FFFF',
+    // Single color list - distinct colors visible on both light and dark backgrounds
+    this.colors = [
+      'FF3B30', // Red
+      '34C759', // Green
+      '007AFF', // Blue
+      'FF9500', // Orange
+      'AF52DE', // Purple
+      '5AC8FA', // Cyan
+      'FF2D55', // Pink
+      'E6B800', // Gold
+      '5856D6', // Indigo
+      '00C7BE', // Teal
+      'FC49A3', // Hot Pink
+      'FF5E3A', // Coral
     ];
 
-    this.colorLists[this.DARK] = [
-      'C71585', '663399', '4682B4', '7B68EE', '228B22', 'DAA520',
-      'D2691E', 'B22222', 'FF8C00', 'FFD700', '003366',
-    ];
-
-    this.availableColors = {};
-    for (const [key, colorList] of Object.entries(this.colorLists)) {
-      this.availableColors[key] = [...colorList];
-    }
+    this.availableColors = [...this.colors];
 
     // Session color memory: maps source path -> color index
     this.sessionColorMap = this._loadSessionColors();
@@ -43,42 +41,26 @@ export class ColorHandler {
   }
 
   minColorLength() {
-    return Math.min(...Object.values(this.colorLists).map(list => list.length));
+    return this.colors.length;
   }
 
   hasAvailableColors() {
-    const key = Object.keys(this.colorLists)[0];
-    return this.availableColors[key].length > 0;
+    return this.availableColors.length > 0;
   }
 
   assignColors(sourcePath = null, getActivePaths = null) {
     // Check if we have a remembered color for this source
     if (sourcePath && this.sessionColorMap[sourcePath] !== undefined) {
       const colorIndex = this.sessionColorMap[sourcePath];
-      const assigned = {};
+      const color = this.colors[colorIndex];
       
-      for (const key of Object.keys(this.colorLists)) {
-        const color = this.colorLists[key][colorIndex];
-        // Remove from available if present
-        const idx = this.availableColors[key].indexOf(color);
-        if (idx !== -1) {
-          this.availableColors[key].splice(idx, 1);
-          assigned[key] = color;
-        } else {
-          // Color already in use, fall back to next available
-          break;
-        }
+      // Remove from available if present
+      const idx = this.availableColors.indexOf(color);
+      if (idx !== -1) {
+        this.availableColors.splice(idx, 1);
+        return color;
       }
-      
-      // If we successfully assigned all color types, return
-      if (Object.keys(assigned).length === Object.keys(this.colorLists).length) {
-        return assigned;
-      }
-      
-      // Otherwise restore what we took and fall through to normal assignment
-      for (const key of Object.keys(assigned)) {
-        this.availableColors[key].push(assigned[key]);
-      }
+      // Color already in use, fall through to normal assignment
     }
 
     // If no colors available, try to reclaim from inactive sources
@@ -90,26 +72,16 @@ export class ColorHandler {
       throw new Error('No colors available');
     }
 
-    const assigned = {};
-    let colorIndex = null;
-    
-    for (const [key, colorList] of Object.entries(this.colorLists)) {
-      const color = this.availableColors[key].shift();
-      assigned[key] = color;
-      
-      // Find the index in the original list for session storage
-      if (colorIndex === null) {
-        colorIndex = this.colorLists[key].indexOf(color);
-      }
-    }
+    const color = this.availableColors.shift();
+    const colorIndex = this.colors.indexOf(color);
     
     // Remember this color assignment for the session
-    if (sourcePath && colorIndex !== null) {
+    if (sourcePath && colorIndex !== -1) {
       this.sessionColorMap[sourcePath] = colorIndex;
       this._saveSessionColors();
     }
     
-    return assigned;
+    return color;
   }
 
   _reclaimInactiveColors(activePaths) {
@@ -119,11 +91,9 @@ export class ColorHandler {
     for (const [path, colorIndex] of Object.entries(this.sessionColorMap)) {
       if (!activeSet.has(path)) {
         // This source is not active, reclaim its color
-        for (const key of Object.keys(this.colorLists)) {
-          const color = this.colorLists[key][colorIndex];
-          if (!this.availableColors[key].includes(color)) {
-            this.availableColors[key].push(color);
-          }
+        const color = this.colors[colorIndex];
+        if (!this.availableColors.includes(color)) {
+          this.availableColors.push(color);
         }
         toRemove.push(path);
       }
@@ -139,10 +109,8 @@ export class ColorHandler {
     }
   }
 
-  releaseColors(colors) {
-    for (const key of Object.keys(this.colorLists)) {
-      this.availableColors[key].push(colors[key]);
-    }
+  releaseColors(color) {
+    this.availableColors.push(color);
   }
 
 }

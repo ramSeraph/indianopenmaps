@@ -176,13 +176,6 @@ export class BaseLayerPicker {
     return null;
   }
 
-  colorChoice() {
-    if (this.currentLayerName !== CARTO_OSM_DARK_LAYER_NAME && this.currentLayerName !== ESRI_WORLD_IMAGERY_LAYER_NAME && this.currentLayerName !== GOOGLE_HYBRID_LAYER_NAME) {
-      return this.colorHandler.DARK;
-    }
-    return this.colorHandler.LIGHT;
-  }
-
   loadRasterSources() {
     try {
       const routes = this.routesHandler.getRasterSources();
@@ -256,7 +249,6 @@ export class BaseLayerPicker {
 
     this.currentLayerName = layerName;
     this.searchParams.updateBaseLayer(layerName);
-    this.vectorSourceHandler.updateColorChoice(this.colorChoice());
   }
 
   async initialize() {
