@@ -7,6 +7,9 @@ body { margin:0; padding:0; }
   color: #e0e0e0;
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  max-height: 300px;
+  max-width: 400px;
+  overflow: auto;
 }
 .maplibregl-popup-anchor-top .maplibregl-popup-tip,
 .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
