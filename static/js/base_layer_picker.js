@@ -4,6 +4,7 @@
 // Base layer definitions
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
 export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
+export const CARTODB_LIGHT_LAYER_NAME = 'CartoDB Light';
 export const OSM_CARTO_LAYER_NAME = 'OSM Carto';
 export const GOOGLE_STREETS_LAYER_NAME = 'Google Streets';
 export const GOOGLE_HYBRID_LAYER_NAME = 'Google Hybrid';
@@ -44,6 +45,31 @@ export function getDefaultBaseLayers() {
         'layers': [
           {
             'id': 'carto-dark-layer',
+            'type': 'raster',
+            'minZoom': 0,
+            'maxZoom': 20,
+          }
+        ],
+        'maxZoom': 20,
+      }
+    }
+  };
+
+  const Carto_Light = {
+    'name': CARTODB_LIGHT_LAYER_NAME,
+    'sources': {
+      'carto-light': {
+        'type': 'raster',
+        'tiles': [
+          "ibc://https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+          "ibc://https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"
+        ],
+        'attribution': '<strong>CartoDB Light:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        'layers': [
+          {
+            'id': 'carto-light-layer',
             'type': 'raster',
             'minZoom': 0,
             'maxZoom': 20,
@@ -131,6 +157,7 @@ export function getDefaultBaseLayers() {
 
   return [
     Carto_Dark,
+    Carto_Light,
     OSM_Carto,
     Esri_WorldImagery,
     Google_Streets,
