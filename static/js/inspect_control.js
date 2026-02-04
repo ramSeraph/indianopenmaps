@@ -24,12 +24,13 @@ function renderProperty(propertyName, property) {
     '</div>';
 }
 
-function renderLayer(layerId) {
-  return '<div class="maplibregl-ctrl-inspect_layer">' + layerId + '</div>';
+function renderLayer(layerId, color = null) {
+  const style = color ? ` style="color: ${color}; border-left: 3px solid ${color}; padding-left: 5px;"` : '';
+  return '<div class="maplibregl-ctrl-inspect_layer"' + style + '>' + layerId + '</div>';
 }
 
-function renderProperties(feature) {
-  var sourceProperty = renderLayer(feature.layer['source-layer'] || feature.layer.source);
+function renderProperties(feature, layerColor = null) {
+  var sourceProperty = renderLayer(feature.layer['source-layer'] || feature.layer.source, layerColor);
   var idProperty = renderProperty('$id', feature.id);
   var typeProperty = renderProperty('$type', feature.geometry.type);
   var properties = Object.keys(feature.properties).map(function (propertyName) {
@@ -39,9 +40,10 @@ function renderProperties(feature) {
     : [sourceProperty, typeProperty]).concat(properties).join('');
 }
 
-function renderFeatures(features) {
+function renderFeatures(features, getLayerColor) {
   return features.map(function (ft) {
-    return '<div class="maplibregl-ctrl-inspect_feature">' + renderProperties(ft) + '</div>';
+    const color = getLayerColor ? getLayerColor(ft) : null;
+    return '<div class="maplibregl-ctrl-inspect_feature">' + renderProperties(ft, color) + '</div>';
   }).join('');
 }
 
@@ -49,8 +51,8 @@ function renderCoordinates(lngLat) {
   return `<div class="maplibregl-ctrl-inspect_layer">Coords: ${(lngLat.lng).toFixed(5)},${(lngLat.lat).toFixed(5)}</div>`;
 }
 
-function renderPopup(features, lngLat) {
-  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + renderFeatures(features) + '</div>';
+function renderPopup(features, lngLat, getLayerColor) {
+  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + renderFeatures(features, getLayerColor) + '</div>';
 }
 
 export class PopupHandler {
@@ -119,6 +121,16 @@ export class PopupHandler {
     }
   }
 
+  getLayerColor(feature) {
+    const sourceId = feature.source;
+    for (const [path, _] of this.vectorSourceHandler.selectedSources) {
+      if (this.vectorSourceHandler.getSourceName(path) === sourceId) {
+        return this.vectorSourceHandler.getColorForPath(path);
+      }
+    }
+    return null;
+  }
+
   showPopup(e) {
     var selectThreshold = 3;
     var queryBox = [
@@ -142,7 +154,7 @@ export class PopupHandler {
       this.clearHighlight();
     } else {
       this.popup.setLngLat(e.lngLat)
-        .setHTML(renderPopup(features, e.lngLat))
+        .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
         .addTo(this.map);
       this.highlightFeatures(features);
     }

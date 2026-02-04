@@ -163,7 +163,17 @@ export class SourcePanelControl {
       const item = document.createElement('div');
       item.className = 'selected-source-item';
       
+      // Add color indicator
+      const color = this.vectorSourceHandler.getColorForPath(path);
+      if (color) {
+        const colorDot = document.createElement('span');
+        colorDot.className = 'source-color-dot';
+        colorDot.style.backgroundColor = color;
+        item.appendChild(colorDot);
+      }
+      
       const nameSpan = document.createElement('span');
+      nameSpan.className = 'source-name';
       nameSpan.textContent = data.name;
       
       const removeBtn = document.createElement('button');

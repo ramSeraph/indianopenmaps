@@ -35,6 +35,12 @@ export class VectorSourceHandler {
     return sourceData.colors[this.colorType];
   }
 
+  getColorForPath(sourcePath) {
+    const sourceData = this.selectedSources.get(sourcePath);
+    if (!sourceData) return null;
+    return '#' + this.getColor(sourceData);
+  }
+
   addLayers(e, sourcePath) {
     const srcName = this.getSourceName(sourcePath);
     if (!this.map.getSource(srcName) || !this.map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
@@ -239,7 +245,10 @@ export class VectorSourceHandler {
       return;
     }
     
-    const colors = this.colorHandler.assignColors();
+    const colors = this.colorHandler.assignColors(
+      sourceInfo.path,
+      () => Array.from(this.selectedSources.keys())
+    );
     this.selectedSources.set(sourceInfo.path, {
       name: sourceInfo.name,
       colors: colors,
