@@ -1932,7 +1932,8 @@
       "sanitation"
     ],
     "name": "Wb AMRUT Urban Community toilets",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Community_toilets.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/urban-sanitation/WB_AMRUT_Community_toilets.pmtiles",
+    "promoteid": "id"
   },
   "/not-so-open/facilities/sanitation/garbage-collection-points/wb-amrut/": {
     "handlertype": "pmtiles",
@@ -2665,7 +2666,8 @@
       "andhra pradesh"
     ],
     "name": "APSAC Andhra Pradesh Police Station Boundaries",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/APSAC_Police_station_boundaries.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/police/APSAC_Police_station_boundaries.pmtiles",
+    "promoteid": "polce_station_code"
   },
   "/not-so-open/earthquakes/ngdr/": {
     "handlertype": "pmtiles",
