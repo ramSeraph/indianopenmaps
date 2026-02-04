@@ -3977,7 +3977,7 @@
       "cadastrals",
       "goa"
     ],
-    "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
+    "name": "Goa Bhoomi/National Bureau of Soil Survey Goa cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/goa/NBSS_Goa_Cadastrals.pmtiles",
     "promoteid": "id"
   },
@@ -3987,7 +3987,7 @@
       "cadastrals",
       "bihar"
     ],
-    "name": "Goa Bhoomi/National Bureau of Soil Survey cadastrals",
+    "name": "Goa Bhoomi/National Bureau of Soil Survey Bihar cadastrals",
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/bihar/NBSS_Bihar_Cadastrals.pmtiles",
     "promoteid": "id"
   },
