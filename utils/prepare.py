@@ -173,9 +173,22 @@ def extract_bbox(geo_meta: dict) -> list | None:
     return None
 
 
+def extract_geometry_types(geo_meta: dict) -> list | None:
+    """Extract geometry types from geoparquet metadata."""
+    geoparquet_meta = geo_meta.get("geoparquet_metadata", {})
+    columns = geoparquet_meta.get("columns", {})
+    primary = geoparquet_meta.get("primary_column", "geometry")
+    if primary in columns:
+        return columns[primary].get("geometry_types")
+    for col_data in columns.values():
+        if "geometry_types" in col_data:
+            return col_data["geometry_types"]
+    return None
+
+
 def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
     """Create meta.json for partitioned parquet files."""
-    meta = {"schema": {}, "extents": {}}
+    meta = {"schema": {}, "geometry_types": set(), "extents": {}}
 
     for pf in parquet_files:
         geo_meta, parquet_meta = get_parquet_metadata(pf)
@@ -190,6 +203,12 @@ def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
                     "minx": bbox[0], "miny": bbox[1],
                     "maxx": bbox[2], "maxy": bbox[3],
                 }
+            geometry_types = extract_geometry_types(geo_meta)
+            if geometry_types:
+                meta["geometry_types"].update(geometry_types)
+
+    # Convert set to sorted list for JSON serialization
+    meta["geometry_types"] = sorted(meta["geometry_types"])
 
     meta_file = Path(f"{lname}.parquet.meta.json")
     with open(meta_file, "w") as f:

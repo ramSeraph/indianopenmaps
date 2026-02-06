@@ -99,10 +99,27 @@ def extract_bbox(geo_meta: dict) -> list | None:
     return None
 
 
+def extract_geometry_types(geo_meta: dict) -> list | None:
+    """Extract geometry types from geoparquet metadata."""
+    geoparquet_meta = geo_meta.get("geoparquet_metadata", {})
+    columns = geoparquet_meta.get("columns", {})
+    primary = geoparquet_meta.get("primary_column", "geometry")
+    
+    if primary in columns:
+        return columns[primary].get("geometry_types")
+    
+    for col_data in columns.values():
+        if "geometry_types" in col_data:
+            return col_data["geometry_types"]
+    
+    return None
+
+
 def create_meta_json(repo: str, tag: str, base_name: str, parquet_files: list[str]) -> dict:
     """Create the metadata JSON structure."""
     meta = {
         "schema": {},
+        "geometry_types": set(),
         "extents": {}
     }
     
@@ -119,7 +136,7 @@ def create_meta_json(repo: str, tag: str, base_name: str, parquet_files: list[st
                 if col_name not in meta["schema"]:
                     meta["schema"][col_name] = col_info
         
-        # Extract bbox for this partition
+        # Extract bbox and geometry_types for this partition
         if geo_meta:
             bbox = extract_bbox(geo_meta)
             if bbox:
@@ -129,6 +146,12 @@ def create_meta_json(repo: str, tag: str, base_name: str, parquet_files: list[st
                     "maxx": bbox[2],
                     "maxy": bbox[3]
                 }
+            geometry_types = extract_geometry_types(geo_meta)
+            if geometry_types:
+                meta["geometry_types"].update(geometry_types)
+    
+    # Convert set to sorted list for JSON serialization
+    meta["geometry_types"] = sorted(meta["geometry_types"])
     
     return meta
 
@@ -210,7 +233,7 @@ def main():
     # Create metadata JSON
     meta = create_meta_json(args.repo, args.tag, args.base_name, args.parquet_files)
     
-    if not meta["schema"] and not meta["extents"]:
+    if not meta["schema"] and not meta["extents"] and not meta["geometry_types"]:
         print("Error: Could not extract any metadata", file=sys.stderr)
         sys.exit(1)
     
@@ -221,6 +244,7 @@ def main():
         
         print(f"  Created {meta_filename}")
         print(f"    Schema columns: {len(meta['schema'])}")
+        print(f"    Geometry types: {meta['geometry_types']}")
         print(f"    Extents entries: {len(meta['extents'])}")
         
         if args.dry_run:
