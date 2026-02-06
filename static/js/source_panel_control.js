@@ -22,6 +22,18 @@ export class SourcePanelControl {
     this.selectedCategories = new Set();
     this.sourcesByCategory = {};
     this.initialSourcesApplied = false;
+    
+    this.onSourceChangeCallback = null;
+  }
+
+  setOnSourceChangeCallback(callback) {
+    this.onSourceChangeCallback = callback;
+  }
+
+  notifySourceChange() {
+    if (this.onSourceChangeCallback) {
+      this.onSourceChangeCallback();
+    }
   }
 
   initializeCategoryFilters() {
@@ -115,6 +127,7 @@ export class SourcePanelControl {
           }
         }
         this.updateSelectedSourcesList();
+        this.notifySourceChange();
       });
       
       const label = document.createElement('label');
@@ -143,6 +156,8 @@ export class SourcePanelControl {
       setTimeout(() => {
         sourcesToSelect[0].element.scrollIntoView({ behavior: 'auto', block: 'center' });
       }, 100);
+      
+      this.notifySourceChange();
     }
     
     this.updateSelectedSourcesList();
@@ -186,6 +201,7 @@ export class SourcePanelControl {
         const checkbox = this.sourceList.querySelector(`#source-${path.replace(/\//g, '-')}`);
         if (checkbox) checkbox.checked = false;
         this.updateSelectedSourcesList();
+        this.notifySourceChange();
       });
       
       item.appendChild(nameSpan);

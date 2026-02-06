@@ -55,9 +55,11 @@
       border-radius: 4px;
       min-width: 300px;
       max-width: 400px;
-      max-height: calc(80vh - 75px);
-      overflow: hidden;
+      max-height: calc(60vh - 60px);
+      overflow: visible;
       transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
     }
     /* Mobile responsive styles */
     @media (max-width: 480px) {
@@ -74,7 +76,7 @@
       .maplibregl-ctrl-source-panel {
         min-width: 200px;
         max-width: 240px;
-        max-height: calc(70vh - 60px);
+        max-height: calc(55vh - 50px);
       }
       .panel-header {
         padding: 6px 10px;
@@ -85,7 +87,6 @@
       }
       .panel-content {
         padding: 10px;
-        max-height: calc(70vh - 120px);
       }
       .search-box input {
         padding: 6px;
@@ -127,6 +128,7 @@
       cursor: pointer;
       user-select: none;
       min-height: 28px;
+      flex-shrink: 0;
     }
     .panel-header:hover {
       background: #efefef;
@@ -153,7 +155,8 @@
     .panel-content {
       padding: 15px;
       overflow-y: auto;
-      max-height: calc(80vh - 155px);
+      flex: 1;
+      min-height: 0;
     }
     .maplibregl-ctrl-source-panel.collapsed .panel-content {
       display: none;
@@ -332,6 +335,210 @@
       padding: 20px;
       font-size: 11px;
       font-family: 'Open Sans', sans-serif;
+    }
+    /* Download Panel Styles */
+    .maplibregl-ctrl-download-panel {
+      background: white;
+      border-radius: 4px;
+      min-width: 250px;
+      max-width: 350px;
+      max-height: calc(45vh - 40px);
+      overflow: visible;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .maplibregl-ctrl-download-panel.collapsed {
+      min-width: auto;
+      max-height: none;
+      height: auto;
+    }
+    .maplibregl-ctrl-download-panel.collapsed .panel-content {
+      display: none;
+    }
+    .maplibregl-ctrl-download-panel .panel-content {
+      padding: 10px;
+      overflow-y: auto;
+      overflow-x: visible;
+      flex: 1;
+      min-height: 120px;
+    }
+    .download-source-dropdown {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: 'Open Sans', sans-serif;
+      margin-bottom: 10px;
+    }
+    .download-source-dropdown:focus {
+      outline: none;
+      border-color: #4a9eff;
+    }
+    .download-source-dropdown-container {
+      margin-bottom: 10px;
+    }
+    .custom-dropdown {
+      position: relative;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .dropdown-selected {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: white;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .dropdown-selected:hover {
+      border-color: #4a9eff;
+    }
+    .dropdown-placeholder {
+      color: #999;
+      flex: 1;
+    }
+    .dropdown-arrow {
+      font-size: 10px;
+      color: #666;
+      margin-left: auto;
+    }
+    .dropdown-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 3px 3px;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .dropdown-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .dropdown-option:hover {
+      background: #f0f0f0;
+    }
+    .no-sources-message {
+      text-align: center;
+      color: #999;
+      padding: 15px;
+      font-size: 11px;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .download-links-container {
+      font-family: 'Open Sans', sans-serif;
+    }
+    .loading-message {
+      text-align: center;
+      color: #666;
+      padding: 10px;
+      font-size: 11px;
+    }
+    .error-message {
+      text-align: center;
+      color: #d32f2f;
+      padding: 10px;
+      font-size: 11px;
+    }
+    .partitions-heading {
+      font-size: 11px;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .download-section {
+      margin-bottom: 8px;
+    }
+    .download-section-heading {
+      font-size: 11px;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 5px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+    }
+    .download-section-heading:hover {
+      color: #4a9eff;
+    }
+    .download-toggle-icon {
+      font-size: 10px;
+      transition: transform 0.3s ease;
+    }
+    .download-section.collapsed .download-toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .download-section.collapsed .partitions-list {
+      display: none;
+    }
+    .partitions-list {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      background: #f9f9f9;
+    }
+    .download-link-item {
+      padding: 6px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .download-link-item:last-child {
+      border-bottom: none;
+    }
+    .download-link {
+      color: #1976d2;
+      text-decoration: none;
+      font-size: 11px;
+      word-break: break-all;
+    }
+    .download-link:hover {
+      text-decoration: underline;
+    }
+    .partition-link {
+      font-size: 10px;
+    }
+    /* Mobile responsive styles for download panel */
+    @media (max-width: 480px) {
+      .maplibregl-ctrl-download-panel {
+        min-width: 180px;
+        max-width: 220px;
+        max-height: calc(35vh - 30px);
+      }
+      .maplibregl-ctrl-download-panel .panel-content {
+        padding: 8px;
+      }
+      .download-source-dropdown {
+        font-size: 10px;
+        padding: 5px 6px;
+      }
+      .no-sources-message {
+        font-size: 10px;
+        padding: 10px;
+      }
+      .partitions-list {
+        max-height: 100px;
+      }
+      .download-link {
+        font-size: 10px;
+      }
+      .partition-link {
+        font-size: 9px;
+      }
     }
   </style>
 </head>

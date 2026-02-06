@@ -8,6 +8,7 @@ import { VectorSourceHandler } from '/js/vector_source_handler.js';
 import { PopupHandler, InspectButton } from '/js/inspect_control.js';
 import { nominatimGeocoder } from '/js/nominatim_geocoder.js';
 import { SourcePanelControl } from '/js/source_panel_control.js';
+import { DownloadPanelControl } from '/js/download_panel_control.js';
 import { RoutesHandler } from '/js/routes_handler.js';
 import { TerrainHandler } from '/js/terrain_handler.js';
 
@@ -137,6 +138,14 @@ function setupMap() {
   
   let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
   map.addControl(sourcePanelControl, 'top-left');
+
+  let downloadPanelControl = new DownloadPanelControl(routesHandler, vectorSourceHandler);
+  map.addControl(downloadPanelControl, 'top-left');
+  
+  // Wire up source change notifications
+  sourcePanelControl.setOnSourceChangeCallback(() => {
+    downloadPanelControl.updateSourceDropdown();
+  });
 
   let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
   map.addControl(new InspectButton(true, (enabled) => popupHandler.enable(enabled)), 'top-right');
