@@ -61,16 +61,11 @@ export class PopupHandler {
     this.layers = layers;
     this.routesHandler = routesHandler;
     this.vectorSourceHandler = vectorSourceHandler;
-    this.wantPopup = true;
     this.popup = new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false
+      closeButton: true,
+      closeOnClick: true
     });
     this.highlightedFeatures = [];
-  }
-
-  enable(enabled) {
-    this.wantPopup = enabled;
   }
 
   clearHighlight() {
@@ -131,7 +126,7 @@ export class PopupHandler {
     return null;
   }
 
-  showPopup(e) {
+  queryFeatures(e) {
     var selectThreshold = 3;
     var queryBox = [
       [
@@ -144,53 +139,33 @@ export class PopupHandler {
       ]
     ];
 
-    var features = this.map.queryRenderedFeatures(queryBox, {
+    return this.map.queryRenderedFeatures(queryBox, {
       layers: this.layers.polygons.concat(this.layers.lines.concat(this.layers.pts))
     }) || [];
+  }
+
+  handleMouseMove(e) {
+    var features = this.queryFeatures(e);
     this.map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
 
-    if (!features.length || !this.wantPopup) {
-      this.popup.remove();
+    if (!features.length) {
       this.clearHighlight();
+    } else {
+      this.highlightFeatures(features);
+    }
+  }
+
+  handleClick(e) {
+    var features = this.queryFeatures(e);
+
+    if (!features.length) {
+      this.popup.remove();
     } else {
       this.popup.setLngLat(e.lngLat)
         .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
         .addTo(this.map);
-      this.highlightFeatures(features);
     }
   }
 }
 
-export class InspectButton {
-  constructor(initialInspect, onToggle) {
-    this.inspect = initialInspect;
-    this.onToggle = onToggle;
-  }
 
-  getClass() {
-    if (this.inspect) {
-      return 'maplibregl-ctrl-icon maplibregl-ctrl-map';
-    } else {
-      return 'maplibregl-ctrl-icon maplibregl-ctrl-inspect';
-    }
-  }
-
-  toggle() {
-    this.inspect = !this.inspect;
-    var btn = document.querySelector('#show-popup');
-    btn.className = this.getClass();
-    if (this.onToggle) {
-      this.onToggle(this.inspect);
-    }
-  }
-
-  onAdd(map) {
-    const div = document.createElement("div");
-    div.className = "maplibregl-ctrl maplibregl-ctrl-group";
-    const classStr = this.getClass();
-    div.innerHTML = `<button id='show-popup' class='${classStr}'></button>`;
-    div.addEventListener("contextmenu", (e) => e.preventDefault());
-    div.addEventListener("click", () => this.toggle());
-    return div;
-  }
-}

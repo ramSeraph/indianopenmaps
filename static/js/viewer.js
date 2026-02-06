@@ -5,7 +5,7 @@ import { BaseLayerPicker } from '/js/base_layer_picker.js';
 import { SearchParamHandler } from '/js/search_param_handler.js';
 import { ColorHandler } from '/js/color_handler.js';
 import { VectorSourceHandler } from '/js/vector_source_handler.js';
-import { PopupHandler, InspectButton } from '/js/inspect_control.js';
+import { PopupHandler } from '/js/inspect_control.js';
 import { nominatimGeocoder } from '/js/nominatim_geocoder.js';
 import { SourcePanelControl } from '/js/source_panel_control.js';
 import { DownloadPanelControl } from '/js/download_panel_control.js';
@@ -148,7 +148,6 @@ function setupMap() {
   });
 
   let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
-  map.addControl(new InspectButton(true, (enabled) => popupHandler.enable(enabled)), 'top-right');
 
   map.addControl(terrainHandler.getControl(), 'top-right');
   
@@ -161,7 +160,8 @@ function setupMap() {
     terrainHandler.terrainChangeCallback(map);
   });
 
-  map.on('mousemove', (e) => popupHandler.showPopup(e));
+  map.on('mousemove', (e) => popupHandler.handleMouseMove(e));
+  map.on('click', (e) => popupHandler.handleClick(e));
 
   setupMarker(map);
 
