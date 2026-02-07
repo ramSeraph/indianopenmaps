@@ -5,7 +5,7 @@ import { BaseLayerPicker } from '/js/base_layer_picker.js';
 import { SearchParamHandler } from '/js/search_param_handler.js';
 import { ColorHandler } from '/js/color_handler.js';
 import { VectorSourceHandler } from '/js/vector_source_handler.js';
-import { PopupHandler } from '/js/inspect_control.js';
+import { PopupHandler, HoverPopupToggleControl } from '/js/inspect_control.js';
 import { nominatimGeocoder } from '/js/nominatim_geocoder.js';
 import { SourcePanelControl } from '/js/source_panel_control.js';
 import { DownloadPanelControl } from '/js/download_panel_control.js';
@@ -148,8 +148,10 @@ function setupMap() {
   });
 
   let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
+  let hoverToggleControl = new HoverPopupToggleControl(popupHandler);
 
   map.addControl(terrainHandler.getControl(), 'top-right');
+  map.addControl(hoverToggleControl, 'top-right');
   
   map.once('load', function () {
     terrainHandler.initTerrain(map);

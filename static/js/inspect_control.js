@@ -61,11 +61,34 @@ export class PopupHandler {
     this.layers = layers;
     this.routesHandler = routesHandler;
     this.vectorSourceHandler = vectorSourceHandler;
-    this.popup = new maplibregl.Popup({
+    
+    // Click popup - persistent
+    this.clickPopup = new maplibregl.Popup({
       closeButton: true,
-      closeOnClick: true
+      closeOnClick: false
     });
+    
+    // Hover popup - transient
+    this.hoverPopup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+    
     this.highlightedFeatures = [];
+    this.hoverEnabled = true;
+    this.clickPopupOpen = false;
+    
+    // Track when click popup is closed
+    this.clickPopup.on('close', () => {
+      this.clickPopupOpen = false;
+    });
+  }
+
+  setHoverEnabled(enabled) {
+    this.hoverEnabled = enabled;
+    if (!enabled) {
+      this.hoverPopup.remove();
+    }
   }
 
   clearHighlight() {
@@ -150,8 +173,16 @@ export class PopupHandler {
 
     if (!features.length) {
       this.clearHighlight();
+      this.hoverPopup.remove();
     } else {
       this.highlightFeatures(features);
+      
+      // Show hover popup only if enabled and no click popup is open
+      if (this.hoverEnabled && !this.clickPopupOpen) {
+        this.hoverPopup.setLngLat(e.lngLat)
+          .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
+          .addTo(this.map);
+      }
     }
   }
 
@@ -159,13 +190,58 @@ export class PopupHandler {
     var features = this.queryFeatures(e);
 
     if (!features.length) {
-      this.popup.remove();
+      this.clickPopup.remove();
+      this.clickPopupOpen = false;
     } else {
-      this.popup.setLngLat(e.lngLat)
+      // Remove hover popup and show click popup
+      this.hoverPopup.remove();
+      this.clickPopup.setLngLat(e.lngLat)
         .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
         .addTo(this.map);
+      this.clickPopupOpen = true;
     }
   }
 }
 
+// Control to toggle hover popup behavior
+export class HoverPopupToggleControl {
+  constructor(popupHandler) {
+    this.popupHandler = popupHandler;
+    this.container = null;
+    this.button = null;
+    this.enabled = true;
+  }
 
+  onAdd(map) {
+    this.map = map;
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    
+    this.button = document.createElement('button');
+    this.button.type = 'button';
+    this.button.className = 'maplibregl-ctrl-hover-popup';
+    this.button.setAttribute('aria-label', 'Toggle hover popup');
+    this.updateButtonState();
+    
+    this.button.addEventListener('click', () => {
+      this.enabled = !this.enabled;
+      this.popupHandler.setHoverEnabled(this.enabled);
+      this.updateButtonState();
+    });
+    
+    this.container.appendChild(this.button);
+    return this.container;
+  }
+
+  updateButtonState() {
+    // Message box icon - same outline shape, blue when enabled, black when disabled
+    const color = this.enabled ? '#29b6f6' : '#333';
+    this.button.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="color: ${color}"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>`;
+    this.button.title = this.enabled ? 'Hover popup enabled - click to disable' : 'Hover popup disabled - click to enable';
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+}
