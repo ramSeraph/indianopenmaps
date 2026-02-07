@@ -1,22 +1,35 @@
-import sys
-import logging
 import json
-from pathlib import Path
+import logging
+import sys
 import tempfile
+from pathlib import Path
 
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QFileDialog, QRadioButton, QComboBox,
-    QCheckBox, QLineEdit, QTextEdit, QButtonGroup, QGroupBox, QStackedWidget,
-    QScrollArea, QProgressBar
-)
-
+import click
 import fiona
-import py7zr
 import multivolumefile
+import py7zr
 from fiona.crs import CRS
 from fiona.model import to_dict
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtWidgets import (
+    QApplication,
+    QButtonGroup,
+    QComboBox,
+    QFileDialog,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QStackedWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 from iomaps.commands.filter_7z import (
     create_filter,
@@ -24,7 +37,8 @@ from iomaps.commands.filter_7z import (
     process_archive,
 )
 from iomaps.commands.schema_common import get_schema_from_archive
-from iomaps.helpers import get_supported_input_drivers, get_geojsonl_file_info
+from iomaps.core.helpers import get_geojsonl_file_info, get_supported_input_drivers
+from iomaps.core.spatial_filter import PassThroughFilter
 
 
 class SchemaInferenceWorker(QThread):
@@ -32,19 +46,15 @@ class SchemaInferenceWorker(QThread):
     finished = pyqtSignal(object)
     error = pyqtSignal(str)
 
-    def __init__(self, input_7z_path, limit_to_geom_type, strict_geom_type_check):
+    def __init__(self, input_7z_path):
         super().__init__()
         self.input_7z_path = input_7z_path
-        self.limit_to_geom_type = limit_to_geom_type
-        self.strict_geom_type_check = strict_geom_type_check
 
     def run(self):
         try:
             schema = get_schema_from_archive(
                 self.input_7z_path,
-                limit_to_geom_type=self.limit_to_geom_type,
-                strict_geom_type_check=self.strict_geom_type_check,
-                external_updater=self.progress
+                external_updater=self.progress,
             )
             self.finished.emit(schema)
         except Exception as e:
@@ -66,14 +76,16 @@ class Filter7zWorker(QThread):
 
     def run(self):
         try:
-            filter_obj = create_filter(**self.filter_args)
-            if filter_obj is None:
-                raise Exception("Failed to create filter.")
+            # Create filter or use PassThroughFilter if no filter specified
+            if self.filter_args.get("filter_file") or self.filter_args.get("bounds"):
+                filter_obj = create_filter(**self.filter_args)
+                if filter_obj is None:
+                    raise Exception("Failed to create filter.")
+            else:
+                filter_obj = PassThroughFilter()
 
             crs = CRS.from_epsg(4326)
             writer = create_writer(str(self.output_file_path), self.schema, crs, self.output_driver)
-            if writer is None:
-                raise Exception("Failed to create writer.")
 
             class FilterProgressUpdater:
                 def __init__(self, signal, total_size):
@@ -92,23 +104,23 @@ class Filter7zWorker(QThread):
                     pass
 
             # Get total file size for progress bar
-            archive_file = py7zr.SevenZipFile(str(self.input_7z_path), mode='r')
+            archive_file = py7zr.SevenZipFile(str(self.input_7z_path), mode="r")
             target_file_info = get_geojsonl_file_info(archive_file)
-            archive_file.close() # Close the archive after getting info
+            archive_file.close()  # Close the archive after getting info
 
             total_size = 0
             if target_file_info:
                 total_size = target_file_info.uncompressed
-            
+
             updater = FilterProgressUpdater(self.progress, total_size)
 
-            if str(self.input_7z_path).endswith('.001'):
-                base_path = str(self.input_7z_path).rsplit('.', 1)[0]
-                with multivolumefile.open(base_path, 'rb') as multivolume_file:
-                    with py7zr.SevenZipFile(multivolume_file, 'r') as archive:
+            if str(self.input_7z_path).endswith(".001"):
+                base_path = str(self.input_7z_path).rsplit(".", 1)[0]
+                with multivolumefile.open(base_path, "rb") as multivolume_file:
+                    with py7zr.SevenZipFile(multivolume_file, "r") as archive:
                         process_archive(archive, filter_obj, writer, external_updater=updater)
             else:
-                with py7zr.SevenZipFile(str(self.input_7z_path), mode='r') as archive:
+                with py7zr.SevenZipFile(str(self.input_7z_path), mode="r") as archive:
                     process_archive(archive, filter_obj, writer, external_updater=updater)
             self.finished.emit(True)
         except Exception as e:
@@ -128,7 +140,7 @@ class PyQtApp(QMainWindow):
         self.main_layout = QHBoxLayout(self.central_widget)
 
         self.sidebar_layout = QVBoxLayout()
-        self.content_stack = QStackedWidget() # Use QStackedWidget to switch between views
+        self.content_stack = QStackedWidget()  # Use QStackedWidget to switch between views
 
         self.main_layout.addLayout(self.sidebar_layout, 1)
         self.main_layout.addWidget(self.content_stack, 3)
@@ -146,7 +158,7 @@ class PyQtApp(QMainWindow):
 
         # Internal state variables for Infer Schema
         self.infer_schema_input_7z_path = None
-        self.infer_schema_output_file_path = None # Path where the inferred schema will be saved temporarily
+        self.infer_schema_output_file_path = None  # Path where the inferred schema will be saved temporarily
 
         self._setup_ui()
 
@@ -159,7 +171,7 @@ class PyQtApp(QMainWindow):
 
         self.sidebar_layout.addWidget(self.filter_7z_button)
         self.sidebar_layout.addWidget(self.infer_schema_button)
-        self.sidebar_layout.addStretch() # Push buttons to the top
+        self.sidebar_layout.addStretch()  # Push buttons to the top
 
         # --- Filter 7z Widget ---
         self.filter_7z_widget = QWidget()
@@ -170,7 +182,6 @@ class PyQtApp(QMainWindow):
         scroll_content = QWidget()
         scroll.setWidget(scroll_content)
         filter_7z_scroll_layout = QVBoxLayout(scroll_content)
-
 
         # Input/Output Section for Filter 7z
         filter_7z_input_output_group = QGroupBox("Input/Output")
@@ -183,7 +194,7 @@ class PyQtApp(QMainWindow):
         filter_7z_input_output_layout.addWidget(self.filter_7z_input_7z_label)
 
         self.filter_7z_output_type_combo = QComboBox()
-        self.filter_7z_output_type_combo.addItems(["GPKG", "Shapefile", "GeoJSON"])
+        self.filter_7z_output_type_combo.addItems(["GPKG", "Shapefile", "GeoJSON", "GeoJSONSeq", "FlatGeobuf", "CSV"])
         self.filter_7z_output_type_combo.currentTextChanged.connect(self._update_suggested_output_filename)
         filter_7z_input_output_layout.addWidget(QLabel("Output Type:"))
         filter_7z_input_output_layout.addWidget(self.filter_7z_output_type_combo)
@@ -204,14 +215,16 @@ class PyQtApp(QMainWindow):
         self.filter_7z_bounds_radio = QRadioButton("Bounds")
         self.filter_7z_filter_type_group.addButton(self.filter_7z_filter_file_radio)
         self.filter_7z_filter_type_group.addButton(self.filter_7z_bounds_radio)
-        self.filter_7z_filter_file_radio.setChecked(True) # Default selection
+        self.filter_7z_filter_file_radio.setChecked(True)  # Default selection
 
         filter_7z_filtering_options_layout.addWidget(self.filter_7z_filter_file_radio)
         filter_7z_filtering_options_layout.addWidget(self.filter_7z_bounds_radio)
 
         self.filter_7z_filter_file_widgets = QWidget()
         filter_7z_filter_file_layout = QVBoxLayout(self.filter_7z_filter_file_widgets)
-        self.filter_7z_upload_filter_file_button = QPushButton("Upload Filter File (e.g., Shapefile, GeoJSON)")
+        self.filter_7z_upload_filter_file_button = QPushButton(
+            "Upload Filter File (e.g., Shapefile, GeoJSON, FlatGeobuf)"
+        )
         self.filter_7z_upload_filter_file_button.clicked.connect(self._upload_filter_file)
         self.filter_7z_filter_file_label = QLabel("No filter file selected.")
         self.filter_7z_filter_file_driver_combo = QComboBox()
@@ -234,47 +247,36 @@ class PyQtApp(QMainWindow):
         self.filter_7z_bounds_input = QLineEdit()
         self.filter_7z_bounds_input.setPlaceholderText("min_lon,min_lat,max_lon,max_lat")
         filter_7z_bounds_layout.addWidget(QLabel("Enter Bounds:"))
-        bounds_help_label = QLabel('You can use <a href="http://bboxfinder.com">http://bboxfinder.com</a> to find the bounds.')
+        bounds_help_label = QLabel(
+            'You can use <a href="http://bboxfinder.com">http://bboxfinder.com</a> to find the bounds.'
+        )
         bounds_help_label.setOpenExternalLinks(True)
         filter_7z_bounds_layout.addWidget(bounds_help_label)
         filter_7z_bounds_layout.addWidget(self.filter_7z_bounds_input)
         filter_7z_filtering_options_layout.addWidget(self.filter_7z_bounds_widgets)
-        self.filter_7z_bounds_widgets.hide() # Hide by default
+        self.filter_7z_bounds_widgets.hide()  # Hide by default
 
         self.filter_7z_filter_file_radio.toggled.connect(self._toggle_filter_type_widgets)
         self.filter_7z_bounds_radio.toggled.connect(self._toggle_filter_type_widgets)
 
-        self.filter_7z_no_clip_checkbox = QCheckBox("Do not clip features by filter shape/bounds")
-        filter_7z_filtering_options_layout.addWidget(self.filter_7z_no_clip_checkbox)
-
-        self.filter_7z_completely_inside_checkbox = QCheckBox("Only pick features completely inside filter shape")
-        filter_7z_filtering_options_layout.addWidget(self.filter_7z_completely_inside_checkbox)
-
         filter_7z_filtering_options_group.setLayout(filter_7z_filtering_options_layout)
         filter_7z_scroll_layout.addWidget(filter_7z_filtering_options_group)
 
-        # Schema and Geometry Section for Filter 7z
-        filter_7z_schema_geometry_group = QGroupBox("Schema and Geometry")
-        filter_7z_schema_geometry_layout = QVBoxLayout()
+        # Schema Section for Filter 7z
+        filter_7z_schema_group = QGroupBox("Schema")
+        filter_7z_schema_layout = QVBoxLayout()
 
         self.filter_7z_upload_schema_button = QPushButton("Upload Schema File (JSON)")
         self.filter_7z_upload_schema_button.clicked.connect(self._upload_schema_file)
-        self.filter_7z_upload_schema_button.setToolTip("Upload a JSON schema file to define the expected structure and types of features in the output. If not provided, an extra pass is done over the data to infer the schema automatically.")
+        self.filter_7z_upload_schema_button.setToolTip(
+            "Upload a JSON schema file to define the expected structure and types of features in the output. "
+            "If not provided, an extra pass is done over the data to infer the schema automatically."
+        )
         self.filter_7z_schema_file_label = QLabel("No schema file selected.")
-        filter_7z_schema_geometry_layout.addWidget(self.filter_7z_upload_schema_button)
-        filter_7z_schema_geometry_layout.addWidget(self.filter_7z_schema_file_label)
+        filter_7z_schema_layout.addWidget(self.filter_7z_upload_schema_button)
+        filter_7z_schema_layout.addWidget(self.filter_7z_schema_file_label)
 
-        self.filter_7z_limit_geom_type_combo = QComboBox()
-        self.filter_7z_limit_geom_type_combo.addItems(["None", "Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"])
-        filter_7z_schema_geometry_layout.addWidget(QLabel("Limit to Geometry Type:"))
-        filter_7z_schema_geometry_layout.addWidget(self.filter_7z_limit_geom_type_combo)
-
-        self.filter_7z_strict_geom_type_checkbox = QCheckBox("Strict Geometry Type Check")
-        filter_7z_schema_geometry_layout.addWidget(self.filter_7z_strict_geom_type_checkbox)
-
-
-
-        filter_7z_schema_geometry_group.setLayout(filter_7z_schema_geometry_layout)
+        filter_7z_schema_group.setLayout(filter_7z_schema_layout)
 
         # Advanced Options Section for Filter 7z
         filter_7z_advanced_options_group = QGroupBox("Advanced Options")
@@ -282,7 +284,7 @@ class PyQtApp(QMainWindow):
         filter_7z_advanced_options_group.setChecked(False)
         filter_7z_advanced_options_layout = QVBoxLayout()
 
-        filter_7z_advanced_options_layout.addWidget(filter_7z_schema_geometry_group)
+        filter_7z_advanced_options_layout.addWidget(filter_7z_schema_group)
 
         self.filter_7z_log_level_combo = QComboBox()
         self.filter_7z_log_level_combo.addItems(["INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"])
@@ -319,10 +321,10 @@ class PyQtApp(QMainWindow):
 
         self.filter_7z_download_button = QPushButton("Download Filtered File")
         self.filter_7z_download_button.clicked.connect(self._download_file)
-        self.filter_7z_download_button.setEnabled(False) # Disabled until filtering is complete
+        self.filter_7z_download_button.setEnabled(False)  # Disabled until filtering is complete
         filter_7z_layout.addWidget(self.filter_7z_download_button)
 
-        self.content_stack.addWidget(self.filter_7z_widget) # Add filter_7z_widget to the stack
+        self.content_stack.addWidget(self.filter_7z_widget)  # Add filter_7z_widget to the stack
 
         # --- Infer Schema Widget ---
         self.infer_schema_widget = QWidget()
@@ -338,22 +340,12 @@ class PyQtApp(QMainWindow):
         infer_schema_input_layout.addWidget(self.infer_schema_upload_7z_button)
         infer_schema_input_layout.addWidget(self.infer_schema_input_7z_label)
 
-
-
         infer_schema_input_group.setLayout(infer_schema_input_layout)
         infer_schema_layout.addWidget(infer_schema_input_group)
 
         # Options Section for Infer Schema
         infer_schema_options_group = QGroupBox("Options")
         infer_schema_options_layout = QVBoxLayout()
-
-        self.infer_schema_limit_geom_type_combo = QComboBox()
-        self.infer_schema_limit_geom_type_combo.addItems(["None", "Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"])
-        infer_schema_options_layout.addWidget(QLabel("Limit to Geometry Type:"))
-        infer_schema_options_layout.addWidget(self.infer_schema_limit_geom_type_combo)
-
-        self.infer_schema_strict_geom_type_checkbox = QCheckBox("Strict Geometry Type Check")
-        infer_schema_options_layout.addWidget(self.infer_schema_strict_geom_type_checkbox)
 
         self.infer_schema_log_level_combo = QComboBox()
         self.infer_schema_log_level_combo.addItems(["INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"])
@@ -374,7 +366,7 @@ class PyQtApp(QMainWindow):
 
         self.infer_schema_output_text_edit = QTextEdit()
         self.infer_schema_output_text_edit.setReadOnly(True)
-        self.infer_schema_output_text_edit.setMaximumHeight(150) # Set a maximum height
+        self.infer_schema_output_text_edit.setMaximumHeight(150)  # Set a maximum height
         infer_schema_layout.addWidget(self.infer_schema_output_text_edit)
 
         # Download Options for Infer Schema
@@ -382,7 +374,9 @@ class PyQtApp(QMainWindow):
         infer_schema_download_layout = QVBoxLayout()
 
         self.infer_schema_output_file_input = QLineEdit()
-        self.infer_schema_output_file_input.setPlaceholderText("Optional: Path for output schema file (e.g., schema.json)")
+        self.infer_schema_output_file_input.setPlaceholderText(
+            "Optional: Path for output schema file (e.g., schema.json)"
+        )
         infer_schema_download_layout.addWidget(QLabel("Output Schema File:"))
         infer_schema_download_layout.addWidget(self.infer_schema_output_file_input)
 
@@ -393,9 +387,9 @@ class PyQtApp(QMainWindow):
 
         infer_schema_download_group.setLayout(infer_schema_download_layout)
         infer_schema_layout.addWidget(infer_schema_download_group)
-        infer_schema_layout.addStretch() # Add stretch to prevent download group from stretching
+        infer_schema_layout.addStretch()  # Add stretch to prevent download group from stretching
 
-        self.content_stack.addWidget(self.infer_schema_widget) # Add infer_schema_widget to the stack
+        self.content_stack.addWidget(self.infer_schema_widget)  # Add infer_schema_widget to the stack
 
         # Set initial view
         self._show_tool_view("filter_7z")
@@ -427,6 +421,12 @@ class PyQtApp(QMainWindow):
             self.filter_7z_output_filename_input.setText(f"{base_name}.filtered.shp")
         elif output_type == "GeoJSON":
             self.filter_7z_output_filename_input.setText(f"{base_name}.filtered.geojson")
+        elif output_type == "GeoJSONSeq":
+            self.filter_7z_output_filename_input.setText(f"{base_name}.filtered.geojsonl")
+        elif output_type == "FlatGeobuf":
+            self.filter_7z_output_filename_input.setText(f"{base_name}.filtered.fgb")
+        elif output_type == "CSV":
+            self.filter_7z_output_filename_input.setText(f"{base_name}.filtered.csv")
 
     def _upload_7z_archive(self):
         file_dialog = QFileDialog()
@@ -442,7 +442,12 @@ class PyQtApp(QMainWindow):
 
     def _upload_filter_file(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Upload Filter File", "", "Filter Files (*.shp *.geojson *.json *.geojsonl)")
+        file_path, _ = file_dialog.getOpenFileName(
+            self,
+            "Upload Filter File",
+            "",
+            "Filter Files (*.shp *.geojson *.json *.geojsonl *.fgb)",
+        )
         self.filter_7z_feature_combo.clear()
         self.filter_7z_features = []
         self.filter_7z_feature_label.hide()
@@ -452,16 +457,19 @@ class PyQtApp(QMainWindow):
             self.filter_7z_filter_file_label.setText(f"Selected: {self.filter_7z_filter_file_path.name}")
             count = 0
             try:
-                with fiona.open(file_path, 'r') as collection:
+                with fiona.open(file_path, "r") as collection:
                     for feature in collection:
                         # if gemotry type is not Polygon, MultiPolygon, skip
-                        if feature['geometry']['type'] not in ['Polygon', 'MultiPolygon']:
+                        if feature["geometry"]["type"] not in [
+                            "Polygon",
+                            "MultiPolygon",
+                        ]:
                             continue
                         self.filter_7z_features.append(feature)
                         # Create a display text for the dropdown
                         properties = None
-                        if 'properties' in feature:
-                            properties = ', '.join([f"{k}: {v}" for k, v in feature['properties'].items()])
+                        if "properties" in feature:
+                            properties = ", ".join([f"{k}: {v}" for k, v in feature["properties"].items()])
                         display_text = f"Feature {count} - {properties}"
                         self.filter_7z_feature_combo.addItem(display_text)
                         count += 1
@@ -469,7 +477,11 @@ class PyQtApp(QMainWindow):
                     self.filter_7z_feature_label.show()
                     self.filter_7z_feature_combo.show()
             except Exception as e:
-                self._log_status(f"Error reading filter file: {e}", level="error", target_text_edit=self.filter_7z_status_text_edit)
+                self._log_status(
+                    f"Error reading filter file: {e}",
+                    level="error",
+                    target_text_edit=self.filter_7z_status_text_edit,
+                )
                 self.filter_7z_filter_file_path = None
                 self.filter_7z_filter_file_label.setText("No filter file selected.")
         else:
@@ -491,22 +503,39 @@ class PyQtApp(QMainWindow):
         self.filter_7z_download_button.setEnabled(False)
 
         if not self.filter_7z_input_7z_path:
-            self._log_status("Error: Please upload an input 7z archive.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Error: Please upload an input 7z archive.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             return
 
         filter_type = "Filter File" if self.filter_7z_filter_file_radio.isChecked() else "Bounds"
         if filter_type == "Filter File" and not self.filter_7z_filter_file_path:
-            self._log_status("Error: Please upload a valid filter file.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Error: Please upload a valid filter file.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             return
         elif filter_type == "Bounds" and not self.filter_7z_bounds_input.text():
-            self._log_status("Error: Please enter bounds.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Error: Please enter bounds.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             return
 
         # Setup logging
         log_level = self.filter_7z_log_level_combo.currentText()
-        logging.basicConfig(level=getattr(logging, log_level.upper()),
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-        self._log_status(f"Processing {self.filter_7z_input_7z_path.name}", target_text_edit=self.filter_7z_status_text_edit)
+        logging.basicConfig(
+            level=getattr(logging, log_level.upper()),
+            format="%(asctime)s - %(levelname)s - %(message)s",
+        )
+        self._log_status(
+            f"Processing {self.filter_7z_input_7z_path.name}",
+            target_text_edit=self.filter_7z_status_text_edit,
+        )
 
         schema_path_for_processing = None
         if self.filter_7z_schema_file_path:
@@ -527,38 +556,40 @@ class PyQtApp(QMainWindow):
             # Create a GeoJSON FeatureCollection with a single feature
             feature_collection = {
                 "type": "FeatureCollection",
-                "features": [to_dict(selected_feature)]
+                "features": [to_dict(selected_feature)],
             }
             temp_filter_file.write_text(json.dumps(feature_collection))
             filter_file_for_processing = temp_filter_file
-        
+
         # Prepare arguments for create_filter
         self.filter_args = {
-            "filter_file": str(filter_file_for_processing) if filter_file_for_processing and filter_type == "Filter File" else None,
-            "filter_file_driver": self.filter_7z_filter_file_driver_combo.currentText() if self.filter_7z_filter_file_driver_combo.currentText() != "Infer from extension" else None,
+            "filter_file": str(filter_file_for_processing)
+            if filter_file_for_processing and filter_type == "Filter File"
+            else None,
+            "filter_file_driver": self.filter_7z_filter_file_driver_combo.currentText()
+            if self.filter_7z_filter_file_driver_combo.currentText() != "Infer from extension"
+            else None,
             "bounds": self.filter_7z_bounds_input.text() if filter_type == "Bounds" else None,
-            "no_clip": self.filter_7z_no_clip_checkbox.isChecked(),
-            "completely_inside": self.filter_7z_completely_inside_checkbox.isChecked(),
-            "limit_to_geom_type": self.filter_7z_limit_geom_type_combo.currentText() if self.filter_7z_limit_geom_type_combo.currentText() != "None" else None,
-            "strict_geom_type_check": self.filter_7z_strict_geom_type_checkbox.isChecked(),
         }
 
         # Prepare schema
         if schema_path_for_processing:
-            self._log_status(f"Reading schema from {schema_path_for_processing}", target_text_edit=self.filter_7z_status_text_edit)
-            with schema_path_for_processing.open('r') as f:
+            self._log_status(
+                f"Reading schema from {schema_path_for_processing}",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
+            with schema_path_for_processing.open("r") as f:
                 schema = json.load(f)
             self._start_filter_process(schema)
         else:
-            self._log_status(f"Inferring schema from {self.filter_7z_input_7z_path}", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                f"Inferring schema from {self.filter_7z_input_7z_path}",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             self.filter_7z_schema_inference_label.show()
             self.filter_7z_schema_inference_progress_bar.show()
             self.filter_7z_schema_inference_progress_bar.setValue(0)
-            self.schema_inference_worker = SchemaInferenceWorker(
-                str(self.filter_7z_input_7z_path),
-                self.filter_args["limit_to_geom_type"],
-                self.filter_args["strict_geom_type_check"]
-            )
+            self.schema_inference_worker = SchemaInferenceWorker(str(self.filter_7z_input_7z_path))
             self.schema_inference_worker.progress.connect(self._update_filter_7z_schema_inference_progress)
             self.schema_inference_worker.finished.connect(self._handle_filter_7z_schema_inference_finished)
             self.schema_inference_worker.error.connect(self._handle_filter_7z_schema_inference_error)
@@ -566,17 +597,46 @@ class PyQtApp(QMainWindow):
 
     def _start_filter_process(self, schema):
         if schema is None:
-            self._log_status("Error: Schema is not available for filtering.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Error: Schema is not available for filtering.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             return
 
-        self._log_status("Starting filtering process...", target_text_edit=self.filter_7z_status_text_edit)
+        output_type = self.filter_7z_output_type_combo.currentText()
+
+        # Check for shapefile with mixed geometry types
+        if output_type.lower() == "esri shapefile":
+            geom_types = schema.get("geometry", [])
+            if isinstance(geom_types, list) and len(geom_types) > 1:
+                # Check if types are incompatible (not just single/multi variants)
+                base_types = set()
+                for gt in geom_types:
+                    if gt.startswith("Multi"):
+                        base_types.add(gt[5:])  # Remove "Multi" prefix
+                    else:
+                        base_types.add(gt)
+                if len(base_types) > 1:
+                    self._log_status(
+                        f"Error: Shapefile does not support mixed geometry types. "
+                        f"Schema has: {', '.join(geom_types)}. "
+                        f"Please choose a different output format (e.g., GeoPackage, FlatGeobuf).",
+                        level="error",
+                        target_text_edit=self.filter_7z_status_text_edit,
+                    )
+                    return
+
+        self._log_status(
+            "Starting filtering process...",
+            target_text_edit=self.filter_7z_status_text_edit,
+        )
         self.filter_7z_filter_label.show()
         self.filter_7z_filter_progress_bar.show()
         self.filter_7z_filter_progress_bar.setValue(0)
 
         temp_dir_filter_7z = Path(self.temp_dir_filter_7z_obj.name)
         self.filter_7z_output_file_path = temp_dir_filter_7z / self.filter_7z_output_filename_input.text()
-        output_type = self.filter_7z_output_type_combo.currentText()
         output_driver = output_type
 
         self.filter_worker = Filter7zWorker(
@@ -584,7 +644,7 @@ class PyQtApp(QMainWindow):
             self.filter_args,
             schema,
             self.filter_7z_output_file_path,
-            output_driver
+            output_driver,
         )
         self.filter_worker.progress.connect(self._update_filter_7z_progress)
         self.filter_worker.finished.connect(self._handle_filter_7z_finished)
@@ -597,13 +657,21 @@ class PyQtApp(QMainWindow):
     def _handle_filter_7z_schema_inference_error(self, error_message):
         self.filter_7z_schema_inference_label.hide()
         self.filter_7z_schema_inference_progress_bar.hide()
-        self._log_status(f"An error occurred during schema inference: {error_message}", level="error", target_text_edit=self.filter_7z_status_text_edit)
+        self._log_status(
+            f"An error occurred during schema inference: {error_message}",
+            level="error",
+            target_text_edit=self.filter_7z_status_text_edit,
+        )
 
     def _handle_filter_7z_schema_inference_finished(self, schema):
         self.filter_7z_schema_inference_label.hide()
         self.filter_7z_schema_inference_progress_bar.hide()
         if schema is None:
-            self._log_status("Error: Could not infer schema from the archive.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Error: Could not infer schema from the archive.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             return
         self._start_filter_process(schema)
 
@@ -614,16 +682,26 @@ class PyQtApp(QMainWindow):
         self.filter_7z_filter_label.hide()
         self.filter_7z_filter_progress_bar.hide()
         if success:
-            self._log_status("Filtering complete! You can download the output file below.", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Filtering complete! You can download the output file below.",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
             self.filter_7z_download_button.setEnabled(True)
         else:
-            self._log_status("Filtering failed.", level="error", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "Filtering failed.",
+                level="error",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
 
     def _handle_filter_7z_error(self, error_message):
         self.filter_7z_filter_label.hide()
         self.filter_7z_filter_progress_bar.hide()
-        self._log_status(f"An error occurred during filtering: {error_message}", level="error", target_text_edit=self.filter_7z_status_text_edit)
-
+        self._log_status(
+            f"An error occurred during filtering: {error_message}",
+            level="error",
+            target_text_edit=self.filter_7z_status_text_edit,
+        )
 
     def clear_temp_files_7z(self):
         if self.temp_dir_filter_7z_obj:
@@ -639,26 +717,44 @@ class PyQtApp(QMainWindow):
         self.clear_temp_files_7z()
         self.clear_temp_files_infer_schema()
 
-    def  _download_file(self):
+    def _download_file(self):
         if self.filter_7z_output_file_path and self.filter_7z_output_file_path.exists():
             file_dialog = QFileDialog()
-            save_path, _ = file_dialog.getSaveFileName(self, "Save Filtered File", self.filter_7z_output_filename_input.text(), "All Files (*)")
+            save_path, _ = file_dialog.getSaveFileName(
+                self,
+                "Save Filtered File",
+                self.filter_7z_output_filename_input.text(),
+                "All Files (*)",
+            )
             if save_path:
                 try:
                     Path(self.filter_7z_output_file_path).rename(save_path)
-                    self._log_status(f"File saved to: {save_path}", target_text_edit=self.filter_7z_status_text_edit)
-                    self.filter_7z_output_file_path = None # Clear path after moving
-                    self.filter_7z_download_button.setEnabled(False) # Disable button after download
+                    self._log_status(
+                        f"File saved to: {save_path}",
+                        target_text_edit=self.filter_7z_status_text_edit,
+                    )
+                    self.filter_7z_output_file_path = None  # Clear path after moving
+                    self.filter_7z_download_button.setEnabled(False)  # Disable button after download
                 except Exception as e:
-                    self._log_status(f"Error saving file: {e}", level="error", target_text_edit=self.filter_7z_status_text_edit)
+                    self._log_status(
+                        f"Error saving file: {e}",
+                        level="error",
+                        target_text_edit=self.filter_7z_status_text_edit,
+                    )
         else:
-            self._log_status("No filtered file to download.", level="warning", target_text_edit=self.filter_7z_status_text_edit)
+            self._log_status(
+                "No filtered file to download.",
+                level="warning",
+                target_text_edit=self.filter_7z_status_text_edit,
+            )
 
         self.clear_temp_files_7z()
 
     def _upload_infer_schema_7z_archive(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Upload 7z Archive for Schema Inference", "", "7z Archives (*.7z)")
+        file_path, _ = file_dialog.getOpenFileName(
+            self, "Upload 7z Archive for Schema Inference", "", "7z Archives (*.7z)"
+        )
         if file_path:
             self.infer_schema_input_7z_path = Path(file_path)
             self.infer_schema_input_7z_label.setText(f"Selected: {self.infer_schema_input_7z_path.name}")
@@ -676,27 +772,27 @@ class PyQtApp(QMainWindow):
         self.infer_schema_progress_bar.show()
 
         if not self.infer_schema_input_7z_path:
-            self._log_status("Error: Please upload an input 7z archive.", level="error", target_text_edit=self.infer_schema_output_text_edit)
+            self._log_status(
+                "Error: Please upload an input 7z archive.",
+                level="error",
+                target_text_edit=self.infer_schema_output_text_edit,
+            )
             self.infer_schema_progress_bar.hide()
             return
 
         log_level = self.infer_schema_log_level_combo.currentText()
-        logging.basicConfig(level=getattr(logging, log_level.upper()),
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-        self._log_status(f"Inferring schema from {self.infer_schema_input_7z_path.name}", target_text_edit=self.infer_schema_output_text_edit)
-
-        limit_to_geom_type = self.infer_schema_limit_geom_type_combo.currentText()
-        if limit_to_geom_type == "None":
-            limit_to_geom_type = None
-        strict_geom_type_check = self.infer_schema_strict_geom_type_checkbox.isChecked()
+        logging.basicConfig(
+            level=getattr(logging, log_level.upper()),
+            format="%(asctime)s - %(levelname)s - %(message)s",
+        )
+        self._log_status(
+            f"Inferring schema from {self.infer_schema_input_7z_path.name}",
+            target_text_edit=self.infer_schema_output_text_edit,
+        )
 
         self.temp_dir_infer_schema_obj = tempfile.TemporaryDirectory(delete=False, ignore_cleanup_errors=True)
-        
-        self.worker = SchemaInferenceWorker(
-            str(self.infer_schema_input_7z_path),
-            limit_to_geom_type,
-            strict_geom_type_check
-        )
+
+        self.worker = SchemaInferenceWorker(str(self.infer_schema_input_7z_path))
         self.worker.progress.connect(self._update_infer_schema_progress)
         self.worker.finished.connect(self._handle_infer_schema_finished)
         self.worker.error.connect(self._handle_infer_schema_error)
@@ -708,29 +804,42 @@ class PyQtApp(QMainWindow):
     def _handle_infer_schema_finished(self, schema):
         self.infer_schema_progress_bar.hide()
         if schema is None:
-            self._log_status("Error: Failed to infer schema.", level="error", target_text_edit=self.infer_schema_output_text_edit)
+            self._log_status(
+                "Error: Failed to infer schema.",
+                level="error",
+                target_text_edit=self.infer_schema_output_text_edit,
+            )
             return
 
         self.infer_schema_output_text_edit.setText(json.dumps(schema, indent=4))
-        self._log_status("Schema inferred successfully.", target_text_edit=self.infer_schema_output_text_edit)
+        self._log_status(
+            "Schema inferred successfully.",
+            target_text_edit=self.infer_schema_output_text_edit,
+        )
 
         # Save to a temporary file for download
         output_filename = self.infer_schema_output_file_input.text()
         if not output_filename:
             output_filename = f"{self.infer_schema_input_7z_path.stem}.schema.json"
-        
+
         temp_dir_infer_schema = Path(self.temp_dir_infer_schema_obj.name)
         self.infer_schema_output_file_path = temp_dir_infer_schema / output_filename
-        with open(self.infer_schema_output_file_path, 'w') as f:
+        with open(self.infer_schema_output_file_path, "w") as f:
             json.dump(schema, f, indent=4)
-        
+
         self.infer_schema_download_button.setEnabled(True)
-        self._log_status(f"Schema saved temporarily to {self.infer_schema_output_file_path.name} for download.", target_text_edit=self.infer_schema_output_text_edit)
+        self._log_status(
+            f"Schema saved temporarily to {self.infer_schema_output_file_path.name} for download.",
+            target_text_edit=self.infer_schema_output_text_edit,
+        )
 
     def _handle_infer_schema_error(self, error_message):
         self.infer_schema_progress_bar.hide()
-        self._log_status(f"An error occurred during schema inference: {error_message}", level="error", target_text_edit=self.infer_schema_output_text_edit)
-
+        self._log_status(
+            f"An error occurred during schema inference: {error_message}",
+            level="error",
+            target_text_edit=self.infer_schema_output_text_edit,
+        )
 
     def _download_inferred_schema(self):
         if self.infer_schema_output_file_path and self.infer_schema_output_file_path.exists():
@@ -739,23 +848,36 @@ class PyQtApp(QMainWindow):
             if not suggested_filename:
                 suggested_filename = f"{self.infer_schema_input_7z_path.stem}.schema.json"
 
-            save_path, _ = file_dialog.getSaveFileName(self, "Save Inferred Schema", suggested_filename, "JSON Files (*.json)")
+            save_path, _ = file_dialog.getSaveFileName(
+                self, "Save Inferred Schema", suggested_filename, "JSON Files (*.json)"
+            )
             if save_path:
                 try:
                     Path(self.infer_schema_output_file_path).rename(save_path)
-                    self._log_status(f"Schema saved to: {save_path}", target_text_edit=self.infer_schema_output_text_edit)
-                    self.infer_schema_output_file_path = None # Clear path after moving
-                    self.infer_schema_download_button.setEnabled(False) # Disable button after download
+                    self._log_status(
+                        f"Schema saved to: {save_path}",
+                        target_text_edit=self.infer_schema_output_text_edit,
+                    )
+                    self.infer_schema_output_file_path = None  # Clear path after moving
+                    self.infer_schema_download_button.setEnabled(False)  # Disable button after download
                 except Exception as e:
-                    self._log_status(f"Error saving schema file: {e}", level="error", target_text_edit=self.infer_schema_output_text_edit)
+                    self._log_status(
+                        f"Error saving schema file: {e}",
+                        level="error",
+                        target_text_edit=self.infer_schema_output_text_edit,
+                    )
         else:
-            self._log_status("No inferred schema to download.", level="warning", target_text_edit=self.infer_schema_output_text_edit)
+            self._log_status(
+                "No inferred schema to download.",
+                level="warning",
+                target_text_edit=self.infer_schema_output_text_edit,
+            )
 
         self.clear_temp_files_infer_schema()
 
     def _log_status(self, message, level="info", target_text_edit=None):
         if target_text_edit is None:
-            target_text_edit = self.filter_7z_status_text_edit # Default to filter 7z status
+            target_text_edit = self.filter_7z_status_text_edit  # Default to filter 7z status
 
         if level == "error":
             target_text_edit.append(f"<p style='color:red;'>{message}</p>")
@@ -763,17 +885,25 @@ class PyQtApp(QMainWindow):
             target_text_edit.append(f"<p style='color:orange;'>{message}</p>")
         else:
             target_text_edit.append(f"<p style='color:blue;'>{message}</p>")
-        QApplication.processEvents() # Update UI immediately
+        QApplication.processEvents()  # Update UI immediately
 
     def closeEvent(self, event):
         self.clear_temp_files()
         super().closeEvent(event)
+
 
 def main():
     app = QApplication(sys.argv)
     window = PyQtApp()
     window.show()
     sys.exit(app.exec_())
+
+
+@click.command("ui")
+def ui():
+    """Launch the PyQt UI for Indianopenmaps"""
+    main()
+
 
 if __name__ == "__main__":
     main()

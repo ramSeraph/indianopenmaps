@@ -3,7 +3,6 @@ import py7zr
 
 class StreamingPy7zIO(py7zr.io.Py7zIO):
     def __init__(self, filename, filter, writer, updater=None):
-
         self.filename = filename
         self.filter = filter
         self.writer = writer
@@ -14,19 +13,18 @@ class StreamingPy7zIO(py7zr.io.Py7zIO):
     def extract_lines(self):
         lines = []
         while True:
-            newline_index = self._buffer.find(b'\n')
+            newline_index = self._buffer.find(b"\n")
             if newline_index == -1:
                 break
 
-            line = self._buffer[:newline_index + 1]
-            self._buffer = self._buffer[newline_index + 1:]
+            line = self._buffer[: newline_index + 1]
+            self._buffer = self._buffer[newline_index + 1 :]
 
-            lines.append(line.decode('utf-8').rstrip('\n'))
+            lines.append(line.decode("utf-8").rstrip("\n"))
 
         return lines
 
     def process_line(self, line):
-
         feature = self.filter.process(line)
         if feature is not None:
             self.writer.write(feature)
@@ -34,9 +32,12 @@ class StreamingPy7zIO(py7zr.io.Py7zIO):
         output_size = self.writer.size()
 
         if self.updater:
-            self.updater.update_other_info(processed=self.filter.count,
-                                           passed=self.filter.passed,
-                                           output_size=output_size)
+            self.updater.update_other_info(
+                processed=self.filter.count,
+                passed=self.filter.passed,
+                output_size=output_size,
+            )
+
     def write(self, data):
         self.length += len(data)
 
@@ -49,9 +50,8 @@ class StreamingPy7zIO(py7zr.io.Py7zIO):
         if self.updater:
             self.updater.update_size(len(data))
 
-
     def read(self, size=None):
-        return b''
+        return b""
 
     def seek(self, offset, whence=0) -> int:
         return offset
@@ -79,4 +79,3 @@ class StreamingWriterFactory(py7zr.io.WriterFactory):
     def create(self, filename):
         self.streaming_io = StreamingPy7zIO(filename, self.filter, self.writer, self.status_updater)
         return self.streaming_io
-

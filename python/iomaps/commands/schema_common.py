@@ -4,16 +4,15 @@ import multivolumefile
 import py7zr
 from tqdm import tqdm
 
-from iomaps.helpers import (
+from iomaps.core.helpers import (
     get_geojsonl_file_info,
 )
-
-from iomaps.streaming import StreamingWriterFactory
-
-from iomaps.infer_schema import (
-    SchemaWriter, 
+from iomaps.core.infer_schema import (
     SchemaFilter,
+    SchemaWriter,
 )
+from iomaps.core.streaming_7z import StreamingWriterFactory
+
 
 class Updater:
     def __init__(self, pb):
@@ -23,7 +22,8 @@ class Updater:
         self.pb.update(sz)
 
     def update_other_info(self, **kwargs):
-        self.pb.set_postfix(processed=kwargs.get('processed', 0))
+        self.pb.set_postfix(processed=kwargs.get("processed", 0))
+
 
 class CombinedUpdater:
     def __init__(self, *updaters):
@@ -50,21 +50,26 @@ class QtUpdater:
         self.signal.emit(progress)
 
     def update_other_info(self, **kwargs):
-        pass # Not needed for the progress bar
+        pass  # Not needed for the progress bar
 
 
 def process_archive_for_schema(archive, dummy_filter, schema_writer, external_updater=None):
     geojsonl_file_info = get_geojsonl_file_info(archive)
     if geojsonl_file_info is None:
         raise FileNotFoundError("No .geojsonl file found in the archive.")
-    
+
     target_file = geojsonl_file_info.filename
     file_size = geojsonl_file_info.uncompressed
 
     logging.info(f"Found geojsonl file: {target_file} (size: {file_size} bytes)")
 
     try:
-        with tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Inferring schema from {target_file}") as pbar:
+        with tqdm(
+            total=file_size,
+            unit="B",
+            unit_scale=True,
+            desc=f"Inferring schema from {target_file}",
+        ) as pbar:
             updater = Updater(pbar)
             if external_updater:
                 qt_updater = QtUpdater(external_updater, file_size)
@@ -76,26 +81,35 @@ def process_archive_for_schema(archive, dummy_filter, schema_writer, external_up
         schema_writer.close()
 
 
-def get_schema_from_archive(input_path, limit_to_geom_type=None, strict_geom_type_check=False, external_updater=None):
+def get_schema_from_archive(input_path, external_updater=None):
     schema_writer = SchemaWriter()
-    schema_filter = SchemaFilter(limit_to_geom_type=limit_to_geom_type, strict_geom_type_check=strict_geom_type_check)
+    schema_filter = SchemaFilter()
 
     archive_path = str(input_path)
 
     try:
-        if archive_path.endswith('.7z.001'):
+        if archive_path.endswith(".7z.001"):
+            base_path = archive_path.rsplit(".", 1)[0]
 
-            base_path = archive_path.rsplit('.', 1)[0]
-
-            with multivolumefile.open(base_path, 'rb') as multivolume_file:
-                with py7zr.SevenZipFile(multivolume_file, 'r') as archive:
+            with multivolumefile.open(base_path, "rb") as multivolume_file:
+                with py7zr.SevenZipFile(multivolume_file, "r") as archive:
                     process_archive_for_schema(archive, schema_filter, schema_writer, external_updater)
         else:
-
-            with py7zr.SevenZipFile(archive_path, mode='r') as archive:
+            with py7zr.SevenZipFile(archive_path, mode="r") as archive:
                 process_archive_for_schema(archive, schema_filter, schema_writer, external_updater)
-        
-        return schema_writer.get_schema()
+
+        schema = schema_writer.get_schema()
+        if schema is None:
+            return None
+
+        # Convert geometry to list
+        source_geom_types = schema["geometry"] if isinstance(schema["geometry"], list) else [schema["geometry"]]
+        if not source_geom_types:
+            logging.error("No geometry types found in source")
+            return None
+
+        schema["geometry"] = sorted(source_geom_types)
+        return schema
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
