@@ -219,6 +219,11 @@
             color: #4a9eff;
         }
         
+        .category-count {
+            opacity: 0.7;
+            font-size: 0.75em;
+        }
+        
         .no-results {
             text-align: center;
             color: #666;
@@ -254,7 +259,7 @@
             <div class="category-filters" id="categoryFilters"></div>
         </div>
         
-        <div class="results-header">Filtered Results:</div>
+        <div class="results-header" id="resultsHeader">Filtered Results:</div>
         <div class="dataset-list" id="datasetList"></div>
         <div class="no-results" id="noResults" style="display: none;">
             No datasets found
@@ -330,17 +335,20 @@
         }
         
         function initializeCategoryFilters() {
-            const categoriesSet = new Set();
+            const categoryCounts = {};
             allDatasets.forEach(dataset => {
-                dataset.categories.forEach(cat => categoriesSet.add(cat));
+                dataset.categories.forEach(cat => {
+                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                });
             });
             
-            const categories = Array.from(categoriesSet).sort();
+            const categories = Object.keys(categoryCounts).sort();
             const filtersEl = document.getElementById('categoryFilters');
             
-            filtersEl.innerHTML = categories.map(category => 
-                `<div class="category-filter" data-category="${category}">${category}</div>`
-            ).join('');
+            filtersEl.innerHTML = categories.map(category => {
+                const count = categoryCounts[category];
+                return `<div class="category-filter" data-category="${category}">${category} <span class="category-count">(${count})</span></div>`;
+            }).join('');
             
             filtersEl.querySelectorAll('.category-filter').forEach(filter => {
                 filter.addEventListener('click', () => {
@@ -400,6 +408,16 @@
         function displayDatasets(datasets) {
             const listEl = document.getElementById('datasetList');
             const noResultsEl = document.getElementById('noResults');
+            const resultsHeader = document.getElementById('resultsHeader');
+            
+            // Update results header with counts
+            const totalCount = allDatasets.length;
+            const filteredCount = datasets.length;
+            if (filteredCount === totalCount) {
+                resultsHeader.textContent = `Available Sources (${totalCount})`;
+            } else {
+                resultsHeader.textContent = `Available Sources (${filteredCount} of ${totalCount})`;
+            }
             
             if (datasets.length === 0) {
                 listEl.innerHTML = '';

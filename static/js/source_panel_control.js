@@ -10,6 +10,7 @@ export class SourcePanelControl {
     this.filterTitle = null;
     this.categoryFilters = null;
     this.sourceList = null;
+    this.layersHeading = null;
     this.noResults = null;
     this.selectedSourcesList = null;
     this.selectedSourcesContent = null;
@@ -39,9 +40,10 @@ export class SourcePanelControl {
   initializeCategoryFilters() {
     const categories = Object.keys(this.sourcesByCategory).sort();
     
-    this.categoryFilters.innerHTML = categories.map(category => 
-      `<div class="category-filter" data-category="${category}">${category}</div>`
-    ).join('');
+    this.categoryFilters.innerHTML = categories.map(category => {
+      const count = this.sourcesByCategory[category].length;
+      return `<div class="category-filter" data-category="${category}">${category} <span class="category-count">(${count})</span></div>`;
+    }).join('');
     
     this.categoryFilters.querySelectorAll('.category-filter').forEach(filter => {
       filter.addEventListener('click', () => {
@@ -95,6 +97,15 @@ export class SourcePanelControl {
 
   renderSourcePanel() {
     const filteredSources = this.filterSources();
+    
+    // Update heading with counts
+    const totalCount = this.allSources.length;
+    const filteredCount = filteredSources.length;
+    if (filteredCount === totalCount) {
+      this.layersHeading.textContent = `Available Sources (${totalCount})`;
+    } else {
+      this.layersHeading.textContent = `Available Sources (${filteredCount} of ${totalCount})`;
+    }
     
     this.sourceList.innerHTML = '';
     this.noResults.style.display = filteredSources.length === 0 ? 'block' : 'none';
@@ -309,9 +320,9 @@ export class SourcePanelControl {
     this.filterSection.appendChild(this.filterTitle);
     this.filterSection.appendChild(this.categoryFilters);
     
-    const layersHeading = document.createElement('div');
-    layersHeading.className = 'layers-heading';
-    layersHeading.textContent = 'Available Sources';
+    this.layersHeading = document.createElement('div');
+    this.layersHeading.className = 'layers-heading';
+    this.layersHeading.textContent = 'Available Sources';
     
     this.sourceList = document.createElement('div');
     this.sourceList.className = 'source-list';
@@ -324,7 +335,7 @@ export class SourcePanelControl {
     this.panelContent.appendChild(searchBox);
     this.panelContent.appendChild(this.selectedSourcesList);
     this.panelContent.appendChild(this.filterSection);
-    this.panelContent.appendChild(layersHeading);
+    this.panelContent.appendChild(this.layersHeading);
     this.panelContent.appendChild(this.sourceList);
     this.panelContent.appendChild(this.noResults);
     
