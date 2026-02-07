@@ -13,6 +13,8 @@ export class DownloadPanelControl {
     this.vectorSourceHandler = vectorSourceHandler;
     this.selectedSource = null;
     this.partitionCache = new Map();
+    this.lastCopiedBtn = null;
+    this.copyResetTimeout = null;
   }
 
   getParquetUrl(originalUrl) {
@@ -251,15 +253,29 @@ export class DownloadPanelControl {
   createCopyButton(url) {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'copy-url-btn';
-    copyBtn.textContent = '📋';
+    // Two overlapping squares - standard copy icon
+    copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     copyBtn.title = 'Copy URL';
     copyBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       try {
         await navigator.clipboard.writeText(url);
-        copyBtn.textContent = '✓';
-        setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+        
+        // Reset previous copied button if exists
+        if (this.lastCopiedBtn && this.lastCopiedBtn !== copyBtn) {
+          this.lastCopiedBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+        }
+        if (this.copyResetTimeout) {
+          clearTimeout(this.copyResetTimeout);
+        }
+        
+        copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+        this.lastCopiedBtn = copyBtn;
+        this.copyResetTimeout = setTimeout(() => { 
+          copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+          this.lastCopiedBtn = null;
+        }, 1500);
       } catch (err) {
         console.error('Failed to copy URL:', err);
       }
