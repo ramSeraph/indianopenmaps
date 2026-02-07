@@ -32,10 +32,10 @@ from PyQt5.QtWidgets import (
 )
 
 from iomaps.commands.filter_7z import (
-    create_filter,
     create_writer,
     process_archive,
 )
+from iomaps.core.spatial_filter import create_filter
 from iomaps.commands.schema_common import get_schema_from_archive
 from iomaps.core.helpers import get_geojsonl_file_info, get_supported_input_drivers
 from iomaps.core.spatial_filter import PassThroughFilter
@@ -52,11 +52,11 @@ class SchemaInferenceWorker(QThread):
 
     def run(self):
         try:
-            schema = get_schema_from_archive(
+            schema, renames = get_schema_from_archive(
                 self.input_7z_path,
                 external_updater=self.progress,
             )
-            self.finished.emit(schema)
+            self.finished.emit((schema, renames))
         except Exception as e:
             self.error.emit(str(e))
 
@@ -66,23 +66,24 @@ class Filter7zWorker(QThread):
     finished = pyqtSignal(object)
     error = pyqtSignal(str)
 
-    def __init__(self, input_7z_path, filter_args, schema, output_file_path, output_driver):
+    def __init__(self, input_7z_path, filter_args, schema, output_file_path, output_driver, property_renames=None):
         super().__init__()
         self.input_7z_path = input_7z_path
         self.filter_args = filter_args
         self.schema = schema
         self.output_file_path = output_file_path
         self.output_driver = output_driver
+        self.property_renames = property_renames or {}
 
     def run(self):
         try:
             # Create filter or use PassThroughFilter if no filter specified
             if self.filter_args.get("filter_file") or self.filter_args.get("bounds"):
-                filter_obj = create_filter(**self.filter_args)
+                filter_obj = create_filter(**self.filter_args, property_renames=self.property_renames)
                 if filter_obj is None:
                     raise Exception("Failed to create filter.")
             else:
-                filter_obj = PassThroughFilter()
+                filter_obj = PassThroughFilter(property_renames=self.property_renames)
 
             crs = CRS.from_epsg(4326)
             writer = create_writer(str(self.output_file_path), self.schema, crs, self.output_driver)
@@ -595,7 +596,7 @@ class PyQtApp(QMainWindow):
             self.schema_inference_worker.error.connect(self._handle_filter_7z_schema_inference_error)
             self.schema_inference_worker.start()
 
-    def _start_filter_process(self, schema):
+    def _start_filter_process(self, schema, property_renames=None):
         if schema is None:
             self._log_status(
                 "Error: Schema is not available for filtering.",
@@ -603,6 +604,8 @@ class PyQtApp(QMainWindow):
                 target_text_edit=self.filter_7z_status_text_edit,
             )
             return
+
+        property_renames = property_renames or {}
 
         output_type = self.filter_7z_output_type_combo.currentText()
 
@@ -645,6 +648,7 @@ class PyQtApp(QMainWindow):
             schema,
             self.filter_7z_output_file_path,
             output_driver,
+            property_renames=property_renames,
         )
         self.filter_worker.progress.connect(self._update_filter_7z_progress)
         self.filter_worker.finished.connect(self._handle_filter_7z_finished)
@@ -663,9 +667,10 @@ class PyQtApp(QMainWindow):
             target_text_edit=self.filter_7z_status_text_edit,
         )
 
-    def _handle_filter_7z_schema_inference_finished(self, schema):
+    def _handle_filter_7z_schema_inference_finished(self, result):
         self.filter_7z_schema_inference_label.hide()
         self.filter_7z_schema_inference_progress_bar.hide()
+        schema, property_renames = result
         if schema is None:
             self._log_status(
                 "Error: Could not infer schema from the archive.",
@@ -673,7 +678,7 @@ class PyQtApp(QMainWindow):
                 target_text_edit=self.filter_7z_status_text_edit,
             )
             return
-        self._start_filter_process(schema)
+        self._start_filter_process(schema, property_renames)
 
     def _update_filter_7z_progress(self, value):
         self.filter_7z_filter_progress_bar.setValue(value)

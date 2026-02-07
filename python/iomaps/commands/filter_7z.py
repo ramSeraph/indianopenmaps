@@ -157,18 +157,19 @@ def filter_7z(
         logging.info(f"Reading schema from {schema_path}")
         with schema_path.open("r") as f:
             schema = json.load(f)
+        property_renames = schema.pop("property_renames", {})
     else:
         logging.info(f"Inferring schema from {input_7z}")
-        schema = get_schema_from_archive(input_7z)
+        schema, property_renames = get_schema_from_archive(input_7z)
         if schema is None:
             logging.error("Could not infer schema from the archive.")
             return
 
     # Create filter with allowed geometry types from schema
     if filter_shape is not None:
-        filter_obj = ShapeFilter(filter_shape)
+        filter_obj = ShapeFilter(filter_shape, property_renames=property_renames)
     else:
-        filter_obj = PassThroughFilter()
+        filter_obj = PassThroughFilter(property_renames=property_renames)
 
     crs = CRS.from_epsg(4326)
     writer = create_writer(output_file, schema, crs, effective_driver)

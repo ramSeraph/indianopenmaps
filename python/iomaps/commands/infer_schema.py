@@ -44,10 +44,14 @@ def infer_schema(input_7z, output_file, log_level):
         logging.error(f"The file {input_7z} does not exist.")
         return
 
-    schema = get_schema_from_archive(input_path)
+    schema, renames = get_schema_from_archive(input_path)
     if schema is None:
         logging.error("Failed to infer schema.")
         raise click.Abort()
+
+    # Include renames in schema file if there are any
+    if renames:
+        schema["property_renames"] = renames
 
     base_name = get_base_name(input_path)
 

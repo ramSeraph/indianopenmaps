@@ -448,3 +448,119 @@ def test_filter_7z_schema_inference():
             }
             assert collection.schema == expected_schema
             assert len(collection) == 2
+
+
+def test_filter_7z_case_insensitive_duplicate_columns():
+    """Test that case-insensitive duplicate property names are handled correctly."""
+    runner = CliRunner()
+    with runner.isolated_filesystem() as td:
+        os.chdir(td)
+        # Create features with properties that differ only by case
+        with open("test.geojsonl", "w") as f:
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, '
+                '"properties": {"Rd_Name": "first", "Rd_name": "second"}}\n'
+            )
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [2, 2]}, '
+                '"properties": {"Rd_Name": "third", "Rd_name": "fourth"}}\n'
+            )
+
+        with py7zr.SevenZipFile("test.7z", "w") as archive:
+            archive.write("test.geojsonl")
+
+        bounds = "0,0,3,3"
+        output_filename = "filtered.gpkg"
+
+        result = runner.invoke(
+            main_cli,
+            ["cli", "filter-7z", "-i", "test.7z", "-o", output_filename, "-b", bounds],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, f"Command failed: {result.output}"
+        assert os.path.exists(output_filename), "Output file not created"
+
+        with fiona.open(output_filename, "r") as collection:
+            # Schema should have both properties (one renamed)
+            props = collection.schema["properties"]
+            assert len(props) == 2
+
+            # All features should have data in both columns
+            features = list(collection)
+            assert len(features) == 2
+
+            # Verify data is preserved (not lost due to column dropping)
+            for f in features:
+                prop_values = list(f["properties"].values())
+                # Both values should be present (not None)
+                assert all(v is not None for v in prop_values)
+
+
+def test_filter_7z_with_schema_file_and_duplicate_columns():
+    """Test that filter-7z correctly uses property_renames from a schema file."""
+    runner = CliRunner()
+    with runner.isolated_filesystem() as td:
+        os.chdir(td)
+        # Create features with properties that differ only by case
+        with open("test.geojsonl", "w") as f:
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, '
+                '"properties": {"Rd_Name": "Main Road", "Rd_name": "Side Street"}}\n'
+            )
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [2, 2]}, '
+                '"properties": {"Rd_Name": "Highway", "Rd_name": "Avenue"}}\n'
+            )
+
+        with py7zr.SevenZipFile("test.7z", "w") as archive:
+            archive.write("test.geojsonl")
+
+        # Step 1: Run infer-schema to generate schema file with property_renames
+        result_schema = runner.invoke(
+            main_cli,
+            ["cli", "infer-schema", "-i", "test.7z", "-o", "schema.json"],
+            catch_exceptions=False,
+        )
+        assert result_schema.exit_code == 0
+
+        # Verify schema file contains property_renames
+        with open("schema.json") as f:
+            schema = json.load(f)
+        assert "property_renames" in schema
+        assert len(schema["property_renames"]) == 1
+
+        # Step 2: Run filter-7z using the schema file
+        bounds = "0,0,3,3"
+        output_filename = "filtered.gpkg"
+
+        result_filter = runner.invoke(
+            main_cli,
+            [
+                "cli",
+                "filter-7z",
+                "-i",
+                "test.7z",
+                "-o",
+                output_filename,
+                "-b",
+                bounds,
+                "--schema",
+                "schema.json",
+            ],
+            catch_exceptions=False,
+        )
+        assert result_filter.exit_code == 0, f"Command failed: {result_filter.output}"
+        assert os.path.exists(output_filename), "Output file not created"
+
+        # Verify output has both columns with correct data
+        with fiona.open(output_filename, "r") as collection:
+            props = collection.schema["properties"]
+            assert len(props) == 2
+
+            features = list(collection)
+            assert len(features) == 2
+
+            # All features should have data in both columns
+            for f in features:
+                prop_values = list(f["properties"].values())
+                assert all(v is not None for v in prop_values)

@@ -310,3 +310,44 @@ def test_infer_schema_all_none_to_str():
             schema = json.load(f)
 
         assert schema == {"properties": {"value": "str"}, "geometry": ["Point"]}
+
+
+def test_infer_schema_case_insensitive_duplicate_columns():
+    """Test that case-insensitive duplicate property names are renamed."""
+    runner = CliRunner()
+    with runner.isolated_filesystem() as td:
+        os.chdir(td)
+        # Create features with properties that differ only by case
+        with open("test.geojsonl", "w") as f:
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, '
+                '"properties": {"Name": "first", "name": "second"}}\n'
+            )
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [2, 2]}, '
+                '"properties": {"Name": "third", "name": "fourth"}}\n'
+            )
+
+        with py7zr.SevenZipFile("test.7z", "w") as archive:
+            archive.write("test.geojsonl")
+
+        result = runner.invoke(
+            main_cli,
+            ["cli", "infer-schema", "-i", "test.7z", "-o", "schema.json"],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0
+
+        with open("schema.json") as f:
+            schema = json.load(f)
+
+        # One property should be renamed to avoid case-insensitive collision
+        props = schema["properties"]
+        assert len(props) == 2
+        # The keys should be unique (case-insensitive)
+        lower_keys = [k.lower() for k in props.keys()]
+        assert len(set(lower_keys)) == 2
+
+        # property_renames should be saved in the schema file
+        assert "property_renames" in schema
+        assert len(schema["property_renames"]) == 1

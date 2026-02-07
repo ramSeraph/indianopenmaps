@@ -98,19 +98,19 @@ def get_schema_from_archive(input_path, external_updater=None):
             with py7zr.SevenZipFile(archive_path, mode="r") as archive:
                 process_archive_for_schema(archive, schema_filter, schema_writer, external_updater)
 
-        schema = schema_writer.get_schema()
+        schema, renames = schema_writer.get_schema()
         if schema is None:
-            return None
+            return None, {}
 
         # Convert geometry to list
         source_geom_types = schema["geometry"] if isinstance(schema["geometry"], list) else [schema["geometry"]]
         if not source_geom_types:
             logging.error("No geometry types found in source")
-            return None
+            return None, {}
 
         schema["geometry"] = sorted(source_geom_types)
-        return schema
+        return schema, renames
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-        return None
+        return None, {}
