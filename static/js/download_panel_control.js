@@ -15,6 +15,7 @@ export class DownloadPanelControl {
     this.partitionCache = new Map();
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
+    this.bboxContainer = null;
   }
 
   getParquetUrl(originalUrl) {
@@ -349,6 +350,18 @@ export class DownloadPanelControl {
     this.linksContainer.appendChild(section);
   }
 
+  updateBboxDisplay() {
+    if (!this.bboxContainer || !this.map) return;
+    
+    const bounds = this.map.getBounds();
+    const west = bounds.getWest().toFixed(7);
+    const south = bounds.getSouth().toFixed(7);
+    const east = bounds.getEast().toFixed(7);
+    const north = bounds.getNorth().toFixed(7);
+    
+    this.bboxContainer.innerHTML = `<span class="bbox-label">Current bbox:</span> <code>${west},${south},${east},${north}</code>`;
+  }
+
   onAdd(map) {
     this.map = map;
 
@@ -389,12 +402,21 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.sourceDropdownContainer);
     this.panelContent.appendChild(this.linksContainer);
 
+    // Bbox display container
+    this.bboxContainer = document.createElement('div');
+    this.bboxContainer.className = 'bbox-display';
+    this.updateBboxDisplay();
+    this.panelContent.appendChild(this.bboxContainer);
+
     this.container.appendChild(this.panelHeader);
     this.container.appendChild(this.panelContent);
 
     this.panelHeader.addEventListener('click', () => {
       this.container.classList.toggle('collapsed');
     });
+
+    // Update bbox on map move
+    this.map.on('moveend', () => this.updateBboxDisplay());
 
     // Collapse on mobile by default, open on desktop
     if (window.innerWidth <= 480) {

@@ -172,7 +172,7 @@
             
             <div class="tool-card" style="background: rgba(255, 193, 7, 0.15); border-color: #ffc107;">
                 <h4 style="color: #ffc107;">⚠️ Compatibility Note</h4>
-                <p>GeoParquet 2.0 is a newer format with limited tool support. If you encounter compatibility issues, consider using <code>geoparquet-io</code> to convert data to other formats. Our <code>iomaps</code> CLI tool (coming soon) will also support this.</p>
+                <p>GeoParquet 2.0 is a newer format with limited tool support. If you encounter compatibility issues, consider using <code>geoparquet-io</code> to convert data to other formats. Our <code>iomaps</code> CLI tool also supports this.</p>
             </div>
             
             <h3>Why GeoParquet?</h3>
@@ -350,8 +350,8 @@ gpio.convert('input.parquet').write('output.geojson')</code></pre>
                 <p><a href="https://geoparquet.io/" target="_blank">geoparquet-io Documentation →</a></p>
             </div>
             
-            <h3>Using iomaps CLI <span style="color: #4a9eff; font-size: 0.8em;">(Coming Soon)</span></h3>
-            <p>Our Python package <code>iomaps</code> will be able to extract and convert data with spatial filtering, handling GeoParquet 2.0 files:</p>
+            <h3>Using iomaps CLI</h3>
+            <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering, handling GeoParquet 2.0 files:</p>
             <pre><code># Install
 pip install iomaps
 
@@ -366,9 +366,9 @@ iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code>
             <p>Some large datasets are split into multiple partition files for easier handling. Each partition covers a different geographic area.</p>
             
             <div class="tool-card" style="background: rgba(74, 158, 255, 0.1); border-color: #4a9eff;">
-                <h4 style="color: #4a9eff;">💡 Recommended: Use iomaps CLI <span style="font-size: 0.8em;">(Coming Soon)</span></h4>
+                <h4 style="color: #4a9eff;">💡 Recommended: Use iomaps CLI</h4>
                 <p>Due to current hosting constraints, we couldn't use standard partitioning schemes like Iceberg or Hive (this may change in the future). Instead, partition metadata is stored in a custom <code>&lt;base_name&gt;.parquet.meta.json</code> file next to the partitions. This file contains the spatial extents of each partition and the schema of the data.</p>
-                <p>The <code>iomaps</code> CLI will understand this format and automatically leverage the metadata to efficiently extract and convert data from partitioned sources—downloading only portions of the partitions needed for your area of interest.</p>
+                <p>The <code>iomaps</code> CLI understands this format and automatically leverages the metadata to efficiently extract and convert data from partitioned sources—downloading only portions of the partitions needed for your area of interest.</p>
                 <pre><code># Extract from partitioned source with spatial filtering
 iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></pre>
             </div>
