@@ -161,8 +161,9 @@ def get_shape_from_filter_file(filter_file, driver=None, pick_filter_feature_id=
 class BaseFilter:
     """Base class for filters with common functionality."""
 
-    def __init__(self, property_renames=None):
+    def __init__(self, property_renames=None, schema_properties=None):
         self.property_renames = property_renames or {}
+        self.schema_properties = schema_properties or {}
         self.count = 0
         self.passed = 0
         self.unparsed = 0
@@ -179,12 +180,21 @@ class BaseFilter:
                     props[new_key] = props.pop(old_key)
         return feature
 
+    def _normalize_properties(self, feature):
+        """Ensure feature has all schema properties, filling missing with None."""
+        if not self.schema_properties:
+            return feature
+        props = feature.get("properties") or {}
+        normalized = {key: props.get(key) for key in self.schema_properties}
+        feature["properties"] = normalized
+        return feature
+
 
 class ShapeFilter(BaseFilter):
     """Filters GeoJSON features based on spatial intersection."""
 
-    def __init__(self, filter_shape, property_renames=None):
-        super().__init__(property_renames)
+    def __init__(self, filter_shape, property_renames=None, schema_properties=None):
+        super().__init__(property_renames, schema_properties)
         self.filter_shape = prep(filter_shape)
 
     def process(self, line):
@@ -212,7 +222,8 @@ class ShapeFilter(BaseFilter):
 
             if self.filter_shape.intersects(feature_shape):
                 self.passed += 1
-                return self._apply_renames(feature)
+                feature = self._apply_renames(feature)
+                return self._normalize_properties(feature)
         except Exception as e:
             logging.error(f"An error occurred processing feature: {e}")
             self.error_count += 1
@@ -223,8 +234,8 @@ class ShapeFilter(BaseFilter):
 class PassThroughFilter(BaseFilter):
     """A filter that passes all features through without modification."""
 
-    def __init__(self, property_renames=None):
-        super().__init__(property_renames)
+    def __init__(self, property_renames=None, schema_properties=None):
+        super().__init__(property_renames, schema_properties)
 
     def process(self, line):
         """Process a JSON line through the pass-through filter."""
@@ -238,7 +249,8 @@ class PassThroughFilter(BaseFilter):
             return None
 
         self.passed += 1
-        return self._apply_renames(feature)
+        feature = self._apply_renames(feature)
+        return self._normalize_properties(feature)
 
 
 def create_filter(
@@ -248,6 +260,7 @@ def create_filter(
     pick_filter_feature_id=None,
     pick_filter_feature_kv=None,
     property_renames=None,
+    schema_properties=None,
 ):
     """
     Creates a ShapeFilter from either a filter file or bounds.
@@ -259,6 +272,7 @@ def create_filter(
         pick_filter_feature_id: Feature ID to pick (optional)
         pick_filter_feature_kv: Key-value pairs to filter features (optional)
         property_renames: Dict mapping old property names to new names (optional)
+        schema_properties: Dict of schema properties to normalize features (optional)
 
     Returns:
         ShapeFilter: Configured filter instance, or None if error
@@ -278,4 +292,4 @@ def create_filter(
     if filter_shape is None:
         return None
 
-    return ShapeFilter(filter_shape, property_renames=property_renames)
+    return ShapeFilter(filter_shape, property_renames=property_renames, schema_properties=schema_properties)

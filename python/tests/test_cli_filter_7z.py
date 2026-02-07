@@ -564,3 +564,50 @@ def test_filter_7z_with_schema_file_and_duplicate_columns():
             for f in features:
                 prop_values = list(f["properties"].values())
                 assert all(v is not None for v in prop_values)
+
+
+def test_filter_7z_heterogeneous_properties():
+    """Test that features with different property subsets are normalized."""
+    runner = CliRunner()
+    with runner.isolated_filesystem() as td:
+        os.chdir(td)
+        # Create features with different property sets
+        with open("test.geojsonl", "w") as f:
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [1, 1]}, '
+                '"properties": {"name": "First", "code": "A"}}\n'
+            )
+            f.write(
+                '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [2, 2]}, '
+                '"properties": {"name": "Second", "category": "B"}}\n'
+            )
+
+        with py7zr.SevenZipFile("test.7z", "w") as archive:
+            archive.write("test.geojsonl")
+
+        bounds = "0,0,3,3"
+        output_filename = "filtered.gpkg"
+
+        result = runner.invoke(
+            main_cli,
+            ["cli", "filter-7z", "-i", "test.7z", "-o", output_filename, "-b", bounds],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, f"Command failed: {result.output}"
+        assert os.path.exists(output_filename), "Output file not created"
+
+        with fiona.open(output_filename, "r") as collection:
+            # Schema should have all properties from all features
+            props = collection.schema["properties"]
+            assert "name" in props
+            assert "code" in props
+            assert "category" in props
+
+            features = list(collection)
+            assert len(features) == 2
+
+            # Each feature should have all properties (missing ones as None)
+            for f in features:
+                assert "name" in f["properties"]
+                assert "code" in f["properties"]
+                assert "category" in f["properties"]

@@ -166,10 +166,11 @@ def filter_7z(
             return
 
     # Create filter with allowed geometry types from schema
+    schema_properties = schema.get("properties", {})
     if filter_shape is not None:
-        filter_obj = ShapeFilter(filter_shape, property_renames=property_renames)
+        filter_obj = ShapeFilter(filter_shape, property_renames=property_renames, schema_properties=schema_properties)
     else:
-        filter_obj = PassThroughFilter(property_renames=property_renames)
+        filter_obj = PassThroughFilter(property_renames=property_renames, schema_properties=schema_properties)
 
     crs = CRS.from_epsg(4326)
     writer = create_writer(output_file, schema, crs, effective_driver)

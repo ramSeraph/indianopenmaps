@@ -78,12 +78,20 @@ class Filter7zWorker(QThread):
     def run(self):
         try:
             # Create filter or use PassThroughFilter if no filter specified
+            schema_properties = self.schema.get("properties", {})
             if self.filter_args.get("filter_file") or self.filter_args.get("bounds"):
-                filter_obj = create_filter(**self.filter_args, property_renames=self.property_renames)
+                filter_obj = create_filter(
+                    **self.filter_args,
+                    property_renames=self.property_renames,
+                    schema_properties=schema_properties,
+                )
                 if filter_obj is None:
                     raise Exception("Failed to create filter.")
             else:
-                filter_obj = PassThroughFilter(property_renames=self.property_renames)
+                filter_obj = PassThroughFilter(
+                    property_renames=self.property_renames,
+                    schema_properties=schema_properties,
+                )
 
             crs = CRS.from_epsg(4326)
             writer = create_writer(str(self.output_file_path), self.schema, crs, self.output_driver)
