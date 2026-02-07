@@ -131,6 +131,10 @@ function addRoutes() {
       return reply.sendFile("viewer.html");
   });
 
+  fastify.get('/data-help', async (request, reply) => {
+      return reply.sendFile("data-help.html");
+  });
+
   fastify.get('/cors-proxy', async (request, reply) => {
     const { url } = request.query;
 

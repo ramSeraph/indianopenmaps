@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Help - Indian Open Maps</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            background: #1a1a1a;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #999;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #4a9eff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        section {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: #4a9eff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            margin: 20px 0 10px 0;
+        }
+        
+        p {
+            color: #bbb;
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            color: #bbb;
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        code {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+            color: #00d4ff;
+        }
+        
+        pre {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        a {
+            color: #4a9eff;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .tool-card {
+            background: rgba(50, 50, 50, 0.5);
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .tool-card h4 {
+            color: #4a9eff;
+            margin-bottom: 8px;
+        }
+        
+        .tool-card p {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .anchor-link {
+            color: #666;
+            text-decoration: none;
+            margin-left: 8px;
+            font-size: 0.8em;
+        }
+        
+        .anchor-link:hover {
+            color: #4a9eff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="header">
+            <h1>Data Help</h1>
+            <p>Guide to working with downloaded data</p>
+        </div>
+        
+        <section id="geoparquet">
+            <h2>GeoParquet Format <a href="#geoparquet" class="anchor-link">#</a></h2>
+            
+            <p>All data available for download is in <strong>GeoParquet 2.0</strong> format. GeoParquet 2.0 uses the native GEOMETRY types added to Apache Parquet in 2025, providing better integration with the Parquet ecosystem.</p>
+            
+            <div class="tool-card" style="background: rgba(255, 193, 7, 0.15); border-color: #ffc107;">
+                <h4 style="color: #ffc107;">⚠️ Compatibility Note</h4>
+                <p>GeoParquet 2.0 is a newer format with limited tool support. If you encounter compatibility issues, consider using <code>geoparquet-io</code> to convert data to other formats. Our <code>iomaps</code> CLI tool (coming soon) will also support this.</p>
+            </div>
+            
+            <h3>Why GeoParquet?</h3>
+            <ul>
+                <li><strong>Efficient compression</strong> - Files are significantly smaller than equivalent Shapefiles or GeoJSON</li>
+                <li><strong>Fast querying</strong> - Columnar format allows reading only needed columns</li>
+                <li><strong>Cloud-native</strong> - Supports partial reads without downloading entire files</li>
+                <li><strong>Rich type support</strong> - Preserves data types accurately</li>
+                <li><strong>Native geometry</strong> - GeoParquet 2.0 uses Parquet's built-in geometry types</li>
+            </ul>
+            
+            <h3>Tools for Viewing GeoParquet 2.0</h3>
+            
+            <div class="tool-card">
+                <h4>QGIS</h4>
+                <p>Free and open-source desktop GIS. Requires <strong>QGIS 3.40+</strong> with <strong>GDAL 3.12+</strong> for GeoParquet 2.0 support.</p>
+                <p>Simply drag and drop the .parquet file into QGIS or use Layer → Add Layer → Add Vector Layer.</p>
+                <p><strong>Note:</strong> On some platforms, you may need to install QGIS via Conda with <code>libgdal-arrow-parquet</code> for full support.</p>
+                <p><strong>QGIS 4.0</strong> will have direct GeoParquet 2.0 support built-in. <a href="https://blog.qgis.org/2025/10/07/update-on-qgis-4-0-release-schedule-and-ltr-plans/" target="_blank">See release schedule →</a></p>
+                <p><a href="https://qgis.org/" target="_blank">Download QGIS →</a> | <a href="https://github.com/cholmes/qgis_plugin_gpq_downloader" target="_blank">GeoParquet Downloader Plugin (for remote files) →</a></p>
+            </div>
+            
+            <div class="tool-card">
+                <h4>DuckDB</h4>
+                <p>Fast analytical database with GeoParquet 2.0 support. Requires <strong>DuckDB 1.2+</strong> with the spatial extension.</p>
+                <pre><code>INSTALL spatial;
+LOAD spatial;
+
+-- Read file
+SELECT * FROM 'file.parquet' LIMIT 10;
+
+-- Filter by bounding box
+SELECT * FROM 'file.parquet'
+WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));
+
+-- Read from remote URL with bbox filter
+SELECT * FROM 'https://example.com/data.parquet'
+WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));</code></pre>
+                <p><a href="https://duckdb.org/" target="_blank">Download DuckDB →</a></p>
+            </div>
+            
+            <div class="tool-card">
+                <h4>GeoPandas (Python)</h4>
+                <p>Python library for working with geospatial data. Requires <strong>GeoPandas 1.0+</strong> with <strong>PyArrow 18+</strong>.</p>
+                <pre><code>import geopandas as gpd
+from shapely.geometry import box
+
+# Read file
+gdf = gpd.read_parquet('file.parquet')
+
+# Filter by bounding box
+bbox = box(77.5, 12.9, 77.7, 13.1)
+gdf = gpd.read_parquet('file.parquet', bbox=bbox)
+
+# Read from remote URL with bbox filter
+gdf = gpd.read_parquet('https://example.com/data.parquet', bbox=bbox)</code></pre>
+                <p><a href="https://geopandas.org/" target="_blank">GeoPandas Documentation →</a></p>
+            </div>
+            
+            <h3>Converting to Other Formats</h3>
+            
+            <div class="tool-card">
+                <h4>Using ogr2ogr (GDAL)</h4>
+                <p>Command-line tool for converting between geospatial formats. Requires <strong>GDAL 3.12+</strong> for GeoParquet 2.0 support.</p>
+                <pre><code># Convert to GeoJSON
+ogr2ogr -f GeoJSON output.geojson input.parquet
+
+# Convert to Shapefile
+ogr2ogr -f "ESRI Shapefile" output.shp input.parquet
+
+# Convert to GeoPackage
+ogr2ogr -f GPKG output.gpkg input.parquet
+
+# Convert to FlatGeobuf
+ogr2ogr -f FlatGeobuf output.fgb input.parquet
+
+# Read from remote URL using /vsicurl/
+ogr2ogr -f GPKG output.gpkg /vsicurl/https://example.com/data.parquet
+
+# Extract bbox from remote file (downloads only relevant portions)
+ogr2ogr -f GPKG output.gpkg /vsicurl/https://example.com/data.parquet \
+  -spat 77.5 12.9 77.7 13.1</code></pre>
+                <p><a href="https://gdal.org/programs/ogr2ogr.html" target="_blank">ogr2ogr Documentation →</a></p>
+            </div>
+            
+            <div class="tool-card">
+                <h4>Using gdal vector (GDAL 3.11+)</h4>
+                <p>Modern command-line interface for GDAL vector operations.</p>
+                <pre><code># Convert to GeoJSON
+gdal vector convert input.parquet output.geojson
+
+# Convert to GeoPackage
+gdal vector convert input.parquet output.gpkg
+
+# Convert to Shapefile
+gdal vector convert -f "ESRI Shapefile" input.parquet output.shp
+
+# Read from remote URL
+gdal vector convert /vsicurl/https://example.com/data.parquet output.gpkg
+
+# Filter by bounding box
+gdal vector filter --bbox=77.5,12.9,77.7,13.1 input.parquet output.parquet
+
+# Pipeline: filter remote file and convert to GeoJSON
+gdal vector pipeline \
+  "read /vsicurl/https://example.com/data.parquet ! \
+   filter --bbox=77.5,12.9,77.7,13.1 ! \
+   write --format=GeoJSON output.geojson"</code></pre>
+                <p><a href="https://gdal.org/en/stable/programs/gdal_vector_convert.html" target="_blank">gdal vector convert →</a> | <a href="https://gdal.org/en/stable/programs/gdal_vector_pipeline.html" target="_blank">gdal vector pipeline →</a></p>
+            </div>
+            
+            <div class="tool-card">
+                <h4>Using GeoPandas (Python)</h4>
+                <pre><code>import geopandas as gpd
+from shapely.geometry import box
+
+# Read GeoParquet
+gdf = gpd.read_parquet('input.parquet')
+
+# Read with bbox filter (efficient for large/remote files)
+bbox = box(77.5, 12.9, 77.7, 13.1)
+gdf = gpd.read_parquet('input.parquet', bbox=bbox)
+
+# Export to various formats
+gdf.to_file('output.geojson', driver='GeoJSON')
+gdf.to_file('output.shp')  # Shapefile
+gdf.to_file('output.gpkg', driver='GPKG')
+gdf.to_file('output.fgb', driver='FlatGeobuf')</code></pre>
+            </div>
+            
+            <div class="tool-card">
+                <h4>Using DuckDB</h4>
+                <pre><code>INSTALL spatial;
+LOAD spatial;
+
+-- Export to GeoJSON
+COPY (SELECT * FROM 'input.parquet') 
+TO 'output.geojson' WITH (FORMAT GDAL, DRIVER 'GeoJSON');
+
+-- Export to Shapefile
+COPY (SELECT * FROM 'input.parquet') 
+TO 'output.shp' WITH (FORMAT GDAL, DRIVER 'ESRI Shapefile');
+
+-- Export with bbox filter
+COPY (
+  SELECT * FROM 'input.parquet'
+  WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1))
+) TO 'output.geojson' WITH (FORMAT GDAL, DRIVER 'GeoJSON');</code></pre>
+            </div>
+            
+            <div class="tool-card">
+                <h4>Using geoparquet-io</h4>
+                <p>A dedicated tool for GeoParquet conversions with CLI and Python API support. Works with local files and remote URLs.</p>
+                <pre><code># Install
+pip install geoparquet-io
+
+# CLI: Convert to various formats
+gpio convert input.parquet output.geojson
+gpio convert input.parquet output.shp
+gpio convert input.parquet output.gpkg
+gpio convert input.parquet output.fgb
+
+# Extract by bounding box from remote URL
+gpio extract --bbox "77.5,12.9,77.7,13.1" https://example.com/data.parquet -o local.parquet
+
+# Extract bbox and pipe to convert in one command
+gpio extract --bbox "77.5,12.9,77.7,13.1" https://example.com/data.parquet | \
+gpio convert - output.geojson
+
+# Python API
+import geoparquet_io as gpio
+gpio.convert('input.parquet').write('output.geojson')</code></pre>
+                <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>:<br>
+                <code>uvx --from geoparquet-io gpio convert input.parquet output.geojson</code></p>
+                <p><a href="https://geoparquet.io/" target="_blank">geoparquet-io Documentation →</a></p>
+            </div>
+            
+            <h3>Using iomaps CLI <span style="color: #4a9eff; font-size: 0.8em;">(Coming Soon)</span></h3>
+            <p>Our Python package <code>iomaps</code> will be able to extract and convert data with spatial filtering, handling GeoParquet 2.0 files:</p>
+            <pre><code># Install
+pip install iomaps
+
+# Extract with bounding box and convert to GeoPackage
+iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></pre>
+            <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>:<br>
+            <code>uvx iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></p>
+        </section>
+        
+        <section id="partitioned">
+            <h2>Partitioned Data <a href="#partitioned" class="anchor-link">#</a></h2>
+            <p>Some large datasets are split into multiple partition files for easier handling. Each partition covers a different geographic area.</p>
+            
+            <div class="tool-card" style="background: rgba(74, 158, 255, 0.1); border-color: #4a9eff;">
+                <h4 style="color: #4a9eff;">💡 Recommended: Use iomaps CLI <span style="font-size: 0.8em;">(Coming Soon)</span></h4>
+                <p>Due to current hosting constraints, we couldn't use standard partitioning schemes like Iceberg or Hive (this may change in the future). Instead, partition metadata is stored in a custom <code>&lt;base_name&gt;.parquet.meta.json</code> file next to the partitions. This file contains the spatial extents of each partition and the schema of the data.</p>
+                <p>The <code>iomaps</code> CLI will understand this format and automatically leverage the metadata to efficiently extract and convert data from partitioned sources—downloading only portions of the partitions needed for your area of interest.</p>
+                <pre><code># Extract from partitioned source with spatial filtering
+iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></pre>
+            </div>
+            
+            <h3>Manual Extraction from Partitions</h3>
+            <p>If you want to extract only portions you're interested in manually, you can apply spatial filters on each remote partition and merge the resulting filtered files:</p>
+            <pre><code># Filter each partition individually (only downloads relevant portions)
+ogr2ogr -f GPKG filtered1.gpkg /vsicurl/https://example.com/part1.parquet -spat 77.5 12.9 77.7 13.1
+ogr2ogr -f GPKG filtered2.gpkg /vsicurl/https://example.com/part2.parquet -spat 77.5 12.9 77.7 13.1
+
+# Then merge the filtered results
+ogr2ogr -f GPKG merged.gpkg filtered1.gpkg
+ogr2ogr -f GPKG -append merged.gpkg filtered2.gpkg</code></pre>
+            
+            <h3>Merging Full Partitions</h3>
+            <p>If you need the complete dataset, download the partitions and merge them:</p>
+            <pre><code># Using ogr2ogr
+ogr2ogr -f GPKG merged.gpkg part1.parquet
+ogr2ogr -f GPKG -append merged.gpkg part2.parquet
+ogr2ogr -f GPKG -append merged.gpkg part3.parquet
+
+# Using Python
+import geopandas as gpd
+import pandas as pd
+
+files = ['part1.parquet', 'part2.parquet', 'part3.parquet']
+gdfs = [gpd.read_parquet(f) for f in files]
+merged = pd.concat(gdfs, ignore_index=True)
+merged.to_parquet('merged.parquet')</code></pre>
+        </section>
+    </div>
+</body>
+</html>

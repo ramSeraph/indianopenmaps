@@ -67,11 +67,31 @@ export class DownloadPanelControl {
       this.noSourcesMessage.style.display = 'block';
       this.sourceDropdownContainer.style.display = 'none';
       this.linksContainer.innerHTML = '';
+      this.selectedSource = null;
       return;
     }
 
     this.noSourcesMessage.style.display = 'none';
     this.sourceDropdownContainer.style.display = 'block';
+
+    // If current selection is no longer valid, reset it
+    if (this.selectedSource && !selectedSources.has(this.selectedSource)) {
+      this.selectedSource = null;
+    }
+
+    // Default to first source if nothing selected
+    if (!this.selectedSource) {
+      this.selectedSource = selectedSources.keys().next().value;
+    }
+
+    const currentData = selectedSources.get(this.selectedSource);
+    const currentColor = this.vectorSourceHandler.getColorForPath(this.selectedSource);
+
+    // Add label above dropdown
+    const dropdownLabel = document.createElement('div');
+    dropdownLabel.className = 'dropdown-label';
+    dropdownLabel.textContent = 'Select a source...';
+    this.sourceDropdownContainer.appendChild(dropdownLabel);
 
     // Create custom dropdown
     const dropdownWrapper = document.createElement('div');
@@ -79,7 +99,21 @@ export class DownloadPanelControl {
     
     const selectedDisplay = document.createElement('div');
     selectedDisplay.className = 'dropdown-selected';
-    selectedDisplay.innerHTML = '<span class="dropdown-placeholder">Select a source...</span><span class="dropdown-arrow">▼</span>';
+    
+    // Show current selection
+    if (currentColor) {
+      const dot = document.createElement('span');
+      dot.className = 'source-color-dot';
+      dot.style.backgroundColor = currentColor;
+      selectedDisplay.appendChild(dot);
+    }
+    const name = document.createElement('span');
+    name.textContent = currentData.name;
+    selectedDisplay.appendChild(name);
+    const arrow = document.createElement('span');
+    arrow.className = 'dropdown-arrow';
+    arrow.textContent = '▼';
+    selectedDisplay.appendChild(arrow);
     
     const optionsList = document.createElement('div');
     optionsList.className = 'dropdown-options';
@@ -142,28 +176,8 @@ export class DownloadPanelControl {
     dropdownWrapper.appendChild(optionsList);
     this.sourceDropdownContainer.appendChild(dropdownWrapper);
 
-    // Restore previous selection if still valid
-    if (this.selectedSource && selectedSources.has(this.selectedSource)) {
-      const data = selectedSources.get(this.selectedSource);
-      const color = this.vectorSourceHandler.getColorForPath(this.selectedSource);
-      selectedDisplay.innerHTML = '';
-      if (color) {
-        const dot = document.createElement('span');
-        dot.className = 'source-color-dot';
-        dot.style.backgroundColor = color;
-        selectedDisplay.appendChild(dot);
-      }
-      const name = document.createElement('span');
-      name.textContent = data.name;
-      selectedDisplay.appendChild(name);
-      const arrow = document.createElement('span');
-      arrow.className = 'dropdown-arrow';
-      arrow.textContent = '▼';
-      selectedDisplay.appendChild(arrow);
-    } else {
-      this.selectedSource = null;
-      this.linksContainer.innerHTML = '';
-    }
+    // Load links for current selection
+    this.loadDownloadLinks(this.selectedSource);
   }
 
   async loadDownloadLinks(sourcePath) {
@@ -198,14 +212,30 @@ export class DownloadPanelControl {
     const heading = document.createElement('div');
     heading.className = 'download-section-heading';
     
+    const leftPart = document.createElement('div');
+    leftPart.className = 'download-section-left';
+    
     const label = document.createElement('span');
     label.textContent = headingText;
+    
+    const helpBtn = document.createElement('a');
+    helpBtn.href = '/data-help#geoparquet';
+    helpBtn.target = '_blank';
+    helpBtn.className = 'download-help-btn';
+    helpBtn.textContent = '?';
+    helpBtn.title = 'Help with downloaded data';
+    helpBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    leftPart.appendChild(label);
+    leftPart.appendChild(helpBtn);
     
     const toggleIcon = document.createElement('span');
     toggleIcon.className = 'download-toggle-icon';
     toggleIcon.textContent = '▼';
     
-    heading.appendChild(label);
+    heading.appendChild(leftPart);
     heading.appendChild(toggleIcon);
     
     heading.addEventListener('click', () => {
@@ -216,6 +246,25 @@ export class DownloadPanelControl {
     section.appendChild(listContainer);
     
     return section;
+  }
+
+  createCopyButton(url) {
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-url-btn';
+    copyBtn.textContent = '📋';
+    copyBtn.title = 'Copy URL';
+    copyBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = '✓';
+        setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+      } catch (err) {
+        console.error('Failed to copy URL:', err);
+      }
+    });
+    return copyBtn;
   }
 
   loadSingleLink(originalUrl, name) {
@@ -239,6 +288,7 @@ export class DownloadPanelControl {
     link.className = 'download-link';
     
     linkItem.appendChild(link);
+    linkItem.appendChild(this.createCopyButton(parquetUrl));
     listContainer.appendChild(linkItem);
     
     const section = this.createDownloadSection('Full Download', listContainer);
@@ -275,6 +325,7 @@ export class DownloadPanelControl {
       link.className = 'download-link partition-link';
       
       linkItem.appendChild(link);
+      linkItem.appendChild(this.createCopyButton(partitionUrl));
       listContainer.appendChild(linkItem);
     }
 
