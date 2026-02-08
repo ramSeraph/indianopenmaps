@@ -4284,5 +4284,15 @@
     "name": "Survey Of India Continuously Operating Reference Stations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/misc/SOI_CORS_locations.pmtiles",
     "promoteid": "corsid"
+  },
+  "/facilities/police-stations/mp/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "police",
+      "madhya pradesh"
+    ],
+    "name": "Madhya Pradesh Police Stations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/MP_Police_Stations.pmtiles",
+    "promoteid": "name"
   }
 }
