@@ -405,6 +405,18 @@ def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
         print(f"  picked ID: {picked['field']} ({unique_str})")
     else:
         print(f"  no suitable ID field found: {picked.get('reason', 'unknown')}")
+        print("  available fields and their uniqueness:")
+        fields = analysis.get("fields", {})
+        total = analysis.get("total_features", 0)
+        for name, info in sorted(fields.items(), key=lambda x: x[1].get("distinct_values", 0) if isinstance(x[1], dict) else 0, reverse=True):
+            if isinstance(info, dict) and "error" not in info:
+                distinct = info.get("distinct_values", 0)
+                null_count = info.get("null_count", 0)
+                ratio = distinct / total if total > 0 else 0
+                is_unique = info.get("is_unique", False)
+                unique_str = "unique" if is_unique else f"{ratio:.2%}"
+                null_str = f", {null_count} nulls" if null_count > 0 else ""
+                print(f"    {name}: {unique_str}{null_str}")
 
 
 def main():

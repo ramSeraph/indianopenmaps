@@ -247,6 +247,8 @@ class QuestionaryOption(click.Option):
         return val
 
 class RepositoryReleases(click.Choice):
+    name = "TEXT"
+
     def __init__(self):
         self.choices = []  # Initialize with empty choices
         self.choices_filled = False
@@ -294,7 +296,8 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--route', type=str, help='tile route')
 @click.option('--category', type=str, help='category', multiple=True)
 @click.option('--no-uploads', is_flag=True, default=False)
-def main(repo, release, base_file, description, source, source_url, route, category, no_uploads):
+@click.option('--promoteid', type=str, help='override promoteid for vector tiles')
+def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, promoteid):
     
     if base_file is None:
         raise click.UsageError('--base-file is required')
@@ -359,9 +362,10 @@ def main(repo, release, base_file, description, source, source_url, route, categ
     print(f"  parquet_meta: {[f.name for f in related['parquet_meta']]}")
     print(f"  Route file: {route_file.name} (mosaic: {is_mosaic}, partitioned_parquet: {is_partitioned_parquet})")
     
-    # Read promoteid from analysis file if present
-    promoteid = None
-    if related['analysis']:
+    # Read promoteid from analysis file if not provided via CLI
+    if promoteid:
+        print(f"  promoteid (from CLI): {promoteid}")
+    elif related['analysis']:
         analysis_file = related['analysis'][0]
         try:
             with open(analysis_file) as f:
@@ -370,6 +374,9 @@ def main(repo, release, base_file, description, source, source_url, route, categ
             promoteid = picked_id.get("field")
             if promoteid:
                 print(f"  promoteid: {promoteid}")
+            else:
+                available_attrs = list(analysis_data.get("attributes", {}).keys())
+                print(f"  warning: unable to pick a promoteid. available attributes: {available_attrs}")
         except Exception as e:
             print(f"  warning: failed to read analysis file: {e}")
     
