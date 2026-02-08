@@ -21,6 +21,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.spinner import Spinner
 from rich.text import Text
+from shapely.geometry import box
 
 from iomaps.commands.decorators import (
     add_filter_options,
@@ -138,8 +139,6 @@ def get_partitions_for_filter(meta_url, filter_shape, metadata):
     Returns:
         list: List of partition URLs that intersect the filter shape
     """
-    from shapely.geometry import box
-
     extents = metadata.get("extents", {})
     base_url = meta_url.rsplit("/", 1)[0]
 

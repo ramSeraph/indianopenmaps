@@ -3,6 +3,7 @@ Common decorators for CLI commands.
 """
 
 import functools
+from pathlib import Path
 
 import click
 
@@ -41,8 +42,6 @@ def validate_output_driver(output_file, output_driver=None):
     Raises:
         click.UsageError: If the driver cannot be determined
     """
-    from pathlib import Path
-
     driver = get_effective_driver(output_file, output_driver)
     if not driver:
         ext = Path(output_file).suffix.lower().lstrip(".")
