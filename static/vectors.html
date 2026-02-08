@@ -269,6 +269,7 @@
     <script>
         let allDatasets = [];
         let selectedCategories = new Set();
+        let categoryCounts = {};
         
         async function loadDatasets() {
             const response = await fetch('/api/routes');
@@ -284,6 +285,14 @@
                     url: info.url || null
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Calculate category counts once
+            categoryCounts = {};
+            allDatasets.forEach(dataset => {
+                dataset.categories.forEach(cat => {
+                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                });
+            });
             
             initializeCategoryFilters();
             loadFromURL();
@@ -335,13 +344,6 @@
         }
         
         function initializeCategoryFilters() {
-            const categoryCounts = {};
-            allDatasets.forEach(dataset => {
-                dataset.categories.forEach(cat => {
-                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-                });
-            });
-            
             const categories = Object.keys(categoryCounts).sort();
             const filtersEl = document.getElementById('categoryFilters');
             
@@ -443,7 +445,7 @@
                         <div class="dataset-name">${dataset.name}</div>
                         ${dataset.categories.length > 0 ? `
                             <div class="dataset-categories">
-                                ${dataset.categories.map(cat => `<span class="category-label${selectedCategories.has(cat) ? ' active' : ''}" data-category="${cat}">${cat}</span>`).join('')}
+                                ${dataset.categories.map(cat => `<span class="category-label${selectedCategories.has(cat) ? ' active' : ''}" data-category="${cat}">${cat} <span class="category-count">(${categoryCounts[cat]})</span></span>`).join('')}
                             </div>
                         ` : ''}
                         <div class="dataset-links">
