@@ -4275,5 +4275,14 @@
     "name": "Amritsarovar Water Observatory data",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles",
     "promoteid": "Sarovar_ID"
+  },
+  "/not-so-open/cors-stations/soi/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "survey"
+    ],
+    "name": "Survey Of India Continuously Operating Reference Stations",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/misc/SOI_CORS_locations.pmtiles",
+    "promoteid": "corsid"
   }
 }
