@@ -351,14 +351,18 @@ gpio.convert('input.parquet').write('output.geojson')</code></pre>
             </div>
             
             <h3>Using iomaps CLI</h3>
-            <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering, handling GeoParquet 2.0 files:</p>
+            <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering, handling GeoParquet 2.0 files. Use <code>iomaps cli sources</code> to list available sources and pick one for extraction:</p>
             <pre><code># Install
 pip install iomaps
 
+# List available sources
+iomaps cli sources
+
 # Extract with bounding box and convert to GeoPackage
-iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></pre>
-            <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>:<br>
-            <code>uvx iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></p>
+iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
+            <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a> (no install required):</p>
+            <pre><code>uvx iomaps cli sources
+uvx iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
         </section>
         
         <section id="partitioned">
@@ -369,8 +373,17 @@ iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code>
                 <h4 style="color: #4a9eff;">💡 Recommended: Use iomaps CLI</h4>
                 <p>Due to current hosting constraints, we couldn't use standard partitioning schemes like Iceberg or Hive (this may change in the future). Instead, partition metadata is stored in a custom <code>&lt;base_name&gt;.parquet.meta.json</code> file next to the partitions. This file contains the spatial extents of each partition and the schema of the data.</p>
                 <p>The <code>iomaps</code> CLI understands this format and automatically leverages the metadata to efficiently extract and convert data from partitioned sources—downloading only portions of the partitions needed for your area of interest.</p>
-                <pre><code># Extract from partitioned source with spatial filtering
-iomaps cli extract -s source_name -o output.gpkg -b "lon1,lat1,lon2,lat2"</code></pre>
+                <pre><code># Install
+pip install iomaps
+
+# List available sources
+iomaps cli sources
+
+# Extract from partitioned source with spatial filtering
+iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
+                <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a> (no install required):</p>
+                <pre><code>uvx iomaps cli sources
+uvx iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
             </div>
             
             <h3>Manual Extraction from Partitions</h3>
