@@ -48,6 +48,7 @@ GDAL_FORMATS = {
     "ESRI Shapefile": {"driver": "ESRI Shapefile", "encoding_option": "ENCODING"},
     "GeoJSON": {"driver": "GeoJSON"},
     "GeoJSONSeq": {"driver": "GeoJSONSeq"},
+    "KML": {"driver": "KML"},
 }
 
 

@@ -11,6 +11,7 @@ SUPPORTED_OUTPUT_DRIVERS = [
     "GeoJSON",
     "GeoJSONSeq",
     "GPKG",
+    "KML",
     "Parquet",
 ]
 
@@ -87,6 +88,7 @@ special_cases = {
     "shp": "ESRI Shapefile",
     "gpkg": "GPKG",
     "parquet": "Parquet",
+    "kml": "KML",
 }
 
 
