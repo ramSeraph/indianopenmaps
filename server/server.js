@@ -135,22 +135,25 @@ function addRoutes() {
       return reply.sendFile("data-help.html");
   });
 
-  fastify.get('/cors-proxy', async (request, reply) => {
-    const { url } = request.query;
-
+  function validateCorsProxyUrl(url, reply, isHead = false) {
     if (!url) {
-      return reply.code(400)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: 'URL parameter is required' });
+      reply.code(400).header('Access-Control-Allow-Origin', '*');
+      return isHead ? reply.send() : reply.send({ error: 'URL parameter is required' });
     }
 
     const isAllowed = corsWhitelist.allowedPrefixes.some(prefix => url.startsWith(prefix));
-    
     if (!isAllowed) {
-      return reply.code(403)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: 'URL not allowed. Must start with an allowed prefix.' });
+      reply.code(403).header('Access-Control-Allow-Origin', '*');
+      return isHead ? reply.send() : reply.send({ error: 'URL not allowed. Must start with an allowed prefix.' });
     }
+
+    return null;
+  }
+
+  fastify.get('/cors-proxy', async (request, reply) => {
+    const { url } = request.query;
+    const validationResult = validateCorsProxyUrl(url, reply, false);
+    if (validationResult) return validationResult;
 
     try {
       const response = await fetch(url);
@@ -173,6 +176,42 @@ function addRoutes() {
       return reply.code(500)
                   .header('Access-Control-Allow-Origin', '*')
                   .send({ error: err.message });
+    }
+  });
+
+  fastify.head('/cors-proxy', async (request, reply) => {
+    const { url } = request.query;
+    const validationResult = validateCorsProxyUrl(url, reply, true);
+    if (validationResult) return validationResult;
+
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      
+      if (!response.ok) {
+        return reply.code(response.status)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send();
+      }
+
+      const contentType = response.headers.get('content-type');
+      const contentLength = response.headers.get('content-length');
+
+      let replyChain = reply.header('Access-Control-Allow-Origin', '*')
+                            .header('Cache-Control', 'max-age=3600');
+      
+      if (contentType) {
+        replyChain = replyChain.header('Content-Type', contentType);
+      }
+      if (contentLength) {
+        replyChain = replyChain.header('Content-Length', contentLength);
+      }
+
+      return replyChain.send();
+    } catch (err) {
+      logger.error({ err }, 'Error proxying HEAD request');
+      return reply.code(500)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send();
     }
   });
 

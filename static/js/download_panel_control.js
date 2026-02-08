@@ -15,6 +15,45 @@ export class DownloadPanelControl {
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
     this.bboxContainer = null;
+    this.sizeCache = new Map();
+  }
+
+  formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  async fetchFileSize(url, sizeElement) {
+    if (this.sizeCache.has(url)) {
+      sizeElement.textContent = this.sizeCache.get(url);
+      sizeElement.classList.remove('loading');
+      return;
+    }
+
+    try {
+      const corsProxyUrl = `/cors-proxy?url=${encodeURIComponent(url)}`;
+      const response = await fetch(corsProxyUrl, { method: 'HEAD' });
+      
+      if (response.ok) {
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) {
+          const size = this.formatFileSize(parseInt(contentLength, 10));
+          this.sizeCache.set(url, size);
+          sizeElement.textContent = size;
+        } else {
+          sizeElement.textContent = '';
+        }
+      } else {
+        sizeElement.textContent = '';
+      }
+    } catch (error) {
+      console.error('Error fetching file size:', error);
+      sizeElement.textContent = '';
+    }
+    sizeElement.classList.remove('loading');
   }
 
   getParquetUrl(originalUrl) {
@@ -303,12 +342,19 @@ export class DownloadPanelControl {
     link.textContent = filename;
     link.className = 'download-link';
     
+    const sizeSpan = document.createElement('span');
+    sizeSpan.className = 'file-size loading';
+    
     linkItem.appendChild(link);
+    linkItem.appendChild(sizeSpan);
     linkItem.appendChild(this.createCopyButton(parquetUrl));
     listContainer.appendChild(linkItem);
     
     const section = this.createDownloadSection('Full Download', listContainer);
     this.linksContainer.appendChild(section);
+
+    // Fetch file size asynchronously
+    this.fetchFileSize(parquetUrl, sizeSpan);
   }
 
   async loadPartitionedLinks(originalUrl, name) {
@@ -327,6 +373,8 @@ export class DownloadPanelControl {
     const listContainer = document.createElement('div');
     listContainer.className = 'partitions-list';
 
+    const sizeElements = [];
+
     for (const partition of partitions) {
       const partitionUrl = baseUrl + partition;
       
@@ -340,13 +388,24 @@ export class DownloadPanelControl {
       link.textContent = partition;
       link.className = 'download-link partition-link';
       
+      const sizeSpan = document.createElement('span');
+      sizeSpan.className = 'file-size loading';
+      
       linkItem.appendChild(link);
+      linkItem.appendChild(sizeSpan);
       linkItem.appendChild(this.createCopyButton(partitionUrl));
       listContainer.appendChild(linkItem);
+
+      sizeElements.push({ url: partitionUrl, element: sizeSpan });
     }
 
     const section = this.createDownloadSection(`Full Download (${partitions.length} files)`, listContainer);
     this.linksContainer.appendChild(section);
+
+    // Fetch file sizes asynchronously
+    for (const { url, element } of sizeElements) {
+      this.fetchFileSize(url, element);
+    }
   }
 
   updateBboxDisplay() {

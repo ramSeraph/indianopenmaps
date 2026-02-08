@@ -537,6 +537,22 @@
     .download-link:hover {
       text-decoration: underline;
     }
+    .file-size {
+      font-size: 10px;
+      color: #666;
+      flex-shrink: 0;
+      min-width: 45px;
+      text-align: right;
+    }
+    .file-size.loading::after {
+      content: '...';
+      animation: ellipsis 1.2s infinite;
+    }
+    @keyframes ellipsis {
+      0% { content: '.'; }
+      33% { content: '..'; }
+      66% { content: '...'; }
+    }
     .copy-url-btn {
       background: none;
       border: none;
