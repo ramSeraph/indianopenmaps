@@ -3,7 +3,6 @@ export class SourcePanelControl {
   constructor(searchParams, routesHandler, vectorSourceHandler) {
     this.map = null;
     this.container = null;
-    this.panelHeader = null;
     this.panelContent = null;
     this.searchInput = null;
     this.filterSection = null;
@@ -255,24 +254,13 @@ export class SourcePanelControl {
     }
   }
 
-  onAdd(map) {
-    this.map = map;
-    
+  /**
+   * Create the panel element for sidebar mounting
+   * @returns {HTMLElement} The panel element
+   */
+  createPanel() {
     this.container = document.createElement('div');
-    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-source-panel';
-    
-    this.panelHeader = document.createElement('div');
-    this.panelHeader.className = 'panel-header';
-    
-    const headerTitle = document.createElement('h3');
-    headerTitle.textContent = 'Vector Sources';
-    
-    const toggleIcon = document.createElement('span');
-    toggleIcon.className = 'toggle-icon';
-    toggleIcon.textContent = '▼';
-    
-    this.panelHeader.appendChild(headerTitle);
-    this.panelHeader.appendChild(toggleIcon);
+    this.container.className = 'maplibregl-ctrl-source-panel';
     
     this.panelContent = document.createElement('div');
     this.panelContent.className = 'panel-content';
@@ -339,17 +327,7 @@ export class SourcePanelControl {
     this.panelContent.appendChild(this.sourceList);
     this.panelContent.appendChild(this.noResults);
     
-    this.container.appendChild(this.panelHeader);
     this.container.appendChild(this.panelContent);
-    
-    this.panelHeader.addEventListener('click', () => {
-      this.container.classList.toggle('collapsed');
-    });
-    
-    // Collapse panel on mobile by default
-    if (window.innerWidth <= 480) {
-      this.container.classList.add('collapsed');
-    }
     
     this.filterTitle.addEventListener('click', () => {
       this.filterSection.classList.toggle('collapsed');
@@ -362,8 +340,15 @@ export class SourcePanelControl {
     return this.container;
   }
 
+  /**
+   * Set the map reference (called by sidebar or directly)
+   */
+  setMap(map) {
+    this.map = map;
+  }
+
   onRemove() {
-    this.container.parentNode.removeChild(this.container);
+    this.container?.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
 }

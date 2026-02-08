@@ -3,7 +3,6 @@ export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
     this.map = null;
     this.container = null;
-    this.panelHeader = null;
     this.panelContent = null;
     this.sourceDropdown = null;
     this.linksContainer = null;
@@ -362,24 +361,13 @@ export class DownloadPanelControl {
     this.bboxContainer.innerHTML = `<span class="bbox-label">Current bbox:</span> <code>${west},${south},${east},${north}</code>`;
   }
 
-  onAdd(map) {
-    this.map = map;
-
+  /**
+   * Create the panel element for sidebar mounting
+   * @returns {HTMLElement} The panel element
+   */
+  createPanel() {
     this.container = document.createElement('div');
-    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-download-panel';
-
-    this.panelHeader = document.createElement('div');
-    this.panelHeader.className = 'panel-header';
-
-    const headerTitle = document.createElement('h3');
-    headerTitle.textContent = 'Download';
-
-    const toggleIcon = document.createElement('span');
-    toggleIcon.className = 'toggle-icon';
-    toggleIcon.textContent = '▼';
-
-    this.panelHeader.appendChild(headerTitle);
-    this.panelHeader.appendChild(toggleIcon);
+    this.container.className = 'maplibregl-ctrl-download-panel';
 
     this.panelContent = document.createElement('div');
     this.panelContent.className = 'panel-content';
@@ -405,32 +393,31 @@ export class DownloadPanelControl {
     // Bbox display container
     this.bboxContainer = document.createElement('div');
     this.bboxContainer.className = 'bbox-display';
-    this.updateBboxDisplay();
     this.panelContent.appendChild(this.bboxContainer);
 
-    this.container.appendChild(this.panelHeader);
     this.container.appendChild(this.panelContent);
-
-    this.panelHeader.addEventListener('click', () => {
-      this.container.classList.toggle('collapsed');
-    });
-
-    // Update bbox on map move
-    this.map.on('moveend', () => this.updateBboxDisplay());
-
-    // Collapse on mobile by default, open on desktop
-    if (window.innerWidth <= 480) {
-      this.container.classList.add('collapsed');
-    }
-
-    // Initial update
-    this.updateSourceDropdown();
 
     return this.container;
   }
 
+  /**
+   * Set the map reference and initialize map-dependent features
+   */
+  setMap(map) {
+    this.map = map;
+    
+    // Update bbox on map move
+    this.map.on('moveend', () => this.updateBboxDisplay());
+    
+    // Initial bbox update
+    this.updateBboxDisplay();
+    
+    // Initial dropdown update
+    this.updateSourceDropdown();
+  }
+
   onRemove() {
-    this.container.parentNode.removeChild(this.container);
+    this.container?.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
 }

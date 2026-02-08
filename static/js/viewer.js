@@ -11,6 +11,7 @@ import { SourcePanelControl } from '/js/source_panel_control.js';
 import { DownloadPanelControl } from '/js/download_panel_control.js';
 import { RoutesHandler } from '/js/routes_handler.js';
 import { TerrainHandler } from '/js/terrain_handler.js';
+import { SidebarControl } from '/js/sidebar_control.js';
 
 import { registerCorrectionProtocol } from 'https://esm.sh/@india-boundary-corrector/maplibre-protocol@latest';
 
@@ -127,25 +128,42 @@ function setupMap() {
       .togglePopup();
   });
   
-  map.addControl(geocoder, 'top-left');
-  
   let vectorSourceHandler = new VectorSourceHandler(map, colorHandler, searchParams, routesHandler);
 
   let baseLayerPicker = new BaseLayerPicker(map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler);
-  map.addControl(baseLayerPicker, 'top-left');
 
   registerCorrectionProtocol(maplibregl);
   
   let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
-  map.addControl(sourcePanelControl, 'top-left');
 
   let downloadPanelControl = new DownloadPanelControl(routesHandler, vectorSourceHandler);
-  map.addControl(downloadPanelControl, 'top-left');
   
   // Wire up source change notifications
   sourcePanelControl.setOnSourceChangeCallback(() => {
     downloadPanelControl.updateSourceDropdown();
   });
+
+  // Create sidebar and register panels
+  const sidebar = new SidebarControl();
+  
+  // Create geocoder panel wrapper
+  const geocoderPanel = document.createElement('div');
+  geocoderPanel.className = 'geocoder-panel';
+  const geocoderContainer = geocoder.onAdd(map);
+  geocoderPanel.appendChild(geocoderContainer);
+  
+  // Register all panels with sidebar
+  sidebar.registerPanel('search', 'search', 'Search Location', geocoderPanel);
+  sidebar.registerPanel('layers', 'layers', 'Base Map', baseLayerPicker.createPanel());
+  sidebar.registerPanel('sources', 'database', 'Vector Sources', sourcePanelControl.createPanel());
+  sidebar.registerPanel('download', 'download', 'Download Data', downloadPanelControl.createPanel());
+  
+  // Add sidebar to map
+  map.addControl(sidebar, 'top-left');
+  
+  // Set map references for panels that need it
+  downloadPanelControl.setMap(map);
+  sourcePanelControl.setMap(map);
 
   let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
   let hoverToggleControl = new HoverPopupToggleControl(popupHandler);

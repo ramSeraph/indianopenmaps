@@ -191,7 +191,8 @@ export class BaseLayerPicker {
     this.vectorSourceHandler = vectorSourceHandler;
 
     this.baseLayers = [];
-    this.select = null;
+    this.container = null;
+    this.layerList = null;
     this.currentLayerName = null;
   }
 
@@ -276,6 +277,20 @@ export class BaseLayerPicker {
 
     this.currentLayerName = layerName;
     this.searchParams.updateBaseLayer(layerName);
+    
+    // Update UI to show active layer
+    this._updateActiveState();
+  }
+
+  _updateActiveState() {
+    if (!this.layerList) return;
+    
+    this.layerList.querySelectorAll('.base-layer-option').forEach(option => {
+      const isActive = option.dataset.layerName === this.currentLayerName;
+      option.classList.toggle('active', isActive);
+      const radio = option.querySelector('input[type="radio"]');
+      if (radio) radio.checked = isActive;
+    });
   }
 
   async initialize() {
@@ -284,15 +299,33 @@ export class BaseLayerPicker {
     for (const raster of rasterSources) {
       this.baseLayers.push({ name: raster.name, path: raster.path, tileJsonUrl: raster.tileJsonUrl, sources: {} });
     }
+    
+    // Populate layer list
     this.baseLayers.forEach(layerInfo => {
-      const option = document.createElement('option');
-      option.value = layerInfo.name;
-      option.textContent = layerInfo.name;
-      this.select.appendChild(option);
+      const option = document.createElement('div');
+      option.className = 'base-layer-option';
+      option.dataset.layerName = layerInfo.name;
+      
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'base-layer';
+      radio.id = `base-layer-${layerInfo.name.replace(/\s+/g, '-')}`;
+      
+      const label = document.createElement('label');
+      label.htmlFor = radio.id;
+      label.textContent = layerInfo.name;
+      
+      option.appendChild(radio);
+      option.appendChild(label);
+      
+      option.addEventListener('click', () => {
+        this.switchLayer(layerInfo.name);
+      });
+      
+      this.layerList.appendChild(option);
     });
 
     const initialChoice = this.searchParams.getBaseLayer(CARTO_OSM_DARK_LAYER_NAME);
-    this.select.value = initialChoice;
     
     // Wait for map style to be loaded before switching layers
     if (this.map.isStyleLoaded()) {
@@ -304,23 +337,34 @@ export class BaseLayerPicker {
     }
   }
 
-  onAdd(map) {
-    this.map = map;
-    const div = document.createElement('div');
-    div.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-    const select = document.createElement('select');
-    select.style.padding = '5px 8px';
-    select.style.fontSize = '12px';
-    select.style.border = 'none';
-    select.style.background = 'white';
-    select.style.cursor = 'pointer';
-    select.style.fontFamily = "'Open Sans', sans-serif";
-    select.style.minWidth = 'auto';
-    select.style.maxWidth = '300px';
-    select.addEventListener('change', (e) => this.switchLayer(e.target.value));
-    this.select = select;
-    div.appendChild(select);
+  /**
+   * Create the panel element for sidebar mounting
+   * @returns {HTMLElement} The panel element
+   */
+  createPanel() {
+    this.container = document.createElement('div');
+    this.container.className = 'base-layer-panel';
+    
+    const title = document.createElement('div');
+    title.className = 'panel-title';
+    title.textContent = 'Base Map';
+    
+    this.layerList = document.createElement('div');
+    this.layerList.className = 'base-layer-list';
+    
+    this.container.appendChild(title);
+    this.container.appendChild(this.layerList);
+    
+    // Initialize layers
     this.initialize();
-    return div;
+    
+    return this.container;
+  }
+
+  /**
+   * Set the map reference (for sidebar usage)
+   */
+  setMap(map) {
+    this.map = map;
   }
 }
