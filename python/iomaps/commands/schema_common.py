@@ -2,7 +2,7 @@ import logging
 
 import multivolumefile
 import py7zr
-from tqdm import tqdm
+from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeElapsedColumn, TransferSpeedColumn
 
 from iomaps.core.helpers import (
     get_geojsonl_file_info,
@@ -14,15 +14,17 @@ from iomaps.core.infer_schema import (
 from iomaps.core.streaming_7z import StreamingWriterFactory
 
 
-class Updater:
-    def __init__(self, pb):
-        self.pb = pb
+class RichUpdater:
+    def __init__(self, progress, task_id):
+        self.progress = progress
+        self.task_id = task_id
 
     def update_size(self, sz):
-        self.pb.update(sz)
+        self.progress.update(self.task_id, advance=sz)
 
     def update_other_info(self, **kwargs):
-        self.pb.set_postfix(processed=kwargs.get("processed", 0))
+        processed = kwargs.get("processed", 0)
+        self.progress.update(self.task_id, description=f"[cyan]Inferring schema ({processed:,} features)")
 
 
 class CombinedUpdater:
@@ -64,13 +66,16 @@ def process_archive_for_schema(archive, dummy_filter, schema_writer, external_up
     logging.info(f"Found geojsonl file: {target_file} (size: {file_size} bytes)")
 
     try:
-        with tqdm(
-            total=file_size,
-            unit="B",
-            unit_scale=True,
-            desc=f"Inferring schema from {target_file}",
-        ) as pbar:
-            updater = Updater(pbar)
+        with Progress(
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(),
+            DownloadColumn(),
+            TransferSpeedColumn(),
+            TimeElapsedColumn(),
+            console=None,
+        ) as progress:
+            task_id = progress.add_task(f"[cyan]Inferring schema from {target_file}", total=file_size)
+            updater = RichUpdater(progress, task_id)
             if external_updater:
                 qt_updater = QtUpdater(external_updater, file_size)
                 updater = CombinedUpdater(qt_updater, updater)

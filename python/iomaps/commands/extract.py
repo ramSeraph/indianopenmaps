@@ -9,12 +9,18 @@ Some of this code was adapted from geoparquet-io (https://github.com/pka/geoparq
 import json
 import logging
 import sys
+import threading
+import time
 
 import click
 import duckdb
 import requests
 from geoparquet_io.core.common import write_parquet_with_metadata
 from geoparquet_io.core.duckdb_metadata import get_geo_metadata, get_schema_info
+from rich.console import Console
+from rich.live import Live
+from rich.spinner import Spinner
+from rich.text import Text
 
 from iomaps.commands.decorators import (
     add_filter_options,
@@ -120,38 +126,40 @@ def fetch_partition_metadata(meta_url):
         return None
 
 
-def get_partitions_for_bbox(meta_url, bbox, metadata):
+def get_partitions_for_filter(meta_url, filter_shape, metadata):
     """
-    Gets list of partition URLs that intersect with the given bbox.
+    Gets list of partition URLs that intersect with the given filter shape.
 
     Args:
         meta_url: URL to the meta.json file
-        bbox: Tuple of (minx, miny, maxx, maxy), or None to get all partitions
+        filter_shape: Shapely geometry to filter by, or None to get all partitions
         metadata: Pre-fetched metadata dict
 
     Returns:
-        list: List of partition URLs that intersect the bbox
+        list: List of partition URLs that intersect the filter shape
     """
+    from shapely.geometry import box
+
     extents = metadata.get("extents", {})
     base_url = meta_url.rsplit("/", 1)[0]
 
     matching_partition_urls = []
     for partition_name, extent in extents.items():
-        if bbox is None:
+        if filter_shape is None:
             matching_partition_urls.append(f"{base_url}/{partition_name}")
         else:
             p_minx = extent.get("minx")
             p_miny = extent.get("miny")
             p_maxx = extent.get("maxx")
             p_maxy = extent.get("maxy")
-            f_minx, f_miny, f_maxx, f_maxy = bbox
 
-            # Check for intersection
-            if not (p_maxx < f_minx or p_minx > f_maxx or p_maxy < f_miny or p_miny > f_maxy):
+            # Create a box for the partition extent and check intersection with filter shape
+            partition_box = box(p_minx, p_miny, p_maxx, p_maxy)
+            if filter_shape.intersects(partition_box):
                 matching_partition_urls.append(f"{base_url}/{partition_name}")
-                logging.debug(f"Partition {partition_name} intersects with filter bbox")
+                logging.debug(f"Partition {partition_name} intersects with filter shape")
             else:
-                logging.debug(f"Partition {partition_name} skipped (outside bbox)")
+                logging.debug(f"Partition {partition_name} skipped (no intersection)")
 
     return matching_partition_urls
 
@@ -227,6 +235,47 @@ WHERE ST_Intersects(geometry, ST_MakeEnvelope({minx}, {miny}, {maxx}, {maxy}))
     return f"SELECT * FROM {source_expr}{where_clause}"
 
 
+def execute_with_spinner(con, query, description="Processing"):
+    """Execute a DuckDB query while showing a spinner with elapsed time.
+
+    Note: DuckDB 1.5.0 (expected Feb 2026) adds a working query_progress() API that can be
+    polled from a separate thread to get actual progress percentage. See PR #16927:
+    https://github.com/duckdb/duckdb/pull/16927
+    Once upgraded, this can be replaced with a proper progress bar.
+    """
+    console = Console(stderr=True)
+    result = None
+    error = None
+    start_time = time.time()
+
+    def run_query():
+        nonlocal result, error
+        try:
+            result = con.execute(query)
+        except Exception as e:
+            error = e
+
+    thread = threading.Thread(target=run_query)
+    thread.start()
+
+    # Show spinner while query runs (no real progress available in DuckDB < 1.5.0)
+    with Live(console=console, refresh_per_second=4, transient=True) as live:
+        while thread.is_alive():
+            elapsed = time.time() - start_time
+            spinner = Spinner("dots", text=Text(f" {description}... ({elapsed:.1f}s)", style="cyan"))
+            live.update(spinner)
+            time.sleep(0.1)
+
+    thread.join()
+
+    elapsed = time.time() - start_time
+    if error:
+        raise error
+
+    logging.info(f"{description} completed in {elapsed:.1f}s")
+    return result
+
+
 def write_gdal_output(con, query, output_path, driver, layer_name="features"):
     """Write query results to GDAL format via DuckDB COPY."""
     config = GDAL_FORMATS.get(driver)
@@ -247,11 +296,11 @@ def write_gdal_output(con, query, output_path, driver, layer_name="features"):
     copy_query = f"""
         COPY ({query})
         TO '{safe_output_path}'
-        WITH (FORMAT GDAL, DRIVER '{config['driver']}'{lco_clause})
+        WITH (FORMAT GDAL, DRIVER '{config["driver"]}'{lco_clause})
     """
 
     logging.debug(f"Executing: {copy_query}")
-    con.execute(copy_query)
+    execute_with_spinner(con, copy_query, f"Downloading and writing {driver}")
 
 
 def write_csv_output(con, query, output_path):
@@ -270,20 +319,48 @@ def write_csv_output(con, query, output_path):
     """
 
     logging.debug(f"Executing: {copy_query}")
-    con.execute(copy_query)
+    execute_with_spinner(con, copy_query, "Downloading and writing CSV")
 
 
 def write_parquet_output(con, query, output_path):
     """Write query results to GeoParquet."""
-    write_parquet_with_metadata(
-        con=con,
-        query=query,
-        output_file=output_path,
-        compression="ZSTD",
-        compression_level=15,
-        row_group_rows=100000,
-        geoparquet_version="2.0",
-    )
+    console = Console(stderr=True)
+    error = None
+    start_time = time.time()
+
+    def run_write():
+        nonlocal error
+        try:
+            write_parquet_with_metadata(
+                con=con,
+                query=query,
+                output_file=output_path,
+                compression="ZSTD",
+                compression_level=15,
+                row_group_rows=100000,
+                geoparquet_version="2.0",
+            )
+        except Exception as e:
+            error = e
+
+    thread = threading.Thread(target=run_write)
+    thread.start()
+
+    description = "Downloading and writing Parquet"
+    with Live(console=console, refresh_per_second=4, transient=True) as live:
+        while thread.is_alive():
+            elapsed = time.time() - start_time
+            spinner = Spinner("dots", text=Text(f" {description}... ({elapsed:.1f}s)", style="cyan"))
+            live.update(spinner)
+            time.sleep(0.1)
+
+    thread.join()
+
+    elapsed = time.time() - start_time
+    if error:
+        raise error
+
+    logging.info(f"{description} completed in {elapsed:.1f}s")
 
 
 @click.command("extract")
@@ -291,8 +368,7 @@ def write_parquet_output(con, query, output_path):
     "-s",
     "--source",
     required=True,
-    help="Source to extract from. Can be a name, route (starting with /), "
-    "or number from 'iomaps cli sources'.",
+    help="Source to extract from. Can be a name, route (starting with /), or number from 'iomaps cli sources'.",
 )
 @add_output_options
 @add_routes_options
@@ -370,7 +446,6 @@ def extract(
 
     # Get filter shape (needed for partition filtering and spatial query)
     filter_shape = None
-    filter_bbox = None
     if filter_file or bounds:
         if filter_file:
             filter_shape = get_shape_from_filter_file(
@@ -385,8 +460,6 @@ def extract(
         if filter_shape is None:
             raise click.Abort()
 
-        filter_bbox = filter_shape.bounds
-
     # Collect parquet URLs
     parquet_urls = []
 
@@ -397,8 +470,8 @@ def extract(
             logging.error(f"Failed to fetch metadata for {parquet_info['base_url']}")
             return
 
-        # Get partitions that intersect with filter bbox
-        partitions = get_partitions_for_bbox(parquet_info["meta_url"], filter_bbox, partition_metadata)
+        # Get partitions that intersect with filter shape
+        partitions = get_partitions_for_filter(parquet_info["meta_url"], filter_shape, partition_metadata)
         if not partitions:
             logging.info("No partitions intersect with the filter bounds. Nothing to extract.")
             return

@@ -9,7 +9,6 @@ dependencies = [
     "multivolumefile>=0.2.3",
     "shapely>=2.1.2",
     "fiona>=1.10.1",
-    "tqdm>=4.67.1",
     "PyQt5>=5.15.0",
     "geoparquet-io>=0.1.0",
     "requests>=2.31.0",

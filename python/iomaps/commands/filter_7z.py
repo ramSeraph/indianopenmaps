@@ -6,7 +6,7 @@ import click
 import multivolumefile
 import py7zr
 from fiona.crs import CRS
-from tqdm import tqdm
+from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeElapsedColumn, TransferSpeedColumn
 
 from iomaps.commands.decorators import (
     add_filter_options,
@@ -29,22 +29,21 @@ from iomaps.core.streaming_7z import StreamingWriterFactory
 from iomaps.core.writers import create_writer
 
 
-class TQDMUpdater:
-    def __init__(self, pb):
-        self.pb = pb
+class RichUpdater:
+    def __init__(self, progress, task_id):
+        self.progress = progress
+        self.task_id = task_id
 
     def update_size(self, sz):
-        self.pb.update(sz)
+        self.progress.update(self.task_id, advance=sz)
 
     def update_other_info(self, **kwargs):
         output_size = kwargs.get("output_size", None)
-
         output_size_str = readable_size(output_size)
-
-        self.pb.set_postfix(
-            processed=kwargs.get("processed", 0),
-            passed=kwargs.get("passed", 0),
-            output_size=output_size_str,
+        processed = kwargs.get("processed", 0)
+        passed = kwargs.get("passed", 0)
+        self.progress.update(
+            self.task_id, description=f"[cyan]Filtering ({processed:,} processed, {passed:,} passed, {output_size_str})"
         )
 
 
@@ -72,8 +71,16 @@ def process_archive(archive, filter, writer, external_updater=None):
     logging.info(f"Found geojsonl file: {target_file} (size: {file_size} bytes)")
 
     try:
-        with tqdm(total=file_size, unit="B", unit_scale=True, desc=f"Filtering {target_file}") as pbar:
-            updater = TQDMUpdater(pbar)
+        with Progress(
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(),
+            DownloadColumn(),
+            TransferSpeedColumn(),
+            TimeElapsedColumn(),
+            console=None,
+        ) as progress:
+            task_id = progress.add_task(f"[cyan]Filtering {target_file}", total=file_size)
+            updater = RichUpdater(progress, task_id)
             if external_updater:
                 updater = CombinedUpdater(updater, external_updater)
             factory = StreamingWriterFactory(filter, writer, updater)
