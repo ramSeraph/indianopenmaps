@@ -1,4 +1,6 @@
 // Download panel control for parquet file downloads
+import { SizeGetter } from './size_getter.js';
+
 export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
     this.map = null;
@@ -15,45 +17,7 @@ export class DownloadPanelControl {
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
     this.bboxContainer = null;
-    this.sizeCache = new Map();
-  }
-
-  formatFileSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  async fetchFileSize(url, sizeElement) {
-    if (this.sizeCache.has(url)) {
-      sizeElement.textContent = this.sizeCache.get(url);
-      sizeElement.classList.remove('loading');
-      return;
-    }
-
-    try {
-      const corsProxyUrl = `/cors-proxy?url=${encodeURIComponent(url)}`;
-      const response = await fetch(corsProxyUrl, { method: 'HEAD' });
-      
-      if (response.ok) {
-        const contentLength = response.headers.get('content-length');
-        if (contentLength) {
-          const size = this.formatFileSize(parseInt(contentLength, 10));
-          this.sizeCache.set(url, size);
-          sizeElement.textContent = size;
-        } else {
-          sizeElement.textContent = '';
-        }
-      } else {
-        sizeElement.textContent = '';
-      }
-    } catch (error) {
-      console.error('Error fetching file size:', error);
-      sizeElement.textContent = '';
-    }
-    sizeElement.classList.remove('loading');
+    this.sizeGetter = new SizeGetter();
   }
 
   getParquetUrl(originalUrl) {
@@ -354,7 +318,7 @@ export class DownloadPanelControl {
     this.linksContainer.appendChild(section);
 
     // Fetch file size asynchronously
-    this.fetchFileSize(parquetUrl, sizeSpan);
+    this.sizeGetter.updateElement(parquetUrl, sizeSpan);
   }
 
   async loadPartitionedLinks(originalUrl, name) {
@@ -404,7 +368,7 @@ export class DownloadPanelControl {
 
     // Fetch file sizes asynchronously
     for (const { url, element } of sizeElements) {
-      this.fetchFileSize(url, element);
+      this.sizeGetter.updateElement(url, element);
     }
   }
 
