@@ -143,6 +143,13 @@
             border-bottom: 2px solid #444;
         }
         
+        .results-header {
+            font-size: 1rem;
+            color: #999;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+        
         .api-section {
             background: rgba(42, 42, 42, 0.6);
             border: 1px solid #444;
@@ -296,6 +303,7 @@
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search datasets..." />
             </div>
+            <div class="results-header" id="resultsHeader">Available Sources:</div>
             <div class="dataset-list" id="datasetList"></div>
             <div class="no-results" id="noResults" style="display: none;">
                 No datasets found
@@ -325,6 +333,16 @@
         function displayDatasets(datasets) {
             const listEl = document.getElementById('datasetList');
             const noResultsEl = document.getElementById('noResults');
+            const resultsHeader = document.getElementById('resultsHeader');
+            
+            // Update results header with counts
+            const totalCount = allDatasets.length;
+            const filteredCount = datasets.length;
+            if (filteredCount === totalCount) {
+                resultsHeader.textContent = `Available Sources (${totalCount})`;
+            } else {
+                resultsHeader.textContent = `Available Sources (${filteredCount} of ${totalCount})`;
+            }
             
             if (datasets.length === 0) {
                 listEl.innerHTML = '';
