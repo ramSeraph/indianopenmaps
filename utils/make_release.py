@@ -231,7 +231,7 @@ def update_release_doc(repo_name, release, description, files_7z, route, source,
     to_append = textwrap.dedent(to_append)
 
     new_body = body + '\n\n' + to_append
-    release_obj.update_release(release_obj.title, new_body)
+    release_obj.update_release(release_obj.name, new_body)
 
 
  
