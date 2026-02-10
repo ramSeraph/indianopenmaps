@@ -4294,5 +4294,15 @@
     "name": "Madhya Pradesh Police Stations",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/police-stations/MP_Police_Stations.pmtiles",
     "promoteid": "name"
+  },
+  "/not-so-open/health/anganwadis/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health",
+      "gatishakti"
+    ],
+    "name": "Integrated Child Development Services Anganvadis",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/GatiShakti_ICDS_Anganvadis.pmtiles",
+    "promoteid": "gid"
   }
 }
