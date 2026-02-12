@@ -4305,7 +4305,7 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/GatiShakti_ICDS_Anganvadis.pmtiles",
     "promoteid": "id"
   },
-  "/not-so-open/govt-services/buildings/points//gatishakti/": {
+  "/not-so-open/govt-services/buildings/points/gatishakti/": {
     "handlertype": "pmtiles",
     "category": [
       "government",
