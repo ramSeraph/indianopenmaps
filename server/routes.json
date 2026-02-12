@@ -4315,5 +4315,16 @@
     "name": "GatiShakti Government Building points",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/GatiShakti_GLIS_Buildings_points.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/govt-services/buildings/polygons/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "government",
+      "buildings",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Government Building polygons",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/GatiShakti_GLIS_Buildings_polygons.pmtiles",
+    "promoteid": "id"
   }
 }
