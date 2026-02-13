@@ -4359,5 +4359,15 @@
     "name": "GatiShakti Railway lands",
     "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_Lands.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/health/palna/creches/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Palna Creches",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/GatiShakti_Palna_Creches.pmtiles",
+    "promoteid": "id"
   }
 }
