@@ -133,41 +133,49 @@ function renderItems(features, collection) {
             };
         },
         onEachFeature: (feature, layer) => {
-            // Create popup content
-            let popupContent = `<div class="popup-title">${feature.id}</div>`;
-            
-            if (feature.properties) {
-                popupContent += '<div class="popup-item">';
-                const props = feature.properties;
-                // Filter out proj: properties
-                Object.keys(props).filter(key => !key.startsWith('proj:')).forEach(key => {
-                    popupContent += `<div><span class="popup-label">${key}:</span> ${props[key]}</div>`;
-                });
-                popupContent += '</div>';
-            }
-            
-            if (feature.assets && Object.keys(feature.assets).length > 0) {
-                popupContent += '<div class="popup-assets">';
-                popupContent += '<div class="popup-label">Assets:</div>';
-                Object.entries(feature.assets).forEach(([key, asset]) => {
-                    if (asset.href) {
-                        popupContent += `<a href="${asset.href}" target="_blank" class="asset-link">${key}</a>`;
-                    }
-                });
+            // Generate popup content dynamically to reflect current COG visibility state
+            const getPopupContent = () => {
+                let popupContent = `<div class="popup-title">${feature.id}</div>`;
                 
-                // Add Show/Hide toggle if COG asset exists
-                const cogAsset = feature.assets.cog || feature.assets.data;
-                if (cogAsset && cogAsset.href) {
-                    const cogUrl = encodeURIComponent(cogAsset.href);
-                    const isActive = cogTileLayers[feature.id] ? true : false;
-                    const btnText = isActive ? 'Hide' : 'Show';
-                    const btnClass = isActive ? 'show-cog-btn active' : 'show-cog-btn';
-                    popupContent += `<button class="${btnClass}" id="cog-btn-${feature.id}" onclick="toggleCogTiles('${cogUrl}', '${feature.id}')">${btnText}</button>`;
+                if (feature.properties) {
+                    popupContent += '<div class="popup-item">';
+                    const props = feature.properties;
+                    // Filter out proj: properties
+                    Object.keys(props).filter(key => !key.startsWith('proj:')).forEach(key => {
+                        popupContent += `<div><span class="popup-label">${key}:</span> ${props[key]}</div>`;
+                    });
+                    popupContent += '</div>';
                 }
-                popupContent += '</div>';
-            }
+                
+                if (feature.assets && Object.keys(feature.assets).length > 0) {
+                    popupContent += '<div class="popup-assets">';
+                    popupContent += '<div class="popup-label">Assets:</div>';
+                    Object.entries(feature.assets).forEach(([key, asset]) => {
+                        if (asset.href) {
+                            popupContent += `<a href="${asset.href}" target="_blank" class="asset-link">${key}</a>`;
+                        }
+                    });
+                    
+                    // Add Show/Hide toggle if COG asset exists
+                    const cogAsset = feature.assets.cog || feature.assets.data;
+                    if (cogAsset && cogAsset.href) {
+                        const cogUrl = encodeURIComponent(cogAsset.href);
+                        const isActive = cogTileLayers[feature.id] ? true : false;
+                        const btnText = isActive ? 'Hide' : 'Show';
+                        const btnClass = isActive ? 'show-cog-btn active' : 'show-cog-btn';
+                        popupContent += `<button class="${btnClass}" id="cog-btn-${feature.id}" onclick="toggleCogTiles('${cogUrl}', '${feature.id}')">${btnText}</button>`;
+                    }
+                    popupContent += '</div>';
+                }
+                return popupContent;
+            };
             
-            layer.bindPopup(popupContent);
+            // Update popup content each time it opens to reflect current state
+            layer.on('popupopen', () => {
+                layer.setPopupContent(getPopupContent());
+            });
+            
+            layer.bindPopup(getPopupContent());
         }
     });
     
