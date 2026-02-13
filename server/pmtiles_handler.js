@@ -1,9 +1,13 @@
 import pmtiles from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
 
+// Shared cache across all PMTiles instances to reduce memory usage
+const sharedCache = new pmtiles.SharedPromiseCache(100, true);
+
 class PMTilesHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
-    this.source = new pmtiles.PMTiles(url);
+    this.url = url;
+    this.source = null; // Lazy - created in init()
     this.tileSuffix = tileSuffix;
     this.type = type;
     this.header = null;
@@ -13,9 +17,11 @@ class PMTilesHandler {
     this.datameetAttribution = datameetAttribution;
     this.title = null;
     this.inited = false;
+    this.initializingPromise = null;
   }
 
   async init() {
+    this.source = new pmtiles.PMTiles(this.url, sharedCache);
     const header = await this.source.getHeader();
     this.header = header;
     this.mimeType = getMimeType(header.tileType);
@@ -25,9 +31,19 @@ class PMTilesHandler {
 
   async initIfNeeded() {
     if (this.inited) {
-        return;
+      return;
     }
-    await this.init();
+    if (this.initializingPromise) {
+      await this.initializingPromise;
+      return;
+    }
+    this.initializingPromise = this.init();
+    try {
+      await this.initializingPromise;
+    } catch (e) {
+      this.initializingPromise = null;
+      throw e;
+    }
   }
 
   async getTile(z, x, y) {
