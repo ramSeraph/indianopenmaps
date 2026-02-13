@@ -4337,5 +4337,16 @@
     "name": "GatiShakti Government Allotment polygons",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/GatiShakti_GLIS_Allotments_polygons.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/govt-services/allotments/points/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "government",
+      "allotments",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Government Allotment points",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/GatiShakti_GLIS_Allotments_points.pmtiles",
+    "promoteid": "id"
   }
 }
