@@ -4379,5 +4379,15 @@
     "name": "GatiShakti Railway Stations",
     "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_stations.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/railways/tracks/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "railway",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Railway Tracks",
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_tracks.pmtiles",
+    "promoteid": "id"
   }
 }
