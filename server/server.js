@@ -22,6 +22,15 @@ const logger = pino();
 
 const app = new Hono();
 
+// Request logging with pino
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  logger.info({ method: c.req.method, path: c.req.path, msg: 'incoming request' });
+  await next();
+  const ms = Date.now() - start;
+  logger.info({ method: c.req.method, path: c.req.path, status: c.res.status, ms, msg: 'request completed' });
+});
+
 const handlerMap = {};
 let stacHandler = null;
 let cogHandler = null;
