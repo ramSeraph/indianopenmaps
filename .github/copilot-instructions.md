@@ -39,8 +39,9 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 - **`stac_handler.js`**: STAC API for COG collections; item indices stored in geoparquet files
 
 ### Key Files
-- **`server.js`**: Main entry point, route definitions, Fastify setup
-- **`routes.json`**: Configuration for tile sources (URLs, types, handlers)
+- **`server.js`**: Main entry point, Hono setup
+- **`routes/`**: Route handlers split by feature (tiles, stac, cog, cors_proxy, static)
+- **`routes/listing.json`**: Configuration for tile sources (URLs, types, handlers)
 - **`stac_catalog.json`**: STAC catalog configuration
 - **`errors.js`**: Custom HTTP error classes
 - **`common.js`**: Shared utilities (MIME types, attribution)
@@ -112,7 +113,7 @@ Currently no automated tests. Manual testing via the web interface.
 
 ## Adding New Tile Sources
 
-1. Add entry to `server/routes.json` with:
+1. Add entry to `server/routes/listing.json` with:
    - `url`: PMTiles URL
    - `type`: "vector" or "raster"
    - `handlertype`: "pmtiles" or "mosaic"

@@ -130,7 +130,7 @@ def find_related_files(base_path: Path) -> dict:
 def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None):
     code_repo_name = 'indianopenmaps'
     branch = 'main' 
-    file_path = 'server/routes.json'
+    file_path = 'server/routes/listing.json'
     gh = get_github_api()
     user = gh.get_user()
     github_repo = gh.get_repo(f"{user.login}/{code_repo_name}")

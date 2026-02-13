@@ -12,46 +12,97 @@ div#map-wrapper div {
 div#map-left {
     border-right:1px solid #000;
 }
-/* Autocomplete search positioning */
-#search-wrapper {
+/* Geocoder control */
+.leaflet-control-geocoder {
+    background: white;
+    border-radius: 4px;
+}
+.leaflet-control-geocoder-toggle {
+    display: block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    text-decoration: none;
+    position: relative;
+    cursor: pointer;
+}
+.leaflet-control-geocoder-toggle::before {
+    content: '';
     position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
+    top: 7px;
+    left: 7px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #333;
+    border-radius: 50%;
+}
+.leaflet-control-geocoder-toggle::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 17px;
+    width: 2px;
+    height: 7px;
+    background: #333;
+    transform: rotate(-45deg);
+}
+.leaflet-control-geocoder-form {
+    display: none;
     width: 250px;
 }
-#search-wrapper input {
+.leaflet-control-geocoder-expanded .leaflet-control-geocoder-toggle {
+    display: none;
+}
+.leaflet-control-geocoder-expanded .leaflet-control-geocoder-form {
+    display: block;
+}
+.leaflet-control-geocoder input {
     width: 100%;
     padding: 8px 30px 8px 12px;
     font-size: 14px;
-    border: 2px solid rgba(0,0,0,0.2);
+    border: none;
     border-radius: 4px;
+    outline: none;
+    box-sizing: border-box;
     background: white;
 }
-#search-wrapper .auto-search-wrapper .loupe,
-#search-wrapper .auto-search-wrapper .auto-clear {
-    opacity: 0.4;
-}
-#search-wrapper .auto-clear {
+.leaflet-control-geocoder .auto-clear {
     top: 0 !important;
     bottom: 0 !important;
     height: auto !important;
     margin: auto !important;
 }
-#search-wrapper .auto-clear:before {
+.leaflet-control-geocoder .auto-clear:before {
     height: 18px;
     width: 18px;
 }
-#search-wrapper .auto-is-loading:after {
+.leaflet-control-geocoder .auto-is-loading:after {
     top: 0 !important;
     bottom: 0 !important;
     margin: auto !important;
 }
-#search-wrapper .auto-search-wrapper ul {
+.leaflet-control-geocoder ul {
     max-height: 300px;
     overflow-y: auto;
 }
-#search-wrapper .auto-search-wrapper ul li p {
+.leaflet-control-geocoder ul li p {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Layer control text wrapping */
+.leaflet-control-layers label {
+    display: flex;
+    align-items: flex-start;
+    max-width: 220px;
+    font-size: 12px;
+}
+.leaflet-control-layers label input {
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+.leaflet-control-layers label span {
     white-space: normal;
     word-wrap: break-word;
 }

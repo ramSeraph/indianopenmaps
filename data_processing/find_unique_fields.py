@@ -254,8 +254,8 @@ def main():
     parser.add_argument(
         "--routes-file",
         type=Path,
-        default=Path("routes.json"),
-        help="Path to routes.json file"
+        default=Path("server/routes/listing.json"),
+        help="Path to listing.json file"
     )
     parser.add_argument(
         "--data-dir",

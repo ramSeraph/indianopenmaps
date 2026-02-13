@@ -1,5 +1,5 @@
 
-const routes = require('./routes.json');
+const routes = require('./routes/listing.json');
 
 function getPage(request, markerExpeted) {
   var linksByCats = {};

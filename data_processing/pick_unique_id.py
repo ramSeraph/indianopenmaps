@@ -209,7 +209,7 @@ def main():
         "--update-routes",
         type=Path,
         default=None,
-        help="Path to routes.json to update with promoteId field"
+        help="Path to listing.json to update with promoteId field"
     )
     args = parser.parse_args()
     
