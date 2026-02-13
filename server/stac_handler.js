@@ -1,11 +1,9 @@
-import fs from 'node:fs';
 import path from 'node:path';
 
 class STACHandler {
-  constructor(catalogPath, logger) {
-    this.catalogPath = catalogPath;
+  constructor(catalog, logger) {
+    this.catalog = catalog;
     this.logger = logger;
-    this.catalog = null;
     this.collections = new Map();
     this.itemsCache = new Map();
     this.parquetRead = null;
@@ -16,9 +14,7 @@ class STACHandler {
       const { parquetRead } = await import('hyparquet');
       this.parquetRead = parquetRead;
       
-      const catalogData = await fs.promises.readFile(this.catalogPath, 'utf-8');
-      this.catalog = JSON.parse(catalogData);
-      this.logger.info(`Loaded STAC catalog from ${this.catalogPath}`);
+      this.logger.info(`Loaded STAC catalog from ${this.catalog.id || 'config'}`);
       
       if (this.catalog.links) {
         for (const link of this.catalog.links) {

@@ -11,8 +11,6 @@ import { registerCogRoutes } from './routes/cog.js';
 import { registerCorsProxyRoutes } from './routes/cors_proxy.js';
 import { registerStaticRoutes } from './routes/static.js';
 
-import corsWhitelist from './cors_whitelist.json' with { type: 'json' };
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -44,7 +42,7 @@ async function addRoutes() {
   logger.info('adding routes');
 
   registerStaticRoutes(app, staticDir);
-  registerCorsProxyRoutes(app, corsWhitelist, logger);
+  registerCorsProxyRoutes(app, logger);
   registerCogRoutes(app, logger);
   await registerStacRoutes(app, logger);
   registerTileRoutes(app, serverUrl, logger);

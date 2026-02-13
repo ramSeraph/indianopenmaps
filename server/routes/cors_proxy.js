@@ -1,6 +1,8 @@
+import corsWhitelist from './cors_whitelist.json' with { type: 'json' };
+
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
 
-export function registerCorsProxyRoutes(app, corsWhitelist, logger) {
+export function registerCorsProxyRoutes(app, logger) {
   function validateCorsProxyUrl(url) {
     if (!url) {
       return { error: 'URL parameter is required', status: 400 };

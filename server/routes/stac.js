@@ -1,17 +1,12 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import STACHandler from '../stac_handler.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import stacCatalog from './stac_catalog.json' with { type: 'json' };
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
 
 let stacHandler = null;
 
 export async function registerStacRoutes(app, logger) {
-  const catalogPath = path.join(__dirname, '..', 'stac_catalog.json');
-  stacHandler = new STACHandler(catalogPath, logger);
+  stacHandler = new STACHandler(stacCatalog, logger);
   await stacHandler.init();
   logger.info('STAC handler initialized');
 
