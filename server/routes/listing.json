@@ -4438,5 +4438,15 @@
     "name": "GatiShakti Eco Sensitive Zones",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/GatiShakti_Eco_Sensitive_Zones.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/forests/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "forests",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Forests",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/GatiShakti_Forests.pmtiles",
+    "promoteid": "id"
   }
 }
