@@ -1,42 +1,43 @@
 import COGHandler from '../cog_handler.js';
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
-
 let cogHandler = null;
 
-export function registerCogRoutes(app, logger) {
+export function registerCogRoutes(fastify, logger) {
   cogHandler = new COGHandler(logger);
 
-  app.get('/cog-info', async (c) => {
-    const url = c.req.query('url');
+  fastify.get('/cog-info', async (request, reply) => {
+    const { url } = request.query;
 
     if (!url) {
-      return c.json({ error: 'URL parameter is required' }, 400, corsHeaders);
+      return reply.code(400)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL parameter is required' });
     }
 
     try {
       const info = await cogHandler.getInfo(url);
       
-      return c.json(info, {
-        headers: {
-          'Cache-Control': 'max-age=86400',
-          ...corsHeaders
-        }
-      });
+      return reply.header('Content-Type', 'application/json')
+                  .header('Cache-Control', 'max-age=86400')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(info);
     } catch (err) {
       logger.error({ err }, 'Error getting COG info');
       const statusCode = err.statusCode || 500;
-      return c.json({ error: err.message }, statusCode, corsHeaders);
+      return reply.code(statusCode)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
     }
   });
 
-  app.get('/cog-tiles/:z/:x/:y', async (c) => {
-    const { z, x, y } = c.req.param();
-    const url = c.req.query('url');
-    const format = c.req.query('format');
+  fastify.get('/cog-tiles/:z/:x/:y', async (request, reply) => {
+    const { z, x, y } = request.params;
+    const { url, format } = request.query;
 
     if (!url) {
-      return c.json({ error: 'URL parameter is required' }, 400, corsHeaders);
+      return reply.code(400)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'URL parameter is required' });
     }
 
     try {
@@ -49,22 +50,23 @@ export function registerCogRoutes(app, logger) {
       const result = await cogHandler.getTile(url, zNum, xNum, yNum, outputFormat);
       
       if (!result) {
-        return c.text('', 404, corsHeaders);
+        return reply.code(404)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send('');
       }
 
       const { tile, mimeType } = result;
 
-      return new Response(tile, {
-        headers: {
-          'Content-Type': mimeType,
-          'Cache-Control': 'max-age=86400000',
-          ...corsHeaders
-        }
-      });
+      return reply.header('Content-Type', mimeType)
+                  .header('Cache-Control', 'max-age=86400000')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send(tile);
     } catch (err) {
       logger.error({ err }, 'Error processing COG tile');
       const statusCode = err.statusCode || 500;
-      return c.json({ error: err.message }, statusCode, corsHeaders);
+      return reply.code(statusCode)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
     }
   });
 }

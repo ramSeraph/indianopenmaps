@@ -4,8 +4,6 @@ import PMTilesHandler from '../pmtiles_handler.js';
 
 import routes from './listing.json' with { type: 'json' };
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
-
 const handlerMap = {};
 
 function createHandlers(logger) {
@@ -36,105 +34,116 @@ function createHandlers(logger) {
   });
 }
 
-function getTileParams(c) {
-  const params = c.req.param();
-  const z = parseInt(params.z);
-  const x = parseInt(params.x);
-  const [yStr, ext] = (params.tile || '').split('.');
-  const y = parseInt(yStr);
-  return { z, x, y, ext };
+async function getTile(handler, request, reply) {
+  let { z, x, y } = request.params;
+  try {
+    z = parseInt(z);
+    x = parseInt(x);
+    y = parseInt(y);
+  } catch(err) {
+    return reply.code(400)
+                .header('Access-Control-Allow-Origin', '*')
+                .send('non integer values in tile url');
+  }
+
+  const [ arr, mimeType ] = await handler.getTile(z, x, y);
+  if (arr) {
+    return reply.header('Content-Type', mimeType)
+                .header('Cache-Control', 'max-age=86400000')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(Buffer.from(arr.data));
+  }
+  return reply.code(404)
+              .header('Access-Control-Allow-Origin', '*')
+              .send('');
 }
 
-async function getTile(handler, c) {
-  const { z, x, y, ext } = getTileParams(c);
-  if (isNaN(z) || isNaN(x) || isNaN(y)) {
-    return c.text('non integer values in tile url', 400, corsHeaders);
+async function getTilePng(handler, request, reply) {
+  let { z, x, y } = request.params;
+  try {
+    z = parseInt(z);
+    x = parseInt(x);
+    y = parseInt(y);
+  } catch(err) {
+    return reply.code(400)
+                .header('Access-Control-Allow-Origin', '*')
+                .send('non integer values in tile url');
   }
 
-  const tileSuffix = handler.tileSuffix;
-  const validExts = tileSuffix === 'webp' ? ['webp', 'png'] : [tileSuffix];
-  if (!validExts.includes(ext)) {
-    return c.text('', 404, corsHeaders);
+  const [ arr, mimeType ] = await handler.getTile(z, x, y);
+  if (arr) {
+    const webpBuffer = Buffer.from(arr.data);
+    const pngBuffer = await sharp(webpBuffer).png().toBuffer();
+    
+    return reply.header('Content-Type', 'image/png')
+                .header('Cache-Control', 'max-age=86400000')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(pngBuffer);
   }
-
-  const [ arr, mimeType ] = await handler.getTile(z,x,y);
-  if (!arr) {
-    return c.text('', 404, corsHeaders);
-  }
-
-  if (ext === 'png' && tileSuffix === 'webp') {
-    const pngBuffer = await sharp(Buffer.from(arr.data)).png().toBuffer();
-    return new Response(pngBuffer, {
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'max-age=86400000',
-        ...corsHeaders
-      }
-    });
-  }
-
-  return new Response(new Uint8Array(arr.data), {
-    headers: {
-      'Content-Type': mimeType,
-      'Cache-Control': 'max-age=86400000',
-      ...corsHeaders
-    }
-  });
+  return reply.code(404)
+              .header('Access-Control-Allow-Origin', '*')
+              .send('');
 }
 
-async function getTileJson(handler, c, serverUrl) {
+async function getTileJson(handler, request, reply, serverUrl) {
   const config = await handler.getConfig();
-  const tileJsonUrl = c.req.path;
+  const tileJsonUrl = request.url;
   const baseUrl = tileJsonUrl.replace(/\/tiles\.json.*$/, '');
   config['tiles'] = [ serverUrl + baseUrl + `/{z}/{x}/{y}.${handler.tileSuffix}` ];
 
-  return c.json(config, {
-    headers: {
-      'Cache-Control': 'max-age=86400000',
-      ...corsHeaders
-    }
-  });
+  return reply.header('Content-Type', 'application/json')
+              .header('Cache-Control', 'max-age=86400000')
+              .header('Access-Control-Allow-Origin', '*')
+              .send(config);
 }
 
-export function registerTileRoutes(app, serverUrl, logger) {
+export function registerTileRoutes(fastify, serverUrl, logger) {
   createHandlers(logger);
 
   // API route for listing all tile sources
-  app.get('/api/routes', (c) => {
-    return c.json(routes, { headers: corsHeaders });
+  fastify.get('/api/routes', async (request, reply) => {
+    return reply.header('Content-Type', 'application/json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(routes);
   });
 
   Object.keys(handlerMap).forEach((rPrefix) => {
     const handler = handlerMap[rPrefix];
+    const tileSuffix = handler.tileSuffix;
 
-    app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`, (c) => getTile(handler, c));
-    app.get(`${rPrefix}tiles.json`, (c) => getTileJson(handler, c, serverUrl));
+    fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, (request, reply) => getTile(handler, request, reply));
+
+    if (tileSuffix === 'webp') {
+      fastify.get(`${rPrefix}:z/:x/:y.png`, (request, reply) => getTilePng(handler, request, reply));
+    }
+
+    fastify.get(`${rPrefix}tiles.json`, (request, reply) => getTileJson(handler, request, reply, serverUrl));
 
     if (handler.type == 'raster') {
-      app.get(`${rPrefix}rasterview`, (c) => {
+      fastify.get(`${rPrefix}rasterview`, async (request, reply) => {
         const hashParams = new URLSearchParams();
         hashParams.set('left', rPrefix);
         
-        let queryString = new URLSearchParams(c.req.query()).toString();
+        let queryString = new URLSearchParams(request.query).toString();
         if (queryString) {
           queryString = '?' + queryString;
         }
 
         const redirectUrl = `/raster-viewer${queryString}#${hashParams.toString()}`;
-        return c.redirect(redirectUrl);
+        return reply.redirect(redirectUrl);
       });
     } else {
-      app.get(`${rPrefix}view`, (c) => {
+      fastify.get(`${rPrefix}view`, async (request, reply) => {
         const hashParams = new URLSearchParams();
         hashParams.set('source', rPrefix);
         
-        let queryString = new URLSearchParams(c.req.query()).toString();
+        let queryString = new URLSearchParams(request.query).toString();
         if (queryString) {
           queryString = '?' + queryString;
         }
 
         const redirectUrl = `/viewer${queryString}#${hashParams.toString()}`;
-        return c.redirect(redirectUrl);
+        return reply.redirect(redirectUrl);
       });
     }
   });

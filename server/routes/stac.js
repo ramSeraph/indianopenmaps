@@ -1,92 +1,87 @@
 import STACHandler from '../stac_handler.js';
 import stacCatalog from './stac_catalog.json' with { type: 'json' };
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
-
 let stacHandler = null;
 
-export async function registerStacRoutes(app, logger) {
+export async function registerStacRoutes(fastify, logger) {
   stacHandler = new STACHandler(stacCatalog, logger);
   await stacHandler.init();
   logger.info('STAC handler initialized');
 
-  app.get('/stac', async (c) => {
+  fastify.get('/stac', async (request, reply) => {
     const landing = await stacHandler.getLandingPage();
-    return c.json(landing, { headers: corsHeaders });
+    return reply.header('Content-Type', 'application/json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(landing);
   });
 
-  app.get('/stac/conformance', (c) => {
+  fastify.get('/stac/conformance', async (request, reply) => {
     const conformance = stacHandler.getConformance();
-    return c.json(conformance, { headers: corsHeaders });
+    return reply.header('Content-Type', 'application/json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(conformance);
   });
 
-  app.get('/stac/collections', async (c) => {
-    const limit = parseInt(c.req.query('limit') || '100');
-    const offset = parseInt(c.req.query('offset') || '0');
-    const collections = await stacHandler.getCollections(limit, offset);
-    return c.json(collections, { headers: corsHeaders });
+  fastify.get('/stac/collections', async (request, reply) => {
+    const { limit = 100, offset = 0 } = request.query;
+    const collections = await stacHandler.getCollections(parseInt(limit), parseInt(offset));
+    return reply.header('Content-Type', 'application/json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(collections);
   });
 
-  app.get('/stac/collections/:collectionId', async (c) => {
-    const collectionId = c.req.param('collectionId');
+  fastify.get('/stac/collections/:collectionId', async (request, reply) => {
+    const { collectionId } = request.params;
     const collection = await stacHandler.getCollection(collectionId);
     if (!collection) {
-      return c.json({ error: 'Collection not found' }, 404, corsHeaders);
+      return reply.code(404)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'Collection not found' });
     }
-    return c.json(collection, { headers: corsHeaders });
+    return reply.header('Content-Type', 'application/json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(collection);
   });
 
-  app.get('/stac/collections/:collectionId/items', async (c) => {
-    const collectionId = c.req.param('collectionId');
-    const limit = parseInt(c.req.query('limit') || '10');
-    const offset = parseInt(c.req.query('offset') || '0');
-    const bbox = c.req.query('bbox');
-    const items = await stacHandler.getItems(collectionId, limit, offset, bbox);
+  fastify.get('/stac/collections/:collectionId/items', async (request, reply) => {
+    const { collectionId } = request.params;
+    const { limit = 10, offset = 0, bbox } = request.query;
+    const items = await stacHandler.getItems(collectionId, parseInt(limit), parseInt(offset), bbox);
     if (!items) {
-      return c.json({ error: 'Collection not found' }, 404, corsHeaders);
+      return reply.code(404)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'Collection not found' });
     }
-    return c.json(items, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
+    return reply.header('Content-Type', 'application/geo+json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(items);
   });
 
-  app.get('/stac/collections/:collectionId/items/:itemId', async (c) => {
-    const collectionId = c.req.param('collectionId');
-    const itemId = c.req.param('itemId');
+  fastify.get('/stac/collections/:collectionId/items/:itemId', async (request, reply) => {
+    const { collectionId, itemId } = request.params;
     const item = await stacHandler.getItem(collectionId, itemId);
     if (!item) {
-      return c.json({ error: 'Item not found' }, 404, corsHeaders);
+      return reply.code(404)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: 'Item not found' });
     }
-    return c.json(item, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
+    return reply.header('Content-Type', 'application/geo+json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(item);
   });
 
-  app.get('/stac/search', async (c) => {
-    const results = await stacHandler.search(Object.fromEntries(new URLSearchParams(c.req.url.split('?')[1] || '')));
-    return c.json(results, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
+  fastify.get('/stac/search', async (request, reply) => {
+    const results = await stacHandler.search(request.query);
+    return reply.header('Content-Type', 'application/geo+json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(results);
   });
 
-  app.post('/stac/search', async (c) => {
-    const body = await c.req.json();
-    const results = await stacHandler.search(body);
-    return c.json(results, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
+  fastify.post('/stac/search', async (request, reply) => {
+    const results = await stacHandler.search(request.body);
+    return reply.header('Content-Type', 'application/geo+json')
+                .header('Access-Control-Allow-Origin', '*')
+                .send(results);
   });
 
   logger.info('STAC API routes added');

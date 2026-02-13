@@ -1,8 +1,6 @@
 import corsWhitelist from './cors_whitelist.json' with { type: 'json' };
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
-
-export function registerCorsProxyRoutes(app, logger) {
+export function registerCorsProxyRoutes(fastify, logger) {
   function validateCorsProxyUrl(url) {
     if (!url) {
       return { error: 'URL parameter is required', status: 400 };
@@ -14,60 +12,76 @@ export function registerCorsProxyRoutes(app, logger) {
     return null;
   }
 
-  app.get('/cors-proxy', async (c) => {
-    const url = c.req.query('url');
+  fastify.get('/cors-proxy', async (request, reply) => {
+    const { url } = request.query;
     const validation = validateCorsProxyUrl(url);
     if (validation) {
-      return c.json({ error: validation.error }, validation.status, corsHeaders);
+      return reply.code(validation.status)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: validation.error });
     }
 
     try {
       const response = await fetch(url);
       
       if (!response.ok) {
-        return c.json({ error: `Upstream server returned ${response.status}` }, response.status, corsHeaders);
+        return reply.code(response.status)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send({ error: `Upstream server returned ${response.status}` });
       }
 
       const contentType = response.headers.get('content-type');
       const buffer = await response.arrayBuffer();
 
-      return new Response(Buffer.from(buffer), {
-        headers: {
-          'Content-Type': contentType || 'application/octet-stream',
-          'Cache-Control': 'max-age=3600',
-          ...corsHeaders
-        }
-      });
+      return reply.header('Content-Type', contentType || 'application/octet-stream')
+                  .header('Access-Control-Allow-Origin', '*')
+                  .header('Cache-Control', 'max-age=3600')
+                  .send(Buffer.from(buffer));
     } catch (err) {
       logger.error({ err }, 'Error proxying request');
-      return c.json({ error: err.message }, 500, corsHeaders);
+      return reply.code(500)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send({ error: err.message });
     }
   });
 
-  app.on('HEAD', '/cors-proxy', async (c) => {
-    const url = c.req.query('url');
+  fastify.head('/cors-proxy', async (request, reply) => {
+    const { url } = request.query;
     const validation = validateCorsProxyUrl(url);
     if (validation) {
-      return new Response(null, { status: validation.status, headers: corsHeaders });
+      return reply.code(validation.status)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send();
     }
 
     try {
       const response = await fetch(url, { method: 'HEAD' });
       
       if (!response.ok) {
-        return new Response(null, { status: response.status, headers: corsHeaders });
+        return reply.code(response.status)
+                    .header('Access-Control-Allow-Origin', '*')
+                    .send();
       }
 
-      const headers = { ...corsHeaders, 'Cache-Control': 'max-age=3600' };
       const contentType = response.headers.get('content-type');
       const contentLength = response.headers.get('content-length');
-      if (contentType) headers['Content-Type'] = contentType;
-      if (contentLength) headers['Content-Length'] = contentLength;
 
-      return new Response(null, { headers });
+      reply.header('Access-Control-Allow-Origin', '*')
+           .header('Cache-Control', 'max-age=3600');
+      
+      if (contentType) {
+        reply.header('Content-Type', contentType);
+      }
+      if (contentLength) {
+        reply.header('Content-Length', contentLength);
+      }
+
+      return reply.send();
     } catch (err) {
       logger.error({ err }, 'Error proxying HEAD request');
-      return new Response(null, { status: 500, headers: corsHeaders });
+      return reply.code(500)
+                  .header('Access-Control-Allow-Origin', '*')
+                  .send();
     }
   });
 }

@@ -1,9 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Hono } from 'hono';
-import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
-import pino from 'pino';
+import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
 
 import { registerTileRoutes } from './routes/tiles.js';
 import { registerStacRoutes } from './routes/stac.js';
@@ -14,18 +12,8 @@ import { registerStaticRoutes } from './routes/static.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const logger = pino();
-
-const app = new Hono();
-
-// Request logging with pino
-app.use('*', async (c, next) => {
-  const start = Date.now();
-  logger.info({ method: c.req.method, path: c.req.path, msg: 'incoming request' });
-  await next();
-  const ms = Date.now() - start;
-  logger.info({ method: c.req.method, path: c.req.path, status: c.res.status, ms, msg: 'request completed' });
-});
+const fastify = Fastify({ logger: true });
+const logger = fastify.log;
 
 const port = 3000;
 const staticDir = path.join(__dirname, '..', 'static');
@@ -41,29 +29,23 @@ console.log('server url:', serverUrl);
 async function addRoutes() {
   logger.info('adding routes');
 
-  registerStaticRoutes(app, staticDir);
-  registerCorsProxyRoutes(app, logger);
-  registerCogRoutes(app, logger);
-  await registerStacRoutes(app, logger);
-  registerTileRoutes(app, serverUrl, logger);
-
-  // Static file serving - must be last
-  app.use('/*', serveStatic({ root: './static' }));
+  registerStaticRoutes(fastify);
+  registerCorsProxyRoutes(fastify, logger);
+  registerCogRoutes(fastify, logger);
+  await registerStacRoutes(fastify, logger);
+  registerTileRoutes(fastify, serverUrl, logger);
 
   logger.info('done adding routes');
 }
 
 async function start() {
   try {
-    await addRoutes();
-    
-    serve({
-      fetch: app.fetch,
-      port: port,
-      hostname: '0.0.0.0'
-    }, (info) => {
-      logger.info(`Server listening at http://${info.address}:${info.port}`);
+    await fastify.register(fastifyStatic, {
+      root: staticDir,
     });
+
+    await addRoutes();
+    await fastify.listen({ host: '0.0.0.0', port: port });
   } catch (err) {
     logger.error(err);
     process.exit(1);
@@ -71,4 +53,3 @@ async function start() {
 }
 
 start();
-

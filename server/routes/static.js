@@ -1,7 +1,4 @@
-import path from 'node:path';
-import fs from 'node:fs';
-
-export function registerStaticRoutes(app, staticDir) {
+export function registerStaticRoutes(fastify) {
   // HTML page routes (without .html extension)
   const htmlPages = [
     ['/', 'index.html'],
@@ -15,17 +12,15 @@ export function registerStaticRoutes(app, staticDir) {
   ];
   
   for (const [route, file] of htmlPages) {
-    app.get(route, async (c) => {
-      const filePath = path.join(staticDir, file);
-      const content = await fs.promises.readFile(filePath, 'utf-8');
-      return c.html(content);
+    fastify.get(route, async (request, reply) => {
+      return reply.sendFile(file);
     });
   }
 
   // Redirects
-  app.get('/wikidata-locater', (c) => {
-    const queryString = new URLSearchParams(c.req.query()).toString();
+  fastify.get('/wikidata-locater', async (request, reply) => {
+    const queryString = new URLSearchParams(request.query).toString();
     const redirectUrl = queryString ? `/viewer?${queryString}` : '/viewer';
-    return c.redirect(redirectUrl);
+    return reply.redirect(redirectUrl);
   });
 }
