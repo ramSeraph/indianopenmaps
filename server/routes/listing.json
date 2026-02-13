@@ -4389,5 +4389,15 @@
     "name": "GatiShakti Railway Tracks",
     "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_tracks.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/railways/dfc/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "railway",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Dedicated Freight Corrridors",
+    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Dedicated_Freight_Corridors.pmtiles",
+    "promoteid": "id"
   }
 }
