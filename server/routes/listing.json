@@ -4418,5 +4418,15 @@
     "name": "GatiShakti Child Care Institutes",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/GatiShakti_Child_Care_Institutes.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/forests/wildlife-sanctuaries-nationalparks/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "forests",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Wildlife Sanctuaries and National Parks",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/GatiShakti_Wildlife_Sanctuaries_and_National_Parks.pmtiles",
+    "promoteid": "id"
   }
 }
