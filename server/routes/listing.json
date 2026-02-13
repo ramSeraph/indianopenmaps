@@ -4349,7 +4349,7 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/govt-services/GatiShakti_GLIS_Allotments_points.pmtiles",
     "promoteid": "id"
   },
-  "/not-so-open/railways/lsnds/gatishakti/": {
+  "/not-so-open/railways/lands/gatishakti/": {
     "handlertype": "pmtiles",
     "category": [
       "land",
