@@ -1,12 +1,11 @@
-const fetch = require('node-fetch');
-const pmtiles = require('pmtiles');
-const tilebelt = require('@mapbox/tilebelt');
-const Flatbush = require('flatbush').default;
-const common = require('./common');
+import pmtiles from 'pmtiles';
+import * as tilebelt from '@mapbox/tilebelt';
+import Flatbush from 'flatbush';
+import { getMimeType, extendAttribution } from './common.js';
 
-COORD_SCALER = 10000000;
+const COORD_SCALER = 10000000;
 // TODO: measure performance and adjust this threshold
-FLATBUSH_THRESHOLD = 10;
+const FLATBUSH_THRESHOLD = 10;
 
 function _isInSource(header, bounds) {
 
@@ -88,7 +87,7 @@ class MosaicHandler {
     }
 
     this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
-    this.mimeType = common.getMimeType(this.mosaicConfig.header.tile_type);
+    this.mimeType = getMimeType(this.mosaicConfig.header.tile_type);
   }
 
   _populateIndices() {
@@ -183,7 +182,7 @@ class MosaicHandler {
     var out = {
       tilejson: "3.0.0",
       scheme: "xyz",
-      attribution: common.extendAttribution(metadata.attribution, this.datameetAttribution),
+      attribution: extendAttribution(metadata.attribution, this.datameetAttribution),
       description: metadata.description,
       name: metadata.name,
       version: metadata.version,
@@ -199,4 +198,4 @@ class MosaicHandler {
   }
 }
 
-module.exports = MosaicHandler;
+export default MosaicHandler;

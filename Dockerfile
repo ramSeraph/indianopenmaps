@@ -20,9 +20,9 @@ FROM base as build
 RUN apt-get update -qq && \
     apt-get install -y build-essential pkg-config python-is-python3
 
-# Install node modules
+# Install node modules (production only, glibc variant for sharp)
 COPY --link package-lock.json package.json ./
-RUN npm ci
+RUN npm ci --omit=dev --cpu=x64 --os=linux --libc=glibc
 
 # Copy application code
 COPY --link . .

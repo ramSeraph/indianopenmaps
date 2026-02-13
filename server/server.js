@@ -1,18 +1,26 @@
-const path = require('node:path')
-const fastify = require('fastify')({ logger: true });
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import pino from 'pino';
+import sharp from 'sharp';
+import MosaicHandler from './mosaic_handler.js';
+import PMTilesHandler from './pmtiles_handler.js';
+import STACHandler from './stac_handler.js';
+import COGHandler from './cog_handler.js';
+import { HttpError, UnknownError } from './errors.js';
 
-const fastifyStatic = require('@fastify/static');
-const sharp = require('sharp');
-const MosaicHandler = require('./mosaic_handler');
-const PMTilesHandler = require('./pmtiles_handler');
-const STACHandler = require('./stac_handler');
-const COGHandler = require('./cog_handler');
-const { HttpError, UnknownError } = require('./errors');
+import routes from './routes.json' with { type: 'json' };
+import corsWhitelist from './cors_whitelist.json' with { type: 'json' };
 
-const routes = require('./routes.json');
-const corsWhitelist = require('./cors_whitelist.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const logger = fastify.log;
+const logger = pino();
+
+const app = new Hono();
 
 const handlerMap = {};
 let stacHandler = null;
@@ -28,228 +36,204 @@ if (!serverUrl) {
 }
 console.log('server url:', serverUrl);
 
-async function getTile(handler, request, reply) {
-  var { z, x, y } = request.params;
-  try {
-    z = parseInt(z);
-    x = parseInt(x);
-    y = parseInt(y);
-  } catch(err) {
-    return reply.code(400)
-                .header('Access-Control-Allow-Origin', "*")
-                .send(`non integer values in tile url`);
+// CORS headers helper
+const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+
+// Helper to extract tile params - use regex pattern :tile{[0-9]+\.[a-z]+}
+function getTileParams(c) {
+  const params = c.req.param();
+  const z = parseInt(params.z);
+  const x = parseInt(params.x);
+  const [yStr, ext] = (params.tile || '').split('.');
+  const y = parseInt(yStr);
+  return { z, x, y, ext };
+}
+
+async function getTile(handler, c) {
+  const { z, x, y, ext } = getTileParams(c);
+  if (isNaN(z) || isNaN(x) || isNaN(y)) {
+    return c.text('non integer values in tile url', 400, corsHeaders);
+  }
+
+  const tileSuffix = handler.tileSuffix;
+  const validExts = tileSuffix === 'webp' ? ['webp', 'png'] : [tileSuffix];
+  if (!validExts.includes(ext)) {
+    return c.text('', 404, corsHeaders);
   }
 
   const [ arr, mimeType ] = await handler.getTile(z,x,y);
-  if (arr) {
-    return reply.header('Content-Type', mimeType)
-                .header('Cache-Control', 'max-age=86400000')
-                .header('Access-Control-Allow-Origin', "*")
-                .send(new Uint8Array(arr.data));
+  if (!arr) {
+    return c.text('', 404, corsHeaders);
   }
-  return reply.code(404)
-              .header('Access-Control-Allow-Origin', "*")
-              .send('');
+
+  // Convert webp to png if requested
+  if (ext === 'png' && tileSuffix === 'webp') {
+    const pngBuffer = await sharp(Buffer.from(arr.data)).png().toBuffer();
+    return new Response(pngBuffer, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'max-age=86400000',
+        ...corsHeaders
+      }
+    });
+  }
+
+  return new Response(new Uint8Array(arr.data), {
+    headers: {
+      'Content-Type': mimeType,
+      'Cache-Control': 'max-age=86400000',
+      ...corsHeaders
+    }
+  });
 }
 
-async function getTilePng(handler, request, reply) {
-  var { z, x, y } = request.params;
-  try {
-    z = parseInt(z);
-    x = parseInt(x);
-    y = parseInt(y);
-  } catch(err) {
-    return reply.code(400)
-                .header('Access-Control-Allow-Origin', "*")
-                .send(`non integer values in tile url`);
-  }
-
-  const [ arr, mimeType ] = await handler.getTile(z,x,y);
-  if (arr) {
-    const webpBuffer = Buffer.from(arr.data);
-    const pngBuffer = await sharp(webpBuffer).png().toBuffer();
-    
-    return reply.header('Content-Type', 'image/png')
-                .header('Cache-Control', 'max-age=86400000')
-                .header('Access-Control-Allow-Origin', "*")
-                .send(pngBuffer);
-  }
-  return reply.code(404)
-              .header('Access-Control-Allow-Origin', "*")
-              .send('');
-}
-
-async function getTileJson(handler, request, reply) {
+async function getTileJson(handler, c) {
   const config = await handler.getConfig();
-  const tileJsonUrl = request.url;
+  const tileJsonUrl = c.req.path;
   const baseUrl = tileJsonUrl.replace(/\/tiles\.json.*$/, '');
   config['tiles'] = [ serverUrl + baseUrl + `/{z}/{x}/{y}.${handler.tileSuffix}` ];
 
-  return reply.header('Content-Type', 'application/json')
-              .header('Cache-Control', 'max-age=86400000')
-              .header('Access-Control-Allow-Origin', "*")
-              .send(JSON.stringify(config));
+  return c.json(config, {
+    headers: {
+      'Cache-Control': 'max-age=86400000',
+      ...corsHeaders
+    }
+  });
 }
 
 function addRoutes() {
   logger.info('adding routes');
 
-  fastify.get('/', async (request, reply) => {
-      return reply.sendFile("index.html");
-  });
+  // HTML page routes (without .html extension)
+  const htmlPages = [
+    ['/', 'index.html'],
+    ['/vectors', 'vectors.html'],
+    ['/rasters', 'rasters.html'],
+    ['/viewer', 'viewer.html'],
+    ['/stac-viewer', 'stac_viewer.html'],
+    ['/cog-viewer', 'cog-viewer.html'],
+    ['/data-help', 'data-help.html'],
+  ];
   
-  fastify.get('/vectors', async (request, reply) => {
-      return reply.sendFile("vectors.html");
-  });
-  
-  fastify.get('/rasters', async (request, reply) => {
-      return reply.sendFile("rasters.html");
-  });
-  
-  fastify.get('/api/routes', async (request, reply) => {
-      return reply.header('Content-Type', 'application/json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(routes);
-  });
-  
-  fastify.get('/stac-viewer', async (request, reply) => {
-      return reply.sendFile("stac_viewer.html");
-  });
-  
-  fastify.get('/cog-viewer', async (request, reply) => {
-      return reply.sendFile("cog-viewer.html");
-  });
-  
-  fastify.get('/wikidata-locater', async (request, reply) => {
-      // Redirect to /viewer with query parameters preserved
-      const queryString = new URLSearchParams(request.query).toString();
-      const redirectUrl = queryString ? `/viewer?${queryString}` : '/viewer';
-      return reply.redirect(redirectUrl);
+  for (const [route, file] of htmlPages) {
+    app.get(route, async (c) => {
+      const filePath = path.join(__dirname, '..', 'static', file);
+      const content = await fs.promises.readFile(filePath, 'utf-8');
+      return c.html(content);
+    });
+  }
+
+  // API routes
+  app.get('/api/routes', (c) => {
+    return c.json(routes, { headers: corsHeaders });
   });
 
-  fastify.get('/viewer', async (request, reply) => {
-      return reply.sendFile("viewer.html");
+  // Redirects
+  app.get('/wikidata-locater', (c) => {
+    const queryString = new URLSearchParams(c.req.query()).toString();
+    const redirectUrl = queryString ? `/viewer?${queryString}` : '/viewer';
+    return c.redirect(redirectUrl);
   });
 
-  fastify.get('/data-help', async (request, reply) => {
-      return reply.sendFile("data-help.html");
-  });
-
-  function validateCorsProxyUrl(url, reply, isHead = false) {
+  // CORS proxy validation
+  function validateCorsProxyUrl(url) {
     if (!url) {
-      reply.code(400).header('Access-Control-Allow-Origin', '*');
-      return isHead ? reply.send() : reply.send({ error: 'URL parameter is required' });
+      return { error: 'URL parameter is required', status: 400 };
     }
-
     const isAllowed = corsWhitelist.allowedPrefixes.some(prefix => url.startsWith(prefix));
     if (!isAllowed) {
-      reply.code(403).header('Access-Control-Allow-Origin', '*');
-      return isHead ? reply.send() : reply.send({ error: 'URL not allowed. Must start with an allowed prefix.' });
+      return { error: 'URL not allowed. Must start with an allowed prefix.', status: 403 };
     }
-
     return null;
   }
 
-  fastify.get('/cors-proxy', async (request, reply) => {
-    const { url } = request.query;
-    const validationResult = validateCorsProxyUrl(url, reply, false);
-    if (validationResult) return validationResult;
+  app.get('/cors-proxy', async (c) => {
+    const url = c.req.query('url');
+    const validation = validateCorsProxyUrl(url);
+    if (validation) {
+      return c.json({ error: validation.error }, validation.status, corsHeaders);
+    }
 
     try {
       const response = await fetch(url);
       
       if (!response.ok) {
-        return reply.code(response.status)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send({ error: `Upstream server returned ${response.status}` });
+        return c.json({ error: `Upstream server returned ${response.status}` }, response.status, corsHeaders);
       }
 
       const contentType = response.headers.get('content-type');
       const buffer = await response.arrayBuffer();
 
-      return reply.header('Content-Type', contentType || 'application/octet-stream')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .header('Cache-Control', 'max-age=3600')
-                  .send(Buffer.from(buffer));
+      return new Response(Buffer.from(buffer), {
+        headers: {
+          'Content-Type': contentType || 'application/octet-stream',
+          'Cache-Control': 'max-age=3600',
+          ...corsHeaders
+        }
+      });
     } catch (err) {
       logger.error({ err }, 'Error proxying request');
-      return reply.code(500)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: err.message });
+      return c.json({ error: err.message }, 500, corsHeaders);
     }
   });
 
-  fastify.head('/cors-proxy', async (request, reply) => {
-    const { url } = request.query;
-    const validationResult = validateCorsProxyUrl(url, reply, true);
-    if (validationResult) return validationResult;
+  app.on('HEAD', '/cors-proxy', async (c) => {
+    const url = c.req.query('url');
+    const validation = validateCorsProxyUrl(url);
+    if (validation) {
+      return new Response(null, { status: validation.status, headers: corsHeaders });
+    }
 
     try {
       const response = await fetch(url, { method: 'HEAD' });
       
       if (!response.ok) {
-        return reply.code(response.status)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send();
+        return new Response(null, { status: response.status, headers: corsHeaders });
       }
 
+      const headers = { ...corsHeaders, 'Cache-Control': 'max-age=3600' };
       const contentType = response.headers.get('content-type');
       const contentLength = response.headers.get('content-length');
+      if (contentType) headers['Content-Type'] = contentType;
+      if (contentLength) headers['Content-Length'] = contentLength;
 
-      let replyChain = reply.header('Access-Control-Allow-Origin', '*')
-                            .header('Cache-Control', 'max-age=3600');
-      
-      if (contentType) {
-        replyChain = replyChain.header('Content-Type', contentType);
-      }
-      if (contentLength) {
-        replyChain = replyChain.header('Content-Length', contentLength);
-      }
-
-      return replyChain.send();
+      return new Response(null, { headers });
     } catch (err) {
       logger.error({ err }, 'Error proxying HEAD request');
-      return reply.code(500)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send();
+      return new Response(null, { status: 500, headers: corsHeaders });
     }
   });
 
-  fastify.get('/cog-info', async (request, reply) => {
-    const { url } = request.query;
+  app.get('/cog-info', async (c) => {
+    const url = c.req.query('url');
 
     if (!url) {
-      return reply.code(400)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: 'URL parameter is required' });
+      return c.json({ error: 'URL parameter is required' }, 400, corsHeaders);
     }
 
     try {
       const info = await cogHandler.getInfo(url);
       
-      return reply.header('Content-Type', 'application/json')
-                  .header('Cache-Control', 'max-age=86400')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(info);
+      return c.json(info, {
+        headers: {
+          'Cache-Control': 'max-age=86400',
+          ...corsHeaders
+        }
+      });
     } catch (err) {
       logger.error({ err }, 'Error getting COG info');
-      
       const statusCode = err.statusCode || 500;
-      
-      return reply.code(statusCode)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: err.message });
+      return c.json({ error: err.message }, statusCode, corsHeaders);
     }
   });
 
-  fastify.get('/cog-tiles/:z/:x/:y', async (request, reply) => {
-    const { z, x, y } = request.params;
-    const { url, format } = request.query;
+  app.get('/cog-tiles/:z/:x/:y', async (c) => {
+    const { z, x, y } = c.req.param();
+    const url = c.req.query('url');
+    const format = c.req.query('format');
 
     if (!url) {
-      return reply.code(400)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: 'URL parameter is required' });
+      return c.json({ error: 'URL parameter is required' }, 400, corsHeaders);
     }
 
     try {
@@ -257,161 +241,152 @@ function addRoutes() {
       const xNum = parseInt(x);
       const yNum = parseInt(y);
       
-      // Default to png, allow webp
       const outputFormat = (format === 'webp') ? 'webp' : 'png';
 
       const result = await cogHandler.getTile(url, zNum, xNum, yNum, outputFormat);
       
       if (!result) {
-        return reply.code(404)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send('');
+        return c.text('', 404, corsHeaders);
       }
 
       const { tile, mimeType } = result;
 
-      return reply.header('Content-Type', mimeType)
-                  .header('Cache-Control', 'max-age=86400000')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(tile);
+      return new Response(tile, {
+        headers: {
+          'Content-Type': mimeType,
+          'Cache-Control': 'max-age=86400000',
+          ...corsHeaders
+        }
+      });
     } catch (err) {
       logger.error({ err }, 'Error processing COG tile');
-      
-      // Use error's statusCode if it's an HttpError, otherwise default to 500
       const statusCode = err.statusCode || 500;
-      
-      return reply.code(statusCode)
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send({ error: err.message });
+      return c.json({ error: err.message }, statusCode, corsHeaders);
     }
   });
 
   if (stacHandler) {
-
-    fastify.get('/stac', async (request, reply) => {
+    app.get('/stac', async (c) => {
       const landing = await stacHandler.getLandingPage();
-      return reply.header('Content-Type', 'application/json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(landing);
+      return c.json(landing, { headers: corsHeaders });
     });
 
-    fastify.get('/stac/conformance', async (request, reply) => {
+    app.get('/stac/conformance', (c) => {
       const conformance = stacHandler.getConformance();
-      return reply.header('Content-Type', 'application/json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(conformance);
+      return c.json(conformance, { headers: corsHeaders });
     });
 
-    fastify.get('/stac/collections', async (request, reply) => {
-      const { limit = 100, offset = 0 } = request.query;
-      const collections = await stacHandler.getCollections(parseInt(limit), parseInt(offset));
-      return reply.header('Content-Type', 'application/json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(collections);
+    app.get('/stac/collections', async (c) => {
+      const limit = parseInt(c.req.query('limit') || '100');
+      const offset = parseInt(c.req.query('offset') || '0');
+      const collections = await stacHandler.getCollections(limit, offset);
+      return c.json(collections, { headers: corsHeaders });
     });
 
-    fastify.get('/stac/collections/:collectionId', async (request, reply) => {
-      const { collectionId } = request.params;
+    app.get('/stac/collections/:collectionId', async (c) => {
+      const collectionId = c.req.param('collectionId');
       const collection = await stacHandler.getCollection(collectionId);
       if (!collection) {
-        return reply.code(404)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send({ error: 'Collection not found' });
+        return c.json({ error: 'Collection not found' }, 404, corsHeaders);
       }
-      return reply.header('Content-Type', 'application/json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(collection);
+      return c.json(collection, { headers: corsHeaders });
     });
 
-    fastify.get('/stac/collections/:collectionId/items', async (request, reply) => {
-      const { collectionId } = request.params;
-      const { limit = 10, offset = 0, bbox } = request.query;
-      const items = await stacHandler.getItems(collectionId, parseInt(limit), parseInt(offset), bbox);
+    app.get('/stac/collections/:collectionId/items', async (c) => {
+      const collectionId = c.req.param('collectionId');
+      const limit = parseInt(c.req.query('limit') || '10');
+      const offset = parseInt(c.req.query('offset') || '0');
+      const bbox = c.req.query('bbox');
+      const items = await stacHandler.getItems(collectionId, limit, offset, bbox);
       if (!items) {
-        return reply.code(404)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send({ error: 'Collection not found' });
+        return c.json({ error: 'Collection not found' }, 404, corsHeaders);
       }
-      return reply.header('Content-Type', 'application/geo+json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(items);
+      return c.json(items, {
+        headers: {
+          'Content-Type': 'application/geo+json',
+          ...corsHeaders
+        }
+      });
     });
 
-    fastify.get('/stac/collections/:collectionId/items/:itemId', async (request, reply) => {
-      const { collectionId, itemId } = request.params;
+    app.get('/stac/collections/:collectionId/items/:itemId', async (c) => {
+      const collectionId = c.req.param('collectionId');
+      const itemId = c.req.param('itemId');
       const item = await stacHandler.getItem(collectionId, itemId);
       if (!item) {
-        return reply.code(404)
-                    .header('Access-Control-Allow-Origin', '*')
-                    .send({ error: 'Item not found' });
+        return c.json({ error: 'Item not found' }, 404, corsHeaders);
       }
-      return reply.header('Content-Type', 'application/geo+json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(item);
+      return c.json(item, {
+        headers: {
+          'Content-Type': 'application/geo+json',
+          ...corsHeaders
+        }
+      });
     });
 
-    fastify.get('/stac/search', async (request, reply) => {
-      const results = await stacHandler.search(request.query);
-      return reply.header('Content-Type', 'application/geo+json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(results);
+    app.get('/stac/search', async (c) => {
+      const results = await stacHandler.search(Object.fromEntries(new URLSearchParams(c.req.url.split('?')[1] || '')));
+      return c.json(results, {
+        headers: {
+          'Content-Type': 'application/geo+json',
+          ...corsHeaders
+        }
+      });
     });
 
-    fastify.post('/stac/search', async (request, reply) => {
-      const results = await stacHandler.search(request.body);
-      return reply.header('Content-Type', 'application/geo+json')
-                  .header('Access-Control-Allow-Origin', '*')
-                  .send(results);
+    app.post('/stac/search', async (c) => {
+      const body = await c.req.json();
+      const results = await stacHandler.search(body);
+      return c.json(results, {
+        headers: {
+          'Content-Type': 'application/geo+json',
+          ...corsHeaders
+        }
+      });
     });
 
     logger.info('STAC API routes added');
   }
 
-  Object.keys(handlerMap).forEach((rPrefix, _) => {
-
+  // Dynamic tile routes from routes.json
+  Object.keys(handlerMap).forEach((rPrefix) => {
     const handler = handlerMap[rPrefix];
-    const tileSuffix = handler.tileSuffix;
 
-    fastify.get(`${rPrefix}:z/:x/:y.${tileSuffix}`, getTile.bind(null, handler));
+    // Single route for all tile extensions - validation inside handler
+    app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`, (c) => getTile(handler, c));
 
-    if (tileSuffix === 'webp') {
-      fastify.get(`${rPrefix}:z/:x/:y.png`, getTilePng.bind(null, handler));
-    }
-
-    fastify.get(`${rPrefix}tiles.json`, getTileJson.bind(null, handler));
+    app.get(`${rPrefix}tiles.json`, (c) => getTileJson(handler, c));
 
     if (handler.type == 'raster') {
-
-      fastify.get(`${rPrefix}rasterview`, async (request, reply) => {
-        return reply.sendFile("raster_view.html");
+      app.get(`${rPrefix}rasterview`, async (c) => {
+        const filePath = path.join(__dirname, '..', 'static', 'raster_view.html');
+        const content = await fs.promises.readFile(filePath, 'utf-8');
+        return c.html(content);
       });
-
     } else {
-
-      fastify.get(`${rPrefix}view`, async (request, reply) => {
-
-        // Redirect to /viewer with source in hash parameter
+      app.get(`${rPrefix}view`, (c) => {
         const hashParams = new URLSearchParams();
         hashParams.set('source', rPrefix);
         
-        // preserve existing query parameters in the redirect
-        let queryString = new URLSearchParams(request.query).toString();
+        let queryString = new URLSearchParams(c.req.query()).toString();
         if (queryString) {
           queryString = '?' + queryString;
         }
 
         const redirectUrl = `/viewer${queryString}#${hashParams.toString()}`;
-        return reply.redirect(redirectUrl);
+        return c.redirect(redirectUrl);
       });
-
     }
   });
+
+  // Static file serving - must be last
+  app.use('/*', serveStatic({ root: './static' }));
 
   logger.info('done adding routes');
 }
 
 function createHandlers() {
-  Object.keys(routes).forEach((rPrefix, _) => {
+  Object.keys(routes).forEach((rPrefix) => {
     const rInfo = routes[rPrefix];
     var datameetAttribution = true;
     if ('datameet_attribution' in rInfo) {
@@ -445,7 +420,7 @@ async function start() {
     createHandlers();
     
     const catalogPath = path.join(__dirname, 'stac_catalog.json');
-    if (require('fs').existsSync(catalogPath)) {
+    if (fs.existsSync(catalogPath)) {
       stacHandler = new STACHandler(catalogPath, logger);
       await stacHandler.init();
       logger.info('STAC handler initialized');
@@ -453,12 +428,15 @@ async function start() {
       logger.warn('No stac_catalog.json found, STAC API will not be available');
     }
 
-    fastify.register(fastifyStatic, {
-      root: path.join(__dirname, '..', 'static'),
-    });
-
     addRoutes();
-    await fastify.listen({ host: '0.0.0.0', port: port });
+    
+    serve({
+      fetch: app.fetch,
+      port: port,
+      hostname: '0.0.0.0'
+    }, (info) => {
+      logger.info(`Server listening at http://${info.address}:${info.port}`);
+    });
   } catch (err) {
     logger.error(err);
     process.exit(1);

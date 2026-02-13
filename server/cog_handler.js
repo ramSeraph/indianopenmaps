@@ -1,11 +1,11 @@
-const { Tiff, TiffTag, SubFileType, Compression } = require('@cogeotiff/core');
-const { SourceUrl } = require('@cogeotiff/source-url');
-const { Tiler } = require('@basemaps/tiler');
-const { TileMakerSharp } = require('@basemaps/tiler-sharp');
-const { GoogleTms } = require('@basemaps/geo');
-const sharp = require('sharp');
-const { inflateSync } = require('zlib');
-const { ForbiddenError, ResourceUnavailableError, UnknownError } = require('./errors');
+import { Tiff, TiffTag, SubFileType, Compression } from '@cogeotiff/core';
+import { SourceUrl } from '@cogeotiff/source-url';
+import { Tiler } from '@basemaps/tiler';
+import { TileMakerSharp } from '@basemaps/tiler-sharp';
+import { GoogleTms } from '@basemaps/geo';
+import sharp from 'sharp';
+import { inflateSync } from 'zlib';
+import { ForbiddenError, ResourceUnavailableError, UnknownError } from './errors.js';
 
 /**
  * IMPORTANT: This COG handler with mask support assumes that ALL source TIFFs
@@ -421,4 +421,4 @@ class COGHandler {
   }
 }
 
-module.exports = COGHandler;
+export default COGHandler;

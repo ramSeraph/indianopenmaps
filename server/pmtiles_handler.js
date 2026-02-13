@@ -1,5 +1,5 @@
-const pmtiles = require('pmtiles');
-const common = require('./common');
+import pmtiles from 'pmtiles';
+import { getMimeType, extendAttribution } from './common.js';
 
 class PMTilesHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
@@ -18,7 +18,7 @@ class PMTilesHandler {
   async init() {
     const header = await this.source.getHeader();
     this.header = header;
-    this.mimeType = common.getMimeType(header.tileType);
+    this.mimeType = getMimeType(header.tileType);
     this.metadata = await this.source.getMetadata();
     this.inited = true;
   }
@@ -44,7 +44,7 @@ class PMTilesHandler {
       tilejson: "3.0.0",
       scheme: "xyz",
       vector_layers: this.metadata.vector_layers,
-      attribution: common.extendAttribution(this.metadata.attribution, this.datameetAttribution),
+      attribution: extendAttribution(this.metadata.attribution, this.datameetAttribution),
       description: this.metadata.description,
       name: this.metadata.name,
       version: this.metadata.version,
@@ -56,4 +56,4 @@ class PMTilesHandler {
   }
 }
 
-module.exports = PMTilesHandler;
+export default PMTilesHandler;
