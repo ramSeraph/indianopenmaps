@@ -4408,5 +4408,15 @@
     ],
     "name": "GatiShakti Railway Goods Sheds",
     "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_Goods_Sheds.pmtiles"
+  },
+  "/not-so-open/health/child-care-institutes/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "health",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Child Care Institutes",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/GatiShakti_Child_Care_Institutes.pmtiles",
+    "promoteid": "id"
   }
 }
