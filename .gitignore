@@ -1,3 +1,5 @@
 node_modules/
 scratch/
+plans/
 .secrets
+data_processing/data
