@@ -4448,5 +4448,15 @@
     "name": "GatiShakti Forests",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/forests/GatiShakti_Forests.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/bridges/pmgsy/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "roads",
+      "gatishakti"
+    ],
+    "name": "GatiShakti PMGSY Bridges",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/GatiShakti_PMGSY_Bridges.pmtiles",
+    "promoteid": "id"
   }
 }
