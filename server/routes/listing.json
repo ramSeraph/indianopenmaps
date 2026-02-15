@@ -4458,5 +4458,15 @@
     "name": "GatiShakti PMGSY Bridges",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/GatiShakti_PMGSY_Bridges.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/bridges/mord/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "roads",
+      "gatishakti"
+    ],
+    "name": "GatiShakti MORD Bridges",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/GatiShakti_MORD_Bridges.pmtiles",
+    "promoteid": "id"
   }
 }
