@@ -4488,5 +4488,15 @@
     "name": "GatiShakti MORTH MMLP polygons",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_MMLP_polygons.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/national-highways/morth/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "roads",
+      "gatishakti"
+    ],
+    "name": "GatiShakti MORTH National Highways",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_National_Highways.pmtiles",
+    "promoteid": "id"
   }
 }
