@@ -6,7 +6,7 @@ import fastifyStatic from '@fastify/static';
 import { registerTileRoutes } from './routes/tiles.js';
 import { registerStacRoutes } from './routes/stac.js';
 import { registerCogRoutes } from './routes/cog.js';
-import { registerCorsProxyRoutes } from './routes/cors_proxy.js';
+import { registerProxyRoutes } from './routes/proxy.js';
 import { registerStaticRoutes } from './routes/static.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,7 +30,7 @@ async function addRoutes() {
   logger.info('adding routes');
 
   registerStaticRoutes(fastify);
-  registerCorsProxyRoutes(fastify, logger);
+  registerProxyRoutes(fastify, logger);
   registerCogRoutes(fastify, logger);
   await registerStacRoutes(fastify, logger);
   registerTileRoutes(fastify, serverUrl, logger);

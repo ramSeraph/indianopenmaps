@@ -42,8 +42,8 @@ export class DownloadPanelControl {
     }
 
     try {
-      const corsProxyUrl = `/cors-proxy?url=${encodeURIComponent(metaUrl)}`;
-      const response = await fetch(corsProxyUrl);
+      const proxyUrl = `/proxy?url=${encodeURIComponent(metaUrl)}`;
+      const response = await fetch(proxyUrl);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch meta.json: ${response.status}`);

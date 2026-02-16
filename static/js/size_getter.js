@@ -18,8 +18,8 @@ export class SizeGetter {
     }
 
     try {
-      const corsProxyUrl = `/cors-proxy?url=${encodeURIComponent(url)}`;
-      const response = await fetch(corsProxyUrl, { method: 'HEAD' });
+      const proxyUrl = `/proxy?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl, { method: 'HEAD' });
       
       if (response.ok) {
         const contentLength = response.headers.get('content-length');
