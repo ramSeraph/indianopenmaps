@@ -4508,5 +4508,15 @@
     "name": "GatiShakti MORTH Toll Plazas",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_Toll_Plazas.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/hotspots/pmwani/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "communictions",
+      "gatishakti"
+    ],
+    "name": "GatiShakti PMWANI Hotspots",
+    "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/GatiShakti_PMWANI_Hotspots.pmtiles",
+    "promoteid": "id"
   }
 }
