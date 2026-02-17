@@ -4498,5 +4498,15 @@
     "name": "GatiShakti MORTH National Highways",
     "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_National_Highways.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/toll-plazas/morth/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "roads",
+      "gatishakti"
+    ],
+    "name": "GatiShakti MORTH Toll Plazas",
+    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_Toll_Plazas.pmtiles",
+    "promoteid": "id"
   }
 }
