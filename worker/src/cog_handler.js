@@ -1,11 +1,11 @@
 import { Tiff, TiffTag, SubFileType, Compression } from '@cogeotiff/core';
 import { SourceUrl } from '@cogeotiff/source-url';
 import { Tiler } from '@basemaps/tiler';
-import { TileMakerSharp } from '@basemaps/tiler-sharp';
 import { GoogleTms } from '@basemaps/geo';
-import sharp from 'sharp';
-import { inflateSync } from 'zlib';
+import { inflate } from 'pako';
+import { PhotonImage } from '@cf-wasm/photon';
 import { ForbiddenError, ResourceUnavailableError, UnknownError } from './errors.js';
+import { TileMakerPhoton, extractAlphaChannel, joinRgbWithAlpha, rawToImage } from './tile_maker_photon.js';
 
 /**
  * IMPORTANT: This COG handler with mask support assumes that ALL source TIFFs
@@ -39,6 +39,26 @@ function webMercatorToLatLng(x, y) {
 
 function isUrlAllowed(url) {
   return URL_WHITELIST.some(prefix => url.startsWith(prefix));
+}
+
+/**
+ * Create RGBA PNG bytes from RGB (black) + alpha channel
+ * Using Photon instead of Sharp
+ */
+function createMaskPng(alphaChannel, width, height) {
+  // Create RGBA with black RGB + alpha
+  const rgba = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    rgba[i * 4] = 0;     // R
+    rgba[i * 4 + 1] = 0; // G
+    rgba[i * 4 + 2] = 0; // B
+    rgba[i * 4 + 3] = alphaChannel[i]; // A
+  }
+  
+  const img = new PhotonImage(rgba, width, height);
+  const pngBytes = img.get_bytes();
+  img.free();
+  return pngBytes;
 }
 
 class FilteredTiff extends Tiff {
@@ -116,12 +136,12 @@ class FilteredTiff extends Tiff {
           throw new UnknownError('Mask image must have exactly 1 channel');
         }
 
-        // Decompress if needed
+        // Decompress if needed using pako (pure JS)
         let maskData;
         if (tile.compression === Compression.Deflate || tile.compression === Compression.DeflateOther) {
-          maskData = inflateSync(Buffer.from(tile.bytes));
+          maskData = inflate(new Uint8Array(tile.bytes));
         } else if (tile.compression === Compression.None) {
-          maskData = Buffer.from(tile.bytes);
+          maskData = new Uint8Array(tile.bytes);
         } else {
           throw new UnknownError(`Unsupported mask compression: ${tile.compression}`);
         }
@@ -133,8 +153,8 @@ class FilteredTiff extends Tiff {
         // Expand to 8-bit alpha
         let alphaChannel;
         if (bitsPerSample === 1) {
-          // 1-bit packed: manual expansion (sharp can't read 1-bit packed)
-          alphaChannel = Buffer.alloc(tileWidth * tileHeight);
+          // 1-bit packed: manual expansion
+          alphaChannel = new Uint8Array(tileWidth * tileHeight);
           for (let i = 0; i < tileWidth * tileHeight; i++) {
             const byteIdx = Math.floor(i / 8);
             const bitIdx = 7 - (i % 8);
@@ -147,13 +167,8 @@ class FilteredTiff extends Tiff {
           throw new UnknownError(`Unsupported mask bitsPerSample: ${bitsPerSample}`);
         }
 
-        // Create RGBA PNG with black RGB + alpha (so TileMakerSharp can decode it)
-        const pngBuffer = await sharp(Buffer.alloc(tileWidth * tileHeight * 3, 0), {
-          raw: { width: tileWidth, height: tileHeight, channels: 3 }
-        })
-          .joinChannel(alphaChannel, { raw: { width: tileWidth, height: tileHeight, channels: 1 } })
-          .png()
-          .toBuffer();
+        // Create RGBA PNG with black RGB + alpha using Photon
+        const pngBuffer = createMaskPng(alphaChannel, tileWidth, tileHeight);
 
         return {
           mimeType: 'image/png',
@@ -286,7 +301,7 @@ class COGHandler {
       }
 
       const outputFormat = (format === 'webp') ? 'webp' : 'png';
-      const tileMaker = new TileMakerSharp(256);
+      const tileMaker = new TileMakerPhoton(256);
 
       // If no mask layers, just render RGB
       if (!maskComps || maskComps.length === 0) {
@@ -315,22 +330,24 @@ class COGHandler {
         })
       ]);
 
-      // Extract RGB from rgbResult and alpha from maskResult, then combine
-      const [rgbRaw, maskRaw] = await Promise.all([
-        sharp(rgbResult.buffer).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
-        sharp(maskResult.buffer).extractChannel('alpha').raw().toBuffer()
-      ]);
+      // Decode PNG results to get raw pixels
+      const rgbImg = PhotonImage.new_from_byteslice(rgbResult.buffer);
+      const maskImg = PhotonImage.new_from_byteslice(maskResult.buffer);
+      
+      const rgbPixels = rgbImg.get_raw_pixels();
+      const maskPixels = maskImg.get_raw_pixels();
+      const width = rgbImg.get_width();
+      const height = rgbImg.get_height();
+      
+      rgbImg.free();
+      maskImg.free();
 
-      // Join RGB with mask alpha
-      const finalSharp = sharp(rgbRaw.data, {
-        raw: { width: rgbRaw.info.width, height: rgbRaw.info.height, channels: 3 }
-      }).joinChannel(maskRaw, {
-        raw: { width: 256, height: 256, channels: 1 }
-      });
-
-      const result = outputFormat === 'webp' 
-        ? await finalSharp.webp().toBuffer()
-        : await finalSharp.png().toBuffer();
+      // Extract alpha from mask and apply to RGB
+      const alphaChannel = extractAlphaChannel(maskPixels, width, height);
+      const finalPixels = joinRgbWithAlpha(rgbPixels, alphaChannel, width, height);
+      
+      // Convert to output format
+      const result = rawToImage(finalPixels, width, height, outputFormat);
       
       return { tile: result, mimeType: `image/${outputFormat}` };
     } catch (err) {

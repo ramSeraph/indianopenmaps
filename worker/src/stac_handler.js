@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 class STACHandler {
   constructor(catalog, logger) {
     this.catalog = catalog;
@@ -322,8 +320,6 @@ class STACHandler {
   }
 
   async readGeoparquet(url) {
-    const fetch = (await import('node-fetch')).default;
-    
     try {
       this.logger.info(`Fetching geoparquet from ${url}`);
       const response = await fetch(url);
@@ -339,9 +335,6 @@ class STACHandler {
       await this.parquetRead({
         file: buffer,
         onComplete: (data) => {
-          // hyparquet returns data with row indices as keys
-          // Each row is an array of column values in schema order:
-          // [id, assets, bbox, geometry, links, stac_extensions, stac_version, type, datetime, proj:epsg, proj:shape, proj:transform]
           const rowKeys = Object.keys(data);
           this.logger.info(`Parquet read complete, processing ${rowKeys.length} rows`);
           
@@ -351,12 +344,10 @@ class STACHandler {
             
             const [id, assets, bbox, geometryWkb, links, stacExtensions, stacVersion, type, datetime, projEpsg, projShape, projTransform] = row;
             
-            // Convert bbox struct to array format and create geometry from it
             let bboxArray = null;
             let geometry = null;
             if (bbox && typeof bbox === 'object') {
               bboxArray = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax];
-              // Create polygon geometry from bbox
               geometry = {
                 type: 'Polygon',
                 coordinates: [[
@@ -369,7 +360,6 @@ class STACHandler {
               };
             }
             
-            // Build properties from extra columns
             const properties = {};
             if (datetime) {
               properties.datetime = datetime instanceof Date ? datetime.toISOString() : datetime;

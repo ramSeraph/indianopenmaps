@@ -1,30 +1,30 @@
-import pmtiles from 'pmtiles';
+import { TileType } from 'pmtiles';
 
 export function getMimeType(t) {
-  if (t == pmtiles.TileType.Png) {
+  if (t == TileType.Png) {
     return "image/png";
-  } else if (t == pmtiles.TileType.Jpeg) {
+  } else if (t == TileType.Jpeg) {
     return "image/jpeg";
-  } else if (t == pmtiles.TileType.Webp) {
+  } else if (t == TileType.Webp) {
     return "image/webp";
-  } else if (t == pmtiles.TileType.Avif) {
+  } else if (t == TileType.Avif) {
     return "image/avif";
-  } else if (t == pmtiles.TileType.Mvt) {
+  } else if (t == TileType.Mvt) {
     return "application/vnd.mapbox-vector-tile";
   }
   throw Error(`Unknown tiletype ${t}`);
 }
 
 export function getExt(t) {
-  if (t == pmtiles.TileType.Png) {
+  if (t == TileType.Png) {
     return ".png";
-  } else if (t == pmtiles.TileType.Jpeg) {
+  } else if (t == TileType.Jpeg) {
     return ".jpg";
-  } else if (t == pmtiles.TileType.Webp) {
+  } else if (t == TileType.Webp) {
     return ".webp";
-  } else if (t == pmtiles.TileType.Avif) {
+  } else if (t == TileType.Avif) {
     return ".avif";
-  } else if (t == pmtiles.TileType.Mvt) {
+  } else if (t == TileType.Mvt) {
     return ".pbf";
   }
   throw Error(`Unknown tiletype ${t}`);

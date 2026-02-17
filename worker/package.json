@@ -1,0 +1,24 @@
+{
+  "name": "indianopenmaps-worker",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@basemaps/geo": "^8.9.0",
+    "@basemaps/tiler": "^8.11.0",
+    "@cf-wasm/photon": "^0.3.4",
+    "@cogeotiff/core": "^9.1.2",
+    "@cogeotiff/source-url": "^4.4.0",
+    "@mapbox/tilebelt": "^2.0.2",
+    "flatbush": "^4.4.1",
+    "hono": "^4.6.16",
+    "hyparquet": "^1.20.2",
+    "pako": "^2.1.0",
+    "pmtiles": "^2.10.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.65.0"
+  }
+}

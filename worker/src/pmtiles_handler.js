@@ -1,8 +1,8 @@
-import pmtiles from 'pmtiles';
+import { PMTiles, SharedPromiseCache } from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
 
 // Shared cache across all PMTiles instances to reduce memory usage
-const sharedCache = new pmtiles.SharedPromiseCache(100, true);
+const sharedCache = new SharedPromiseCache(100, true);
 
 class PMTilesHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
@@ -21,7 +21,7 @@ class PMTilesHandler {
   }
 
   async init() {
-    this.source = new pmtiles.PMTiles(this.url, sharedCache);
+    this.source = new PMTiles(this.url, sharedCache);
     const header = await this.source.getHeader();
     this.header = header;
     this.mimeType = getMimeType(header.tileType);

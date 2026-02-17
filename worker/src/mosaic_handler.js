@@ -1,10 +1,10 @@
-import pmtiles from 'pmtiles';
+import { PMTiles, SharedPromiseCache } from 'pmtiles';
 import * as tilebelt from '@mapbox/tilebelt';
 import Flatbush from 'flatbush';
 import { getMimeType, extendAttribution } from './common.js';
 
 // Shared cache across all PMTiles instances to reduce memory usage
-const sharedCache = new pmtiles.SharedPromiseCache(100, true);
+const sharedCache = new SharedPromiseCache(100, true);
 
 const COORD_SCALER = 10000000;
 // TODO: measure performance and adjust this threshold
@@ -77,7 +77,7 @@ class MosaicHandler {
     for (const [key, entry] of Object.entries(data.slices)) {
       var header = entry.header;
       var resolvedUrl = this._resolveKey(key);
-      var archive = new pmtiles.PMTiles(resolvedUrl, sharedCache);
+      var archive = new PMTiles(resolvedUrl, sharedCache);
       header = Object.assign({}, entry.header);
       this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
 

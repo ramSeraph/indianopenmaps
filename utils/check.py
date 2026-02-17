@@ -3,7 +3,7 @@ from pathlib import Path
 
 script_dir = Path(__file__).parent
 
-routes_file = script_dir / '..' / 'server' / 'routes' / 'listing.json'
+routes_file = script_dir / '..' / 'worker' / 'src' / 'routes' / 'listing.json'
 
 data = json.loads(routes_file.read_text())
 

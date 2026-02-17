@@ -3,3 +3,4 @@ scratch/
 plans/
 .secrets
 data_processing/data
+.wrangler

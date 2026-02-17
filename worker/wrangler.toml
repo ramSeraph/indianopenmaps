@@ -1,0 +1,22 @@
+name = "indianopenmaps"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+# nodejs_compat needed because @basemaps/tiler uses process.env at module init
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+TILE_ROUNDING_BIAS = "0.1"
+
+routes = [
+  { pattern = "indianopenmaps.com", custom_domain = true },
+  { pattern = "www.indianopenmaps.com", custom_domain = true }
+]
+
+[assets]
+directory = "./static"
+binding = "ASSETS"
+
+[observability.logs]
+enabled = false
+invocation_logs = true

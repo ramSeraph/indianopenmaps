@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
-const routes = require('../server/routes/listing.json');
+const routes = require('../worker/src/routes/listing.json');
 
 const BASE_URL = 'http://localhost:3000';
 
