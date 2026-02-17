@@ -4518,5 +4518,15 @@
     "name": "GatiShakti PMWANI Hotspots",
     "url": "https://github.com/ramSeraph/indian_communications/releases/download/bharatnet/GatiShakti_PMWANI_Hotspots.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/power/lines/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Transmission Lines",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/GatiShakti_Transmission_lines.pmtiles",
+    "promoteid": "id"
   }
 }
