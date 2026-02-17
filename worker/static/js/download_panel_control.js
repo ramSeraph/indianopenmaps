@@ -1,5 +1,6 @@
 // Download panel control for parquet file downloads
 import { SizeGetter } from './size_getter.js';
+import { PartialDownloadHandler } from './partial_download_handler.js';
 
 export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
@@ -14,10 +15,21 @@ export class DownloadPanelControl {
     this.vectorSourceHandler = vectorSourceHandler;
     this.selectedSource = null;
     this.partitionCache = new Map();
+    this.metaJsonCache = new Map();
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
     this.bboxContainer = null;
     this.sizeGetter = new SizeGetter();
+    
+    // Partial download state
+    this.partialDownloadHandler = new PartialDownloadHandler();
+    this.partialDownloadSection = null;
+    this.formatSelect = null;
+    this.startButton = null;
+    this.cancelButton = null;
+    this.progressContainer = null;
+    this.progressBar = null;
+    this.statusText = null;
   }
 
   getParquetUrl(originalUrl) {
@@ -50,6 +62,8 @@ export class DownloadPanelControl {
       }
       
       const metaJson = await response.json();
+      // Cache the full meta.json for partial download bbox filtering
+      this.metaJsonCache.set(metaUrl, metaJson);
       // Partitions are the keys in the extents object
       const partitions = metaJson.extents ? Object.keys(metaJson.extents) : [];
       this.partitionCache.set(metaUrl, partitions);
@@ -413,14 +427,335 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.sourceDropdownContainer);
     this.panelContent.appendChild(this.linksContainer);
 
-    // Bbox display container
-    this.bboxContainer = document.createElement('div');
-    this.bboxContainer.className = 'bbox-display';
-    this.panelContent.appendChild(this.bboxContainer);
+    // Partial download section
+    this.partialDownloadSection = this.createPartialDownloadSection();
+    this.panelContent.appendChild(this.partialDownloadSection);
 
     this.container.appendChild(this.panelContent);
 
     return this.container;
+  }
+
+  /**
+   * Create the partial download section with bbox, format selector, buttons, and progress
+   */
+  createPartialDownloadSection() {
+    const section = document.createElement('div');
+    section.className = 'download-section partial-download-section';
+
+    // Section heading
+    const heading = document.createElement('div');
+    heading.className = 'download-section-heading';
+    
+    const leftPart = document.createElement('div');
+    leftPart.className = 'download-section-left';
+    
+    const label = document.createElement('span');
+    label.textContent = 'Partial Download';
+    
+    const helpBtn = document.createElement('a');
+    helpBtn.href = '/data-help#partial-download';
+    helpBtn.target = '_blank';
+    helpBtn.className = 'download-help-btn';
+    helpBtn.textContent = '?';
+    helpBtn.title = 'Help with partial downloads';
+    helpBtn.addEventListener('click', (e) => e.stopPropagation());
+    
+    leftPart.appendChild(label);
+    leftPart.appendChild(helpBtn);
+    
+    const toggleIcon = document.createElement('span');
+    toggleIcon.className = 'download-toggle-icon';
+    toggleIcon.textContent = '▼';
+    
+    heading.appendChild(leftPart);
+    heading.appendChild(toggleIcon);
+    
+    heading.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+    });
+    
+    section.appendChild(heading);
+
+    // Content container
+    const content = document.createElement('div');
+    content.className = 'partial-download-content';
+
+    // Bbox display (moved here from bottom)
+    this.bboxContainer = document.createElement('div');
+    this.bboxContainer.className = 'bbox-display partial-bbox';
+    content.appendChild(this.bboxContainer);
+
+    // Format selector row
+    const formatRow = document.createElement('div');
+    formatRow.className = 'partial-format-row';
+    
+    const formatLabel = document.createElement('label');
+    formatLabel.textContent = 'Format:';
+    formatLabel.className = 'partial-format-label';
+    
+    this.formatSelect = document.createElement('select');
+    this.formatSelect.className = 'partial-format-select';
+    
+    const formats = [
+      { value: 'geojson', label: 'GeoJSON' },
+      { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
+      { value: 'csv', label: 'CSV (WKT geometry)' }
+    ];
+    
+    for (const fmt of formats) {
+      const option = document.createElement('option');
+      option.value = fmt.value;
+      option.textContent = fmt.label;
+      this.formatSelect.appendChild(option);
+    }
+    
+    formatRow.appendChild(formatLabel);
+    formatRow.appendChild(this.formatSelect);
+    content.appendChild(formatRow);
+
+    // Memory limit slider row
+    const memRow = document.createElement('div');
+    memRow.className = 'partial-format-row';
+
+    const memLabel = document.createElement('label');
+    memLabel.className = 'partial-format-label';
+    memLabel.textContent = 'Memory:';
+
+    this.memorySlider = document.createElement('input');
+    this.memorySlider.type = 'range';
+    this.memorySlider.className = 'partial-memory-slider';
+    this.memorySlider.min = '128';
+    this.memorySlider.step = '128';
+    this.memorySlider.value = '512';
+
+    // Set max based on device memory if available, else default 4GB
+    const deviceMemGB = navigator.deviceMemory || 4;
+    const maxMB = Math.max(512, Math.floor(deviceMemGB * 1024 * 0.75 / 128) * 128); // 75% of device memory, rounded to 128
+    this.memorySlider.max = String(maxMB);
+    // Clamp default to half of max
+    this.memorySlider.value = String(Math.min(512, maxMB));
+
+    this.memoryValue = document.createElement('span');
+    this.memoryValue.className = 'partial-memory-value';
+    const initMB = parseInt(this.memorySlider.value);
+    this.memoryValue.textContent = initMB >= 1024 ? `${(initMB / 1024).toFixed(1)} GB` : `${initMB} MB`;
+
+    this.memorySlider.addEventListener('input', () => {
+      const mb = parseInt(this.memorySlider.value);
+      this.memoryValue.textContent = mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`;
+    });
+
+    memRow.appendChild(memLabel);
+    memRow.appendChild(this.memorySlider);
+    memRow.appendChild(this.memoryValue);
+    content.appendChild(memRow);
+
+    // Buttons row
+    const buttonsRow = document.createElement('div');
+    buttonsRow.className = 'partial-buttons-row';
+    
+    this.startButton = document.createElement('button');
+    this.startButton.className = 'partial-start-btn';
+    this.startButton.textContent = 'Start Download';
+    this.startButton.addEventListener('click', () => this.startPartialDownload());
+    
+    this.cancelButton = document.createElement('button');
+    this.cancelButton.className = 'partial-cancel-btn';
+    this.cancelButton.textContent = 'Cancel';
+    this.cancelButton.style.display = 'none';
+    this.cancelButton.addEventListener('click', () => this.cancelPartialDownload());
+    
+    buttonsRow.appendChild(this.startButton);
+    buttonsRow.appendChild(this.cancelButton);
+    content.appendChild(buttonsRow);
+
+    // Progress container
+    this.progressContainer = document.createElement('div');
+    this.progressContainer.className = 'partial-progress-container';
+    this.progressContainer.style.display = 'none';
+    
+    const progressBarOuter = document.createElement('div');
+    progressBarOuter.className = 'partial-progress-bar-outer';
+    
+    this.progressBar = document.createElement('div');
+    this.progressBar.className = 'partial-progress-bar-inner';
+    this.progressBar.style.width = '0%';
+    
+    progressBarOuter.appendChild(this.progressBar);
+    this.progressContainer.appendChild(progressBarOuter);
+    
+    this.statusText = document.createElement('div');
+    this.statusText.className = 'partial-status-text';
+    this.progressContainer.appendChild(this.statusText);
+    
+    content.appendChild(this.progressContainer);
+
+    section.appendChild(content);
+    return section;
+  }
+
+  /**
+   * Start partial download for current source and bbox
+   */
+  async startPartialDownload() {
+    if (!this.selectedSource || !this.map) {
+      this.showError('Please select a source first');
+      return;
+    }
+
+    const routes = this.routesHandler.getVectorSources();
+    const routeInfo = routes[this.selectedSource];
+    
+    if (!routeInfo || !routeInfo.url) {
+      this.showError('No parquet data available for this source');
+      return;
+    }
+
+    // Capture current bbox
+    const bounds = this.map.getBounds();
+    const bbox = {
+      west: bounds.getWest(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      north: bounds.getNorth()
+    };
+
+    const format = this.formatSelect.value;
+    const sourceName = routeInfo.name || this.selectedSource;
+
+    // Show save file picker IMMEDIATELY (must be in user gesture context)
+    let userFileHandle;
+    try {
+      userFileHandle = await this.partialDownloadHandler.promptSaveFile(sourceName, bbox, format);
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        return; // User cancelled picker
+      }
+      this.showError(`Failed to open save dialog: ${e.message}`);
+      return;
+    }
+
+    const isPartitioned = routeInfo.partitioned_parquet === true;
+
+    // Update UI state
+    this.setDownloadingState(true);
+    this.updateProgress(0);
+    this.updateStatus(`Starting download of ${sourceName}...`);
+
+    try {
+      let parquetUrl = null;
+      let baseUrl = null;
+      let filteredPartitions = null;
+
+      if (isPartitioned) {
+        // Get partitions filtered by bbox
+        const metaUrl = this.getMetaJsonUrl(routeInfo.url);
+        baseUrl = this.getBaseUrl(routeInfo.url);
+        
+        // Ensure we have the meta.json cached
+        if (!this.metaJsonCache.has(metaUrl)) {
+          await this.fetchPartitions(metaUrl);
+        }
+        
+        const metaJson = this.metaJsonCache.get(metaUrl);
+        if (metaJson) {
+          filteredPartitions = this.partialDownloadHandler.getPartitionsForBbox(metaJson, bbox);
+          
+          if (filteredPartitions.length === 0) {
+            this.showError('No data found in current bbox');
+            this.setDownloadingState(false);
+            return;
+          }
+          
+          this.updateStatus(`Found ${filteredPartitions.length} partition(s) in bbox...`);
+        } else {
+          this.showError('Could not load partition metadata');
+          this.setDownloadingState(false);
+          return;
+        }
+      } else {
+        // Single parquet file
+        parquetUrl = this.getParquetUrl(routeInfo.url);
+      }
+
+      await this.partialDownloadHandler.download({
+        sourceName,
+        parquetUrl,
+        baseUrl,
+        partitions: filteredPartitions,
+        bbox,
+        format,
+        userFileHandle,
+        memoryLimit: `${this.memorySlider.value}MB`,
+        onProgress: (pct) => this.updateProgress(pct),
+        onStatus: (msg) => this.updateStatus(msg)
+      });
+
+      // Reset UI after a delay
+      setTimeout(() => {
+        this.setDownloadingState(false);
+        this.updateProgress(0);
+        this.updateStatus('');
+      }, 2000);
+
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Partial download failed:', error);
+        this.showError(`Download failed: ${error.message}`);
+      } else {
+        this.updateStatus('Download cancelled');
+      }
+      this.setDownloadingState(false);
+    }
+  }
+
+  /**
+   * Cancel ongoing partial download
+   */
+  cancelPartialDownload() {
+    this.partialDownloadHandler.cancel();
+    this.setDownloadingState(false);
+    this.updateStatus('Download cancelled');
+  }
+
+  /**
+   * Update UI for downloading/idle state
+   */
+  setDownloadingState(isDownloading) {
+    this.startButton.style.display = isDownloading ? 'none' : 'block';
+    this.cancelButton.style.display = isDownloading ? 'block' : 'none';
+    this.progressContainer.style.display = isDownloading ? 'block' : 'none';
+    this.formatSelect.disabled = isDownloading;
+  }
+
+  /**
+   * Update progress bar
+   */
+  updateProgress(percent) {
+    if (this.progressBar) {
+      this.progressBar.style.width = `${percent}%`;
+    }
+  }
+
+  /**
+   * Update status text
+   */
+  updateStatus(message) {
+    if (this.statusText) {
+      this.statusText.textContent = message;
+    }
+  }
+
+  /**
+   * Show error message
+   */
+  showError(message) {
+    this.updateStatus(message);
+    this.statusText.classList.add('error');
+    setTimeout(() => {
+      this.statusText.classList.remove('error');
+    }, 3000);
   }
 
   /**

@@ -1,9 +1,0 @@
-{
-  "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd worker && npm run dev",
-    "deploy": "cd worker && npm run deploy"
-  },
-  "devDependencies": {}
-}

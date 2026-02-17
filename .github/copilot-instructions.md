@@ -5,23 +5,26 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 ## Project Overview
 
 - **Purpose**: Serve geospatial data (vector tiles, raster tiles, COG imagery) with a web-based map viewer
-- **Deployment**: Runs on Fly.io, containerized with Docker
+- **Deployment**: Cloudflare Workers (with Fly.io redirect for legacy URLs)
 - **License**: Public domain (UNLICENSE)
 
 ## Technology Stack
 
-### Server (`server/`)
-- **Framework**: Fastify (Node.js)
-- **Static files**: @fastify/static serving from `static/`
+### Worker (`worker/`)
+- **Framework**: Hono (lightweight web framework for Cloudflare Workers)
+- **Static files**: Cloudflare Workers Assets from `static/`
 - **Tile formats**: PMTiles, Cloud-Optimized GeoTIFFs (COG)
-- **Image processing**: Sharp for tile format conversion
+- **Image processing**: @cf-wasm/photon for tile format conversion
 - **Key dependencies**:
   - `pmtiles` - Reading PMTiles archives
   - `@cogeotiff/core`, `@cogeotiff/source-url` - COG parsing
-  - `@basemaps/tiler`, `@basemaps/tiler-sharp` - COG tile rendering
+  - `@basemaps/tiler`, `@basemaps/geo` - COG tile rendering
+  - `@cf-wasm/photon` - WebAssembly image processing for Workers
   - `hyparquet` - Reading geoparquet files for STAC
+  - `flatbush` - Spatial indexing for STAC items
+  - `pako` - Compression utilities
 
-### Frontend (`static/`)
+### Frontend (`worker/static/`)
 - **Map library**: MapLibre GL JS (ESM imports from esm.sh)
 - **STAC viewer**: Leaflet-based
 - **No build step**: Browser-native ES modules, CSS files served directly
@@ -30,22 +33,24 @@ This repository contains a geospatial tile server and web viewer for Indian map 
   - Local modules in `/js/` use ES module syntax
   - India boundary correction via `@india-boundary-corrector/maplibre-protocol`
 
-## Server Architecture
+## Worker Architecture
 
-### Handlers (in `server/`)
+### Handlers (in `worker/src/`)
 - **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives
 - **`mosaic_handler.js`**: Serves tiles from multiple PMTiles files (mosaic format v1)
 - **`cog_handler.js`**: Dynamic tile generation from COGs with mask support
 - **`stac_handler.js`**: STAC API for COG collections; item indices stored in geoparquet files
+- **`tile_maker_photon.js`**: WebAssembly-based tile rendering using @cf-wasm/photon
 
 ### Key Files
-- **`server.js`**: Main entry point, Hono setup
-- **`routes/`**: Route handlers split by feature (tiles, stac, cog, cors_proxy, static)
+- **`index.js`**: Main entry point, Hono app setup
+- **`routes/`**: Route handlers split by feature (tiles, stac, cog, proxy, static)
 - **`routes/listing.json`**: Configuration for tile sources (URLs, types, handlers)
-- **`stac_catalog.json`**: STAC catalog configuration
+- **`routes/stac_catalog.json`**: STAC catalog configuration
+- **`routes/proxy_whitelist.json`**: Allowed domains for CORS proxy
 - **`errors.js`**: Custom HTTP error classes
 - **`common.js`**: Shared utilities (MIME types, attribution)
-- **`cors_whitelist.json`**: Allowed domains for CORS proxy
+- **`wrangler.toml`**: Cloudflare Workers configuration
 
 ### API Endpoints
 - `GET /api/routes` - List available tile sources
@@ -56,9 +61,9 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 - `GET /stac/*` - STAC API endpoints
 - `GET /cors-proxy?url=` - CORS proxy (whitelisted URLs only)
 
-## Frontend Architecture (`static/`)
+## Frontend Architecture (`worker/static/`)
 
-### Main Viewer (`viewer.js`)
+### Main Viewer (`js/viewer.js`)
 - Vector tile viewer with MapLibre GL
 - Modular architecture with separate handlers:
   - `base_layer_picker.js` - Base map selection
@@ -67,11 +72,19 @@ This repository contains a geospatial tile server and web viewer for Indian map 
   - `terrain_handler.js` - 3D terrain
   - `search_param_handler.js` - URL parameter state
   - `source_panel_control.js` - Layer panel UI
+  - `sidebar_control.js` - Sidebar UI component
   - `inspect_control.js` - Feature inspection
+  - `download_panel_control.js` - Download UI
+  - `nominatim_geocoder.js` - Location search
+  - `routes_handler.js` - Route/source management
+  - `size_getter.js` - Data size utilities
 
-### STAC Viewer (`stac_viewer.js`)
+### STAC Viewer (`js/stac_viewer.js`)
 - Leaflet-based viewer for STAC collections
 - Displays COG tiles on-demand
+
+### Raster Viewer (`js/raster_view.js`)
+- Dedicated viewer for raster/COG data
 
 ### Styling
 - `css/main-dark.css` - Shared dark theme
@@ -82,17 +95,40 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 ## Code Style & Conventions
 
 ### JavaScript
-- Use CommonJS `require()` in server code
-- Use ES modules (`import/export`) in frontend code
+- Use ES modules (`import/export`) in both worker and frontend code
 - Prefer `async/await` over callbacks
 - Use `const`/`let`, avoid `var`
 - Error handling: throw custom error classes from `errors.js`
 
-### Server Patterns
+### Worker Patterns
 - All route handlers should set CORS headers: `Access-Control-Allow-Origin: *`
 - Cache tiles with `Cache-Control: max-age=86400000` (long-lived)
-- Use logger (`fastify.log`) for logging, not `console.log`
+- Use console logger for logging (`console.log`, `console.error`)
 - Lazy initialization pattern: `initIfNeeded()` for handlers
+
+### Cloudflare Workers Restrictions
+Even with `nodejs_compat` enabled, Workers have significant limitations:
+
+**Cannot use:**
+- Native Node.js modules (fs, path, child_process, etc.)
+- NPM packages with native bindings (Sharp, better-sqlite3, etc.)
+- Packages that rely on Node.js streams in incompatible ways
+- Long-running processes (50ms CPU time limit on free, 30s on paid)
+- More than 6 concurrent subrequests (1000 total per request)
+- File system access - all data must come from fetch, KV, R2, or be bundled
+
+**Alternatives used in this project:**
+- `@cf-wasm/photon` instead of Sharp for image processing
+- `fetch()` for all external data access
+- Cloudflare Assets for static file serving
+- In-memory caching with module-level variables (persists across requests in same isolate)
+
+**Best practices:**
+- Check package compatibility before adding dependencies
+- Prefer WebAssembly-based packages for heavy computation
+- Use streaming responses where possible
+- Be aware of memory limits (~128MB)
+- Test with `wrangler dev` which simulates the Workers environment
 
 ### Frontend Patterns
 - No bundler - use browser-native ES modules
@@ -103,8 +139,16 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 ## Running Locally
 
 ```bash
+cd worker
 npm install
-npm start  # Runs on http://localhost:3000
+npm run dev  # Runs on http://localhost:8787
+```
+
+## Deployment
+
+```bash
+cd worker
+npm run deploy  # Deploys to Cloudflare Workers
 ```
 
 ## Testing
@@ -113,7 +157,7 @@ Currently no automated tests. Manual testing via the web interface.
 
 ## Adding New Tile Sources
 
-1. Add entry to `server/routes/listing.json` with:
+1. Add entry to `worker/src/routes/listing.json` with:
    - `url`: PMTiles URL
    - `type`: "vector" or "raster"
    - `handlertype`: "pmtiles" or "mosaic"
@@ -127,6 +171,14 @@ Currently no automated tests. Manual testing via the web interface.
 - COG mask handling requires consistent mask presence across all source TIFFs
 - STAC items are cached in memory after first load from geoparquet
 - PMTiles sources are lazily initialized on first request
+- Worker uses @cf-wasm/photon instead of Sharp for image processing (Workers-compatible)
+
+## Other Directories
+
+- **`fly-redirect/`**: Nginx redirect service on Fly.io for legacy URL redirects
+- **`data_processing/`**: Scripts for data processing
+- **`utils/`**: Utility scripts
+- **`tests/`**: Test files
 
 ---
 
