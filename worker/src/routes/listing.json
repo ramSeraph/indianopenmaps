@@ -4528,5 +4528,15 @@
     "name": "GatiShakti Power Transmission Lines",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/GatiShakti_Power_Transmission_Lines.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/power/line-pylons/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Power Transmission Towers",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/GatiShakti_Power_Transmission_Towers.pmtiles",
+    "promoteid": "id"
   }
 }
