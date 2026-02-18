@@ -4538,5 +4538,15 @@
     "name": "GatiShakti Power Transmission Towers",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-lines/GatiShakti_Power_Transmission_Towers.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/power/sub-stations/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "power",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Power Sub stations",
+    "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-stations/GatiShakti_Power_Sub_stations.pmtiles",
+    "promoteid": "id"
   }
 }
