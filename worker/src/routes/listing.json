@@ -4548,5 +4548,16 @@
     "name": "GatiShakti Power Sub stations",
     "url": "https://github.com/ramSeraph/indian_power_infra/releases/download/power-stations/GatiShakti_Power_Sub_stations.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/habitations/settlement-areas/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "habitations",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Human Settlement Areas",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/GatiShakti_Settlement_Areas.pmtiles",
+    "partitioned_parquet": true,
+    "promoteid": "id"
   }
 }
