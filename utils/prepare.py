@@ -428,8 +428,9 @@ def main():
     parser.add_argument("src_name", help="Source name for attribution")
     parser.add_argument("--points", action="store_true", help="Use drop-densest-as-needed for point data")
     parser.add_argument("--no-zip", action="store_true", help="Skip creating the 7z archive")
-    parser.add_argument("--no-pmtiles", action="store_true", help="Skip converting to pmtiles")
+    parser.add_argument("--no-pmtiles", action="store_true", help="Skip creating mbtiles and pmtiles")
     parser.add_argument("--no-parquet", action="store_true", help="Skip creating geoparquet file")
+    parser.add_argument("--no-filter", action="store_true", help="Skip empty geometry filtering")
 
     args = parser.parse_args()
 
@@ -442,8 +443,9 @@ def main():
 
     os.chdir(work_dir)
 
-    # Filter out empty geometries first
-    filter_empty_geometries(Path(fbase))
+    # Filter out empty geometries first (unless --no-filter is set)
+    if not args.no_filter:
+        filter_empty_geometries(Path(fbase))
 
     # Create archive unless --no-zip is set
     if not args.no_zip:
@@ -459,33 +461,34 @@ def main():
             for f in sorted(Path(".").glob(f"{fbase}.7z.*")):
                 print(f"created: {f.name}")
 
-    # Choose tippecanoe command based on points vs polygons
-    cmd = "drop-densest-as-needed" if args.points else "coalesce-smallest-as-needed"
-
-    attribution = f'Source: <a href="{args.src_url}" target="_blank" rel="noopener noreferrer">{args.src_name}</a>'
-
-    print("creating mbtiles file")
-    run_cmd(
-        [
-            "tippecanoe",
-            "-P",
-            "-S", "10",
-            "--increase-gamma-as-needed",
-            "-zg",
-            "-o", f"{lname}.mbtiles",
-            "--simplify-only-low-zooms",
-            f"--{cmd}",
-            "--extend-zooms-if-still-dropping",
-            "-n", lname,
-            "-l", lname,
-            "-A", attribution,
-            fbase,
-        ],
-        check=True,
-    )
-
-    # Convert to pmtiles unless --no-pmtiles is set
+    # Create mbtiles and pmtiles unless --no-pmtiles is set
     if not args.no_pmtiles:
+        # Choose tippecanoe command based on points vs polygons
+        cmd = "drop-densest-as-needed" if args.points else "coalesce-smallest-as-needed"
+
+        attribution = f'Source: <a href="{args.src_url}" target="_blank" rel="noopener noreferrer">{args.src_name}</a>'
+
+        print("creating mbtiles file")
+        run_cmd(
+            [
+                "tippecanoe",
+                "-P",
+                "-S", "10",
+                "--increase-gamma-as-needed",
+                "-zg",
+                "-o", f"{lname}.mbtiles",
+                "--simplify-only-low-zooms",
+                f"--{cmd}",
+                "--extend-zooms-if-still-dropping",
+                "-n", lname,
+                "-l", lname,
+                "-A", attribution,
+                fbase,
+            ],
+            check=True,
+        )
+
+        # Convert to pmtiles
         print("converting to pmtiles")
         run_cmd(["pmtiles", "convert", f"{lname}.mbtiles", f"{lname}.pmtiles"], check=True)
 
@@ -520,7 +523,7 @@ def main():
         parquet_file = Path(f"{lname}.parquet")
         run_cmd(
             [
-                "uvx", "--from", "geoparquet-io", "gpio", "convert",
+                "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "convert",
                 "--geoparquet-version", "2.0",
                 "--compression", "zstd",
                 "--compression-level", "15",

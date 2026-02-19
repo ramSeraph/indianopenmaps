@@ -91,7 +91,7 @@ Sources can be specified by:
 *   `--pick-filter-feature-id <id>`: Select a specific polygon feature by its 0-based index.
 *   `--pick-filter-feature-kv <key=value>`: Select a specific polygon feature by a key-value pair (e.g., 'key=value') from its properties.
 *   `--routes-file <path>`: Path to local JSON file with routes. Cannot be used with --routes-url.
-*   `--routes-url <url>`: URL to fetch routes from. Cannot be used with --routes-file. Default: https://indianopenmaps.fly.dev/api/routes
+*   `--routes-url <url>`: URL to fetch routes from. Cannot be used with --routes-file. Default: https://indianopenmaps.com/api/routes
 
 **Example:**
 

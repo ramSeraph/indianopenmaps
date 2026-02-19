@@ -9,7 +9,7 @@ import click
 
 from iomaps.core.helpers import get_driver_from_filename, get_supported_output_drivers
 
-DEFAULT_ROUTES_URL = "https://indianopenmaps.fly.dev/api/routes"
+DEFAULT_ROUTES_URL = "https://indianopenmaps.com/api/routes"
 
 
 def get_effective_driver(output_file, output_driver=None):

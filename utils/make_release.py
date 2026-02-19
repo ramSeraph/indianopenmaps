@@ -225,7 +225,7 @@ def update_release_doc(repo_name, release, description, files_7z, route, source,
     - Description: {description}
     - Source: {source} - {source_url}
     - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
-    - Tiles - https://indianopenmaps.fly.dev{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.fly.dev{route}view)
+    - Tiles - https://indianopenmaps.com{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.com{route}view)
     """
 
     to_append = textwrap.dedent(to_append)
