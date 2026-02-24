@@ -4569,5 +4569,16 @@
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/GatiShakti_Settlement_Areas.pmtiles",
     "partitioned_parquet": true,
     "promoteid": "id"
+  },
+  "/not-so-open/buildings/shillong/nesdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "buildings",
+      "shillong",
+      "meghalaya"
+    ],
+    "name": "North Eastern Spatial Data Respository Shillong buildings",
+    "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/NESDR_Shillong_buildings.pmtiles",
+    "promoteid": "id"
   }
 }
