@@ -4597,7 +4597,6 @@
       "electoral"
     ],
     "name": "ECI Polling Stations 2017",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/ECI_PollingStations_2017.pmtiles",
-    "promoteid": "PSName"
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/ECI_PollingStations_2017.pmtiles"
   }
 }
