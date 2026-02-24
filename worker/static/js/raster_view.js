@@ -66,8 +66,11 @@ function getDisplayName(id) {
   return id;
 }
 
+const TRANSPARENT_TILE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==';
+
 // Build base layers object for L.control.layers
-async function buildLayersObject(currentId) {
+// Raster route tile JSONs are loaded lazily when the layer is first added to a map
+function buildLayersObject() {
   const layers = {};
   
   // Add presets
@@ -88,21 +91,31 @@ async function buildLayersObject(currentId) {
     layers[preset.name] = layer;
   }
   
-  // Add raster routes
+  // Add raster routes with lazy tile JSON loading
   for (const [id, info] of Object.entries(rasterRoutes)) {
-    try {
-      const response = await fetch(`${id}tiles.json`);
-      const tileJSON = await response.json();
-      const layer = L.tileLayer(tileJSON.tiles[0], {
-        maxNativeZoom: tileJSON.maxzoom,
-        minZoom: tileJSON.minzoom,
-        attribution: tileJSON.attribution
-      });
-      layer._layerId = id;
-      layers[info.name || id] = layer;
-    } catch (err) {
-      console.error(`Failed to load ${id}:`, err);
-    }
+    const layer = L.tileLayer(TRANSPARENT_TILE, {});
+    layer._layerId = id;
+    layer._tileJsonLoaded = false;
+    
+    layer.on('add', async function() {
+      if (this._tileJsonLoaded) return;
+      try {
+        const response = await fetch(`${id}tiles.json`);
+        const tileJSON = await response.json();
+        this._tileJsonLoaded = true;
+        this.options.maxNativeZoom = tileJSON.maxzoom;
+        this.options.minZoom = tileJSON.minzoom;
+        this.options.attribution = tileJSON.attribution;
+        this.setUrl(tileJSON.tiles[0]);
+        if (this._map?.attributionControl) {
+          this._map.attributionControl.addAttribution(tileJSON.attribution);
+        }
+      } catch (err) {
+        console.error(`Failed to load ${id}:`, err);
+      }
+    });
+    
+    layers[info.name || id] = layer;
   }
   
   return layers;
@@ -132,9 +145,9 @@ async function init() {
   // Fetch raster routes
   await fetchRasterRoutes();
   
-  // Build layer objects
-  const leftLayers = await buildLayersObject();
-  const rightLayers = await buildLayersObject();
+  // Build layer objects (tile JSONs loaded lazily on demand)
+  const leftLayers = buildLayersObject();
+  const rightLayers = buildLayersObject();
   
   // Parse URL params
   const params = getHashParams();
