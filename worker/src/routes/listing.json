@@ -17,12 +17,13 @@
     "name": "SOI Flood Risk Area Maps",
     "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-nhp-pmtiles/SOI-NHP-25k.mosaic.json"
   },
-  "/czmp/goa/2019/4k/ncscm/": {
+  "/czmp/goa/2019/4k/ncess/": {
     "handlertype": "pmtiles",
     "type": "raster",
     "category": [
       "raster"
     ],
+    "datameet_attribution": false,
     "name": "CZMP 2019 Goa 4k",
     "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/4k-goa-2019-czmp-pmtiles/CZMP-2019-Goa-4k.pmtiles"
   },
