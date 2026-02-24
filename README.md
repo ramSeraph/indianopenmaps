@@ -10,6 +10,7 @@ A display server for the data hosted at the following repos:
 * [india_natural_disasters](https://github.com/ramSeraph/india_natural_disasters)
 * [indian_buildings](https://github.com/ramSeraph/indian_buildings)
 * [indian_power_infra](https://github.com/ramSeraph/indian_power_infra)
+* [indian_industries](https://github.com/ramSeraph/indian_industries)
 
 Contains [code](https://github.com/ramSeraph/indianopenmaps/blob/main/worker/src/mosaic_handler.js) for getting tiles from a big pmtiles file which has been split into multiple shards (to overcome hosting size limits).
 
