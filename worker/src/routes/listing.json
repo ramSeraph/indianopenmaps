@@ -4580,5 +4580,15 @@
     "name": "North Eastern Spatial Data Respository Shillong buildings",
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/urban/NESDR_Shillong_buildings.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/polling-stations/2014/andhra-pradesh/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "andhra-pradesh",
+      "electoral"
+    ],
+    "name": "Bhuvan Andhra Pradesh Polling Stations 2014",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Bhuvan_AP_PollingStations_2014.pmtiles",
+    "promoteid": "id"
   }
 }
