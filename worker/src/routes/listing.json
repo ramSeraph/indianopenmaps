@@ -4743,5 +4743,14 @@
     ],
     "name": "GatiShakti Warehouses",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Warehouses.pmtiles"
+  },
+  "/not-so-open/polling-stations/bihar/2025/eci/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "electoral"
+    ],
+    "name": "Bihar Polling Stations 2025",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bihar_PollingStations_2025.pmtiles",
+    "promoteid": "ps_name"
   }
 }
