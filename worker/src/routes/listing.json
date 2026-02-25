@@ -4602,7 +4602,7 @@
       "electoral"
     ],
     "name": "Bhuvan Andhra Pradesh Polling Stations 2014",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Bhuvan_AP_PollingStations_2014.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bhuvan_AP_PollingStations_2014.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/polling-stations/2017/eci/": {
@@ -4611,7 +4611,6 @@
       "electoral"
     ],
     "name": "ECI Polling Stations 2017",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/ECI_PollingStations_2017.pmtiles",
-    "promoteid": "polling_station"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2017.pmtiles"
   }
 }
