@@ -4734,5 +4734,14 @@
     ],
     "name": "GatiShakti Godowns",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Godowns.pmtiles"
+  },
+  "/not-so-open/industries/warehouses/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Warehouses",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Warehouses.pmtiles"
   }
 }
