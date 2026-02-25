@@ -4714,5 +4714,16 @@
     "name": "GatiShakti SEZ Parks",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_SEZ_Parks.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/industries/logistic-parks/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Logistic Parks",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Logistic_Parks.pmtiles",
+    "promoteid": "id"
   }
 }
