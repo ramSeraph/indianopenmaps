@@ -4648,5 +4648,16 @@
     ],
     "name": "NESDR Polling Stations Manipur",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/NESDR_Manipur_PollingStations.pmtiles"
+  },
+  "/not-so-open/textiles/parks/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "textiles",
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Textile Parks",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/textiles/GatiShakti_Textile_Parks.pmtiles",
+    "promoteid": "id"
   }
 }
