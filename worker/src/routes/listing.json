@@ -4751,6 +4751,7 @@
     ],
     "name": "Bihar Polling Stations 2025",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bihar_PollingStations_2025.pmtiles",
+    "datameet_attribution": false
     "promoteid": "ps_name"
   },
   "/not-so-open/polling-stations/uttar-pradesh/2022/eci/": {
@@ -4760,6 +4761,7 @@
     ],
     "name": "ECI UttarPradesh Polling Stations 2022",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_UP_PollingStations_2022.pmtiles",
+    "datameet_attribution": false
     "promoteid": "pc_id"
   }
 }
