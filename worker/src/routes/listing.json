@@ -4659,5 +4659,16 @@
     "name": "GatiShakti Textile Parks",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/textiles/GatiShakti_Textile_Parks.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/textiles/cci-apmcs/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "textiles",
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Cotton Corporation of India APMCs",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/textiles/GatiShakti_CCI_APMCs.pmtiles",
+    "promoteid": "id"
   }
 }
