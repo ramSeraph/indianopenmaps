@@ -128,7 +128,7 @@ def find_related_files(base_path: Path) -> dict:
     return files
 
 
-def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None):
+def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None, no_datameet=False):
     code_repo_name = 'indianopenmaps'
     branch = 'main' 
     file_path = 'worker/src/routes/listing.json'
@@ -160,6 +160,8 @@ def update_routes_file(repo_name, release, file_pmtiles, route, description, cat
     }
     if is_partitioned_parquet:
         entry['partitioned_parquet'] = True
+    if no_datameet:
+        entry['datameet_attribution'] = False
     if promoteid:
         entry['promoteid'] = promoteid
     route_data.update({route: entry})
@@ -200,7 +202,7 @@ def upload_file(repo_name, release, file):
         name=file.name
     )
 
-def update_release_doc(repo_name, release, description, files_7z, route, source, source_url):
+def update_release_doc(repo_name, release, description, files_7z, route, source, source_url, no_datameet=False):
     gh = get_github_api()
     user = gh.get_user()
     github_repo = gh.get_repo(f"{user.login}/{repo_name}")
@@ -221,11 +223,11 @@ def update_release_doc(repo_name, release, description, files_7z, route, source,
             parts.append(f"[Part {i}]({url})")
         header = f"{base_name}: {', '.join(parts)}"
 
+    license_line = "" if no_datameet else "\n    - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)"
     to_append = f"""
     ### {header}
     - Description: {description}
-    - Source: {source} - {source_url}
-    - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)
+    - Source: {source} - {source_url}{license_line}
     - Tiles - https://indianopenmaps.com{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.com{route}view)
     """
 
@@ -297,8 +299,9 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--route', type=str, help='tile route')
 @click.option('--category', type=str, help='category', multiple=True)
 @click.option('--no-uploads', is_flag=True, default=False)
+@click.option('--no-datameet', is_flag=True, default=False, help='set datameet_attribution to false in listing.json')
 @click.option('--promoteid', type=str, help='override promoteid for vector tiles')
-def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, promoteid):
+def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, no_datameet, promoteid):
     
     if base_file is None:
         raise click.UsageError('--base-file is required')
@@ -383,10 +386,10 @@ def main(repo, release, base_file, description, source, source_url, route, categ
     
     # append to release doc
     print('updating release notes')
-    update_release_doc(repo, release, description, related['7z'], route, source, source_url)
+    update_release_doc(repo, release, description, related['7z'], route, source, source_url, no_datameet)
     # update route
     print('updating routes file')
-    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet, promoteid)
+    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet, promoteid, no_datameet)
 
 
 if __name__ == "__main__":
