@@ -4612,22 +4612,24 @@
     "name": "ECI Polling Stations 2017",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2017.pmtiles"
   },
-  "/consituencies/assembly/2014/susewind/": {
+  "/constituencies/assembly/2014/susewind/": {
     "handlertype": "pmtiles",
     "category": [
       "electoral"
     ],
     "name": "Assembly Constituencies 2014",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_Assembly_Constituencies_2014.pmtiles",
+    "datameet_attribution": false,
     "promoteid": "ac_name"
   },
-  "/consituencies/parliament/2014/susewind/": {
+  "/constituencies/parliament/2014/susewind/": {
     "handlertype": "pmtiles",
     "category": [
       "electoral"
     ],
     "name": "Parliament Constituencies 2014",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_Parliament_Constituencies_2014.pmtiles",
+    "datameet_attribution": false,
     "promoteid": "pc_name"
   }
 }
