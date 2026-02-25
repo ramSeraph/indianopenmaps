@@ -4639,6 +4639,14 @@
     ],
     "name": "ECI Polling Stations 2014",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2014.pmtiles",
-    "datameet_attribution": false,
+    "datameet_attribution": false
+  },
+  "/not-so-open/polling-stations/mainpur/nesdr/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "electoral"
+    ],
+    "name": "NESDR Polling Stations Manipur",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/NESDR_Manipur_PollingStations.pmtiles"
   }
 }
