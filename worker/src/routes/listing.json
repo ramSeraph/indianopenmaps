@@ -4638,6 +4638,7 @@
       "electoral"
     ],
     "name": "ECI Polling Stations 2014",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2014.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2014.pmtiles",
+    "datameet_attribution": false,
   }
 }
