@@ -1225,6 +1225,7 @@
       "raster",
       "goa"
     ],
+    "datameet_attribution": false,
     "name": "NCSCM Raster Coastal Regulation Map of Goa",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_Goa_CRZ_Map.pmtiles"
   },
@@ -1236,6 +1237,7 @@
       "raster",
       "goa"
     ],
+    "datameet_attribution": false,
     "name": "NCESS Raster Coastal Regulation 2019 Landuse Map of Goa",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP-2019-Landuse-Goa-25k.pmtiles"
   },
