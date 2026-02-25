@@ -4692,5 +4692,16 @@
     "name": "GatiShakti Ginning and Pressing Factories",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/textiles/GatiShakti_Ginning_and_Pressing_Factories.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/industries/parks/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Industrial Parks",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Industrial_Parks.pmtiles",
+    "promoteid": "id"
   }
 }
