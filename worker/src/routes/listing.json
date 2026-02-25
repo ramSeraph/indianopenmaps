@@ -4697,7 +4697,6 @@
     "handlertype": "pmtiles",
     "category": [
       "industries",
-      "industries",
       "gatishakti"
     ],
     "name": "GatiShakti Industrial Parks",
@@ -4708,7 +4707,6 @@
     "handlertype": "pmtiles",
     "category": [
       "industries",
-      "industries",
       "gatishakti"
     ],
     "name": "GatiShakti SEZ Parks",
@@ -4718,7 +4716,6 @@
   "/not-so-open/industries/logistic-parks/gatishakti/": {
     "handlertype": "pmtiles",
     "category": [
-      "industries",
       "industries",
       "gatishakti"
     ],
@@ -4763,5 +4760,13 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_UP_PollingStations_2022.pmtiles",
     "datameet_attribution": false,
     "promoteid": "pc_id"
-  }
+  },
+  "/not-so-open/industries/plots/tngis/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "tamil nadu"
+    ],
+    "name": "TNGIS Industrial Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/TNGIS_Industrial_Estate_Cadastrals.pmtiles"
 }
