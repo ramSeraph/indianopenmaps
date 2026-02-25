@@ -1228,6 +1228,18 @@
     "name": "NCSCM Raster Coastal Regulation Map of Goa",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_Goa_CRZ_Map.pmtiles"
   },
+  "/not-so-open/coastal/2019/goa/landuse/regulation/ncess/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "coastal",
+      "raster",
+      "goa"
+    ],
+    "name": "NCESS Raster Coastal Regulation 2019 Landuse Map of Goa",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP-2019-Landuse-Goa-25k.pmtiles"
+  },
+
   "/not-so-open/coastal/regulation-zones/2019/parivesh/": {
     "handlertype": "pmtiles",
     "category": "coastal",
