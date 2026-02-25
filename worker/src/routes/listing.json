@@ -4769,5 +4769,15 @@
     ],
     "name": "TNGIS Industrial Cadastrals",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/TNGIS_Industrial_Estate_Cadastrals.pmtiles"
+  },
+  "/not-so-open/industries/sipcot/plots/tngis/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industrial",
+      "tamil-nadu"
+    ],
+    "name": "TNGIS SIPCOT Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/TNGIS_SIPCOT_Estate_Cadastrals.pmtiles",
+    "promoteid": "id"
   }
 }
