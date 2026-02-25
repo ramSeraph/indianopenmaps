@@ -4725,5 +4725,14 @@
     "name": "GatiShakti Logistic Parks",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Logistic_Parks.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/industries/godowns/gatishakti/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "gatishakti"
+    ],
+    "name": "GatiShakti Godowns",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/GatiShakti_Godowns.pmtiles"
   }
 }
