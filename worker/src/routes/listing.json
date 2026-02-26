@@ -4779,5 +4779,15 @@
     "name": "TNGIS SIPCOT Cadastrals",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/TNGIS_SIPCOT_Estate_Cadastrals.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/urban/regultion/landuse/tamil-nadu/tngis/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "landuse",
+      "tamil-nadu"
+    ],
+    "name": "TNGIS DTCP Master Plan",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_Master_Plan.pmtiles",
+    "promoteid": "id"
   }
 }
