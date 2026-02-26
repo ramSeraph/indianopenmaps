@@ -4789,5 +4789,13 @@
     "name": "TNGIS DTCP Master Plan",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_Master_Plan.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/cultural/religious/waqf/hyderabad/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "religious"
+    ],
+    "name": "Bhuvan Hyderabad Waqf Properties",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_Hyderabad_waqf.pmtiles"
   }
 }
