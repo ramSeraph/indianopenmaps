@@ -3152,6 +3152,15 @@
   "/not-so-open/wetlands/saltpans/soi/ncog/": {
     "handlertype": "pmtiles",
     "category": [
+      "wetlands"
+    ],
+    "name": "NCOG/SOI Saltpans",
+    "url": "https://github.com/ramSeraph/indian_water_features/releases/download/wetlands/NCOG_SOI_SaltPans.pmtiles",
+    "promoteid": "id"
+  },
+  "/not-so-open/cultural/religious/christ-memorials/soi/ncog/": {
+    "handlertype": "pmtiles",
+    "category": [
       "cultural",
       "religious"
     ],
