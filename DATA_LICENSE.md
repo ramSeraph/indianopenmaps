@@ -10,10 +10,10 @@ Attribution helps grow the community and helps trace the origin of data.
 
 # Rationale behind the licensing:
 
-* https://lu.is/blog/2016/09/12/copyleft-and-data-database-law-as-poor-platform/
-* https://lu.is/blog/2016/09/14/copyleft-and-data-databases-as-poor-subject/
-* https://lu.is/blog/2016/09/21/copyleft-attribution-and-data-other-considerations/
-* https://lu.is/blog/2016/09/26/public-licenses-and-data-so-what-to-do-instead/
+* [Copyleft and data: database law as (poor) platform](https://web.archive.org/web/20250611021531/https://lu.is/2016/09/copyleft-and-data-database-law-as-poor-platform/)
+* [Copyleft and data: databases as poor subject](https://web.archive.org/web/20250104143437/https://lu.is/2016/09/copyleft-and-data-databases-as-poor-subject/)
+* [Copyleft, attribution, and data: other considerations](https://web.archive.org/web/20250917210712/https://lu.is/2016/09/copyleft-attribution-and-data-other-considerations/)
+* [Public licenses and data: So what to do instead?](https://web.archive.org/web/20251205075049/https://lu.is/2016/09/public-licenses-and-data-so-what-to-do-instead/)
 
 # Also do read: 
 
