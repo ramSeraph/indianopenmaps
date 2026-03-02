@@ -2,7 +2,7 @@ name = "indianopenmaps"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
 # nodejs_compat needed because @basemaps/tiler uses process.env at module init
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]
 workers_dev = true
 
 [vars]
