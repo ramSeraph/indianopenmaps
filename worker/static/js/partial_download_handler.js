@@ -71,7 +71,7 @@ export class PartialDownloadHandler {
       URL.revokeObjectURL(worker_url);
       
       this.conn = await this.db.connect();
-      await this.conn.query(`SET temp_directory = 'opfs://tmp'`);
+      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}'`);
       await this.conn.query(`INSTALL spatial; LOAD spatial;`);
       
       this.initialized = true;
