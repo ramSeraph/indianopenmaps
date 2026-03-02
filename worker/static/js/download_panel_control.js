@@ -1,6 +1,6 @@
 // Download panel control for parquet file downloads
 import { SizeGetter } from './size_getter.js';
-import { PartialDownloadHandler } from './partial_download_handler.js';
+import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
 
 export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
@@ -525,16 +525,10 @@ export class DownloadPanelControl {
     this.memorySlider = document.createElement('input');
     this.memorySlider.type = 'range';
     this.memorySlider.className = 'partial-memory-slider';
-    this.memorySlider.min = '128';
-    this.memorySlider.step = '128';
-    this.memorySlider.value = '512';
-
-    // Set max based on device memory if available, else default 4GB
-    const deviceMemGB = navigator.deviceMemory || 4;
-    const maxMB = Math.max(512, Math.floor(deviceMemGB * 1024 * 0.75 / 128) * 128); // 75% of device memory, rounded to 128
-    this.memorySlider.max = String(maxMB);
-    // Clamp default to half of max
-    this.memorySlider.value = String(Math.min(512, maxMB));
+    this.memorySlider.min = String(MEMORY_MIN_MB);
+    this.memorySlider.step = String(MEMORY_STEP);
+    this.memorySlider.max = String(getDeviceMaxMemoryMB());
+    this.memorySlider.value = String(getDefaultMemoryLimitMB());
 
     this.memoryValue = document.createElement('span');
     this.memoryValue.className = 'partial-memory-value';

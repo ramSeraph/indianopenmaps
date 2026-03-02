@@ -1,7 +1,9 @@
 // Partial download handler using DuckDB WASM with OPFS
 // Writes to OPFS via COPY TO, then streams to user-chosen file
 
-import * as duckdb from 'https://esm.sh/@duckdb/duckdb-wasm@1.32.0';
+const DUCKDB_BASE = 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir';
+// JS API from custom build with OPFS temp directory spillover support
+import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir/duckdb-browser.mjs';
 
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -10,26 +12,53 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Default memory limit for DuckDB queries (512MB)
-const DEFAULT_MEMORY_LIMIT = '512MB';
+// Memory config: 50% of device RAM, clamped to [512MB, maxMB], step 128MB
+const MEMORY_STEP = 128;
+const MEMORY_MIN_MB = 512;
+
+export function getDeviceMaxMemoryMB() {
+  const deviceMemGB = navigator.deviceMemory || 4;
+  return Math.max(MEMORY_MIN_MB, Math.floor(deviceMemGB * 1024 * 0.75 / MEMORY_STEP) * MEMORY_STEP);
+}
+
+export function getDefaultMemoryLimitMB() {
+  const deviceMemGB = navigator.deviceMemory || 4;
+  const halfMB = Math.floor(deviceMemGB * 1024 * 0.5 / MEMORY_STEP) * MEMORY_STEP;
+  return Math.max(MEMORY_MIN_MB, Math.min(halfMB, getDeviceMaxMemoryMB()));
+}
+
+export { MEMORY_STEP, MEMORY_MIN_MB };
 
 export class PartialDownloadHandler {
-  constructor({ memoryLimit = DEFAULT_MEMORY_LIMIT } = {}) {
+  constructor() {
     this.db = null;
     this.conn = null;
     this.initialized = false;
     this.cancelled = false;
     this.currentDownload = null;
     this.currentOpfsPath = null;
-    this.memoryLimit = memoryLimit;
   }
 
   async init() {
     if (this.initialized) return;
 
     try {
-      const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-      const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+      const CUSTOM_BUNDLES = {
+        mvp: {
+          mainModule: `${DUCKDB_BASE}/duckdb-mvp.wasm`,
+          mainWorker: `${DUCKDB_BASE}/duckdb-browser-mvp.worker.js`,
+        },
+        eh: {
+          mainModule: `${DUCKDB_BASE}/duckdb-eh.wasm`,
+          mainWorker: `${DUCKDB_BASE}/duckdb-browser-eh.worker.js`,
+        },
+        coi: {
+          mainModule: `${DUCKDB_BASE}/duckdb-coi.wasm`,
+          mainWorker: `${DUCKDB_BASE}/duckdb-browser-coi.worker.js`,
+          pthreadWorker: `${DUCKDB_BASE}/duckdb-browser-coi.pthread.worker.js`,
+        },
+      };
+      const bundle = await duckdb.selectBundle(CUSTOM_BUNDLES);
       
       const worker_url = URL.createObjectURL(
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
@@ -42,7 +71,7 @@ export class PartialDownloadHandler {
       URL.revokeObjectURL(worker_url);
       
       this.conn = await this.db.connect();
-      await this.conn.query(`SET memory_limit = '${this.memoryLimit}'`);
+      await this.conn.query(`SET temp_directory = 'opfs://tmp'`);
       await this.conn.query(`INSTALL spatial; LOAD spatial;`);
       
       this.initialized = true;
