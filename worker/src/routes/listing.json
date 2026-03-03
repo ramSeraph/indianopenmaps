@@ -4805,5 +4805,15 @@
     ],
     "name": "Bhuvan Hyderabad Waqf Properties",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/cultural/Bhuvan_Hyderabad_waqf.pmtiles"
+  },
+  "/not-so-open/land/wastelands/2005/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "land",
+      "wastelands"
+    ],
+    "name": "Bhuvan Wastelands 2005",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Wastelands_2005.pmtiles",
+    "promoteid": "id"
   }
 }
