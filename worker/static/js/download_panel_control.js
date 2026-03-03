@@ -694,8 +694,11 @@ export class DownloadPanelControl {
         onStatus: (msg) => this.updateStatus(msg)
       });
 
-      // Show completion popup with file name
+      // Ensure progress bar repaints at 100% before showing alert
+      this.updateProgress(100);
+      this.updateStatus('Complete!');
       const fileName = userFileHandle.name;
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 100)));
       alert(`Download complete!\n\nSaved to: ${fileName}`);
 
       this.setDownloadingState(false);
