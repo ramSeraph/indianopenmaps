@@ -213,6 +213,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         
         .api-endpoint:hover {
@@ -229,12 +231,16 @@
         .endpoint-path {
             color: #4a9eff;
             flex: 1;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            min-width: 0;
         }
         
         .endpoint-link {
             color: #999;
             text-decoration: none;
             font-size: 0.8rem;
+            white-space: nowrap;
         }
         
         .endpoint-link:hover {
