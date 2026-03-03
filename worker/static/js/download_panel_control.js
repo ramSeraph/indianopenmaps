@@ -453,16 +453,7 @@ export class DownloadPanelControl {
     const label = document.createElement('span');
     label.textContent = 'Partial Download';
     
-    const helpBtn = document.createElement('a');
-    helpBtn.href = '/data-help#partial-download';
-    helpBtn.target = '_blank';
-    helpBtn.className = 'download-help-btn';
-    helpBtn.textContent = '?';
-    helpBtn.title = 'Help with partial downloads';
-    helpBtn.addEventListener('click', (e) => e.stopPropagation());
-    
     leftPart.appendChild(label);
-    leftPart.appendChild(helpBtn);
     
     const toggleIcon = document.createElement('span');
     toggleIcon.className = 'download-toggle-icon';
@@ -568,6 +559,11 @@ export class DownloadPanelControl {
     this.progressContainer = document.createElement('div');
     this.progressContainer.className = 'partial-progress-container';
     this.progressContainer.style.display = 'none';
+
+    // Download info summary (shown during download)
+    this.downloadInfo = document.createElement('div');
+    this.downloadInfo.className = 'partial-download-info';
+    this.progressContainer.appendChild(this.downloadInfo);
     
     const progressBarOuter = document.createElement('div');
     progressBarOuter.className = 'partial-progress-bar-outer';
@@ -631,11 +627,23 @@ export class DownloadPanelControl {
     }
 
     const isPartitioned = routeInfo.partitioned_parquet === true;
+    const memMB = parseInt(this.memorySlider.value);
+    const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
+    const formatLabels = { geojson: 'GeoJSON', geojsonseq: 'GeoJSONSeq', csv: 'CSV' };
 
     // Update UI state
     this.setDownloadingState(true);
     this.updateProgress(0);
-    this.updateStatus(`Starting download of ${sourceName}...`);
+
+    // Show download info summary
+    const bboxDisplay = `${bbox.west.toFixed(4)}, ${bbox.south.toFixed(4)} → ${bbox.east.toFixed(4)}, ${bbox.north.toFixed(4)}`;
+    this.downloadInfo.innerHTML = 
+      `<b>${sourceName}</b><br>` +
+      `<span class="partial-download-info-detail">format: ${formatLabels[format] || format}</span>` +
+      `<span class="partial-download-info-detail">bbox: ${bboxDisplay}</span>` +
+      `<span class="partial-download-info-detail">memory: ${memStr}</span>`;
+
+    this.updateStatus(`Starting download...`);
 
     try {
       let parquetUrl = null;
@@ -686,21 +694,25 @@ export class DownloadPanelControl {
         onStatus: (msg) => this.updateStatus(msg)
       });
 
-      // Reset UI after a delay
-      setTimeout(() => {
-        this.setDownloadingState(false);
-        this.updateProgress(0);
-        this.updateStatus('');
-      }, 2000);
+      // Show completion popup with file name
+      const fileName = userFileHandle.name;
+      alert(`Download complete!\n\nSaved to: ${fileName}`);
+
+      this.setDownloadingState(false);
+      this.updateProgress(0);
+      this.updateStatus('');
+      this.downloadInfo.innerHTML = '';
 
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('Partial download failed:', error);
         this.showError(`Download failed: ${error.message}`);
       } else {
-        this.updateStatus('Download cancelled');
+        this.updateStatus('Cancelled');
+        setTimeout(() => this.updateStatus(''), 2000);
       }
       this.setDownloadingState(false);
+      this.downloadInfo.innerHTML = '';
     }
   }
 
@@ -709,18 +721,16 @@ export class DownloadPanelControl {
    */
   cancelPartialDownload() {
     this.partialDownloadHandler.cancel();
-    this.setDownloadingState(false);
-    this.updateStatus('Download cancelled');
+    this.updateStatus('Cancelling after current operation finishes...');
   }
 
   /**
    * Update UI for downloading/idle state
    */
   setDownloadingState(isDownloading) {
-    this.startButton.style.display = isDownloading ? 'none' : 'block';
+    this.startButton.disabled = isDownloading;
     this.cancelButton.style.display = isDownloading ? 'block' : 'none';
     this.progressContainer.style.display = isDownloading ? 'block' : 'none';
-    this.formatSelect.disabled = isDownloading;
   }
 
   /**

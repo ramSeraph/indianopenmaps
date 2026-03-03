@@ -141,8 +141,13 @@ export class PartialDownloadHandler {
    */
   async promptSaveFile(sourceName, bbox, format) {
     const formatInfo = this.getFormatInfo(format);
-    const bboxStr = `${bbox.west.toFixed(4)}_${bbox.south.toFixed(4)}_${bbox.east.toFixed(4)}_${bbox.north.toFixed(4)}`;
-    const suggestedName = `${sourceName.replace(/\s+/g, '_')}_${bboxStr}${formatInfo.ext}`;
+    // Format: <source>.<west>--<south>--<east>--<north>.<ext>
+    // Dots in coordinates replaced with dashes
+    const coordStr = [bbox.west, bbox.south, bbox.east, bbox.north]
+      .map(c => c.toFixed(4).replace(/\./g, '-'))
+      .join('--');
+    const baseName = sourceName.replace(/\s+/g, '_');
+    const suggestedName = `${baseName}.${coordStr}${formatInfo.ext}`;
 
     return await window.showSaveFilePicker({
       suggestedName,
