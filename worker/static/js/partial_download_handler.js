@@ -130,6 +130,12 @@ export class PartialDownloadHandler {
           description: 'CSV with WKT geometry',
           accept: { 'text/csv': ['.csv'] }
         };
+      case 'geoparquet':
+        return {
+          ext: '.parquet',
+          description: 'GeoParquet',
+          accept: { 'application/x-parquet': ['.parquet'] }
+        };
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
@@ -250,13 +256,111 @@ export class PartialDownloadHandler {
             WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
           ) TO '${opfsPath}' (FORMAT CSV, HEADER true)
         `;
+      } else if (format === 'geoparquet') {
+        onStatus?.('Writing GeoParquet...');
+        // Step 1: Write initial parquet without geo metadata (bbox struct included for covering)
+        const tempOpfsPath = `opfs://temp_${TAB_ID}_${Date.now()}.parquet`;
+        await this.db.registerOPFSFileName(tempOpfsPath);
+        await sleep(5);
+
+        copyQuery = `
+          COPY (
+            SELECT * REPLACE (ST_AsWKB(geometry)::BLOB AS geometry),
+              struct_pack(
+                xmin := ST_XMin(geometry),
+                ymin := ST_YMin(geometry),
+                xmax := ST_XMax(geometry),
+                ymax := ST_YMax(geometry)
+              ) AS bbox
+            FROM read_parquet([${urlList}], union_by_name=true)
+            WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
+          ) TO '${tempOpfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE')
+        `;
+        await this.conn.query(copyQuery);
+
+        if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+
+        // Step 2: Compute actual bbox and geometry_types from local OPFS file
+        onStatus?.('Computing metadata...');
+        const statsResult = await this.conn.query(`
+          SELECT MIN(bbox.xmin) as xmin, MIN(bbox.ymin) as ymin,
+                 MAX(bbox.xmax) as xmax, MAX(bbox.ymax) as ymax
+          FROM '${tempOpfsPath}'
+        `);
+        const geoBbox = [
+          statsResult.getChildAt(0).get(0),
+          statsResult.getChildAt(1).get(0),
+          statsResult.getChildAt(2).get(0),
+          statsResult.getChildAt(3).get(0)
+        ];
+
+        // DuckDB returns uppercase (POINT, MULTIPOLYGON); GeoParquet spec requires title case (Point, MultiPolygon)
+        const typesResult = await this.conn.query(`
+          SELECT DISTINCT ST_GeometryType(ST_GeomFromWKB(geometry)) as geom_type
+          FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL
+        `);
+        const duckdbToSpec = {
+          'POINT': 'Point', 'LINESTRING': 'LineString', 'POLYGON': 'Polygon',
+          'MULTIPOINT': 'MultiPoint', 'MULTILINESTRING': 'MultiLineString', 'MULTIPOLYGON': 'MultiPolygon',
+          'GEOMETRYCOLLECTION': 'GeometryCollection',
+        };
+        const geomTypes = [];
+        for (let i = 0; i < typesResult.numRows; i++) {
+          const raw = typesResult.getChildAt(0).get(i);
+          geomTypes.push(duckdbToSpec[raw] || raw);
+        }
+
+        // Step 3: Re-COPY from local OPFS file with correct geo metadata
+        const geoMeta = {
+          version: '1.1.0',
+          primary_column: 'geometry',
+          columns: {
+            geometry: {
+              encoding: 'WKB',
+              geometry_types: geomTypes,
+              bbox: geoBbox,
+              covering: {
+                bbox: {
+                  xmin: ['bbox', 'xmin'],
+                  ymin: ['bbox', 'ymin'],
+                  xmax: ['bbox', 'xmax'],
+                  ymax: ['bbox', 'ymax']
+                }
+              }
+            }
+          }
+        };
+        const geoMetaEscaped = JSON.stringify(geoMeta).replace(/'/g, "''");
+
+        onStatus?.('Sorting by Hilbert curve & finalizing...');
+        const [bxmin, bymin, bxmax, bymax] = geoBbox;
+        await this.conn.query(`
+          COPY (
+            SELECT * FROM '${tempOpfsPath}'
+            ORDER BY ST_Hilbert(ST_GeomFromWKB(geometry),
+              ST_Extent(ST_MakeEnvelope(${bxmin}, ${bymin}, ${bxmax}, ${bymax})))
+          ) TO '${opfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE', KV_METADATA {geo: '${geoMetaEscaped}'})
+        `);
+
+        // Cleanup temp file
+        try {
+          await this.db.dropFile(tempOpfsPath);
+          const tempFileName = tempOpfsPath.replace('opfs://', '');
+          const root = await navigator.storage.getDirectory();
+          await root.removeEntry(tempFileName);
+        } catch (e) { /* ignore */ }
+
+        // Skip the main copyQuery execution below since we already handled it
+        copyQuery = null;
       } else if (format === 'geojsonseq' || format === 'geojson') {
         copyQuery = `
           COPY (${jsonFeatureQuery}) TO '${opfsPath}' (FORMAT CSV, HEADER false, QUOTE '', DELIMITER E'\\x01')
         `;
       }
 
-      await this.conn.query(copyQuery);
+      if (copyQuery) {
+        await this.conn.query(copyQuery);
+      }
 
       if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
 
@@ -310,7 +414,7 @@ export class PartialDownloadHandler {
         }
         await writableStream.write(encoder.encode(']}'));
       } else {
-        // CSV and GeoJSONSeq: stream directly
+        // CSV, GeoJSONSeq, GeoParquet: stream directly
         const reader = opfsFile.stream().getReader();
         let bytesRead = 0;
 
