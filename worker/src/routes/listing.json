@@ -4868,5 +4868,14 @@
     "name": "Bhuvan CDMA Telangana Urban Contours",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-dem/Bhuvan_CDMA_Telangana_Urban_Contours.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/polling-stations/punjab/2020/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "electoral",
+      "punjab"
+    ],
+    "name": "Bhuvan Punjab Polling Stations 2020",
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bhuvan_Punjab_PollingStations_2020.pmtiles"
   }
 }
