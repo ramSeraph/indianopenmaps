@@ -4857,5 +4857,16 @@
     "name": "Bhuvan Railway bridges",
     "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/Bhuvan_Railway_bridges.pmtiles",
     "promoteid": "id"
+  },
+  "/not-so-open/contour/urban/telangana/cdma/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "telangana",
+      "land",
+      "contours"
+    ],
+    "name": "Bhuvan CDMA Telangana Urban Contours",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-dem/Bhuvan_CDMA_Telangana_Urban_Contours.pmtiles",
+    "promoteid": "id"
   }
 }
