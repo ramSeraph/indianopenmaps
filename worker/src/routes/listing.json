@@ -4826,5 +4826,16 @@
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Land_Degradation_50k_0506.pmtiles",
     "partitioned_parquet": true,
     "promoteid": "id"
+  },
+  "/not-so-open/land/degradation/50k/2015-2016/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "land",
+      "degradation"
+    ],
+    "name": "Bhuvan Land Degradation 50k 2015-2016",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Land_Degradation_50k_1516.pmtiles",
+    "partitioned_parquet": true,
+    "promoteid": "id"
   }
 }
