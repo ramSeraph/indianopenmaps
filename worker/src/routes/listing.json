@@ -4837,5 +4837,15 @@
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Land_Degradation_50k_1516.pmtiles",
     "partitioned_parquet": true,
     "promoteid": "id"
+  },
+  "/not-so-open/land/wastelands/50k/2008-2009/bhuvan/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "land",
+      "wastelands"
+    ],
+    "name": "Bhuvan Wastelands 50k 2009-2009",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Wastelands_50K_0809.pmtiles",
+    "promoteid": "id"
   }
 }
