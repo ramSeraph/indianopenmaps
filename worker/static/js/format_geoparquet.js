@@ -1,5 +1,6 @@
 // GeoParquet format handler for partial downloads
 // 3-step pipeline: write temp → compute metadata → re-copy with Hilbert sort
+// v2.0 support inspired by https://github.com/geoparquet/geoparquet-io
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -12,22 +13,31 @@ const DUCKDB_TO_SPEC = {
   'GEOMETRYCOLLECTION': 'GeometryCollection',
 };
 
-export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabId, { onStatus, cancelled }) {
-  // Step 1: Write initial parquet without geo metadata (bbox struct included for covering)
-  onStatus?.('Writing GeoParquet...');
+export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabId, { onStatus, cancelled, version = '1.1' }) {
+  const isV2 = version === '2.0';
+  // For v1.x: cast to BLOB (plain binary WKB). For v2.0: keep geoarrow extension type.
+  const geomExpr = isV2 ? 'ST_AsWKB(geometry) AS geometry' : 'ST_AsWKB(geometry)::BLOB AS geometry';
+  // v2.0: geometry is already GEOMETRY type; v1.x: it's BLOB needing ST_GeomFromWKB
+  const geomRef = isV2 ? 'geometry' : 'ST_GeomFromWKB(geometry)';
+
+  // Step 1: Write initial parquet (v1.x includes bbox struct for covering; v2.0 skips it)
+  onStatus?.(`Writing GeoParquet (v${version})...`);
   const tempOpfsPath = `opfs://temp_${tabId}_${Date.now()}.parquet`;
   await db.registerOPFSFileName(tempOpfsPath);
   await sleep(5);
 
-  await conn.query(`
-    COPY (
-      SELECT * REPLACE (ST_AsWKB(geometry)::BLOB AS geometry),
+  // v2.0: native Parquet GEOMETRY provides row group stats, no bbox struct needed
+  const bboxSelect = isV2 ? '' : `,
         struct_pack(
           xmin := ST_XMin(geometry),
           ymin := ST_YMin(geometry),
           xmax := ST_XMax(geometry),
           ymax := ST_YMax(geometry)
-        ) AS bbox
+        ) AS bbox`;
+
+  await conn.query(`
+    COPY (
+      SELECT * REPLACE (${geomExpr})${bboxSelect}
       FROM read_parquet([${urlList}], union_by_name=true)
       WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
     ) TO '${tempOpfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE')
@@ -37,11 +47,14 @@ export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabI
 
   // Step 2: Compute actual bbox and geometry_types from local OPFS file
   onStatus?.('Computing metadata...');
-  const statsResult = await conn.query(`
-    SELECT MIN(bbox.xmin) as xmin, MIN(bbox.ymin) as ymin,
-           MAX(bbox.xmax) as xmax, MAX(bbox.ymax) as ymax
-    FROM '${tempOpfsPath}'
-  `);
+  const bboxQuery = isV2
+    ? `SELECT ST_XMin(ST_Extent_Agg(geometry)) as xmin, ST_YMin(ST_Extent_Agg(geometry)) as ymin,
+              ST_XMax(ST_Extent_Agg(geometry)) as xmax, ST_YMax(ST_Extent_Agg(geometry)) as ymax
+       FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL`
+    : `SELECT MIN(bbox.xmin) as xmin, MIN(bbox.ymin) as ymin,
+              MAX(bbox.xmax) as xmax, MAX(bbox.ymax) as ymax
+       FROM '${tempOpfsPath}'`;
+  const statsResult = await conn.query(bboxQuery);
   const geoBbox = [
     statsResult.getChildAt(0).get(0),
     statsResult.getChildAt(1).get(0),
@@ -50,7 +63,7 @@ export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabI
   ];
 
   const typesResult = await conn.query(`
-    SELECT DISTINCT ST_GeometryType(ST_GeomFromWKB(geometry)) as geom_type
+    SELECT DISTINCT ST_GeometryType(${geomRef}) as geom_type
     FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL
   `);
   const geomTypes = [];
@@ -60,24 +73,27 @@ export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabI
   }
 
   // Step 3: Re-COPY from local OPFS file with correct geo metadata + Hilbert sort
-  const geoMeta = {
-    version: '1.1.0',
-    primary_column: 'geometry',
-    columns: {
-      geometry: {
-        encoding: 'WKB',
-        geometry_types: geomTypes,
-        bbox: geoBbox,
-        covering: {
-          bbox: {
-            xmin: ['bbox', 'xmin'],
-            ymin: ['bbox', 'ymin'],
-            xmax: ['bbox', 'xmax'],
-            ymax: ['bbox', 'ymax']
-          }
-        }
+  const metadataVersion = isV2 ? '2.0.0' : '1.1.0';
+  const columnMeta = {
+    encoding: 'WKB',
+    geometry_types: geomTypes,
+    bbox: geoBbox,
+  };
+  // v1.x needs covering metadata pointing to the bbox struct column
+  if (!isV2) {
+    columnMeta.covering = {
+      bbox: {
+        xmin: ['bbox', 'xmin'],
+        ymin: ['bbox', 'ymin'],
+        xmax: ['bbox', 'xmax'],
+        ymax: ['bbox', 'ymax']
       }
-    }
+    };
+  }
+  const geoMeta = {
+    version: metadataVersion,
+    primary_column: 'geometry',
+    columns: { geometry: columnMeta }
   };
   const geoMetaEscaped = JSON.stringify(geoMeta).replace(/'/g, "''");
 
@@ -86,7 +102,7 @@ export async function writeGeoParquet(conn, db, urlList, bboxWkt, opfsPath, tabI
   await conn.query(`
     COPY (
       SELECT * FROM '${tempOpfsPath}'
-      ORDER BY ST_Hilbert(ST_GeomFromWKB(geometry),
+      ORDER BY ST_Hilbert(${geomRef},
         ST_Extent(ST_MakeEnvelope(${bxmin}, ${bymin}, ${bxmax}, ${bymax})))
     ) TO '${opfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE', KV_METADATA {geo: '${geoMetaEscaped}'})
   `);

@@ -168,6 +168,12 @@ export class PartialDownloadHandler {
           description: 'GeoParquet',
           accept: { 'application/x-parquet': ['.parquet'] }
         };
+      case 'geoparquet2':
+        return {
+          ext: '.parquet',
+          description: 'GeoParquet 2.0',
+          accept: { 'application/x-parquet': ['.parquet'] }
+        };
       case 'geopackage':
         return {
           ext: '.gpkg',
@@ -249,10 +255,12 @@ export class PartialDownloadHandler {
       const bboxWkt = `POLYGON((${bbox.west} ${bbox.south}, ${bbox.east} ${bbox.south}, ${bbox.east} ${bbox.north}, ${bbox.west} ${bbox.north}, ${bbox.west} ${bbox.south}))`;
 
       // Build and execute format-specific COPY query
-      if (format === 'geoparquet') {
+      if (format === 'geoparquet' || format === 'geoparquet2') {
+        const version = format === 'geoparquet2' ? '2.0' : '1.1';
         await writeGeoParquet(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
           onStatus,
           cancelled: () => this.cancelled,
+          version,
         });
       } else if (format === 'geopackage') {
         const gpkgFileName = await writeGeoPackage(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
