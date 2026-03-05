@@ -7,6 +7,7 @@ import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-te
 import { buildCopyQuery as buildCsvCopyQuery } from './format_csv.js';
 import { buildCopyQuery as buildGeoJsonCopyQuery } from './format_geojson.js';
 import { writeGeoParquet } from './format_geoparquet.js';
+import { writeGeoPackage } from './format_geopackage.js';
 
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -167,6 +168,12 @@ export class PartialDownloadHandler {
           description: 'GeoParquet',
           accept: { 'application/x-parquet': ['.parquet'] }
         };
+      case 'geopackage':
+        return {
+          ext: '.gpkg',
+          description: 'GeoPackage',
+          accept: { 'application/geopackage+sqlite3': ['.gpkg'] }
+        };
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
@@ -215,8 +222,11 @@ export class PartialDownloadHandler {
       onStatus?.('Preparing...');
 
       // Register the OPFS file name with DuckDB and wait for it to be ready
-      await this.db.registerOPFSFileName(opfsPath);
-      await sleep(5);
+      // (geopackage uses wa-sqlite with its own OPFS VFS, no DuckDB registration needed)
+      if (format !== 'geopackage') {
+        await this.db.registerOPFSFileName(opfsPath);
+        await sleep(5);
+      }
 
       // Build list of URLs to query
       let urls = [];
@@ -244,6 +254,13 @@ export class PartialDownloadHandler {
           onStatus,
           cancelled: () => this.cancelled,
         });
+      } else if (format === 'geopackage') {
+        const gpkgFileName = await writeGeoPackage(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
+          onStatus,
+          cancelled: () => this.cancelled,
+        });
+        // writeGeoPackage returns the OPFS filename where wa-sqlite wrote the file
+        this._gpkgFileName = gpkgFileName;
       } else {
         let copyQuery;
         if (format === 'csv') {
@@ -260,10 +277,15 @@ export class PartialDownloadHandler {
       onStatus?.('Streaming to your file...');
 
       // Drop the DuckDB registration so we can access the OPFS file directly
-      await this.db.dropFile(opfsPath);
+      // (geopackage uses wa-sqlite's own OPFS VFS, no DuckDB registration to drop)
+      if (format !== 'geopackage') {
+        await this.db.dropFile(opfsPath);
+      }
       this.currentOpfsPath = null;
 
-      const opfsFileName = opfsPath.replace('opfs://', '');
+      const opfsFileName = (format === 'geopackage' && this._gpkgFileName)
+        ? this._gpkgFileName
+        : opfsPath.replace('opfs://', '');
       const downloadFileName = this.getSuggestedFileName(sourceName, bbox, format);
 
       // Download via blob URL from OPFS file (disk-backed, no RAM copy).

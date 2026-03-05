@@ -492,6 +492,7 @@ export class DownloadPanelControl {
       { value: 'geojson', label: 'GeoJSON' },
       { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
       { value: 'geoparquet', label: 'GeoParquet (v1.1.0)' },
+      { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
       { value: 'csv', label: 'CSV (WKT geometry)' }
     ];
     
@@ -618,7 +619,7 @@ export class DownloadPanelControl {
     const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);
     const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
-    const formatLabels = { geojson: 'GeoJSON', geojsonseq: 'GeoJSONSeq', geoparquet: 'GeoParquet', csv: 'CSV' };
+    const formatLabels = { geojson: 'GeoJSON', geojsonseq: 'GeoJSONSeq', geoparquet: 'GeoParquet', geopackage: 'GeoPackage', csv: 'CSV' };
 
     // Update UI state
     this.setDownloadingState(true);
