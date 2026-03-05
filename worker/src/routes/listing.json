@@ -907,7 +907,7 @@
     "category": "roads",
     "name": "Facebook Roads",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/fb-roads/fb_roads_india.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/fb-roads/fb_roads_india.pmtiles",
     "promoteid": "way_fbid"
   },
   "/ms-roads/": {
@@ -915,14 +915,14 @@
     "category": "roads",
     "name": "Microsoft Roads",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/ms-roads/ms_roads_india.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/ms-roads/ms_roads_india.pmtiles"
   },
   "/pmgsy-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "PMGSY Roads",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads.pmtiles",
     "promoteid": "ER_ID"
   },
   "/pmgsy-roads-candidates/": {
@@ -930,7 +930,7 @@
     "category": "roads",
     "name": "PMGSY Road Candidates",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_candidates.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads_candidates.pmtiles",
     "promoteid": "ER_ID"
   },
   "/pmgsy-roads-proposals-i/": {
@@ -938,7 +938,7 @@
     "category": "roads",
     "name": "PMGSY Road Proposals I",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_i.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads_proposals_i.pmtiles",
     "promoteid": "MRL_ID"
   },
   "/pmgsy-roads-proposals-ii/": {
@@ -946,41 +946,41 @@
     "category": "roads",
     "name": "PMGSY Road Proposals II",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_ii.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads_proposals_ii.pmtiles"
   },
   "/pmgsy-roads-proposals-iii/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals III",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_iii.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads_proposals_iii.pmtiles"
   },
   "/pmgsy-roads-proposals-rcplwea/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "PMGSY Road Proposals RCPLWEA",
     "datameet_attribution": false,
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/pmgsy_roads_proposals_rcplwea.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/pmgsy_roads_proposals_rcplwea.pmtiles"
   },
   "/not-so-open/soi-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Roads",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Roads.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Roads.pmtiles",
     "promoteid": "OBJECTID"
   },
   "/not-so-open/soi-tracks/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Tracks",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tracks.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Tracks.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/nic-roads/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "NIC Roads",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/nic-roads/NIC_Roads.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/nic-roads/NIC_Roads.pmtiles",
     "partitioned_parquet": true
   },
   "/not-so-open/soi-bridges/": {
@@ -990,49 +990,49 @@
       "railways"
     ],
     "name": "SOI Bridges",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Bridges.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Bridges.pmtiles",
     "promoteid": "OBJECTID_12"
   },
   "/not-so-open/soi-tolls/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Tolls",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Tolls.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Tolls.pmtiles",
     "promoteid": "objectid_12"
   },
   "/not-so-open/soi-passes/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Passes",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Passes.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Passes.pmtiles",
     "promoteid": "objectid_12"
   },
   "/not-so-open/soi-glacial-routes/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Glacial Routes",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Routes_over_glaciers.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/soi-causeways/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Causeways",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Causeways.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Causeways.pmtiles",
     "promoteid": "OBJECTID"
   },
   "/not-so-open/soi-culverts/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Culverts",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Culverts.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Culverts.pmtiles",
     "promoteid": "OBJECTID_12"
   },
   "/not-so-open/soi-viaducts/": {
     "handlertype": "pmtiles",
     "category": "roads",
     "name": "SOI Viaducts",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Viaducts.pmtiles",
     "promoteid": "objectid_12"
   },
   "/not-so-open/soi-fords/": {
@@ -1042,7 +1042,7 @@
       "water"
     ],
     "name": "SOI Fords",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/soi-roads/SOI_Viaducts.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/soi-roads/SOI_Viaducts.pmtiles"
   },
   "/not-so-open/urban/roads/nuis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -1051,7 +1051,7 @@
       "urban"
     ],
     "name": "NUIS Road Center Lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/Bhuvan_NUIS_Urban_Roads.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/urban-roads/Bhuvan_NUIS_Urban_Roads.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/urban/roads/center-lines/amrut/bhuvan/": {
@@ -1061,7 +1061,7 @@
       "urban"
     ],
     "name": "AMRUT Road Center Lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/urban-roads/AMRUT_Road_CLines.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/urban/telangana/roads/polys/cdma/bhuvan/": {
@@ -1072,7 +1072,7 @@
       "telangana"
     ],
     "name": "Telangana CDMA Road Polygons",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/TS_CDMA_Roads.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/urban-roads/TS_CDMA_Roads.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/railways/tracks/ir/": {
@@ -4487,7 +4487,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti PMGSY Bridges",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/GatiShakti_PMGSY_Bridges.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/GatiShakti_PMGSY_Bridges.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/bridges/mord/gatishakti/": {
@@ -4497,7 +4497,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti MORD Bridges",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/pmgsy-roads/GatiShakti_MORD_Bridges.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/pmgsy-roads/GatiShakti_MORD_Bridges.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/mmlp/lines/morth/gatishakti/": {
@@ -4507,7 +4507,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti MORTH MMLP lines",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_MMLP_lines.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/morth-roads/GatiShakti_MORTH_MMLP_lines.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/mmlp/polygons/morth/gatishakti/": {
@@ -4517,7 +4517,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti MORTH MMLP polygons",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_MMLP_polygons.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/morth-roads/GatiShakti_MORTH_MMLP_polygons.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/national-highways/morth/gatishakti/": {
@@ -4527,7 +4527,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti MORTH National Highways",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_National_Highways.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/morth-roads/GatiShakti_MORTH_National_Highways.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/toll-plazas/morth/gatishakti/": {
@@ -4537,7 +4537,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti MORTH Toll Plazas",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/morth-roads/GatiShakti_MORTH_Toll_Plazas.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/morth-roads/GatiShakti_MORTH_Toll_Plazas.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/hotspots/pmwani/gatishakti/": {
@@ -4885,7 +4885,7 @@
       "bridges"
     ],
     "name": "AMRUT/Bhuvan Bridges and Flyovers",
-    "url": "https://github.com/ramSeraph/indian_roads/releases/download/urban-roads/AMRUT_Bridges_and_Flyovers.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/urban-roads/AMRUT_Bridges_and_Flyovers.pmtiles",
     "promoteid": "id"
   }
 }

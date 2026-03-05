@@ -20,8 +20,7 @@ from github import Auth, Github, InputGitTreeElement
 known_repos = [
     "indian_admin_boundaries",
     "indian_water_features",
-    "indian_railways",
-    "indian_roads",
+    "indian_transport",
     "indian_communications",
     "indian_facilities",
     "indian_cadastrals",

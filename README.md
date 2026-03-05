@@ -1,8 +1,7 @@
 A display server for the data hosted at the following repos:
 * [indian_admin_boundaries](https://github.com/ramSeraph/indian_admin_boundaries)
 * [indian_water_features](https://github.com/ramSeraph/indian_water_features)
-* [indian_railways](https://github.com/ramSeraph/indian_railways)
-* [indian_roads](https://github.com/ramSeraph/indian_roads)
+* [indian_transport](https://github.com/ramSeraph/indian_transport)
 * [indian_communications](https://github.com/ramSeraph/indian_communications)
 * [indian_facilities](https://github.com/ramSeraph/indian_facilities)
 * [indian_cadastrals](https://github.com/ramSeraph/indian_cadastrals)
