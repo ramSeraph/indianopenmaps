@@ -4876,7 +4876,8 @@
       "punjab"
     ],
     "name": "Bhuvan Punjab Polling Stations 2020",
-    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bhuvan_Punjab_PollingStations_2020.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/Bhuvan_Punjab_PollingStations_2020.pmtiles",
+    "promoteid": "OBJECTID"
   },
   "/not-so-open/bridges-flyovers/amrut/bhuvan/": {
     "handlertype": "pmtiles",
