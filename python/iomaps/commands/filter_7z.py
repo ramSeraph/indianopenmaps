@@ -98,7 +98,7 @@ def process_archive(archive, filter, writer, external_updater=None):
     type=click.Path(exists=True),
     help="Path to the input 7z archive file.",
 )
-@add_output_options(exclude_drivers=["parquet"])
+@add_output_options(exclude_drivers=["geoparquet-1.1", "geoparquet-2.0"])
 @click.option(
     "-s",
     "--schema",

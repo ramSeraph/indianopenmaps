@@ -12,8 +12,14 @@ SUPPORTED_OUTPUT_DRIVERS = [
     "GeoJSONSeq",
     "GPKG",
     "KML",
-    "Parquet",
+    "GeoParquet-1.1",
+    "GeoParquet-2.0",
 ]
+
+GEOPARQUET_VERSIONS = {
+    "GeoParquet-1.1": "1.1",
+    "GeoParquet-2.0": "2.0",
+}
 
 
 def get_supported_output_drivers():
@@ -87,7 +93,7 @@ special_cases = {
     "geojson": "GeoJSON",
     "shp": "ESRI Shapefile",
     "gpkg": "GPKG",
-    "parquet": "Parquet",
+    "parquet": "GeoParquet-1.1",
     "kml": "KML",
 }
 

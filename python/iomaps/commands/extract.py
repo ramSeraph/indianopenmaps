@@ -36,6 +36,7 @@ from iomaps.commands.sources import (
     get_vector_sources,
     resolve_source,
 )
+from iomaps.core.helpers import GEOPARQUET_VERSIONS
 from iomaps.core.spatial_filter import (
     get_shape_from_bounds,
     get_shape_from_filter_file,
@@ -322,7 +323,7 @@ def write_csv_output(con, query, output_path):
     execute_with_spinner(con, copy_query, "Downloading and writing CSV")
 
 
-def write_parquet_output(con, query, output_path):
+def write_parquet_output(con, query, output_path, geoparquet_version="1.1"):
     """Write query results to GeoParquet."""
     console = Console(stderr=True)
     error = None
@@ -338,7 +339,7 @@ def write_parquet_output(con, query, output_path):
                 compression="ZSTD",
                 compression_level=15,
                 row_group_rows=100000,
-                geoparquet_version="2.0",
+                geoparquet_version=geoparquet_version,
             )
         except Exception as e:
             error = e
@@ -495,8 +496,9 @@ def extract(
             write_gdal_output(con, query, output_file, effective_driver)
         elif effective_driver == "CSV":
             write_csv_output(con, query, output_file)
-        elif effective_driver == "Parquet":
-            write_parquet_output(con, query, output_file)
+        elif effective_driver in GEOPARQUET_VERSIONS:
+            version = GEOPARQUET_VERSIONS[effective_driver]
+            write_parquet_output(con, query, output_file, geoparquet_version=version)
         else:
             logging.error(f"Unsupported output driver: {effective_driver}")
             return
