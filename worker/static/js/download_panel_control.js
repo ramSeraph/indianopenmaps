@@ -615,18 +615,6 @@ export class DownloadPanelControl {
     const format = this.formatSelect.value;
     const sourceName = routeInfo.name || this.selectedSource;
 
-    // Show save file picker IMMEDIATELY (must be in user gesture context)
-    let userFileHandle;
-    try {
-      userFileHandle = await this.partialDownloadHandler.promptSaveFile(sourceName, bbox, format);
-    } catch (e) {
-      if (e.name === 'AbortError') {
-        return; // User cancelled picker
-      }
-      this.showError(`Failed to open save dialog: ${e.message}`);
-      return;
-    }
-
     const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);
     const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
@@ -689,20 +677,13 @@ export class DownloadPanelControl {
         partitions: filteredPartitions,
         bbox,
         format,
-        userFileHandle,
         memoryLimit: `${this.memorySlider.value}MB`,
         onProgress: (pct) => this.updateProgress(pct),
         onStatus: (msg) => this.updateStatus(msg)
       });
 
-      // Wait for progress bar CSS transition to 100% before showing alert
       this.updateProgress(100);
       this.updateStatus('Complete!');
-      const fileName = userFileHandle.name;
-      await new Promise(r => {
-        this.progressBar.addEventListener('transitionend', r, { once: true });
-      });
-      alert(`Download complete!\n\nSaved to: ${fileName}`);
 
       this.setDownloadingState(false);
       this.updateProgress(0);

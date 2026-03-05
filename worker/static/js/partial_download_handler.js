@@ -1,15 +1,46 @@
 // Partial download handler using DuckDB WASM with OPFS
-// Writes to OPFS via COPY TO, then streams to user-chosen file
+// Writes to OPFS via COPY TO, then triggers download via blob URL
 
 const DUCKDB_BASE = 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir';
 // JS API from custom build with OPFS temp directory spillover support
 import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir/duckdb-browser.mjs';
+import { buildCopyQuery as buildCsvCopyQuery } from './format_csv.js';
+import { buildCopyQuery as buildGeoJsonCopyQuery } from './format_geojson.js';
+import { writeGeoParquet } from './format_geoparquet.js';
 
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Trigger download from an OPFS file via blob URL.
+// File objects from OPFS are disk-backed; createObjectURL just creates a
+// reference — the browser streams from disk on demand. No RAM copy.
+async function triggerDownload(opfsFileName, downloadFileName, wrapGeoJson = false) {
+  const root = await navigator.storage.getDirectory();
+  const handle = await root.getFileHandle(opfsFileName);
+  const file = await handle.getFile();
+
+  // For GeoJSON, wrap newline-delimited features in a FeatureCollection.
+  // Blob([parts...]) is lazy — parts are concatenated on read, not upfront.
+  const blob = wrapGeoJson
+    ? new Blob(
+        ['{"type":"FeatureCollection","features":[\n', file, '\n]}'],
+        { type: 'application/geo+json' }
+      )
+    : file;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = downloadFileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Revoke after a delay so the browser's download manager can finish reading
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
 }
 
 // Memory config: 50% of device RAM, clamped to [512MB, maxMB], step 128MB
@@ -142,39 +173,24 @@ export class PartialDownloadHandler {
   }
 
   /**
-   * Must be called directly from click handler (before any async work)
-   * to satisfy user gesture requirement for showSaveFilePicker.
+   * Generate suggested filename for download.
    */
-  async promptSaveFile(sourceName, bbox, format) {
+  getSuggestedFileName(sourceName, bbox, format) {
     const formatInfo = this.getFormatInfo(format);
-    // Format: <source>.<west>--<south>--<east>--<north>.<ext>
-    // Dots in coordinates replaced with dashes
     const coordStr = [bbox.west, bbox.south, bbox.east, bbox.north]
       .map(c => c.toFixed(4).replace(/\./g, '-'))
       .join('--');
     const baseName = sourceName.replace(/\s+/g, '_');
-    const suggestedName = `${baseName}.${coordStr}${formatInfo.ext}`;
-
-    return await window.showSaveFilePicker({
-      suggestedName,
-      types: [{
-        description: formatInfo.description,
-        accept: formatInfo.accept
-      }]
-    });
+    return `${baseName}.${coordStr}${formatInfo.ext}`;
   }
 
   /**
    * 1. COPY TO opfs:// temp file (large file stays on disk via OPFS)
    * 2. copyFileToBuffer to read it back
-   * 3. Stream buffer to user-chosen file handle
+   * 3. Stream to download via service worker
    */
   async download(options) {
-    const { sourceName, parquetUrl, baseUrl, partitions, bbox, format, onProgress, onStatus, userFileHandle, memoryLimit } = options;
-
-    if (!userFileHandle) {
-      throw new Error('userFileHandle required - call promptSaveFile() first');
-    }
+    const { sourceName, parquetUrl, baseUrl, partitions, bbox, format, onProgress, onStatus, memoryLimit } = options;
 
     if (!this.initialized) {
       onStatus?.('Initializing DuckDB...');
@@ -222,143 +238,19 @@ export class PartialDownloadHandler {
       const urlList = urls.map(u => `'${u}'`).join(', ');
       const bboxWkt = `POLYGON((${bbox.west} ${bbox.south}, ${bbox.east} ${bbox.south}, ${bbox.east} ${bbox.north}, ${bbox.west} ${bbox.north}, ${bbox.west} ${bbox.south}))`;
 
-      // COPY TO the registered OPFS file
-      // For JSON formats, first discover non-geometry columns, then build feature query
-      let jsonFeatureQuery;
-      if (format === 'geojsonseq' || format === 'geojson') {
-        const schemaResult = await this.conn.query(
-          `SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet([${urlList}], union_by_name=true)) WHERE column_name != 'geometry'`
-        );
-        const propCols = [];
-        for (let i = 0; i < schemaResult.numRows; i++) {
-          propCols.push(schemaResult.getChildAt(0).get(i));
+      // Build and execute format-specific COPY query
+      if (format === 'geoparquet') {
+        await writeGeoParquet(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
+          onStatus,
+          cancelled: () => this.cancelled,
+        });
+      } else {
+        let copyQuery;
+        if (format === 'csv') {
+          copyQuery = buildCsvCopyQuery(urlList, bboxWkt, opfsPath);
+        } else {
+          copyQuery = await buildGeoJsonCopyQuery(this.conn, urlList, bboxWkt, opfsPath);
         }
-        // Build struct literal: {'col1': col1, 'col2': col2, ...}
-        const structEntries = propCols.map(c => `'${c}', "${c}"`).join(', ');
-        jsonFeatureQuery = `
-          SELECT json_object(
-            'type', 'Feature',
-            'geometry', ST_AsGeoJSON(geometry)::JSON,
-            'properties', json_object(${structEntries})
-          ) as feature
-          FROM read_parquet([${urlList}], union_by_name=true)
-          WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
-        `;
-      }
-
-      let copyQuery;
-      
-      if (format === 'csv') {
-        copyQuery = `
-          COPY (
-            SELECT * EXCLUDE (geometry), ST_AsText(geometry) as geometry_wkt
-            FROM read_parquet([${urlList}], union_by_name=true)
-            WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
-          ) TO '${opfsPath}' (FORMAT CSV, HEADER true)
-        `;
-      } else if (format === 'geoparquet') {
-        onStatus?.('Writing GeoParquet...');
-        // Step 1: Write initial parquet without geo metadata (bbox struct included for covering)
-        const tempOpfsPath = `opfs://temp_${TAB_ID}_${Date.now()}.parquet`;
-        await this.db.registerOPFSFileName(tempOpfsPath);
-        await sleep(5);
-
-        copyQuery = `
-          COPY (
-            SELECT * REPLACE (ST_AsWKB(geometry)::BLOB AS geometry),
-              struct_pack(
-                xmin := ST_XMin(geometry),
-                ymin := ST_YMin(geometry),
-                xmax := ST_XMax(geometry),
-                ymax := ST_YMax(geometry)
-              ) AS bbox
-            FROM read_parquet([${urlList}], union_by_name=true)
-            WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
-          ) TO '${tempOpfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE')
-        `;
-        await this.conn.query(copyQuery);
-
-        if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
-
-        // Step 2: Compute actual bbox and geometry_types from local OPFS file
-        onStatus?.('Computing metadata...');
-        const statsResult = await this.conn.query(`
-          SELECT MIN(bbox.xmin) as xmin, MIN(bbox.ymin) as ymin,
-                 MAX(bbox.xmax) as xmax, MAX(bbox.ymax) as ymax
-          FROM '${tempOpfsPath}'
-        `);
-        const geoBbox = [
-          statsResult.getChildAt(0).get(0),
-          statsResult.getChildAt(1).get(0),
-          statsResult.getChildAt(2).get(0),
-          statsResult.getChildAt(3).get(0)
-        ];
-
-        // DuckDB returns uppercase (POINT, MULTIPOLYGON); GeoParquet spec requires title case (Point, MultiPolygon)
-        const typesResult = await this.conn.query(`
-          SELECT DISTINCT ST_GeometryType(ST_GeomFromWKB(geometry)) as geom_type
-          FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL
-        `);
-        const duckdbToSpec = {
-          'POINT': 'Point', 'LINESTRING': 'LineString', 'POLYGON': 'Polygon',
-          'MULTIPOINT': 'MultiPoint', 'MULTILINESTRING': 'MultiLineString', 'MULTIPOLYGON': 'MultiPolygon',
-          'GEOMETRYCOLLECTION': 'GeometryCollection',
-        };
-        const geomTypes = [];
-        for (let i = 0; i < typesResult.numRows; i++) {
-          const raw = typesResult.getChildAt(0).get(i);
-          geomTypes.push(duckdbToSpec[raw] || raw);
-        }
-
-        // Step 3: Re-COPY from local OPFS file with correct geo metadata
-        const geoMeta = {
-          version: '1.1.0',
-          primary_column: 'geometry',
-          columns: {
-            geometry: {
-              encoding: 'WKB',
-              geometry_types: geomTypes,
-              bbox: geoBbox,
-              covering: {
-                bbox: {
-                  xmin: ['bbox', 'xmin'],
-                  ymin: ['bbox', 'ymin'],
-                  xmax: ['bbox', 'xmax'],
-                  ymax: ['bbox', 'ymax']
-                }
-              }
-            }
-          }
-        };
-        const geoMetaEscaped = JSON.stringify(geoMeta).replace(/'/g, "''");
-
-        onStatus?.('Sorting by Hilbert curve & finalizing...');
-        const [bxmin, bymin, bxmax, bymax] = geoBbox;
-        await this.conn.query(`
-          COPY (
-            SELECT * FROM '${tempOpfsPath}'
-            ORDER BY ST_Hilbert(ST_GeomFromWKB(geometry),
-              ST_Extent(ST_MakeEnvelope(${bxmin}, ${bymin}, ${bxmax}, ${bymax})))
-          ) TO '${opfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE', KV_METADATA {geo: '${geoMetaEscaped}'})
-        `);
-
-        // Cleanup temp file
-        try {
-          await this.db.dropFile(tempOpfsPath);
-          const tempFileName = tempOpfsPath.replace('opfs://', '');
-          const root = await navigator.storage.getDirectory();
-          await root.removeEntry(tempFileName);
-        } catch (e) { /* ignore */ }
-
-        // Skip the main copyQuery execution below since we already handled it
-        copyQuery = null;
-      } else if (format === 'geojsonseq' || format === 'geojson') {
-        copyQuery = `
-          COPY (${jsonFeatureQuery}) TO '${opfsPath}' (FORMAT CSV, HEADER false, QUOTE '', DELIMITER E'\\x01')
-        `;
-      }
-
-      if (copyQuery) {
         await this.conn.query(copyQuery);
       }
 
@@ -371,67 +263,19 @@ export class PartialDownloadHandler {
       await this.db.dropFile(opfsPath);
       this.currentOpfsPath = null;
 
-      // Get the OPFS file handle - filename is the path without opfs:// prefix
       const opfsFileName = opfsPath.replace('opfs://', '');
-      const opfsRoot = await navigator.storage.getDirectory();
-      const opfsFileHandle = await opfsRoot.getFileHandle(opfsFileName);
-      const opfsFile = await opfsFileHandle.getFile();
+      const downloadFileName = this.getSuggestedFileName(sourceName, bbox, format);
 
-      const writableStream = await userFileHandle.createWritable();
-      const totalSize = opfsFile.size;
-
-      if (format === 'geojson') {
-        // Wrap newline-delimited features into a GeoJSON FeatureCollection
-        const encoder = new TextEncoder();
-        await writableStream.write(encoder.encode('{"type":"FeatureCollection","features":['));
-        
-        const reader = opfsFile.stream().getReader();
-        const decoder = new TextDecoder();
-        let leftover = '';
-        let firstFeature = true;
-        let bytesRead = 0;
-
-        while (true) {
-          if (this.cancelled) { await writableStream.abort(); throw new DOMException('Download cancelled', 'AbortError'); }
-          const { done, value } = await reader.read();
-          if (done) break;
-          bytesRead += value.length;
-
-          const chunk = leftover + decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          leftover = lines.pop(); // last partial line
-
-          for (const line of lines) {
-            if (line.length === 0) continue;
-            await writableStream.write(encoder.encode((firstFeature ? '' : ',') + line));
-            firstFeature = false;
-          }
-          onProgress?.(70 + Math.floor((bytesRead / totalSize) * 25));
-        }
-        // Handle any remaining leftover
-        if (leftover.length > 0) {
-          await writableStream.write(encoder.encode((firstFeature ? '' : ',') + leftover));
-        }
-        await writableStream.write(encoder.encode(']}'));
-      } else {
-        // CSV, GeoJSONSeq, GeoParquet: stream directly
-        const reader = opfsFile.stream().getReader();
-        let bytesRead = 0;
-
-        while (true) {
-          if (this.cancelled) { await writableStream.abort(); throw new DOMException('Download cancelled', 'AbortError'); }
-          const { done, value } = await reader.read();
-          if (done) break;
-          await writableStream.write(value);
-          bytesRead += value.length;
-          onProgress?.(70 + Math.floor((bytesRead / totalSize) * 25));
-        }
-      }
-
-      await writableStream.close();
-
-      // Cleanup OPFS file
-      try { await opfsRoot.removeEntry(opfsFileName); } catch (e) { /* ignore */ }
+      // Download via blob URL from OPFS file (disk-backed, no RAM copy).
+      onStatus?.('Saving file...');
+      await triggerDownload(opfsFileName, downloadFileName, format === 'geojson');
+      // OPFS cleanup deferred — browser may still be streaming from the file
+      setTimeout(async () => {
+        try {
+          const root = await navigator.storage.getDirectory();
+          await root.removeEntry(opfsFileName);
+        } catch (e) { /* ignore */ }
+      }, 120000);
 
       onProgress?.(100);
       onStatus?.('Download complete!');
