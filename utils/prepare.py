@@ -545,7 +545,7 @@ def main():
                 split_dir.mkdir(exist_ok=True)
                 run_cmd(
                     [
-                        "uvx", "--from", "geoparquet-io", "gpio", "partition", "kdtree",
+                        "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "partition", "kdtree",
                         str(parquet_file), str(split_dir),
                         "--partitions", str(partition_count), "-v",
                     ],
