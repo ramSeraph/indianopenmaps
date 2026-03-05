@@ -1079,49 +1079,49 @@
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railways Tracks",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Tracks.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/IR_Tracks.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/railways/track-pois/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railways Track POIs",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Track_POIs.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/IR_Track_POIs.pmtiles",
     "promoteid": "longitude"
   },
   "/not-so-open/railways/tracks/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Railway Tracks",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Tracks.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/SOI_Railway_Tracks.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/railways/track-sidings/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Railway Track Sidings",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Sidings.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/SOI_Railway_Sidings.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/railways/stations/ir/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "Indian Railway Stations",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/IR_Stations.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/IR_Stations.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/railways/stations/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Stations",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Railway_Stations.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/SOI_Railway_Stations.pmtiles",
     "promoteid": "objectid_12"
   },
   "/not-so-open/railways/metros/soi/": {
     "handlertype": "pmtiles",
     "category": "railways",
     "name": "SOI Metros",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/SOI_Metros.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/SOI_Metros.pmtiles",
     "promoteid": "objectid"
   },
   "/not-so-open/forests/circles/fsi/": {
@@ -4388,7 +4388,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti Railway lands",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_Lands.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/GatiShakti_Railway_Lands.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/health/palna/creches/gatishakti/": {
@@ -4408,7 +4408,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti Railway Stations",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_stations.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/GatiShakti_Railway_stations.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/railways/tracks/gatishakti/": {
@@ -4418,7 +4418,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti Railway Tracks",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_tracks.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/GatiShakti_Railway_tracks.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/railways/dfc/gatishakti/": {
@@ -4428,7 +4428,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti Dedicated Freight Corrridors",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Dedicated_Freight_Corridors.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/GatiShakti_Dedicated_Freight_Corridors.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/railways/goods-sheds/gatishakti/": {
@@ -4438,7 +4438,7 @@
       "gatishakti"
     ],
     "name": "GatiShakti Railway Goods Sheds",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/GatiShakti_Railway_Goods_Sheds.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/GatiShakti_Railway_Goods_Sheds.pmtiles"
   },
   "/not-so-open/health/child-care-institutes/gatishakti/": {
     "handlertype": "pmtiles",
@@ -4855,7 +4855,7 @@
       "bridges"
     ],
     "name": "Bhuvan Railway bridges",
-    "url": "https://github.com/ramSeraph/indian_railways/releases/download/railways/Bhuvan_Railway_bridges.pmtiles",
+    "url": "https://github.com/ramSeraph/indian_transport/releases/download/railways/Bhuvan_Railway_bridges.pmtiles",
     "promoteid": "id"
   },
   "/not-so-open/contour/urban/telangana/cdma/bhuvan/": {
