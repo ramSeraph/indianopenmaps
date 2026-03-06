@@ -239,7 +239,7 @@ export class PartialDownloadHandler {
         if (format === 'csv') {
           copyQuery = buildCsvCopyQuery(urlList, bboxWkt, opfsPath);
         } else {
-          copyQuery = await buildGeoJsonCopyQuery(this.conn, urlList, bboxWkt, opfsPath);
+          copyQuery = await buildGeoJsonCopyQuery(this.conn, urlList, bboxWkt, opfsPath, { commaSeparated: format === 'geojson' });
         }
         await this.conn.query(copyQuery);
       }
