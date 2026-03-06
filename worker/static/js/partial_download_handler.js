@@ -9,6 +9,11 @@ import { buildCopyQuery as buildGeoJsonCopyQuery } from './format_geojson.js';
 import { writeGeoParquet } from './format_geoparquet.js';
 import { writeGeoPackage } from './format_geopackage.js';
 
+// Delay before revoking blob URLs / cleaning up OPFS files, so the browser can finish streaming.
+// There's no browser event for "blob URL download finished." The File System Access API
+// (showSaveFilePicker) would give explicit completion, but is Chrome/Edge only.
+const DOWNLOAD_CLEANUP_DELAY_MS = 120000;
+
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -19,19 +24,8 @@ function sleep(ms) {
 // Trigger download from an OPFS file via blob URL.
 // File objects from OPFS are disk-backed; createObjectURL just creates a
 // reference — the browser streams from disk on demand. No RAM copy.
-async function triggerDownload(opfsFileName, downloadFileName, wrapGeoJson = false) {
-  const root = await navigator.storage.getDirectory();
-  const handle = await root.getFileHandle(opfsFileName);
-  const file = await handle.getFile();
-
-  // For GeoJSON, wrap newline-delimited features in a FeatureCollection.
-  // Blob([parts...]) is lazy — parts are concatenated on read, not upfront.
-  const blob = wrapGeoJson
-    ? new Blob(
-        ['{"type":"FeatureCollection","features":[\n', file, '\n]}'],
-        { type: 'application/geo+json' }
-      )
-    : file;
+async function triggerDownload(blobParts, downloadFileName) {
+  const blob = new Blob(blobParts);
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -41,7 +35,7 @@ async function triggerDownload(opfsFileName, downloadFileName, wrapGeoJson = fal
   a.click();
   document.body.removeChild(a);
   // Revoke after a delay so the browser's download manager can finish reading
-  setTimeout(() => URL.revokeObjectURL(url), 120000);
+  setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_CLEANUP_DELAY_MS);
 }
 
 // Memory config: 50% of device RAM, clamped to [512MB, maxMB], step 128MB
@@ -114,10 +108,6 @@ export class PartialDownloadHandler {
     }
   }
 
-  isDownloading() {
-    return this.currentDownload !== null;
-  }
-
   cancel() {
     this.cancelled = true;
     this.currentDownload = null;
@@ -145,41 +135,16 @@ export class PartialDownloadHandler {
   getFormatInfo(format) {
     switch (format) {
       case 'geojson':
-        return {
-          ext: '.geojson',
-          description: 'GeoJSON',
-          accept: { 'application/geo+json': ['.geojson', '.json'] }
-        };
+        return { ext: '.geojson' };
       case 'geojsonseq':
-        return {
-          ext: '.geojsonl',
-          description: 'GeoJSON Sequence',
-          accept: { 'application/geo+json-seq': ['.geojsonl', '.geojson'] }
-        };
+        return { ext: '.geojsonl' };
       case 'csv':
-        return {
-          ext: '.csv',
-          description: 'CSV with WKT geometry',
-          accept: { 'text/csv': ['.csv'] }
-        };
+        return { ext: '.csv' };
       case 'geoparquet':
-        return {
-          ext: '.parquet',
-          description: 'GeoParquet',
-          accept: { 'application/x-parquet': ['.parquet'] }
-        };
       case 'geoparquet2':
-        return {
-          ext: '.parquet',
-          description: 'GeoParquet 2.0',
-          accept: { 'application/x-parquet': ['.parquet'] }
-        };
+        return { ext: '.parquet' };
       case 'geopackage':
-        return {
-          ext: '.gpkg',
-          description: 'GeoPackage',
-          accept: { 'application/geopackage+sqlite3': ['.gpkg'] }
-        };
+        return { ext: '.gpkg' };
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
@@ -296,16 +261,25 @@ export class PartialDownloadHandler {
         : opfsPath.replace('opfs://', '');
       const downloadFileName = this.getSuggestedFileName(sourceName, bbox, format);
 
+      // Build blob parts — for GeoJSON, wrap features in a FeatureCollection.
+      // Blob([parts...]) is lazy: parts are concatenated on read, not upfront.
+      const root = await navigator.storage.getDirectory();
+      const handle = await root.getFileHandle(opfsFileName);
+      const file = await handle.getFile();
+      const blobParts = format === 'geojson'
+        ? ['{"type":"FeatureCollection","features":[\n', file, '\n]}']
+        : [file];
+
       // Download via blob URL from OPFS file (disk-backed, no RAM copy).
       onStatus?.('Saving file...');
-      await triggerDownload(opfsFileName, downloadFileName, format === 'geojson');
+      await triggerDownload(blobParts, downloadFileName);
       // OPFS cleanup deferred — browser may still be streaming from the file
       setTimeout(async () => {
         try {
           const root = await navigator.storage.getDirectory();
           await root.removeEntry(opfsFileName);
         } catch (e) { /* ignore */ }
-      }, 120000);
+      }, DOWNLOAD_CLEANUP_DELAY_MS);
 
       onProgress?.(100);
       onStatus?.('Download complete!');
@@ -340,19 +314,5 @@ export class PartialDownloadHandler {
     } finally {
       this.currentOpfsPath = null;
     }
-  }
-
-  async dispose() {
-    this.cancel();
-    await this.cleanup();
-    if (this.conn) {
-      await this.conn.close();
-      this.conn = null;
-    }
-    if (this.db) {
-      await this.db.terminate();
-      this.db = null;
-    }
-    this.initialized = false;
   }
 }
