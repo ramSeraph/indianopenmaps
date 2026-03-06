@@ -267,7 +267,7 @@ export class PartialDownloadHandler {
       const handle = await root.getFileHandle(opfsFileName);
       const file = await handle.getFile();
       const blobParts = format === 'geojson'
-        ? ['{"type":"FeatureCollection","features":[\n', file, '\n]}']
+        ? ['{"type":"FeatureCollection","features":[\n', file, ']}']
         : [file];
 
       // Download via blob URL from OPFS file (disk-backed, no RAM copy).
