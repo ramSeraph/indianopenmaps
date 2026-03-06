@@ -19,7 +19,6 @@ async function init(dbPath) {
   sqlite3.vfs_register(vfs, true);
 
   db = await sqlite3.open_v2(dbPath);
-  return true;
 }
 
 async function exec(sql) {
@@ -164,8 +163,6 @@ const INTERNAL_COLS = new Set(['geom_wkb', '_geom_type', '_bbox_minx', '_bbox_mi
 async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
   const progress = (status) => self.postMessage({ id: msgId, progress: true, status });
 
-  // Read intermediate parquet
-  progress('Reading intermediate parquet...');
   const root = await navigator.storage.getDirectory();
   const fileHandle = await root.getFileHandle(parquetFileName);
   const file = await fileHandle.getFile();
@@ -174,69 +171,65 @@ async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
   // Derive attribute columns from parquet schema
   const metadata = await parquetMetadataAsync(asyncBuffer);
   const schema = parquetSchema(metadata);
-  const schemaNames = schema.children.map(c => c.element.name);
 
-  // Build column index lookup for internal columns
-  const geomWkbIdx = schemaNames.indexOf('geom_wkb');
-  const geomTypeIdx = schemaNames.indexOf('_geom_type');
-  const bboxMinxIdx = schemaNames.indexOf('_bbox_minx');
-  const bboxMinyIdx = schemaNames.indexOf('_bbox_miny');
-  const bboxMaxxIdx = schemaNames.indexOf('_bbox_maxx');
-  const bboxMaxyIdx = schemaNames.indexOf('_bbox_maxy');
-
-  // Attribute columns (non-internal) with their indices
+  // Attribute columns (non-internal)
   const columns = [];
-  const attrIndices = [];
-  for (let i = 0; i < schemaNames.length; i++) {
-    if (!INTERNAL_COLS.has(schemaNames[i])) {
-      columns.push({ name: schemaNames[i], sqliteType: parquetTypeToSqlite(schema.children[i].element) });
-      attrIndices.push(i);
+  for (const child of schema.children) {
+    if (!INTERNAL_COLS.has(child.element.name)) {
+      columns.push({ name: child.element.name, sqliteType: parquetTypeToSqlite(child.element) });
     }
   }
 
-  // parquetRead returns row-oriented data: an array of rows, each row an array of column values
-  let rows;
-  await parquetRead({
-    file: asyncBuffer,
-    compressors,
-    onComplete: (data) => { rows = data; },
-  });
-
-  const numRows = rows.length;
-
-  // Collect metadata from rows
+  // Pass 1: collect metadata (geometry types, bbox), one row-group at a time.
+  // onComplete returns row-oriented data: array of rows, each row an array of values.
+  // With columns filter, row indices match filter order (0..N-1), not full schema.
+  progress('Scanning metadata...');
   const geomTypes = new Set();
   let xmin = Infinity, ymin = Infinity, xmax = -Infinity, ymax = -Infinity;
-  for (let i = 0; i < numRows; i++) {
-    const row = rows[i];
-    const gt = row[geomTypeIdx];
-    if (gt) geomTypes.add(gt);
-    const mx = row[bboxMinxIdx], my = row[bboxMinyIdx];
-    const Mx = row[bboxMaxxIdx], My = row[bboxMaxyIdx];
-    if (mx != null && mx < xmin) xmin = mx;
-    if (my != null && my < ymin) ymin = my;
-    if (Mx != null && Mx > xmax) xmax = Mx;
-    if (My != null && My > ymax) ymax = My;
+
+  let rowOffset = 0;
+  for (const rg of metadata.row_groups) {
+    const rgEnd = rowOffset + Number(rg.num_rows);
+    let rows;
+    await parquetRead({
+      file: asyncBuffer,
+      compressors,
+      columns: ['_geom_type', '_bbox_minx', '_bbox_miny', '_bbox_maxx', '_bbox_maxy'],
+      rowStart: rowOffset,
+      rowEnd: rgEnd,
+      onComplete: (data) => { rows = data; },
+    });
+    for (const row of rows) {
+      if (row[0]) geomTypes.add(row[0]);         // _geom_type
+      if (row[1] != null && row[1] < xmin) xmin = row[1]; // _bbox_minx
+      if (row[2] != null && row[2] < ymin) ymin = row[2]; // _bbox_miny
+      if (row[3] != null && row[3] > xmax) xmax = row[3]; // _bbox_maxx
+      if (row[4] != null && row[4] > ymax) ymax = row[4]; // _bbox_maxy
+    }
+    rowOffset = rgEnd;
   }
-  const bbox = { xmin, ymin, xmax, ymax };
+
+  const bbox = {
+    xmin: xmin === Infinity ? 0 : xmin,
+    ymin: ymin === Infinity ? 0 : ymin,
+    xmax: xmax === -Infinity ? 0 : xmax,
+    ymax: ymax === -Infinity ? 0 : ymax,
+  };
   const geomTypeName = resolveGeomTypeName(geomTypes);
-  // Set of geometry type names that need WKB promotion to multi
   const promoteTypes = new Set(
     [...geomTypes].filter(t => MULTI_MAP[t] && MULTI_MAP[t] === geomTypeName)
   );
 
-  // Initialize wa-sqlite
+  // Initialize wa-sqlite and create GPKG schema
   progress('Initializing GeoPackage writer...');
   await init(gpkgFileName);
 
   try {
-    // PRAGMAs
     await exec('PRAGMA application_id = 0x47503130'); // "GP10"
     await exec('PRAGMA user_version = 10400');         // v1.4.0
     await exec('PRAGMA journal_mode = MEMORY');
     await exec('PRAGMA synchronous = OFF');
 
-    // Create GeoPackage metadata tables
     progress('Creating GeoPackage schema...');
     await exec(`
       CREATE TABLE gpkg_spatial_ref_sys (
@@ -286,7 +279,6 @@ async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
       )
     `);
 
-    // Create features table (with temp bbox columns for rtree)
     const colDefs = columns.map(c => `"${c.name}" ${c.sqliteType}`).join(', ');
     await exec(`
       CREATE TABLE features (
@@ -297,51 +289,58 @@ async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
       )
     `);
 
-    // Insert rows
+    // Pass 2: read one row-group at a time using rowStart/rowEnd, insert into SQLite.
+    // This keeps only one row-group of data in memory at any point.
     progress('Writing features...');
     const bboxCols = '_bbox_minx, _bbox_miny, _bbox_maxx, _bbox_maxy';
     const placeholders = ['?', '?', '?', '?', '?', ...columns.map(() => '?')].join(', ');
     const attrCols = columns.length > 0 ? ', ' + columns.map(c => `"${c.name}"`).join(', ') : '';
     const insertSql = `INSERT INTO features (geom, ${bboxCols}${attrCols}) VALUES (${placeholders})`;
 
-    let rowCount = 0;
-    const BATCH_SIZE = 500;
-    let paramSets = [];
+    // Pre-compute full-schema column indices for pass 2 (no columns filter)
+    const colIndex = {};
+    schema.children.forEach((child, i) => { colIndex[child.element.name] = i; });
+    const iWkb = colIndex['geom_wkb'];
+    const iGT = colIndex['_geom_type'];
+    const iMinX = colIndex['_bbox_minx'], iMinY = colIndex['_bbox_miny'];
+    const iMaxX = colIndex['_bbox_maxx'], iMaxY = colIndex['_bbox_maxy'];
+    const attrIndices = columns.map(c => colIndex[c.name]);
 
+    let rowCount = 0;
     await exec('BEGIN TRANSACTION');
 
-    for (let i = 0; i < numRows; i++) {
-      const srcRow = rows[i];
-      const needsPromote = promoteTypes.has(srcRow[geomTypeIdx]);
-      const params = [
-        buildGpkgGeom(srcRow[geomWkbIdx], needsPromote),
-        srcRow[bboxMinxIdx],
-        srcRow[bboxMinyIdx],
-        srcRow[bboxMaxxIdx],
-        srcRow[bboxMaxyIdx],
-      ];
-      for (const idx of attrIndices) {
-        params.push(srcRow[idx]);
-      }
-      paramSets.push(params);
+    rowOffset = 0;
+    for (const rg of metadata.row_groups) {
+      const rgEnd = rowOffset + Number(rg.num_rows);
+      let rows;
+      await parquetRead({
+        file: asyncBuffer,
+        compressors,
+        rowStart: rowOffset,
+        rowEnd: rgEnd,
+        onComplete: (data) => { rows = data; },
+      });
 
-      if (paramSets.length >= BATCH_SIZE) {
-        await insertBatch(insertSql, paramSets);
-        rowCount += paramSets.length;
-        paramSets = [];
-        progress(`Writing features... (${rowCount} rows)`);
+      const paramSets = [];
+      for (const row of rows) {
+        const needsPromote = promoteTypes.has(row[iGT]);
+        const params = [
+          buildGpkgGeom(row[iWkb], needsPromote),
+          row[iMinX], row[iMinY], row[iMaxX], row[iMaxY],
+        ];
+        for (const idx of attrIndices) {
+          params.push(row[idx]);
+        }
+        paramSets.push(params);
       }
-    }
-
-    if (paramSets.length > 0) {
       await insertBatch(insertSql, paramSets);
       rowCount += paramSets.length;
+      progress(`Writing features... (${rowCount} rows)`);
+
+      rowOffset = rgEnd;
     }
 
     await exec('COMMIT');
-
-    // Free row data now that all rows are inserted
-    rows = null;
 
     // Build R-tree spatial index
     progress('Building spatial index...');
