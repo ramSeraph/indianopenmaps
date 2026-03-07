@@ -1,11 +1,17 @@
 // CSV format handler for partial downloads
 
-export function buildCopyQuery(urlList, bboxWkt, opfsPath) {
-  return `
-    COPY (
-      SELECT * EXCLUDE (geometry), ST_AsText(geometry) as geometry_wkt
-      FROM read_parquet([${urlList}], union_by_name=true)
-      WHERE ST_Intersects(geometry, ST_GeomFromText('${bboxWkt}'))
-    ) TO '${opfsPath}' (FORMAT CSV, HEADER true)
-  `;
+import { FormatHandler } from './format_base.js';
+
+export class CsvFormatHandler extends FormatHandler {
+  get extension() { return '.csv'; }
+
+  async write() {
+    await this.conn.query(`
+      COPY (
+        SELECT * EXCLUDE (geometry), ST_AsText(geometry) as geometry_wkt
+        FROM ${this.parquetSource}
+        WHERE ${this.bboxFilter}
+      ) TO '${this._opfsPath}' (FORMAT CSV, HEADER true)
+    `);
+  }
 }

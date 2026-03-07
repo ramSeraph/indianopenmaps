@@ -4,10 +4,22 @@
 const DUCKDB_BASE = 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir';
 // JS API from custom build with OPFS temp directory spillover support
 import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir/duckdb-browser.mjs';
-import { buildCopyQuery as buildCsvCopyQuery } from './format_csv.js';
-import { buildCopyQuery as buildGeoJsonCopyQuery } from './format_geojson.js';
-import { writeGeoParquet } from './format_geoparquet.js';
-import { writeGeoPackage } from './format_geopackage.js';
+import { CsvFormatHandler } from './format_csv.js';
+import { GeoJsonFormatHandler } from './format_geojson.js';
+import { GeoParquetFormatHandler } from './format_geoparquet.js';
+import { GeoPackageFormatHandler } from './format_geopackage.js';
+
+function getFormatHandler(format, opts) {
+  switch (format) {
+    case 'csv': return new CsvFormatHandler(opts);
+    case 'geojson': return new GeoJsonFormatHandler({ commaSeparated: true, ...opts });
+    case 'geojsonseq': return new GeoJsonFormatHandler({ commaSeparated: false, ...opts });
+    case 'geoparquet': return new GeoParquetFormatHandler({ version: '1.1', ...opts });
+    case 'geoparquet2': return new GeoParquetFormatHandler({ version: '2.0', ...opts });
+    case 'geopackage': return new GeoPackageFormatHandler(opts);
+    default: throw new Error(`Unsupported format: ${format}`);
+  }
+}
 
 // Delay before revoking blob URLs / cleaning up OPFS files, so the browser can finish streaming.
 // There's no browser event for "blob URL download finished." The File System Access API
@@ -16,10 +28,6 @@ const DOWNLOAD_CLEANUP_DELAY_MS = 120000;
 
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 // Trigger download from an OPFS file via blob URL.
 // File objects from OPFS are disk-backed; createObjectURL just creates a
@@ -62,7 +70,6 @@ export class PartialDownloadHandler {
     this.initialized = false;
     this.cancelled = false;
     this.currentDownload = null;
-    this.currentOpfsPath = null;
   }
 
   async init() {
@@ -132,34 +139,15 @@ export class PartialDownloadHandler {
     return `${origin}/proxy?url=${encodeURIComponent(url)}`;
   }
 
-  getFormatInfo(format) {
-    switch (format) {
-      case 'geojson':
-        return { ext: '.geojson' };
-      case 'geojsonseq':
-        return { ext: '.geojsonl' };
-      case 'csv':
-        return { ext: '.csv' };
-      case 'geoparquet':
-      case 'geoparquet2':
-        return { ext: '.parquet' };
-      case 'geopackage':
-        return { ext: '.gpkg' };
-      default:
-        throw new Error(`Unsupported format: ${format}`);
-    }
-  }
-
   /**
    * Generate suggested filename for download.
    */
-  getSuggestedFileName(sourceName, bbox, format) {
-    const formatInfo = this.getFormatInfo(format);
+  getSuggestedFileName(sourceName, bbox, extension) {
     const coordStr = [bbox.west, bbox.south, bbox.east, bbox.north]
       .map(c => c.toFixed(4).replace(/\./g, '-'))
       .join('--');
     const baseName = sourceName.replace(/\s+/g, '_');
-    return `${baseName}.${coordStr}${formatInfo.ext}`;
+    return `${baseName}.${coordStr}${extension}`;
   }
 
   /**
@@ -179,25 +167,15 @@ export class PartialDownloadHandler {
     if (memoryLimit) {
       await this.conn.query(`SET memory_limit = '${memoryLimit}'`);
     }
+    await this.conn.query('SET arrow_large_buffer_size=true');
 
     this.cancelled = false;
     this.currentDownload = { sourceName, bbox };
-    const formatInfo = this.getFormatInfo(format);
-
-    // OPFS temp file path
-    const opfsPath = `opfs://partial_${TAB_ID}_${Date.now()}${formatInfo.ext}`;
-    this.currentOpfsPath = opfsPath;
+    let handler = null;
 
     try {
       onProgress?.(5);
       onStatus?.('Preparing...');
-
-      // Register the OPFS file name with DuckDB and wait for it to be ready
-      // (geopackage uses wa-sqlite with its own OPFS VFS, no DuckDB registration needed)
-      if (format !== 'geopackage') {
-        await this.db.registerOPFSFileName(opfsPath);
-        await sleep(5);
-      }
 
       // Build list of URLs to query
       let urls = [];
@@ -211,64 +189,33 @@ export class PartialDownloadHandler {
         throw new Error('No parquet files to query');
       }
 
+      handler = getFormatHandler(format, { tabId: TAB_ID, conn: this.conn, db: this.db, urls, bbox });
+      await handler.prepareOpfs();
+
       if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
 
       onProgress?.(10);
       onStatus?.(`Filtering ${urls.length} file(s) and writing to OPFS...`);
 
-      const urlList = urls.map(u => `'${u}'`).join(', ');
-      const bboxWkt = `POLYGON((${bbox.west} ${bbox.south}, ${bbox.east} ${bbox.south}, ${bbox.east} ${bbox.north}, ${bbox.west} ${bbox.north}, ${bbox.west} ${bbox.south}))`;
-
-      // Build and execute format-specific COPY query
-      if (format === 'geoparquet' || format === 'geoparquet2') {
-        const version = format === 'geoparquet2' ? '2.0' : '1.1';
-        await writeGeoParquet(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
-          onStatus,
-          cancelled: () => this.cancelled,
-          version,
-        });
-      } else if (format === 'geopackage') {
-        const gpkgFileName = await writeGeoPackage(this.conn, this.db, urlList, bboxWkt, opfsPath, TAB_ID, {
-          onStatus,
-          cancelled: () => this.cancelled,
-        });
-        // writeGeoPackage returns the OPFS filename where wa-sqlite wrote the file
-        this._gpkgFileName = gpkgFileName;
-      } else {
-        let copyQuery;
-        if (format === 'csv') {
-          copyQuery = buildCsvCopyQuery(urlList, bboxWkt, opfsPath);
-        } else {
-          copyQuery = await buildGeoJsonCopyQuery(this.conn, urlList, bboxWkt, opfsPath, { commaSeparated: format === 'geojson' });
-        }
-        await this.conn.query(copyQuery);
-      }
+      const result = await handler.write({
+        onStatus,
+        cancelled: () => this.cancelled,
+      });
 
       if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
 
       onProgress?.(70);
       onStatus?.('Streaming to your file...');
 
-      // Drop the DuckDB registration so we can access the OPFS file directly
-      // (geopackage uses wa-sqlite's own OPFS VFS, no DuckDB registration to drop)
-      if (format !== 'geopackage') {
-        await this.db.dropFile(opfsPath);
-      }
-      this.currentOpfsPath = null;
+      await handler.releaseOpfs();
 
-      const opfsFileName = (format === 'geopackage' && this._gpkgFileName)
-        ? this._gpkgFileName
-        : opfsPath.replace('opfs://', '');
-      const downloadFileName = this.getSuggestedFileName(sourceName, bbox, format);
+      const opfsFileName = handler.outputFileName;
+      const downloadFileName = this.getSuggestedFileName(sourceName, bbox, handler.extension);
 
-      // Build blob parts — for GeoJSON, wrap features in a FeatureCollection.
-      // Blob([parts...]) is lazy: parts are concatenated on read, not upfront.
       const root = await navigator.storage.getDirectory();
       const handle = await root.getFileHandle(opfsFileName);
       const file = await handle.getFile();
-      const blobParts = format === 'geojson'
-        ? ['{"type":"FeatureCollection","features":[\n', file, ']}']
-        : [file];
+      const blobParts = handler.wrapBlobParts(file);
 
       // Download via blob URL from OPFS file (disk-backed, no RAM copy).
       onStatus?.('Saving file...');
@@ -295,24 +242,8 @@ export class PartialDownloadHandler {
       }
       throw error;
     } finally {
-      await this.cleanup();
+      await handler?.cleanup();
       this.currentDownload = null;
-    }
-  }
-
-  async cleanup() {
-    try {
-      if (this.currentOpfsPath) {
-        try {
-          await this.db.dropFile(this.currentOpfsPath);
-        } catch (e) {
-          // May already be dropped
-        }
-      }
-    } catch (e) {
-      // Ignore cleanup errors
-    } finally {
-      this.currentOpfsPath = null;
     }
   }
 }
