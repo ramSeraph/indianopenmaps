@@ -143,7 +143,8 @@ export class PartialDownloadHandler {
       }
       
       this.conn = await this.db.connect();
-      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}'`);
+      this.tempDirSeq = 0;
+      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
       await this.conn.query(`INSTALL spatial; LOAD spatial;`);
       
       this.initialized = true;
@@ -159,15 +160,16 @@ export class PartialDownloadHandler {
     this.currentDownload = null;
   }
 
-  async cleanupTempDir() {
+  async rotateTempDir() {
     try {
+      const oldDirName = `tmp_${TAB_ID}_${this.tempDirSeq}`;
+      this.tempDirSeq++;
+      // Setting a new temp_directory destroys the old pool (closes handles, deletes pool files)
+      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
+      // Remove the now-empty old directory
       const root = await navigator.storage.getDirectory();
-      const dirName = `tmp_${TAB_ID}`;
-      const dir = await root.getDirectoryHandle(dirName);
-      for await (const name of dir.keys()) {
-        try { await dir.removeEntry(name); } catch (e) { /* ignore */ }
-      }
-    } catch (e) { /* dir may not exist */ }
+      await root.removeEntry(oldDirName, { recursive: true });
+    } catch (e) { /* dir may not exist or already removed */ }
   }
 
   getPartitionsForBbox(metaJson, bbox) {
@@ -279,7 +281,7 @@ export class PartialDownloadHandler {
       throw error;
     } finally {
       await handler?.cleanup();
-      await this.cleanupTempDir();
+      await this.rotateTempDir();
       this.currentDownload = null;
     }
   }
