@@ -1,6 +1,6 @@
 // Base class for partial download format handlers
 
-export function sleep(ms) {
+function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -27,6 +27,14 @@ export class FormatHandler {
 
   trackTempFile(opfsFileName) {
     this.tempFiles.push(opfsFileName);
+  }
+
+  async createTempOpfsFile(prefix) {
+    const path = `opfs://${prefix}_${this.tabId}_${Date.now()}.parquet`;
+    this.trackTempFile(path.replace('opfs://', ''));
+    await this.db.registerOPFSFileName(path);
+    await sleep(5);
+    return path;
   }
 
   async releaseTempFile(opfsFileName) {
@@ -66,6 +74,31 @@ export class FormatHandler {
     return `ST_Intersects(geometry, ST_GeomFromText('${this.bboxWkt}'))`;
   }
 
+  async triggerDownload(downloadFileName, cleanupDelayMs) {
+    const root = await navigator.storage.getDirectory();
+    const handle = await root.getFileHandle(this._outputFileName);
+    const file = await handle.getFile();
+    const blobParts = this.wrapBlobParts(file);
+
+    const blob = new Blob(blobParts);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = downloadFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    const outputFileName = this._outputFileName;
+    setTimeout(async () => {
+      URL.revokeObjectURL(url);
+      try {
+        const root = await navigator.storage.getDirectory();
+        await root.removeEntry(outputFileName);
+      } catch (e) { /* ignore */ }
+    }, cleanupDelayMs);
+  }
+
   async write(_callbacks) {
     throw new Error('Not implemented');
   }
@@ -79,6 +112,7 @@ export class FormatHandler {
   }
 
   async cleanupTempFiles() {
+    if (this.tempFiles.length === 0) return;
     const root = await navigator.storage.getDirectory();
     for (const fileName of this.tempFiles) {
       try {

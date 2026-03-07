@@ -2,7 +2,7 @@
 // Pipeline: DuckDB filters remote parquet → intermediate parquet on OPFS →
 // gpkg_worker reads parquet + writes GPKG entirely inside the worker
 
-import { FormatHandler, sleep } from './format_base.js';
+import { FormatHandler } from './format_base.js';
 
 export class GeoPackageFormatHandler extends FormatHandler {
   get extension() { return '.gpkg'; }
@@ -11,11 +11,8 @@ export class GeoPackageFormatHandler extends FormatHandler {
   async write({ onStatus, cancelled }) {
     // Step 1: Write intermediate parquet to OPFS (single scan of remote data)
     onStatus?.('Filtering data...');
-    const tempParquetPath = `opfs://temp_gpkg_${this.tabId}_${Date.now()}.parquet`;
+    const tempParquetPath = await this.createTempOpfsFile('temp_gpkg');
     const tempParquetFileName = tempParquetPath.replace('opfs://', '');
-    this.trackTempFile(tempParquetFileName);
-    await this.db.registerOPFSFileName(tempParquetPath);
-    await sleep(5);
 
     await this.conn.query(`
       COPY (

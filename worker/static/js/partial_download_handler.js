@@ -29,22 +29,58 @@ const DOWNLOAD_CLEANUP_DELAY_MS = 120000;
 // Unique tab ID to avoid OPFS conflicts between tabs
 const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-// Trigger download from an OPFS file via blob URL.
-// File objects from OPFS are disk-backed; createObjectURL just creates a
-// reference — the browser streams from disk on demand. No RAM copy.
-async function triggerDownload(blobParts, downloadFileName) {
-  const blob = new Blob(blobParts);
+// Web Lock held for this tab's lifetime — used to detect orphaned OPFS files.
+// The lock name encodes the TAB_ID so other tabs can query which IDs are alive.
+const TAB_LOCK_NAME = `iom_tab_${TAB_ID}`;
+// Hold a Web Lock for this tab's lifetime. The lock is acquired via a
+// never-resolving promise so it auto-releases when the tab closes/crashes.
+// We store the ready promise so orphan cleanup can wait for it.
+const lockReady = new Promise(resolve => {
+  navigator.locks.request(TAB_LOCK_NAME, () => {
+    resolve();
+    return new Promise(() => {});
+  });
+});
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = downloadFileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  // Revoke after a delay so the browser's download manager can finish reading
-  setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_CLEANUP_DELAY_MS);
+// OPFS files/dirs created by this module use these prefixes followed by TAB_ID.
+const OPFS_PREFIXES = ['temp_gpkg_', 'partial_', 'temp_', 'gpkg_', 'tmp_'];
+
+function extractTabId(name) {
+  for (const prefix of OPFS_PREFIXES) {
+    if (name.startsWith(prefix)) return name.slice(prefix.length).split('_').slice(0, 2).join('_');
+  }
+  return null;
 }
+
+async function cleanupOrphanedOpfsEntries() {
+  try {
+    // Wait until our own lock is held so it shows up in locks.query()
+    await lockReady;
+
+    const { held } = await navigator.locks.query();
+    const aliveTabIds = new Set(
+      held.filter(l => l.name.startsWith('iom_tab_')).map(l => l.name.slice('iom_tab_'.length))
+    );
+
+    const root = await navigator.storage.getDirectory();
+    let count = 0;
+    for await (const [name, handle] of root) {
+      const tabId = extractTabId(name);
+      if (tabId && !aliveTabIds.has(tabId)) {
+        try {
+          await root.removeEntry(name, { recursive: handle.kind === 'directory' });
+          count++;
+        } catch (e) { /* may be locked or already removed */ }
+      }
+    }
+
+    if (count > 0) console.log(`[PartialDownload] Cleaned up ${count} orphaned OPFS entries`);
+  } catch (e) {
+    console.warn('[PartialDownload] OPFS orphan cleanup failed:', e);
+  }
+}
+
+cleanupOrphanedOpfsEntries();
 
 // Memory config: 50% of device RAM, clamped to [512MB, maxMB], step 128MB
 const MEMORY_STEP = 128;
@@ -96,12 +132,15 @@ export class PartialDownloadHandler {
       const worker_url = URL.createObjectURL(
         new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
       );
-      const worker = new Worker(worker_url);
-      const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
-      
-      this.db = new duckdb.AsyncDuckDB(logger, worker);
-      await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-      URL.revokeObjectURL(worker_url);
+      try {
+        const worker = new Worker(worker_url);
+        const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
+        
+        this.db = new duckdb.AsyncDuckDB(logger, worker);
+        await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      } finally {
+        URL.revokeObjectURL(worker_url);
+      }
       
       this.conn = await this.db.connect();
       await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}'`);
@@ -118,6 +157,17 @@ export class PartialDownloadHandler {
   cancel() {
     this.cancelled = true;
     this.currentDownload = null;
+  }
+
+  async cleanupTempDir() {
+    try {
+      const root = await navigator.storage.getDirectory();
+      const dirName = `tmp_${TAB_ID}`;
+      const dir = await root.getDirectoryHandle(dirName);
+      for await (const name of dir.keys()) {
+        try { await dir.removeEntry(name); } catch (e) { /* ignore */ }
+      }
+    } catch (e) { /* dir may not exist */ }
   }
 
   getPartitionsForBbox(metaJson, bbox) {
@@ -197,7 +247,7 @@ export class PartialDownloadHandler {
       onProgress?.(10);
       onStatus?.(`Filtering ${urls.length} file(s) and writing to OPFS...`);
 
-      const result = await handler.write({
+      await handler.write({
         onStatus,
         cancelled: () => this.cancelled,
       });
@@ -209,24 +259,10 @@ export class PartialDownloadHandler {
 
       await handler.releaseOpfs();
 
-      const opfsFileName = handler.outputFileName;
       const downloadFileName = this.getSuggestedFileName(sourceName, bbox, handler.extension);
 
-      const root = await navigator.storage.getDirectory();
-      const handle = await root.getFileHandle(opfsFileName);
-      const file = await handle.getFile();
-      const blobParts = handler.wrapBlobParts(file);
-
-      // Download via blob URL from OPFS file (disk-backed, no RAM copy).
       onStatus?.('Saving file...');
-      await triggerDownload(blobParts, downloadFileName);
-      // OPFS cleanup deferred — browser may still be streaming from the file
-      setTimeout(async () => {
-        try {
-          const root = await navigator.storage.getDirectory();
-          await root.removeEntry(opfsFileName);
-        } catch (e) { /* ignore */ }
-      }, DOWNLOAD_CLEANUP_DELAY_MS);
+      await handler.triggerDownload(downloadFileName, DOWNLOAD_CLEANUP_DELAY_MS);
 
       onProgress?.(100);
       onStatus?.('Download complete!');
@@ -243,6 +279,7 @@ export class PartialDownloadHandler {
       throw error;
     } finally {
       await handler?.cleanup();
+      await this.cleanupTempDir();
       this.currentDownload = null;
     }
   }

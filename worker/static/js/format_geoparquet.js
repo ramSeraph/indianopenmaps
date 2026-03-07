@@ -2,7 +2,7 @@
 // 3-step pipeline: write temp → compute metadata → re-copy with Hilbert sort
 // v2.0 support inspired by https://github.com/geoparquet/geoparquet-io
 
-import { FormatHandler, sleep } from './format_base.js';
+import { FormatHandler } from './format_base.js';
 
 // DuckDB returns uppercase; GeoParquet spec requires title case
 const DUCKDB_TO_SPEC = {
@@ -70,10 +70,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
 
     // Step 1: Write initial parquet
     onStatus?.(`Writing GeoParquet (v${cfg.metadataVersion})...`);
-    const tempOpfsPath = `opfs://temp_${this.tabId}_${Date.now()}.parquet`;
-    this.trackTempFile(tempOpfsPath.replace('opfs://', ''));
-    await this.db.registerOPFSFileName(tempOpfsPath);
-    await sleep(5);
+    const tempOpfsPath = await this.createTempOpfsFile('temp');
 
     await this.conn.query(`
       COPY (
