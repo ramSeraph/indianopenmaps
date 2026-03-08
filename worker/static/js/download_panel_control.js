@@ -1,6 +1,8 @@
 // Download panel control for parquet file downloads
 import { SizeGetter } from './size_getter.js';
 import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
+import { parquetMetadata } from './parquet_metadata.js';
+import { ExtentHandler } from './extent_handler.js';
 
 export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
@@ -14,8 +16,6 @@ export class DownloadPanelControl {
     this.routesHandler = routesHandler;
     this.vectorSourceHandler = vectorSourceHandler;
     this.selectedSource = null;
-    this.partitionCache = new Map();
-    this.metaJsonCache = new Map();
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
     this.bboxContainer = null;
@@ -23,6 +23,7 @@ export class DownloadPanelControl {
     
     // Partial download state
     this.partialDownloadHandler = new PartialDownloadHandler();
+    this.extentHandler = new ExtentHandler(routesHandler);
     this.partialDownloadSection = null;
     this.formatSelect = null;
     this.startButton = null;
@@ -30,48 +31,6 @@ export class DownloadPanelControl {
     this.progressContainer = null;
     this.progressBar = null;
     this.statusText = null;
-  }
-
-  getParquetUrl(originalUrl) {
-    // Replace .mosaic.json or .pmtiles with .parquet
-    return originalUrl.replace(/\.(mosaic\.json|pmtiles)$/, '.parquet');
-  }
-
-  getMetaJsonUrl(originalUrl) {
-    // Replace .mosaic.json or .pmtiles with .parquet.meta.json
-    return originalUrl.replace(/\.(mosaic\.json|pmtiles)$/, '.parquet.meta.json');
-  }
-
-  getBaseUrl(originalUrl) {
-    // Get base URL (directory) from original URL
-    const lastSlash = originalUrl.lastIndexOf('/');
-    return originalUrl.substring(0, lastSlash + 1);
-  }
-
-  async fetchPartitions(metaUrl) {
-    if (this.partitionCache.has(metaUrl)) {
-      return this.partitionCache.get(metaUrl);
-    }
-
-    try {
-      const proxyUrl = `/proxy?url=${encodeURIComponent(metaUrl)}`;
-      const response = await fetch(proxyUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch meta.json: ${response.status}`);
-      }
-      
-      const metaJson = await response.json();
-      // Cache the full meta.json for partial download bbox filtering
-      this.metaJsonCache.set(metaUrl, metaJson);
-      // Partitions are the keys in the extents object
-      const partitions = metaJson.extents ? Object.keys(metaJson.extents) : [];
-      this.partitionCache.set(metaUrl, partitions);
-      return partitions;
-    } catch (error) {
-      console.error('Error fetching partition metadata:', error);
-      return null;
-    }
   }
 
   updateSourceDropdown() {
@@ -87,6 +46,7 @@ export class DownloadPanelControl {
       this.sourceDropdownContainer.style.display = 'none';
       this.linksContainer.innerHTML = '';
       this.selectedSource = null;
+      this.extentHandler.reset();
       return;
     }
 
@@ -201,6 +161,8 @@ export class DownloadPanelControl {
 
   async loadDownloadLinks(sourcePath) {
     this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
+    this.extentHandler.setSourcePath(sourcePath);
+    this.extentHandler.reset();
 
     try {
       const routes = this.routesHandler.getVectorSources();
@@ -301,7 +263,7 @@ export class DownloadPanelControl {
   }
 
   loadSingleLink(originalUrl, name) {
-    const parquetUrl = this.getParquetUrl(originalUrl);
+    const parquetUrl = parquetMetadata.getParquetUrl(originalUrl);
     // Extract filename from URL
     const filename = parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1);
     
@@ -336,10 +298,10 @@ export class DownloadPanelControl {
   }
 
   async loadPartitionedLinks(originalUrl, name) {
-    const metaUrl = this.getMetaJsonUrl(originalUrl);
-    const baseUrl = this.getBaseUrl(originalUrl);
+    const metaUrl = parquetMetadata.getMetaJsonUrl(originalUrl);
+    const baseUrl = parquetMetadata.getBaseUrl(originalUrl);
     
-    const partitions = await this.fetchPartitions(metaUrl);
+    const partitions = await parquetMetadata.getPartitions(metaUrl);
     
     if (!partitions || partitions.length === 0) {
       this.linksContainer.innerHTML = '<div class="error-message">No partitions found</div>';
@@ -426,6 +388,9 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.noSourcesMessage);
     this.panelContent.appendChild(this.sourceDropdownContainer);
     this.panelContent.appendChild(this.linksContainer);
+
+    // Data extents checkbox (between full download and partial download)
+    this.panelContent.appendChild(this.extentHandler.createCheckbox());
 
     // Partial download section
     this.partialDownloadSection = this.createPartialDownloadSection();
@@ -643,15 +608,11 @@ export class DownloadPanelControl {
 
       if (isPartitioned) {
         // Get partitions filtered by bbox
-        const metaUrl = this.getMetaJsonUrl(routeInfo.url);
-        baseUrl = this.getBaseUrl(routeInfo.url);
+        const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
+        baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
         
         // Ensure we have the meta.json cached
-        if (!this.metaJsonCache.has(metaUrl)) {
-          await this.fetchPartitions(metaUrl);
-        }
-        
-        const metaJson = this.metaJsonCache.get(metaUrl);
+        const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
         if (metaJson) {
           filteredPartitions = this.partialDownloadHandler.getPartitionsForBbox(metaJson, bbox);
           
@@ -669,7 +630,7 @@ export class DownloadPanelControl {
         }
       } else {
         // Single parquet file
-        parquetUrl = this.getParquetUrl(routeInfo.url);
+        parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
       }
 
       await this.partialDownloadHandler.download({
@@ -756,6 +717,7 @@ export class DownloadPanelControl {
    */
   setMap(map) {
     this.map = map;
+    this.extentHandler.setMap(map);
     
     // Update bbox on map move
     this.map.on('moveend', () => this.updateBboxDisplay());
@@ -768,6 +730,7 @@ export class DownloadPanelControl {
   }
 
   onRemove() {
+    this.extentHandler.destroy();
     this.container?.parentNode?.removeChild(this.container);
     this.map = undefined;
   }

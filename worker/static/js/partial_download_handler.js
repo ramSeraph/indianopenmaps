@@ -1,9 +1,7 @@
-// Partial download handler using DuckDB WASM with OPFS
-// Writes to OPFS via COPY TO, then triggers download via blob URL
+// Partial download handler — uses shared DuckDB client for queries,
+// manages OPFS temp directories and download lifecycle.
 
-const DUCKDB_BASE = 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir';
-// JS API from custom build with OPFS temp directory spillover support
-import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir/duckdb-browser.mjs';
+import { duckdbClient } from './duckdb_client.js';
 import { CsvFormatHandler } from './format_csv.js';
 import { GeoJsonFormatHandler } from './format_geojson.js';
 import { GeoParquetFormatHandler } from './format_geoparquet.js';
@@ -101,8 +99,6 @@ export { MEMORY_STEP, MEMORY_MIN_MB };
 
 export class PartialDownloadHandler {
   constructor() {
-    this.db = null;
-    this.conn = null;
     this.initialized = false;
     this.cancelled = false;
     this.currentDownload = null;
@@ -111,48 +107,12 @@ export class PartialDownloadHandler {
   async init() {
     if (this.initialized) return;
 
-    try {
-      const CUSTOM_BUNDLES = {
-        mvp: {
-          mainModule: `${DUCKDB_BASE}/duckdb-mvp.wasm`,
-          mainWorker: `${DUCKDB_BASE}/duckdb-browser-mvp.worker.js`,
-        },
-        eh: {
-          mainModule: `${DUCKDB_BASE}/duckdb-eh.wasm`,
-          mainWorker: `${DUCKDB_BASE}/duckdb-browser-eh.worker.js`,
-        },
-        coi: {
-          mainModule: `${DUCKDB_BASE}/duckdb-coi.wasm`,
-          mainWorker: `${DUCKDB_BASE}/duckdb-browser-coi.worker.js`,
-          pthreadWorker: `${DUCKDB_BASE}/duckdb-browser-coi.pthread.worker.js`,
-        },
-      };
-      const bundle = await duckdb.selectBundle(CUSTOM_BUNDLES);
-      
-      const worker_url = URL.createObjectURL(
-        new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
-      );
-      try {
-        const worker = new Worker(worker_url);
-        const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
-        
-        this.db = new duckdb.AsyncDuckDB(logger, worker);
-        await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-      } finally {
-        URL.revokeObjectURL(worker_url);
-      }
-      
-      this.conn = await this.db.connect();
-      this.tempDirSeq = 0;
-      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
-      await this.conn.query(`INSTALL spatial; LOAD spatial;`);
-      
-      this.initialized = true;
-      console.log('[PartialDownload] DuckDB WASM initialized');
-    } catch (error) {
-      console.error('[PartialDownload] Failed to initialize DuckDB:', error);
-      throw error;
-    }
+    await duckdbClient.init();
+    this.tempDirSeq = 0;
+    await duckdbClient.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
+
+    this.initialized = true;
+    console.log('[PartialDownload] Ready');
   }
 
   cancel() {
@@ -164,9 +124,7 @@ export class PartialDownloadHandler {
     try {
       const oldDirName = `tmp_${TAB_ID}_${this.tempDirSeq}`;
       this.tempDirSeq++;
-      // Setting a new temp_directory destroys the old pool (closes handles, deletes pool files)
-      await this.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
-      // Remove the now-empty old directory
+      await duckdbClient.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(oldDirName, { recursive: true });
     } catch (e) { /* dir may not exist or already removed */ }
@@ -184,11 +142,6 @@ export class PartialDownloadHandler {
       }
     }
     return partitions;
-  }
-
-  buildProxyUrl(url) {
-    const origin = window.location.origin;
-    return `${origin}/proxy?url=${encodeURIComponent(url)}`;
   }
 
   /**
@@ -217,9 +170,9 @@ export class PartialDownloadHandler {
 
     // Apply memory limit (can change between downloads)
     if (memoryLimit) {
-      await this.conn.query(`SET memory_limit = '${memoryLimit}'`);
+      await duckdbClient.conn.query(`SET memory_limit = '${memoryLimit}'`);
     }
-    await this.conn.query('SET arrow_large_buffer_size=true');
+    await duckdbClient.conn.query('SET arrow_large_buffer_size=true');
 
     this.cancelled = false;
     this.currentDownload = { sourceName, bbox };
@@ -232,16 +185,16 @@ export class PartialDownloadHandler {
       // Build list of URLs to query
       let urls = [];
       if (parquetUrl) {
-        urls = [this.buildProxyUrl(parquetUrl)];
+        urls = [duckdbClient.buildProxyUrl(parquetUrl)];
       } else if (partitions && partitions.length > 0) {
-        urls = partitions.map(p => this.buildProxyUrl(baseUrl + p));
+        urls = partitions.map(p => duckdbClient.buildProxyUrl(baseUrl + p));
       }
 
       if (urls.length === 0) {
         throw new Error('No parquet files to query');
       }
 
-      handler = getFormatHandler(format, { tabId: TAB_ID, conn: this.conn, db: this.db, urls, bbox });
+      handler = getFormatHandler(format, { tabId: TAB_ID, conn: duckdbClient.conn, db: duckdbClient.db, urls, bbox });
       await handler.prepareOpfs();
 
       if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
