@@ -508,6 +508,7 @@
     "category": "buildings",
     "name": "Google Buildings 2023 with heights",
     "datameet_attribution": false,
+    "partitioned_parquet": true,
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/GOBI-2023/google-open-buildings-india-2023.mosaic.json"
   },
   "/ms-buildings/": {
