@@ -524,9 +524,9 @@ def main():
         run_cmd(
             [
                 "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "convert",
-                "--geoparquet-version", "2.0",
+                "--geoparquet-version", "1.1",
                 "--compression", "zstd",
-                "--compression-level", "15",
+                "--compression-level", "22",
                 fbase,
                 str(parquet_file),
             ],
@@ -547,6 +547,9 @@ def main():
                     [
                         "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "partition", "kdtree",
                         str(parquet_file), str(split_dir),
+                        "--geoparquet-version", "1.1",
+                        "--compression", "zstd",
+                        "--compression-level", "22",
                         "--partitions", str(partition_count), "-v",
                     ],
                     check=True,
