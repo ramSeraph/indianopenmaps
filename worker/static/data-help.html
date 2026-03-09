@@ -168,11 +168,11 @@
         <section id="geoparquet">
             <h2>GeoParquet Format <a href="#geoparquet" class="anchor-link">#</a></h2>
             
-            <p>All data available for download is in <strong>GeoParquet 2.0</strong> format. GeoParquet 2.0 uses the native GEOMETRY types added to Apache Parquet in 2025, providing better integration with the Parquet ecosystem.</p>
+            <p>All data available for download is in <strong>GeoParquet 1.1</strong> format. GeoParquet is a geospatial extension of Apache Parquet that stores geometries as WKB (Well-Known Binary) with per-row-group bounding box columns, enabling efficient spatial filtering without scanning entire files.</p>
             
-            <div class="tool-card" style="background: rgba(255, 193, 7, 0.15); border-color: #ffc107;">
-                <h4 style="color: #ffc107;">⚠️ Compatibility Note</h4>
-                <p>GeoParquet 2.0 is a newer format with limited tool support. If you encounter compatibility issues, consider using <code>geoparquet-io</code> to convert data to other formats. Our <code>iomaps</code> CLI tool also supports this.</p>
+            <div class="tool-card" style="background: rgba(74, 158, 255, 0.1); border-color: #4a9eff;">
+                <h4 style="color: #4a9eff;">💡 Bbox Column Filtering</h4>
+                <p>GeoParquet 1.1 includes <code>bbox</code> struct columns (xmin, ymin, xmax, ymax) alongside the geometry. Tools like DuckDB can use these columns to skip entire row groups that fall outside your area of interest, dramatically reducing the amount of data downloaded from remote files.</p>
             </div>
             
             <h3>Why GeoParquet?</h3>
@@ -180,43 +180,46 @@
                 <li><strong>Efficient compression</strong> - Files are significantly smaller than equivalent Shapefiles or GeoJSON</li>
                 <li><strong>Fast querying</strong> - Columnar format allows reading only needed columns</li>
                 <li><strong>Cloud-native</strong> - Supports partial reads without downloading entire files</li>
+                <li><strong>Row group skipping</strong> - Bbox columns enable spatial filtering at the Parquet level</li>
                 <li><strong>Rich type support</strong> - Preserves data types accurately</li>
-                <li><strong>Native geometry</strong> - GeoParquet 2.0 uses Parquet's built-in geometry types</li>
             </ul>
             
-            <h3>Tools for Viewing GeoParquet 2.0</h3>
+            <h3>Tools for Viewing GeoParquet</h3>
             
             <div class="tool-card">
                 <h4>QGIS</h4>
-                <p>Free and open-source desktop GIS. Requires <strong>QGIS 3.40+</strong> with <strong>GDAL 3.12+</strong> for GeoParquet 2.0 support.</p>
+                <p>Free and open-source desktop GIS. <strong>QGIS 3.28+</strong> with <strong>GDAL 3.5+</strong> supports GeoParquet.</p>
                 <p>Simply drag and drop the .parquet file into QGIS or use Layer → Add Layer → Add Vector Layer.</p>
-                <p><strong>Note:</strong> On some platforms, you may need to install QGIS via Conda with <code>libgdal-arrow-parquet</code> for full support.</p>
-                <p><strong>QGIS 4.0</strong> will have direct GeoParquet 2.0 support built-in. <a href="https://blog.qgis.org/2025/10/07/update-on-qgis-4-0-release-schedule-and-ltr-plans/" target="_blank">See release schedule →</a></p>
                 <p><a href="https://qgis.org/" target="_blank">Download QGIS →</a> | <a href="https://github.com/cholmes/qgis_plugin_gpq_downloader" target="_blank">GeoParquet Downloader Plugin (for remote files) →</a></p>
             </div>
             
             <div class="tool-card">
                 <h4>DuckDB</h4>
-                <p>Fast analytical database with GeoParquet 2.0 support. Requires <strong>DuckDB 1.2+</strong> with the spatial extension.</p>
+                <p>Fast analytical database with GeoParquet support. Requires the spatial extension.</p>
                 <pre><code>INSTALL spatial;
 LOAD spatial;
 
 -- Read file
 SELECT * FROM 'file.parquet' LIMIT 10;
 
--- Filter by bounding box
+-- Filter by bounding box (bbox columns enable row group skipping)
 SELECT * FROM 'file.parquet'
-WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));
+WHERE bbox.xmin &lt;= 77.7 AND bbox.xmax &gt;= 77.5
+  AND bbox.ymin &lt;= 13.1 AND bbox.ymax &gt;= 12.9
+  AND ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));
 
--- Read from remote URL with bbox filter
+-- Same approach works on remote URLs (skips row groups outside bbox)
 SELECT * FROM 'https://example.com/data.parquet'
-WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));</code></pre>
+WHERE bbox.xmin &lt;= 77.7 AND bbox.xmax &gt;= 77.5
+  AND bbox.ymin &lt;= 13.1 AND bbox.ymax &gt;= 12.9
+  AND ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1));</code></pre>
+                <p>The <code>bbox.*</code> column filters let DuckDB skip entire row groups via Parquet column statistics, then <code>ST_Intersects</code> does precise geometry filtering on surviving rows.</p>
                 <p><a href="https://duckdb.org/" target="_blank">Download DuckDB →</a></p>
             </div>
             
             <div class="tool-card">
                 <h4>GeoPandas (Python)</h4>
-                <p>Python library for working with geospatial data. Requires <strong>GeoPandas 1.0+</strong> with <strong>PyArrow 18+</strong>.</p>
+                <p>Python library for working with geospatial data. Requires <strong>GeoPandas 0.14+</strong> with <strong>PyArrow</strong>.</p>
                 <pre><code>import geopandas as gpd
 from shapely.geometry import box
 
@@ -236,7 +239,7 @@ gdf = gpd.read_parquet('https://example.com/data.parquet', bbox=bbox)</code></pr
             
             <div class="tool-card">
                 <h4>Using ogr2ogr (GDAL)</h4>
-                <p>Command-line tool for converting between geospatial formats. Requires <strong>GDAL 3.12+</strong> for GeoParquet 2.0 support.</p>
+                <p>Command-line tool for converting between geospatial formats. Requires <strong>GDAL 3.5+</strong> for GeoParquet support.</p>
                 <pre><code># Convert to GeoJSON
 ogr2ogr -f GeoJSON output.geojson input.parquet
 
@@ -316,10 +319,12 @@ TO 'output.geojson' WITH (FORMAT GDAL, DRIVER 'GeoJSON');
 COPY (SELECT * FROM 'input.parquet') 
 TO 'output.shp' WITH (FORMAT GDAL, DRIVER 'ESRI Shapefile');
 
--- Export with bbox filter
+-- Export with bbox filter (row group skipping + precise filter)
 COPY (
   SELECT * FROM 'input.parquet'
-  WHERE ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1))
+  WHERE bbox.xmin &lt;= 77.7 AND bbox.xmax &gt;= 77.5
+    AND bbox.ymin &lt;= 13.1 AND bbox.ymax &gt;= 12.9
+    AND ST_Intersects(geometry, ST_MakeEnvelope(77.5, 12.9, 77.7, 13.1))
 ) TO 'output.geojson' WITH (FORMAT GDAL, DRIVER 'GeoJSON');</code></pre>
             </div>
             
@@ -351,7 +356,7 @@ gpio.convert('input.parquet').write('output.geojson')</code></pre>
             </div>
             
             <h3>Using iomaps CLI</h3>
-            <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering, handling GeoParquet 2.0 files. Use <code>iomaps cli sources</code> to list available sources and pick one for extraction:</p>
+            <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering. Use <code>iomaps cli sources</code> to list available sources and pick one for extraction:</p>
             <pre><code># Install
 pip install iomaps
 

@@ -2,7 +2,6 @@
 // as rectangles on the map. Single checkbox toggles both layers simultaneously.
 
 import { parquetMetadata } from './parquet_metadata.js';
-import { duckdbClient } from './duckdb_client.js';
 
 const LAYER_CONFIGS = {
   data: {
@@ -39,6 +38,8 @@ export class ExtentHandler {
     this._hoverHandlers = [];
     this._hoveredFeatures = new Map();
     this.statusEl = null;
+    this.loading = false;
+    this.onLoadingChange = null;
   }
 
   createCheckbox() {
@@ -101,7 +102,7 @@ export class ExtentHandler {
   async _showAll(sourcePath) {
     if (!this.map) return;
     this._removeAll();
-    this._setStatus('Loading...');
+    this._setLoading(true);
 
     try {
       const routes = this.routesHandler.getVectorSources();
@@ -118,11 +119,11 @@ export class ExtentHandler {
       } else {
         await this._showSingle(routeInfo);
       }
-
-      this._setStatus('');
     } catch (error) {
       console.error('[ExtentHandler] Failed to show extents:', error);
       this._setStatus('Error loading extents');
+    } finally {
+      this._setLoading(false);
     }
   }
 
@@ -136,7 +137,7 @@ export class ExtentHandler {
     if (partitions?.length) {
       const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
       this._setStatus('Loading row groups...');
-      const allRgBboxes = await duckdbClient.getRowGroupBboxesMulti(
+      const allRgBboxes = await parquetMetadata.getRowGroupBboxesMulti(
         partitions.map(p => baseUrl + p)
       );
       if (allRgBboxes) {
@@ -156,10 +157,10 @@ export class ExtentHandler {
 
   async _showSingle(routeInfo) {
     const parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
-    const bbox = await duckdbClient.getParquetBbox(parquetUrl);
+    const bbox = await parquetMetadata.getParquetBbox(parquetUrl);
 
     this._setStatus('Loading row groups...');
-    const rgExtents = await duckdbClient.getRowGroupBboxes(parquetUrl);
+    const rgExtents = await parquetMetadata.getRowGroupBboxes(parquetUrl);
 
     let dataExtents = null;
     if (bbox) {
@@ -171,12 +172,15 @@ export class ExtentHandler {
 
   /** Add layers to map: row groups (bottom), then file extents (top) */
   _showExtentLayers(dataExtents, rgExtents) {
-    if (rgExtents && Object.keys(rgExtents).length) {
-      this._addExtentLayer(LAYER_CONFIGS.rg, rgExtents);
+    const hasRg = rgExtents && Object.keys(rgExtents).length;
+    const hasData = dataExtents && Object.keys(dataExtents).length;
+    if (!hasRg && !hasData) {
+      this._setStatus('Extents are invalid and cannot be displayed');
+      return;
     }
-    if (dataExtents && Object.keys(dataExtents).length) {
-      this._addExtentLayer(LAYER_CONFIGS.data, dataExtents);
-    }
+    if (hasRg) this._addExtentLayer(LAYER_CONFIGS.rg, rgExtents);
+    if (hasData) this._addExtentLayer(LAYER_CONFIGS.data, dataExtents);
+    this._setStatus('');
   }
 
   _removeAll() {
@@ -324,5 +328,11 @@ export class ExtentHandler {
 
   _setStatus(text) {
     if (this.statusEl) this.statusEl.textContent = text;
+  }
+
+  _setLoading(isLoading) {
+    this.loading = isLoading;
+    if (isLoading) this._setStatus('Loading...');
+    if (this.onLoadingChange) this.onLoadingChange(isLoading);
   }
 }

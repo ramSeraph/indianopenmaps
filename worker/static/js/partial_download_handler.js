@@ -135,7 +135,9 @@ export class PartialDownloadHandler {
     
     const partitions = [];
     for (const [filename, extent] of Object.entries(metaJson.extents)) {
-      const [minx, miny, maxx, maxy] = extent;
+      const [minx, miny, maxx, maxy] = Array.isArray(extent)
+        ? extent
+        : [extent.minx, extent.miny, extent.maxx, extent.maxy];
       if (!(bbox.east < minx || bbox.west > maxx || 
             bbox.north < miny || bbox.south > maxy)) {
         partitions.push(filename);

@@ -71,7 +71,11 @@ export class FormatHandler {
   }
 
   get bboxFilter() {
-    return `ST_Intersects(geometry, ST_GeomFromText('${this.bboxWkt}'))`;
+    const { west, south, east, north } = this.bbox;
+    // bbox column filter enables row group skipping via parquet column statistics;
+    // ST_Intersects does precise geometry filtering on surviving rows
+    const bboxRowGroupFilter = `bbox.xmin <= ${east} AND bbox.xmax >= ${west} AND bbox.ymin <= ${north} AND bbox.ymax >= ${south}`;
+    return `${bboxRowGroupFilter} AND ST_Intersects(geometry, ST_GeomFromText('${this.bboxWkt}'))`;
   }
 
   async triggerDownload(downloadFileName, cleanupDelayMs) {

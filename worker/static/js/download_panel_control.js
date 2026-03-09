@@ -4,6 +4,9 @@ import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, 
 import { parquetMetadata } from './parquet_metadata.js';
 import { ExtentHandler } from './extent_handler.js';
 
+const COPY_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+const CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+
 export class DownloadPanelControl {
   constructor(routesHandler, vectorSourceHandler) {
     this.map = null;
@@ -24,6 +27,9 @@ export class DownloadPanelControl {
     // Partial download state
     this.partialDownloadHandler = new PartialDownloadHandler();
     this.extentHandler = new ExtentHandler(routesHandler);
+    this.extentHandler.onLoadingChange = (loading) => {
+      if (this.startButton) this.startButton.disabled = loading;
+    };
     this.partialDownloadSection = null;
     this.formatSelect = null;
     this.startButton = null;
@@ -232,8 +238,7 @@ export class DownloadPanelControl {
   createCopyButton(url) {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'copy-url-btn';
-    // Two overlapping squares - standard copy icon
-    copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    copyBtn.innerHTML = COPY_SVG;
     copyBtn.title = 'Copy URL';
     copyBtn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -241,18 +246,17 @@ export class DownloadPanelControl {
       try {
         await navigator.clipboard.writeText(url);
         
-        // Reset previous copied button if exists
         if (this.lastCopiedBtn && this.lastCopiedBtn !== copyBtn) {
-          this.lastCopiedBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+          this.lastCopiedBtn.innerHTML = COPY_SVG;
         }
         if (this.copyResetTimeout) {
           clearTimeout(this.copyResetTimeout);
         }
         
-        copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+        copyBtn.innerHTML = CHECK_SVG;
         this.lastCopiedBtn = copyBtn;
         this.copyResetTimeout = setTimeout(() => { 
-          copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+          copyBtn.innerHTML = COPY_SVG;
           this.lastCopiedBtn = null;
         }, 1500);
       } catch (err) {
@@ -360,10 +364,6 @@ export class DownloadPanelControl {
     this.bboxContainer.innerHTML = `<span class="bbox-label">Current bbox:</span> <code>${west},${south},${east},${north}</code>`;
   }
 
-  /**
-   * Create the panel element for sidebar mounting
-   * @returns {HTMLElement} The panel element
-   */
   createPanel() {
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl-download-panel';
@@ -401,9 +401,6 @@ export class DownloadPanelControl {
     return this.container;
   }
 
-  /**
-   * Create the partial download section with bbox, format selector, buttons, and progress
-   */
   createPartialDownloadSection() {
     const section = document.createElement('div');
     section.className = 'download-section partial-download-section';
@@ -553,9 +550,6 @@ export class DownloadPanelControl {
     return section;
   }
 
-  /**
-   * Start partial download for current source and bbox
-   */
   async startPartialDownload() {
     if (!this.selectedSource || !this.map) {
       this.showError('Please select a source first');
@@ -666,44 +660,32 @@ export class DownloadPanelControl {
     }
   }
 
-  /**
-   * Cancel ongoing partial download
-   */
   cancelPartialDownload() {
     this.partialDownloadHandler.cancel();
     this.updateStatus('Cancelling after current operation finishes...');
   }
 
-  /**
-   * Update UI for downloading/idle state
-   */
   setDownloadingState(isDownloading) {
     this.startButton.disabled = isDownloading;
     this.cancelButton.style.display = isDownloading ? 'block' : 'none';
     this.progressContainer.style.display = isDownloading ? 'block' : 'none';
+    if (this.extentHandler?.checkbox) {
+      this.extentHandler.checkbox.disabled = isDownloading;
+    }
   }
 
-  /**
-   * Update progress bar
-   */
   updateProgress(percent) {
     if (this.progressBar) {
       this.progressBar.style.width = `${percent}%`;
     }
   }
 
-  /**
-   * Update status text
-   */
   updateStatus(message) {
     if (this.statusText) {
       this.statusText.textContent = message;
     }
   }
 
-  /**
-   * Show error message
-   */
   showError(message) {
     this.updateStatus(message);
     this.statusText.classList.add('error');
@@ -712,9 +694,6 @@ export class DownloadPanelControl {
     }, 3000);
   }
 
-  /**
-   * Set the map reference and initialize map-dependent features
-   */
   setMap(map) {
     this.map = map;
     this.extentHandler.setMap(map);
