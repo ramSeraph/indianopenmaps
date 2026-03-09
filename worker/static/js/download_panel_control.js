@@ -40,10 +40,21 @@ export class DownloadPanelControl {
   }
 
   updateSourceDropdown() {
+    const selectedSources = this.vectorSourceHandler.selectedSources;
+
+    // Always clear stale extents when the selected source is gone
+    if (selectedSources.size === 0 || (this.selectedSource && !selectedSources.has(this.selectedSource))) {
+      this.selectedSource = null;
+      this.extentHandler.reset();
+    }
+
+    // Disable checkbox when no sources are active
+    if (this.extentHandler.checkbox) {
+      this.extentHandler.checkbox.disabled = selectedSources.size === 0;
+    }
+
     if (!this.sourceDropdownContainer) return;
 
-    const selectedSources = this.vectorSourceHandler.selectedSources;
-    
     // Clear dropdown
     this.sourceDropdownContainer.innerHTML = '';
     
@@ -51,19 +62,11 @@ export class DownloadPanelControl {
       this.noSourcesMessage.style.display = 'block';
       this.sourceDropdownContainer.style.display = 'none';
       this.linksContainer.innerHTML = '';
-      this.selectedSource = null;
-      this.extentHandler.reset();
       return;
     }
 
     this.noSourcesMessage.style.display = 'none';
     this.sourceDropdownContainer.style.display = 'block';
-
-    // If current selection is no longer valid, reset it and clear extents
-    if (this.selectedSource && !selectedSources.has(this.selectedSource)) {
-      this.selectedSource = null;
-      this.extentHandler.reset();
-    }
 
     // Default to first source if nothing selected
     if (!this.selectedSource) {
