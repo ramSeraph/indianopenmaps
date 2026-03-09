@@ -525,7 +525,8 @@
     "name": "ESSD Copernicus Building heights",
     "datameet_attribution": false,
     "url": "https://github.com/ramSeraph/essd_copernicus_building_heights_india/releases/download/3d-globfp-india/3D-GloBFP-India.pmtiles",
-    "promoteid": "FID"
+    "promoteid": "FID",
+    "partitioned_parquet": true
   },
   "/not-so-open/urban/buildings/west-bengal/amrut/": {
     "handlertype": "pmtiles",
@@ -2351,7 +2352,8 @@
       "maharashtra"
     ],
     "name": "MRSAC Maharashtra cadastrals",
-    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/MRSAC_Cadastrals.pmtiles"
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/maharashtra/MRSAC_Cadastrals.pmtiles",
+    "partitioned_parquet": true
   },
   "/not-so-open/cadastrals/puducherry/coastal/ncscm/": {
     "handlertype": "pmtiles",

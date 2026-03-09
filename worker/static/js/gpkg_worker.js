@@ -149,7 +149,7 @@ function parquetTypeToSqlite(element) {
 }
 
 // Columns that are internal to the intermediate parquet, not user attributes
-const INTERNAL_COLS = new Set(['geom_wkb', '_geom_type', '_bbox_minx', '_bbox_miny', '_bbox_maxx', '_bbox_maxy']);
+const INTERNAL_COLS = new Set(['geom_wkb', '_geom_type', '_bbox_minx', '_bbox_miny', '_bbox_maxx', '_bbox_maxy', 'bbox']);
 
 // --- Main pipeline: parquet → GPKG ---
 
@@ -172,12 +172,16 @@ async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
   const metadata = await parquetMetadataAsync(asyncBuffer);
   const schema = parquetSchema(metadata);
 
-  // Attribute columns (non-internal)
+  // Attribute columns (non-internal). Struct/list columns are serialized as JSON (like GDAL).
   const columns = [];
   for (const child of schema.children) {
-    if (!INTERNAL_COLS.has(child.element.name)) {
-      columns.push({ name: child.element.name, sqliteType: parquetTypeToSqlite(child.element) });
-    }
+    if (INTERNAL_COLS.has(child.element.name)) continue;
+    const isNested = child.children?.length > 0;
+    columns.push({
+      name: child.element.name,
+      sqliteType: isNested ? 'TEXT' : parquetTypeToSqlite(child.element),
+      jsonSerialize: isNested,
+    });
   }
 
   // Pass 1: collect metadata (geometry types, bbox), one row-group at a time.
@@ -328,8 +332,9 @@ async function writeFromParquet({ parquetFileName, gpkgFileName }, msgId) {
           buildGpkgGeom(row[iWkb], needsPromote),
           row[iMinX], row[iMinY], row[iMaxX], row[iMaxY],
         ];
-        for (const idx of attrIndices) {
-          params.push(row[idx]);
+        for (let ci = 0; ci < attrIndices.length; ci++) {
+          const val = row[attrIndices[ci]];
+          params.push(columns[ci].jsonSerialize && val != null ? JSON.stringify(val) : val);
         }
         paramSets.push(params);
       }

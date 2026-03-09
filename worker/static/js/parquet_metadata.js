@@ -7,6 +7,8 @@ class ParquetMetadata {
   constructor() {
     this.metaJsonCache = new Map();
     this.partitionCache = new Map();
+    this.bboxCache = new Map();
+    this.rgBboxCache = new Map();
   }
 
   getParquetUrl(originalUrl) {
@@ -69,26 +71,30 @@ class ParquetMetadata {
    * @returns {Promise<[number,number,number,number]|null>} [minx, miny, maxx, maxy] or null
    */
   async getParquetBbox(parquetUrl) {
+    if (this.bboxCache.has(parquetUrl)) return this.bboxCache.get(parquetUrl);
     await duckdbClient.init();
 
     try {
       const safeUrl = duckdbClient.buildProxyUrl(parquetUrl).replace(/'/g, "''");
       const geoMeta = await this._getGeoMetadata(safeUrl);
-      if (!geoMeta) return null;
+      if (!geoMeta) { this.bboxCache.set(parquetUrl, null); return null; }
 
       const primaryCol = geoMeta.primary_column || 'geometry';
       const colMeta = geoMeta.columns?.[primaryCol];
-      if (!colMeta?.bbox || colMeta.bbox.length < 4) return null;
+      if (!colMeta?.bbox || colMeta.bbox.length < 4) { this.bboxCache.set(parquetUrl, null); return null; }
 
       const [minx, miny, maxx, maxy] = colMeta.bbox;
       if (!this._isValidWgs84Bbox(minx, miny, maxx, maxy)) {
         console.warn('[ParquetMetadata] Parquet bbox outside WGS84 range:', colMeta.bbox);
+        this.bboxCache.set(parquetUrl, null);
         return null;
       }
 
+      this.bboxCache.set(parquetUrl, colMeta.bbox);
       return colMeta.bbox;
     } catch (error) {
       console.error('[ParquetMetadata] Failed to read parquet bbox:', error);
+      this.bboxCache.set(parquetUrl, null);
       return null;
     }
   }
@@ -113,6 +119,11 @@ class ParquetMetadata {
    */
   async getRowGroupBboxesMulti(parquetUrls) {
     if (!parquetUrls?.length) return null;
+
+    // Check if all URLs are already cached
+    const cacheKey = parquetUrls.join('\n');
+    if (this.rgBboxCache.has(cacheKey)) return this.rgBboxCache.get(cacheKey);
+
     await duckdbClient.init();
 
     try {
@@ -124,21 +135,21 @@ class ParquetMetadata {
 
       const firstSafeUrl = proxyUrls[0].replace(/'/g, "''");
       const coveringPaths = await this._getCoveringBboxPaths(firstSafeUrl);
-      if (!coveringPaths) return null;
+      if (!coveringPaths) { this.rgBboxCache.set(cacheKey, null); return null; }
 
       const { xminPath, yminPath, xmaxPath, ymaxPath } = coveringPaths;
       const allPaths = [xminPath, yminPath, xmaxPath, ymaxPath];
       const urlList = proxyUrls.map(u => `'${u.replace(/'/g, "''")}'`).join(',');
 
-      const result = await duckdbClient.conn.query(
+      const queryResult = await duckdbClient.conn.query(
         `SELECT file_name, row_group_id, path_in_schema, stats_min, stats_max
          FROM parquet_metadata([${urlList}])
          WHERE path_in_schema IN (${allPaths.map(p => `'${p}'`).join(',')})
          ORDER BY file_name, row_group_id, path_in_schema`
       );
 
-      const rows = result.toArray();
-      if (rows.length === 0) return null;
+      const rows = queryResult.toArray();
+      if (rows.length === 0) { this.rgBboxCache.set(cacheKey, null); return null; }
 
       const fileGroups = {};
       for (const row of rows) {
@@ -166,9 +177,12 @@ class ParquetMetadata {
         }
       }
 
-      return Object.keys(allExtents).length > 0 ? allExtents : null;
+      const result = Object.keys(allExtents).length > 0 ? allExtents : null;
+      this.rgBboxCache.set(cacheKey, result);
+      return result;
     } catch (error) {
       console.error('[ParquetMetadata] Failed to read row group bboxes:', error);
+      this.rgBboxCache.set(cacheKey, null);
       return null;
     }
   }
