@@ -59,9 +59,10 @@ export class DownloadPanelControl {
     this.noSourcesMessage.style.display = 'none';
     this.sourceDropdownContainer.style.display = 'block';
 
-    // If current selection is no longer valid, reset it
+    // If current selection is no longer valid, reset it and clear extents
     if (this.selectedSource && !selectedSources.has(this.selectedSource)) {
       this.selectedSource = null;
+      this.extentHandler.reset();
     }
 
     // Default to first source if nothing selected
