@@ -4,6 +4,13 @@ import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, 
 import { parquetMetadata } from './parquet_metadata.js';
 import { ExtentHandler } from './extent_handler.js';
 
+const DEFAULT_LICENSE = '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
+
+function linkifyUrls(text) {
+  if (!text) return '';
+  return text.replace(/(https?:\/\/[^\s,)]+)/g, '<a href="$1" target="_blank">$1</a>');
+}
+
 const COPY_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
 const CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
 
@@ -61,6 +68,7 @@ export class DownloadPanelControl {
     if (selectedSources.size === 0) {
       this.noSourcesMessage.style.display = 'block';
       this.sourceDropdownContainer.style.display = 'none';
+      this.sourceInfoContainer.innerHTML = '';
       this.linksContainer.innerHTML = '';
       return;
     }
@@ -171,6 +179,7 @@ export class DownloadPanelControl {
 
   async loadDownloadLinks(sourcePath) {
     this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
+    this.sourceInfoContainer.innerHTML = '';
     this.extentHandler.setSourcePath(sourcePath);
     this.extentHandler.reset();
 
@@ -183,6 +192,8 @@ export class DownloadPanelControl {
         return;
       }
 
+      this.updateSourceInfo(routeInfo);
+
       const isPartitioned = routeInfo.partitioned_parquet === true;
 
       if (isPartitioned) {
@@ -194,6 +205,57 @@ export class DownloadPanelControl {
       console.error('Error loading download links:', error);
       this.linksContainer.innerHTML = '<div class="error-message">Error loading download links</div>';
     }
+  }
+
+  updateSourceInfo(routeInfo) {
+    this.sourceInfoContainer.innerHTML = '';
+
+    // Source section
+    if (routeInfo.source) {
+      const sourceSection = this.createInfoSection('Source', linkifyUrls(routeInfo.source));
+      this.sourceInfoContainer.appendChild(sourceSection);
+    }
+
+    // Notes section
+    if (routeInfo.notes) {
+      const notesSection = this.createInfoSection('Notes', routeInfo.notes);
+      this.sourceInfoContainer.appendChild(notesSection);
+    }
+
+    // License section
+    const licenseHtml = routeInfo.license || DEFAULT_LICENSE;
+    const licenseSection = this.createInfoSection('License', licenseHtml);
+    this.sourceInfoContainer.appendChild(licenseSection);
+  }
+
+  createInfoSection(title, contentHtml) {
+    const section = document.createElement('div');
+    section.className = 'source-info-section collapsed';
+
+    const heading = document.createElement('div');
+    heading.className = 'source-info-heading';
+
+    const label = document.createElement('span');
+    label.textContent = title;
+
+    const toggleIcon = document.createElement('span');
+    toggleIcon.className = 'source-info-toggle';
+    toggleIcon.textContent = '▼';
+
+    heading.appendChild(label);
+    heading.appendChild(toggleIcon);
+
+    const content = document.createElement('div');
+    content.className = 'source-info-content';
+    content.innerHTML = contentHtml;
+
+    heading.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+    });
+
+    section.appendChild(heading);
+    section.appendChild(content);
+    return section;
   }
 
   createDownloadSection(headingText, listContainer) {
@@ -385,12 +447,17 @@ export class DownloadPanelControl {
     this.sourceDropdownContainer.className = 'download-source-dropdown-container';
     this.sourceDropdownContainer.style.display = 'none';
 
+    // Source info container (notes + license, shown above download links)
+    this.sourceInfoContainer = document.createElement('div');
+    this.sourceInfoContainer.className = 'source-info-container';
+
     // Links container
     this.linksContainer = document.createElement('div');
     this.linksContainer.className = 'download-links-container';
 
     this.panelContent.appendChild(this.noSourcesMessage);
     this.panelContent.appendChild(this.sourceDropdownContainer);
+    this.panelContent.appendChild(this.sourceInfoContainer);
     this.panelContent.appendChild(this.linksContainer);
 
     // Data extents checkbox (between full download and partial download)

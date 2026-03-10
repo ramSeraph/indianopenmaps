@@ -102,6 +102,13 @@
             margin-bottom: 8px;
         }
         
+        .dataset-description {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
         .dataset-links {
             display: flex;
             gap: 15px;
@@ -122,6 +129,56 @@
         .dataset-links a:hover {
             color: #4a9eff;
             background: rgba(74, 158, 255, 0.2);
+        }
+        
+        .notes-btn {
+            font-size: 0.9rem;
+            color: #888;
+            padding: 5px 12px;
+            background: rgba(74, 158, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .notes-btn:hover {
+            color: #4a9eff;
+            background: rgba(74, 158, 255, 0.2);
+        }
+        
+        .notes-btn.active {
+            color: #4a9eff;
+        }
+        
+        .dataset-notes {
+            display: none;
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #bbb;
+            line-height: 1.5;
+        }
+        
+        .dataset-notes.visible {
+            display: block;
+        }
+        
+        .dataset-notes ul {
+            margin: 4px 0 4px 18px;
+            padding: 0;
+        }
+        
+        .dataset-notes li {
+            margin: 2px 0;
+        }
+        
+        .dataset-notes a {
+            color: #4a9eff;
         }
         
         .dataset-categories {
@@ -266,10 +323,18 @@
         </div>
     </div>
     
-    <script>
+    <script type="module">
         let allDatasets = [];
         let selectedCategories = new Set();
         let categoryCounts = {};
+        
+        function toggleNotes(btn) {
+            const notesEl = btn.closest('.dataset-item').querySelector('.dataset-notes');
+            const visible = notesEl.classList.toggle('visible');
+            btn.classList.toggle('active', visible);
+            btn.textContent = visible ? 'Notes ▾' : 'Notes ▸';
+        }
+        window.toggleNotes = toggleNotes;
         
         async function loadDatasets() {
             const response = await fetch('/api/routes');
@@ -282,7 +347,9 @@
                     name: info.name,
                     type: info.type || 'vector',
                     categories: Array.isArray(info.category) ? info.category : (info.category ? [info.category] : []),
-                    url: info.url || null
+                    url: info.url || null,
+                    description: info.description || null,
+                    notes: info.notes || null
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));
             
@@ -399,7 +466,9 @@
                 filtered = filtered.filter(d => 
                     d.name.toLowerCase().includes(query) || 
                     d.path.toLowerCase().includes(query) ||
-                    d.categories.some(cat => cat.toLowerCase().includes(query))
+                    d.categories.some(cat => cat.toLowerCase().includes(query)) ||
+                    (d.description && d.description.toLowerCase().includes(query)) ||
+                    (d.notes && JSON.stringify(d.notes).toLowerCase().includes(query))
                 );
             }
             
@@ -443,6 +512,7 @@
                 return `
                     <div class="dataset-item">
                         <div class="dataset-name">${dataset.name}</div>
+                        ${dataset.description ? `<div class="dataset-description">${dataset.description}</div>` : ''}
                         ${dataset.categories.length > 0 ? `
                             <div class="dataset-categories">
                                 ${dataset.categories.map(cat => `<span class="category-label${selectedCategories.has(cat) ? ' active' : ''}" data-category="${cat}">${cat} <span class="category-count">(${categoryCounts[cat]})</span></span>`).join('')}
@@ -452,7 +522,9 @@
                             <a href="${dataset.path}tiles.json" target="_blank">TileJSON</a>
                             <a href="${dataset.path}view" target="_blank">View Map</a>
                             ${downloadLink}
+                            ${dataset.notes ? `<button class="notes-btn" onclick="toggleNotes(this)">Notes ▸</button>` : ''}
                         </div>
+                        ${dataset.notes ? `<div class="dataset-notes">${dataset.notes}</div>` : ''}
                     </div>
                 `;
             }).join('');

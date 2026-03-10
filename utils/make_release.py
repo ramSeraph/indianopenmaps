@@ -7,6 +7,7 @@
 #     "questionary",
 # ]
 # ///
+import re
 import json
 import base64
 import textwrap
@@ -43,6 +44,32 @@ def get_github_api():
     auth = Auth.Token(token)
     gh_api = Github(auth=auth)
     return gh_api
+
+
+def md_to_html(text):
+    """Convert markdown links to HTML <a> tags, then linkify remaining bare URLs."""
+    # Convert [text](url) markdown links
+    html = re.sub(
+        r'\[([^\]]+)\]\((https?://[^)]+)\)',
+        r'<a href="\2">\1</a>',
+        text
+    )
+    # Linkify bare URLs not already inside <a> tags
+    parts = re.split(r'(<a [^>]*>.*?</a>)', html)
+    return ''.join(
+        part if part.startswith('<a ')
+        else re.sub(r'(https?://[^\s,)<"]+)', r'<a href="\1">\1</a>', part)
+        for part in parts
+    )
+
+
+def resolve_text_option(text, file_path):
+    """Resolve a text value from direct text or a file path."""
+    if text and file_path:
+        raise click.UsageError('Cannot specify both text and file for the same option')
+    if file_path:
+        return Path(file_path).read_text().strip()
+    return text
 
 
 def get_releases_for_repo(repo_name):
@@ -127,7 +154,7 @@ def find_related_files(base_path: Path) -> dict:
     return files
 
 
-def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None, no_datameet=False):
+def update_routes_file(repo_name, release, file_pmtiles, route, description, category, is_mosaic=False, is_partitioned_parquet=False, promoteid=None, license_str=None, notes_html=None):
     code_repo_name = 'indianopenmaps'
     branch = 'main' 
     file_path = 'worker/src/routes/listing.json'
@@ -161,6 +188,8 @@ def update_routes_file(repo_name, release, file_pmtiles, route, description, cat
         entry['partitioned_parquet'] = True
     if license_str:
         entry['license'] = license_str
+    if notes_html:
+        entry['notes'] = notes_html
     if promoteid:
         entry['promoteid'] = promoteid
     route_data.update({route: entry})
@@ -201,7 +230,7 @@ def upload_file(repo_name, release, file):
         name=file.name
     )
 
-def update_release_doc(repo_name, release, description, files_7z, route, source, source_url, no_datameet=False):
+def update_release_doc(repo_name, release, description, files_7z, route, source, source_url, license_str=None, notes_md=None):
     gh = get_github_api()
     user = gh.get_user()
     github_repo = gh.get_repo(f"{user.login}/{repo_name}")
@@ -222,11 +251,17 @@ def update_release_doc(repo_name, release, description, files_7z, route, source,
             parts.append(f"[Part {i}]({url})")
         header = f"{base_name}: {', '.join(parts)}"
 
-    license_line = "" if no_datameet else "\n    - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)"
+    if license_str:
+        license_line = f"\n    - License: {license_str}"
+    else:
+        license_line = "\n    - License: [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md)"
+
+    notes_line = f"\n    - Notes: {notes_md}" if notes_md else ""
+
     to_append = f"""
     ### {header}
     - Description: {description}
-    - Source: {source} - {source_url}{license_line}
+    - Source: {source} - {source_url}{license_line}{notes_line}
     - Tiles - https://indianopenmaps.com{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.com{route}view)
     """
 
@@ -298,12 +333,23 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--route', type=str, help='tile route')
 @click.option('--category', type=str, help='category', multiple=True)
 @click.option('--no-uploads', is_flag=True, default=False)
-@click.option('--license', 'license_str', type=str, default=None, help='license string (if set, disables datameet attribution)')
+@click.option('--license', 'license_str', type=str, default=None, help='license text (markdown links converted to HTML for routes)')
+@click.option('--license-file', type=click.Path(exists=True), default=None, help='file containing license text (markdown)')
+@click.option('--notes', 'notes_str', type=str, default=None, help='notes text (markdown links converted to HTML for routes)')
+@click.option('--notes-file', type=click.Path(exists=True), default=None, help='file containing notes text (markdown)')
 @click.option('--promoteid', type=str, help='override promoteid for vector tiles')
-def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, license_str, promoteid):
+def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, license_str, license_file, notes_str, notes_file, promoteid):
     
     if base_file is None:
         raise click.UsageError('--base-file is required')
+    
+    # Resolve notes and license from text or file
+    notes_md = resolve_text_option(notes_str, notes_file)
+    license_md = resolve_text_option(license_str, license_file)
+
+    # Convert markdown links to HTML for listing.json (routes)
+    notes_html = md_to_html(notes_md) if notes_md else None
+    license_html = md_to_html(license_md) if license_md else None
     
     base_path = Path(base_file)
     if not base_path.exists():
@@ -383,12 +429,12 @@ def main(repo, release, base_file, description, source, source_url, route, categ
         except Exception as e:
             print(f"  warning: failed to read analysis file: {e}")
     
-    # append to release doc
+    # append to release doc (uses original markdown for GitHub rendering)
     print('updating release notes')
-    update_release_doc(repo, release, description, related['7z'], route, source, source_url, no_datameet)
-    # update route
+    update_release_doc(repo, release, description, related['7z'], route, source, source_url, license_str=license_md, notes_md=notes_md)
+    # update route (uses HTML-converted links for listing.json)
     print('updating routes file')
-    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet, promoteid, no_datameet)
+    update_routes_file(repo, release, route_file, route, description, category, is_mosaic, is_partitioned_parquet, promoteid, license_str=license_html, notes_html=notes_html)
 
 
 if __name__ == "__main__":

@@ -466,6 +466,60 @@
       color: #666;
       margin-bottom: 8px;
     }
+    .source-info-container {
+      margin-bottom: 4px;
+    }
+    .source-info-section {
+      margin-bottom: 6px;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      background: #f9f9f9;
+    }
+    .source-info-heading {
+      font-size: 11px;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 8px;
+    }
+    .source-info-heading:hover {
+      color: #4a9eff;
+    }
+    .source-info-toggle {
+      font-size: 10px;
+      transition: transform 0.3s ease;
+    }
+    .source-info-section.collapsed .source-info-toggle {
+      transform: rotate(-90deg);
+    }
+    .source-info-content {
+      font-size: 11px;
+      color: #555;
+      padding: 4px 8px 8px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .source-info-content a {
+      color: #4a9eff;
+    }
+    .source-info-content p {
+      margin: 0;
+    }
+    .source-info-content ul {
+      margin: 2px 0 2px 16px;
+      padding: 0;
+    }
+    .source-info-content li {
+      margin: 1px 0;
+    }
+    .source-info-section.collapsed .source-info-content {
+      display: none;
+    }
     .download-section {
       margin-bottom: 8px;
     }
@@ -519,7 +573,7 @@
       display: none;
     }
     .partitions-list {
-      max-height: 250px;
+      max-height: 125px;
       overflow-y: auto;
       border: 1px solid #e0e0e0;
       border-radius: 3px;

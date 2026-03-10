@@ -177,7 +177,7 @@
     "promoteid": "BLOCK_ID",
     "description": "Indian Block Boundary data from PMGSY (Pradhan Mantri Gram Sadak Yojana)",
     "source": "PMGSY - https://geosadak-pmgsy.nic.in/OpenData",
-    "license": "Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India's Government Open Data License: [https://data.gov.in/government-open-data-license-india ](https://data.gov.in/government-open-data-license-india)"
+    "license": "Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India's Government Open Data License: <a href=\"https://data.gov.in/government-open-data-license-india\">https://data.gov.in/government-open-data-license-india </a>"
   },
   "/not-so-open/panchayats/lgd/": {
     "handlertype": "pmtiles",
@@ -191,20 +191,7 @@
     "promoteid": "OBJECTID",
     "description": "Indian Gram Panchayat Boundary data mapped to LGD codes",
     "source": "LGD/Bharatmaps https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/GramPanchayat_Boundary/MapServer/0",
-    "notes": [ 
-      {
-        "Missing following states": [
-          "Himachal Pradesh",
-          "Jammu And Kashmir",
-          "Sikkim",
-          "Meghalaya",
-          "Mizoram",
-          "Manipur",
-          "Nagaland",
-          "Arunachal Pradesh"
-        ]
-      }
-    ]
+    "notes": "<ul><li><strong>Missing following states</strong><ul><li>Himachal Pradesh</li><li>Jammu And Kashmir</li><li>Sikkim</li><li>Meghalaya</li><li>Mizoram</li><li>Manipur</li><li>Nagaland</li><li>Arunachal Pradesh</li></ul></li></ul>"
   },
   "/not-so-open/panchayats/bhuvan/": {
     "handlertype": "pmtiles",
@@ -221,7 +208,6 @@
   },
   "/not-so-open/villages/lgd/": {
     "handlertype": "pmtiles",
-    "category": "villages",
     "category": [
       "villages",
       "admin boundaries",
@@ -232,20 +218,7 @@
     "promoteid": "OBJECTID",
     "description": "Indian Village Boundary data with LGD mappings.",
     "source": "LGD/Bharatmaps - https://lgdirectory.gov.in  - https://mapservice.gov.in/gismapservice/rest/services/BharatMapService/Village_Boundary/MapServer/0",
-    "notes": [
-      {
-        "Missing following states": [
-          "Himachal Pradesh",
-          "Jammu And Kashmir",
-          "Sikkim",
-          "Meghalaya",
-          "Mizoram",
-          "Manipur",
-          "Nagaland",
-          "Arunachal Pradesh"
-	]
-      }
-    ]
+    "notes": "<ul><li><strong>Missing following states</strong><ul><li>Himachal Pradesh</li><li>Jammu And Kashmir</li><li>Sikkim</li><li>Meghalaya</li><li>Mizoram</li><li>Manipur</li><li>Nagaland</li><li>Arunachal Pradesh</li></ul></li></ul>"
   },
   "/not-so-open/villages/bhuvan/": {
     "handlertype": "pmtiles",
@@ -349,11 +322,8 @@
     "promoteid": "HAB_ID",
     "description": "Point locations of Indian habitations as defined by PMGSY (Pradhan Mantri Gram Sadak Yojana)",
     "source": "PMGSY - https://geosadak-pmgsy.nic.in/OpenData",
-    "license": "Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India's Government Open Data License: [https://data.gov.in/government-open-data-license-india](https://data.gov.in/government-open-data-license-india)",
-    "notes": [
-      "definition/criteria for habitation is documented at https://omms.nic.in/Home/PMGSYRuralDataset",
-      "Just the habitations data updated on 20th October 2024"
-    ]
+    "license": "Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India's Government Open Data License: <a href=\"https://data.gov.in/government-open-data-license-india\">https://data.gov.in/government-open-data-license-india</a>",
+    "notes": "<ul><li>definition/criteria for habitation is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a></li><li>Just the habitations data updated on 20th October 2024</li></ul>"
   },
   "/habitations/karmashapes-polys/": {
     "handlertype": "pmtiles",
@@ -654,10 +624,7 @@
     "promoteid": "id",
     "description": "Bhuvan Geomorphology 1:50k scale data from 2005-2006",
     "source": "Bhuvan - https://bhuvan.nrsc.gov.in/ - https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-    "notes": [
-      "Missing Mizoram, Lakshadweep and some UTs",
-      "Documentation: https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf"
-    ]
+    "notes": "<ul><li>Missing Mizoram, Lakshadweep and some UTs</li><li>Documentation: <a href=\"https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf\">https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf</a></li></ul>"
   },
   "/not-so-open/lineament/50k/bhuvan/": {
     "handlertype": "pmtiles",
@@ -673,10 +640,7 @@
     "promoteid": "id",
     "description": "Bhuvan Lineament 1:50k scale data from 2005-2006",
     "source": "Bhuvan - https://bhuvan.nrsc.gov.in/ - https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-    "notes": [
-      "Missing Mizoram, Lakshadweep and some UTs",
-      "Documentation: https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf"
-    ]
+    "notes": "<ul><li>Missing Mizoram, Lakshadweep and some UTs</li><li>Documentation: <a href=\"https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf\">https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/gm/gm.pdf</a></li></ul>"
   },
   "/not-so-open/geomorphology/250k/ngdr/": {
     "handlertype": "pmtiles",
@@ -845,7 +809,7 @@
     "promoteid": "pc11_district_id",
     "description": "Census 2011 village polygons",
     "source": "Devdatalab - https://www.devdatalab.org/shrug_download/  - Open Polygons",
-    "license": "[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/). More details in shrug-readme.md",
+    "license": "<a href=\"http://creativecommons.org/licenses/by-nc-sa/4.0/\">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. More details in shrug-readme.md",
     "notes": "SHRUG is the cleanest Indian Geospatial dataset. Ideal for research."
   },
   "/shrug-census2011/subdistricts/": {
@@ -861,7 +825,7 @@
     "promoteid": "pc11_sd_id",
     "description": "Census 2011 village polygons",
     "source": "Devdatalab - https://www.devdatalab.org/shrug_download/  - Open Polygons",
-    "license": "[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/). More details in shrug-readme.md",
+    "license": "<a href=\"http://creativecommons.org/licenses/by-nc-sa/4.0/\">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. More details in shrug-readme.md",
     "notes": "SHRUG is the cleanest Indian Geospatial dataset. Ideal for research."
   },
   "/shrug-census2011/villages/": {
@@ -877,7 +841,7 @@
     "promoteid": "pc11_tv_id",
     "description": "Census 2011 village polygons",
     "source": "Devdatalab - https://www.devdatalab.org/shrug_download/  - Open Polygons",
-    "license": "[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/). More details in shrug-readme.md",
+    "license": "<a href=\"http://creativecommons.org/licenses/by-nc-sa/4.0/\">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. More details in shrug-readme.md",
     "notes": "SHRUG is the cleanest Indian Geospatial dataset. Ideal for research."
   },
   "/google-buildings/": {
@@ -891,11 +855,8 @@
     "partitioned_parquet": true,
     "url": "https://github.com/ramSeraph/indian_buildings/releases/download/GOBI-2023/google-open-buildings-india-2023.mosaic.json",
     "source": "https://sites.research.google/open-buildings/ and https://sites.research.google/gr/open-buildings/temporal/",
-    "license": "one of [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)",
-    "notes": [
-      "The 2023 temporal rasters from 2.5D dataset were merged with original google building vector dataset using code inspired by this [article](https://spatialthoughts.com/2025/03/29/building_height_gee/#)",
-      "Code can be found at https://github.com/ramSeraph/indian_buildings/tree/main/google"
-    ]
+    "license": "one of <a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>, <a href=\"https://opendatacommons.org/licenses/odbl/1-0/\">ODbL 1.0</a>",
+    "notes": "<ul><li>The 2023 temporal rasters from 2.5D dataset were merged with original google building vector dataset using code inspired by this <a href=\"https://spatialthoughts.com/2025/03/29/building_height_gee/#\">article</a></li><li>Code can be found at <a href=\"https://github.com/ramSeraph/indian_buildings/tree/main/google\">https://github.com/ramSeraph/indian_buildings/tree/main/google</a></li></ul>"
   },
   "/ms-buildings/": {
     "handlertype": "mosaic",
@@ -1336,7 +1297,7 @@
     "promoteid": "id",
     "description": "Overture Maps places dataset for India",
     "source": "[Overture Maps 2023-12-14-alpha.0 release](https://overturemaps.org/overture-december-2023-release-notes/)",
-    "license": "[CDLA Permissive 2.0](https://cdla.dev/permissive-2-0/)"
+    "license": "<a href=\"https://cdla.dev/permissive-2-0/\">CDLA Permissive 2.0</a>"
   },
   "/not-so-open/cell-towers/tarangsanchar/": {
     "handlertype": "pmtiles",
@@ -1364,10 +1325,7 @@
     "promoteid": "objectid",
     "description": "All India Celltower Locations",
     "source": "https://bharatmaps.gov.in - NIC - https://mapservice.gov.in/mapserviceserv176/rest/services/Street/StreetMap/MapServer/1056",
-    "notes": [
-      "data seems incomplete in urban areas",
-      "Some fields were intentionally removed as they look like PII"
-    ]
+    "notes": "<ul><li>data seems incomplete in urban areas</li><li>Some fields were intentionally removed as they look like PII</li></ul>"
   },
   "/not-so-open/bharatnet/onts/bbnl/": {
     "handlertype": "pmtiles",
@@ -1498,7 +1456,7 @@
     "url": "https://github.com/ramSeraph/indian_transport/releases/download/fb-roads/fb_roads_india.pmtiles",
     "promoteid": "way_fbid",
     "source": "[Facebook MapWithAI](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook)",
-    "license": "[MIT](https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/blob/main/LICENSE.md)"
+    "license": "<a href=\"https://github.com/facebookmicrosites/Open-Mapping-At-Facebook/blob/main/LICENSE.md\">MIT</a>"
   },
   "/ms-roads/": {
     "handlertype": "pmtiles",
@@ -1510,7 +1468,7 @@
     "name": "Microsoft Roads",
     "url": "https://github.com/ramSeraph/indian_transport/releases/download/ms-roads/ms_roads_india.pmtiles",
     "source": "[Microsoft Road Detections](https://github.com/microsoft/RoadDetections)",
-    "license": "[ODbl](https://opendatacommons.org/licenses/odbl/)"
+    "license": "<a href=\"https://opendatacommons.org/licenses/odbl/\">ODbl</a>"
   },
   "/pmgsy-roads/": {
     "handlertype": "pmtiles",
@@ -1524,7 +1482,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/pmgsy-roads-candidates/": {
     "handlertype": "pmtiles",
@@ -1538,7 +1496,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/pmgsy-roads-proposals-i/": {
     "handlertype": "pmtiles",
@@ -1552,7 +1510,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/pmgsy-roads-proposals-ii/": {
     "handlertype": "pmtiles",
@@ -1565,7 +1523,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/pmgsy-roads-proposals-iii/": {
     "handlertype": "pmtiles",
@@ -1578,7 +1536,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/pmgsy-roads-proposals-rcplwea/": {
     "handlertype": "pmtiles",
@@ -1591,7 +1549,7 @@
     "description": "PMGSY Proposal RCPLWEA Roads. ( TODO: better description )",
     "source": "[PMGSY Roads](https://geosadak-pmgsy.nic.in/OpenData)",
     "license": "GODL",
-    "notes": "definitions/criteria for roads is documented at https://omms.nic.in/Home/PMGSYRuralDataset"
+    "notes": "definitions/criteria for roads is documented at <a href=\"https://omms.nic.in/Home/PMGSYRuralDataset\">https://omms.nic.in/Home/PMGSYRuralDataset</a>"
   },
   "/not-so-open/soi-roads/": {
     "handlertype": "pmtiles",
@@ -2091,23 +2049,7 @@
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/PincodeBoundaries.pmtiles",
     "promoteid": "FID",
     "source": "PostalGIS - https://post.nic.in/postalgis/master.aspx",
-    "notes": [
-      "Many of the polygons aren't carrying any pincode value.",
-      "Urban pincode polygons seems to be not granular enough",
-      {
-        "text": "Missing following states",
-        "items": [
-          "Himachal Pradesh",
-          "Jammu And Kashmir",
-          "Sikkim",
-          "Meghalaya",
-          "Mizoram",
-          "Manipur",
-          "Nagaland",
-          "Arunachal Pradesh"
-        ]
-      }
-    ]
+    "notes": "<ul><li>Many of the polygons aren't carrying any pincode value.</li><li>Urban pincode polygons seems to be not granular enough</li><li><strong>Missing following states</strong><ul><li>Himachal Pradesh</li><li>Jammu And Kashmir</li><li>Sikkim</li><li>Meghalaya</li><li>Mizoram</li><li>Manipur</li><li>Nagaland</li><li>Arunachal Pradesh</li></ul></li></ul>"
   },
   "/not-so-open/pincodes/delhi/gsdl/": {
     "handlertype": "pmtiles",
@@ -2801,12 +2743,7 @@
     "url": "https://github.com/ramSeraph/indian_transport/releases/download/inland-waterways/WRIS_Waterway_facilities.pmtiles",
     "promoteid": "name",
     "source": "WRIS https://indiawris.gov.in/",
-    "notes": [
-      "Beacons",
-      "Jettys",
-      "Light Houses",
-      "Terminals"
-    ]
+    "notes": "<ul><li>Beacons</li><li>Jettys</li><li>Light Houses</li><li>Terminals</li></ul>"
   },
   "/water-ways/spurs/wris/": {
     "handlertype": "pmtiles",
@@ -2832,12 +2769,7 @@
     "url": "https://github.com/ramSeraph/indian_transport/releases/download/inland-waterways/SOI_Waterway_facilities.pmtiles",
     "promoteid": "unique_id",
     "source": "Survey Of India https://indiamaps.gov.in/",
-    "notes": [
-      "Beacons",
-      "Buoys",
-      "Jettys",
-      "Light Houses"
-    ]
+    "notes": "<ul><li>Beacons</li><li>Buoys</li><li>Jettys</li><li>Light Houses</li></ul>"
   },
   "/not-so-open/water-ways/navigation-locks/soi/": {
     "handlertype": "pmtiles",
@@ -2943,17 +2875,7 @@
     "promoteid": "OBJECTID",
     "description": "Religious Places from Survey Of India",
     "source": "SOI - https://indiamaps.gov.in",
-    "notes": [
-      "Temples",
-      "Chatris",
-      "Mosques",
-      "Idgahs",
-      "Churches",
-      "Gurudwaras",
-      "Tombs",
-      "Pagodas",
-      "Gopurams"
-    ]
+    "notes": "<ul><li>Temples</li><li>Chatris</li><li>Mosques</li><li>Idgahs</li><li>Churches</li><li>Gurudwaras</li><li>Tombs</li><li>Pagodas</li><li>Gopurams</li></ul>"
   },
   "/not-so-open/cultural/sacred-places/envis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -2969,14 +2891,7 @@
     "promoteid": "id",
     "description": "Sacred Places from ENVIS/Bhuvan",
     "source": "Environmental Information System - Bhuvan - https://bhuvan.nrsc.gov.in",
-    "notes": [
-      "Caves",
-      "Gardens",
-      "Groves",
-      "Mountains",
-      "Sites",
-      "Waterbodies"
-    ]
+    "notes": "<ul><li>Caves</li><li>Gardens</li><li>Groves</li><li>Mountains</li><li>Sites</li><li>Waterbodies</li></ul>"
   },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
@@ -2990,12 +2905,8 @@
     "promoteid": "FACILITY_I",
     "description": "Locations of rural facilities from PMGSY(Pradhan Mantri Gram Sadak Yojana)",
     "source": "PMGSY - https://geosadak-pmgsy.nic.in/OpenData",
-    "license": "“Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India’s Government Open Data License: [https://data.gov.in/government-open-data-license-india](https://data.gov.in/government-open-data-license-india)”",
-    "notes": [
-      "Related files:",
-      "[PMGSY_Masterdata.csv](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.csv): has mappings of the block/district/state ids to names.",
-      "[PMGSY_Masterdata.corrections.csv](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.corrections.csv): Corrections by me to the above file - CC0"
-    ]
+    "license": "“Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India’s Government Open Data License: <a href=\"https://data.gov.in/government-open-data-license-india\">https://data.gov.in/government-open-data-license-india</a>”",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.csv\">PMGSY_Masterdata.csv</a>: has mappings of the block/district/state ids to names.</li><li><a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.corrections.csv\">PMGSY_Masterdata.corrections.csv</a>: Corrections by me to the above file - CC0</li></ul>"
   },
   "/not-so-open/facilities/jjm/": {
     "handlertype": "pmtiles",
@@ -3012,13 +2923,7 @@
     "promoteid": "orig_location",
     "description": "Rural facilities( schools, anganwadis, water sources ) geotagged by JJM",
     "source": "Jal Jeevan Mission - https://jaljeevanmission.gov.in/",
-    "notes": [
-      "Created by cleaning the data available at [JJM.zip](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/JJM.zip)",
-      "some guesses were made while cleaning ill formatted school and anganwadi coordinates",
-      "any coordinate not in Indian boundary were dropped",
-      "only data which could be tracked to a village mapped to LGD was used",
-      "data related to habitations which couldn't be tracked to a single habitation id were dropped"
-    ]
+    "notes": "<ul><li>Created by cleaning the data available at <a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/JJM.zip\">JJM.zip</a></li><li>some guesses were made while cleaning ill formatted school and anganwadi coordinates</li><li>any coordinate not in Indian boundary were dropped</li><li>only data which could be tracked to a village mapped to LGD was used</li><li>data related to habitations which couldn't be tracked to a single habitation id were dropped</li></ul>"
   },
   "/not-so-open/egramswaraj-activities/": {
     "handlertype": "pmtiles",
@@ -3453,10 +3358,7 @@
     "promoteid": "id",
     "description": "NCOG UttarPradesh Cadastrals",
     "source": "National Center Of  Geo-informatics - https://ncog.gov.in",
-    "notes": [
-      "Incomplete, only 34 districts partly or fully covered",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Incomplete, only 34 districts partly or fully covered</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/cadastrals/jammu-and-kashmir/khasras/lris/": {
     "handlertype": "pmtiles",
@@ -3575,7 +3477,7 @@
     "promoteid": "id",
     "description": "TNGIS Tamil Nadu Cadastrals",
     "source": "Tamil Nadu Geospatial Information System - https://tngis.tn.gov.in/",
-    "notes": "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a>"
   },
   "/not-so-open/cadastrals/kerala/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -3614,10 +3516,7 @@
     "promoteid": "Parcel_num",
     "description": "Bhuvan West Bengal Cadastrals",
     "source": "Bhuvan - https://bhuvan.nrsc.gov.in/ - https://bhuvan-vec1.nrsc.gov.in/bhuvan/wms",
-    "notes": [
-      "Only Nalhati-I block in Birbhum district covered",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Only Nalhati-I block in Birbhum district covered</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/cadastrals/west-bengal/sisdp/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3631,10 +3530,7 @@
     "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/west-bengal/Bhuvan_SISDP_WestBengal_Cadastrals.pmtiles",
     "description": "Bhuvan SISDP West Bengal Cadastrals",
     "source": "Bhuvan - https://bhuvan.nrsc.gov.in/ - https://bhuvan-vec1.nrsc.gov.in/bhuvan/wms",
-    "notes": [
-      "Only some districts are covered",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Only some districts are covered</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/cadastrals/chhattisgarh/bhuvan/": {
     "handlertype": "pmtiles",
@@ -3728,10 +3624,7 @@
     "promoteid": "title",
     "description": "Gujarat Vedas Cadastrals",
     "source": "VEDAS - https://vedas.sac.gov.in/",
-    "notes": [
-      "Only two talukas, Padra in Vadodara district and Satlasana in Mehsana district",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Only two talukas, Padra in Vadodara district and Satlasana in Mehsana district</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/cadastrals/gujarat/matribhoomi/": {
     "handlertype": "pmtiles",
@@ -3759,10 +3652,7 @@
     "promoteid": "id",
     "description": "NCOG Gujarat Cadastrals",
     "source": "National Center Of Goeinformatics - https://ncog.gov.in/",
-    "notes": [
-      "Incomplete",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Incomplete</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/cadastrals/maharashtra/coastal/ncscm/": {
     "handlertype": "pmtiles",
@@ -3878,7 +3768,7 @@
     "promoteid": "id",
     "description": "Madhya Pradesh MPBhulekh Cadastrals ( Plot Parcels )",
     "source": "MPBhulekh - https://webgis2.mpbhulekh.gov.in/",
-    "notes": "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a>"
   },
   "/not-so-open/cadastrals/madhya-pradesh/surveys/mpbhulekh/": {
     "handlertype": "mosaic",
@@ -3893,7 +3783,7 @@
     "promoteid": "id",
     "description": "Madhya Pradesh MPBhulekh Cadastrals ( Survey Parcels )",
     "source": "MPBhulekh - https://webgis2.mpbhulekh.gov.in/",
-    "notes": "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a>"
   },
   "/not-so-open/cadastrals/jharkhand/jsac/": {
     "handlertype": "mosaic",
@@ -3982,10 +3872,7 @@
     "promoteid": "id",
     "description": "Bhuvan Assam Cadastrals",
     "source": "Bhuvan - https://bhuvan.nrsc.gov.in/ - https://bhuvan-vec1.nrsc.gov.in/bhuvan/wms",
-    "notes": [
-      "Incomplete",
-      "[Notes on Data Issues](https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md)"
-    ]
+    "notes": "<ul><li>Incomplete</li><li><a href=\"https://github.com/ramSeraph/indian_cadastrals/blob/main/DataNotes.md\">Notes on Data Issues</a></li></ul>"
   },
   "/not-so-open/power/lines/ncog/": {
     "handlertype": "pmtiles",
@@ -5435,7 +5322,7 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NIN_Health_Facilties_2025.pmtiles",
     "promoteid": "srno",
     "source": "NHP - https://nhp.gov.in",
-    "license": "[GODL](https://www.data.gov.in/Godl)"
+    "license": "<a href=\"https://www.data.gov.in/Godl\">GODL</a>"
   },
   "/not-so-open/education/schools/bharatmaps/": {
     "handlertype": "pmtiles",
@@ -5484,8 +5371,8 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.pmtiles",
     "promoteid": "Sr_No",
     "source": "National Health Portal - https://nhp.gov.in",
-    "license": "[GODL](https://www.data.gov.in/Godl)",
-    "notes": "Only has entries with valid coordinates. Full data available at [NHP_Hospital_Directory_2025.csv.7z](https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.csv.7z)"
+    "license": "<a href=\"https://www.data.gov.in/Godl\">GODL</a>",
+    "notes": "Only has entries with valid coordinates. Full data available at <a href=\"https://github.com/ramSeraph/indian_facilities/releases/download/health/NHP_Hospital_Directory_2025.csv.7z\">NHP_Hospital_Directory_2025.csv.7z</a>"
   },
   "/health/blood-banks/datagov/nhp/": {
     "handlertype": "pmtiles",
@@ -5499,8 +5386,8 @@
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.pmtiles",
     "promoteid": "id",
     "source": "National Health Portal - https://nhp.gov.in",
-    "license": "[GODL](https://www.data.gov.in/Godl)",
-    "notes": "Only has entries with valid coordinates. Full data available at [Datagov_NHP_Blood_Banks_2015.csv.7z](https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.csv.7z)"
+    "license": "<a href=\"https://www.data.gov.in/Godl\">GODL</a>",
+    "notes": "Only has entries with valid coordinates. Full data available at <a href=\"https://github.com/ramSeraph/indian_facilities/releases/download/health/Datagov_NHP_Blood_Banks_2015.csv.7z\">Datagov_NHP_Blood_Banks_2015.csv.7z</a>"
   },
   "/not-so-open/health/anganwadis/bhuvan/": {
     "handlertype": "pmtiles",
@@ -5910,7 +5797,7 @@
     "promoteid": "id",
     "description": "Bhuvan SISDP Phase 2 10k Land Usage Land Cover data from 2016-2019 ( UI says 2016-2023 )",
     "source": "Bhuvan - https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php - https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-    "notes": "key description is at [key_to_levels.csv](https://github.com/ramSeraph/indian_land_features/releases/download/landuse/key_to_levels.csv)"
+    "notes": "key description is at <a href=\"https://github.com/ramSeraph/indian_land_features/releases/download/landuse/key_to_levels.csv\">key_to_levels.csv</a>"
   },
   "/not-so-open/cadastrals/goa/onemapgoagis/": {
     "handlertype": "pmtiles",
@@ -5970,7 +5857,7 @@
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/postal/Datagov_Pincode_Boundaries.pmtiles",
     "promoteid": "Pincode",
     "source": "Data.gov.in - https://www.data.gov.in/catalog/all-india-pincode-boundary-geo-json",
-    "license": "[GODL](https://www.data.gov.in/Godl)"
+    "license": "<a href=\"https://www.data.gov.in/Godl\">GODL</a>"
   },
   "/not-so-open/banking/business-correspondents/rbi/": {
     "handlertype": "pmtiles",
@@ -6315,7 +6202,7 @@
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/Amrit_Sarovar_Water_Observatory_Ponds.pmtiles",
     "promoteid": "Sarovar_ID",
     "source": "HydroSenseLab IIT Delhi and Ministry Of Rural Development - https://ms8.pmgatishakti.gov.in/",
-    "notes": "Timeseries data of pond sizes is at [combined_timeseries.csv.7z](https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/combined_timeseries.csv.7z)",
+    "notes": "Timeseries data of pond sizes is at <a href=\"https://github.com/ramSeraph/indian_water_features/releases/download/waterbodies/combined_timeseries.csv.7z\">combined_timeseries.csv.7z</a>",
     "license": "unknown"
   },
   "/not-so-open/cors-stations/soi/": {
@@ -6679,8 +6566,8 @@
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_Assembly_Constituencies_2014.pmtiles",
     "promoteid": "ac_name",
     "source": "Susewind R (2014) Bielefeld University. - https://pub.uni-bielefeld.de/record/2674065",
-    "license": "[CC-BY-SA-NC 4.0](https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt)",
-    "notes": "[Susewind_notes.txt](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt)"
+    "license": "<a href=\"https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt\">CC-BY-SA-NC 4.0</a>",
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt\">Susewind_notes.txt</a>"
   },
   "/constituencies/parliament/2014/susewind/": {
     "handlertype": "pmtiles",
@@ -6694,8 +6581,8 @@
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_Parliament_Constituencies_2014.pmtiles",
     "promoteid": "pc_name",
     "source": "Susewind R (2014) Bielefeld University. - https://pub.uni-bielefeld.de/record/2674065",
-    "license": "[CC-BY-SA-NC 4.0](https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt)",
-    "notes": "[Susewind_notes.txt](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt)"
+    "license": "<a href=\"https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt\">CC-BY-SA-NC 4.0</a>",
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt\">Susewind_notes.txt</a>"
   },
   "/not-so-open/polling-stations/2014/eci/": {
     "handlertype": "pmtiles",
@@ -6708,8 +6595,8 @@
     "name": "ECI Polling Stations 2014",
     "url": "https://github.com/ramSeraph/indian_facilities/releases/download/elections/ECI_PollingStations_2014.pmtiles",
     "source": "ECI through https://pub.uni-bielefeld.de/record/2674065 - http://psleci.nic.in/",
-    "license": "[CC-BY-SA-NC 4.0](https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt)",
-    "notes": "[Susewind_notes.txt](https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt)"
+    "license": "<a href=\"https://pub.uni-bielefeld.de/download/2674065/2674090/LICENSE.txt\">CC-BY-SA-NC 4.0</a>",
+    "notes": "<a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/constituencies/Susewind_notes.txt\">Susewind_notes.txt</a>"
   },
   "/not-so-open/polling-stations/mainpur/nesdr/": {
     "handlertype": "pmtiles",
@@ -6918,7 +6805,7 @@
     "partitioned_parquet": true,
     "promoteid": "id",
     "source": "Bhuvan layername: ld:*_LD50k_0506 - https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-    "notes": "https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf ( [archive link](https://archive.org/details/ATLASLD) )"
+    "notes": "<a href=\"https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf\">https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf</a> ( <a href=\"https://archive.org/details/ATLASLD\">archive link</a> )"
   },
   "/not-so-open/land/degradation/50k/2015-2016/bhuvan/": {
     "handlertype": "pmtiles",
@@ -6931,7 +6818,7 @@
     "partitioned_parquet": true,
     "promoteid": "id",
     "source": "Bhuvan layername: ld:*_LD50k_1516 - https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms",
-    "notes": "https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf ( [archive link](https://archive.org/details/ATLASLD) )"
+    "notes": "<a href=\"https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf\">https://bhuvan-app1.nrsc.gov.in/2dresources/thematic/ld0506/ATLASLD.pdf</a> ( <a href=\"https://archive.org/details/ATLASLD\">archive link</a> )"
   },
   "/not-so-open/land/wastelands/50k/2008-2009/bhuvan/": {
     "handlertype": "pmtiles",
