@@ -115,16 +115,11 @@ export class VectorSourceHandler {
         'paint': {
           'fill-extrusion-color': layerColor,
           'fill-extrusion-height': [
-            "case", 
-            ["has", "Height"], 
-            ['get', 'Height'],
-            ["has", "HEIGHT"], 
-            ['get', 'HEIGHT'],
-            ["has", "height"], 
-            ['get', 'height'],
-            0
+            "interpolate", ["linear"], ["zoom"],
+            14, 0,
+            15, ["coalesce", ["get", "Height"], ["get", "HEIGHT"], ["get", "height"], 3]
           ],
-          'fill-extrusion-opacity': 0.60,
+          'fill-extrusion-opacity': 0.80,
         }
       });
      
