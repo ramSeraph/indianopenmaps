@@ -2441,7 +2441,7 @@
       "ncog",
       "soi"
     ],
-    "name": "nCOG SOI Streams",
+    "name": "NCOG SOI Streams",
     "url": "https://github.com/ramSeraph/indian_water_features/releases/download/rivers/NCOG_SOI_Streams.pmtiles",
     "partitioned_parquet": true,
     "promoteid": "id",
