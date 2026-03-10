@@ -4849,6 +4849,7 @@
     ],
     "name": "Bhuvan Wastelands 50k 2009-2009",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/degradation/Bhuvan_Wastelands_50K_0809.pmtiles",
+    "partitioned_parquet": true,
     "promoteid": "id"
   },
   "/not-so-open/railways/bridges/bhuvan/": {
