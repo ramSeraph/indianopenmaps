@@ -11,10 +11,7 @@ const handlerMap = {};
 function createHandlers(logger) {
   Object.keys(routes).forEach((rPrefix) => {
     const rInfo = routes[rPrefix];
-    let datameetAttribution = true;
-    if ('datameet_attribution' in rInfo) {
-      datameetAttribution = rInfo['datameet_attribution'];
-    }
+    const datameetAttribution = !('license' in rInfo);
     let type = 'vector';
     if ('type' in rInfo) {
       type = rInfo['type'];

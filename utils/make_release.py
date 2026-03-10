@@ -159,8 +159,8 @@ def update_routes_file(repo_name, release, file_pmtiles, route, description, cat
     }
     if is_partitioned_parquet:
         entry['partitioned_parquet'] = True
-    if no_datameet:
-        entry['datameet_attribution'] = False
+    if license_str:
+        entry['license'] = license_str
     if promoteid:
         entry['promoteid'] = promoteid
     route_data.update({route: entry})
@@ -298,9 +298,9 @@ class DynamicReleaseOption(QuestionaryOption):
 @click.option('--route', type=str, help='tile route')
 @click.option('--category', type=str, help='category', multiple=True)
 @click.option('--no-uploads', is_flag=True, default=False)
-@click.option('--no-datameet', is_flag=True, default=False, help='set datameet_attribution to false in listing.json')
+@click.option('--license', 'license_str', type=str, default=None, help='license string (if set, disables datameet attribution)')
 @click.option('--promoteid', type=str, help='override promoteid for vector tiles')
-def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, no_datameet, promoteid):
+def main(repo, release, base_file, description, source, source_url, route, category, no_uploads, license_str, promoteid):
     
     if base_file is None:
         raise click.UsageError('--base-file is required')
