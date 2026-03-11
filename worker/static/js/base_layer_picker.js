@@ -242,7 +242,7 @@ export class BaseLayerPicker {
           const srcId = `raster-${newLayerInfo.path.replace(/\//g, '-')}`;
           const srcLayerId = `raster-layer-${newLayerInfo.path.replace(/\//g, '-')}`;
           newLayerInfo.sources = {
-            srcId : {
+            [srcId] : {
               type: 'raster',
               tiles: tileJson.tiles || [],
               attribution: attributionWithName,

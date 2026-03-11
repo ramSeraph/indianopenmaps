@@ -227,7 +227,7 @@ export class VectorSourceHandler {
       return; // Already added
     }
 
-    const maxSourcesAllowed = this.colorHandler.minColorLength();
+    const maxSourcesAllowed = this.getMaxSources();
     
     if (this.selectedSources.size >= maxSourcesAllowed) {
       alert(`Maximum ${maxSourcesAllowed} sources can be selected at once.`);

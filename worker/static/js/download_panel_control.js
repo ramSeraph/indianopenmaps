@@ -46,6 +46,23 @@ export class DownloadPanelControl {
     this.statusText = null;
   }
 
+  _populateSelectedDisplay(container, color, name) {
+    container.innerHTML = '';
+    if (color) {
+      const dot = document.createElement('span');
+      dot.className = 'source-color-dot';
+      dot.style.backgroundColor = color;
+      container.appendChild(dot);
+    }
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = name;
+    container.appendChild(nameSpan);
+    const arrow = document.createElement('span');
+    arrow.className = 'dropdown-arrow';
+    arrow.textContent = '▼';
+    container.appendChild(arrow);
+  }
+
   updateSourceDropdown() {
     const selectedSources = this.vectorSourceHandler.selectedSources;
 
@@ -94,19 +111,7 @@ export class DownloadPanelControl {
     selectedDisplay.className = 'dropdown-selected';
     
     // Show current selection
-    if (currentColor) {
-      const dot = document.createElement('span');
-      dot.className = 'source-color-dot';
-      dot.style.backgroundColor = currentColor;
-      selectedDisplay.appendChild(dot);
-    }
-    const name = document.createElement('span');
-    name.textContent = currentData.name;
-    selectedDisplay.appendChild(name);
-    const arrow = document.createElement('span');
-    arrow.className = 'dropdown-arrow';
-    arrow.textContent = '▼';
-    selectedDisplay.appendChild(arrow);
+    this._populateSelectedDisplay(selectedDisplay, currentColor, currentData.name);
     
     const optionsList = document.createElement('div');
     optionsList.className = 'dropdown-options';
@@ -132,22 +137,7 @@ export class DownloadPanelControl {
       
       option.addEventListener('click', () => {
         this.selectedSource = path;
-        // Update display
-        selectedDisplay.innerHTML = '';
-        if (color) {
-          const dot = document.createElement('span');
-          dot.className = 'source-color-dot';
-          dot.style.backgroundColor = color;
-          selectedDisplay.appendChild(dot);
-        }
-        const name = document.createElement('span');
-        name.textContent = data.name;
-        selectedDisplay.appendChild(name);
-        const arrow = document.createElement('span');
-        arrow.className = 'dropdown-arrow';
-        arrow.textContent = '▼';
-        selectedDisplay.appendChild(arrow);
-        
+        this._populateSelectedDisplay(selectedDisplay, color, data.name);
         optionsList.style.display = 'none';
         this.loadDownloadLinks(path);
       });
