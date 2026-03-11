@@ -1,4 +1,6 @@
 // Fetches and caches file sizes via HEAD requests through CORS proxy
+import { proxyUrl } from './utils.js';
+
 export class SizeGetter {
   constructor() {
     this.cache = new Map();
@@ -18,8 +20,8 @@ export class SizeGetter {
     }
 
     try {
-      const proxyUrl = `/proxy?url=${encodeURIComponent(url)}`;
-      const response = await fetch(proxyUrl, { method: 'HEAD' });
+      const proxied = proxyUrl(url);
+      const response = await fetch(proxied, { method: 'HEAD' });
       
       if (response.ok) {
         const contentLength = response.headers.get('content-length');

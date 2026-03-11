@@ -29,11 +29,7 @@ export class DownloadPanelControl {
     this.copyResetTimeout = null;
     this.sizeGetter = new SizeGetter();
     
-    this.partialUI = new PartialDownloadUI({
-      map,
-      routesHandler,
-      getSelectedSource: () => this.selectedSource
-    });
+    this.partialUI = new PartialDownloadUI({ map, routesHandler });
   }
 
   _populateSelectedDisplay(container, color, name) {
@@ -59,7 +55,7 @@ export class DownloadPanelControl {
     // Always clear stale extents when the selected source is gone
     if (handler.selectedSourceCount === 0 || (this.selectedSource && !handler.hasSource(this.selectedSource))) {
       this.selectedSource = null;
-      this.partialUI.reset();
+      this.partialUI.setSourcePath(null);
     }
 
     if (!this.sourceDropdownContainer) return;
@@ -154,7 +150,6 @@ export class DownloadPanelControl {
 
   async _onSourceSelected(sourcePath) {
     this.partialUI.setSourcePath(sourcePath);
-    this.partialUI.reset();
 
     const routes = this.routesHandler.getVectorSources();
     const routeInfo = routes[sourcePath];
@@ -355,6 +350,7 @@ export class DownloadPanelControl {
       listContainer.appendChild(this._createLinkItem(url, label));
     }
 
+    const isMulti = files.length > 1;
     const heading = isMulti ? `Full Download (${files.length} files)` : 'Full Download';
     const section = this.createDownloadSection(heading, listContainer);
     this.linksContainer.appendChild(section);

@@ -69,14 +69,11 @@ export class ExtentHandler extends EventTarget {
     return container;
   }
 
-  reset() {
+  setSourcePath(sourcePath) {
+    this._sourcePath = sourcePath;
     this._removeAll();
     if (this.checkbox) this.checkbox.checked = false;
     this._setStatus('');
-  }
-
-  setSourcePath(sourcePath) {
-    this._sourcePath = sourcePath;
   }
 
   destroy() {
@@ -125,11 +122,9 @@ export class ExtentHandler extends EventTarget {
 
   async _showPartitioned(routeInfo) {
     const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
-    await parquetMetadata.fetchMetaJson(metaUrl);
-    const dataExtents = parquetMetadata.getExtents(metaUrl);
-
-    let rgExtents = null;
     const partitions = await parquetMetadata.getPartitions(metaUrl);
+    const dataExtents = await parquetMetadata.getExtents(metaUrl);
+    let rgExtents = null;
     if (partitions?.length) {
       const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
       this._setStatus('Loading row groups...');
@@ -328,6 +323,7 @@ export class ExtentHandler extends EventTarget {
 
   _setLoading(isLoading) {
     this.loading = isLoading;
+    if (this.checkbox) this.checkbox.disabled = isLoading;
     if (isLoading) this._setStatus('Loading...');
     this.dispatchEvent(new CustomEvent('loadingchange', { detail: { loading: isLoading } }));
   }

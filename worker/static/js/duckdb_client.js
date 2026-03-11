@@ -3,6 +3,7 @@
 
 const DUCKDB_BASE = 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir';
 import * as duckdb from 'https://ramseraph.github.io/duckdb-wasm/v1.33.0-opfs-tempdir/duckdb-browser.mjs';
+import { proxyUrl } from './utils.js';
 
 class DuckDBClient {
   constructor() {
@@ -60,8 +61,7 @@ class DuckDBClient {
   }
 
   buildProxyUrl(url) {
-    const origin = window.location.origin;
-    return `${origin}/proxy?url=${encodeURIComponent(url)}`;
+    return `${window.location.origin}${proxyUrl(url)}`;
   }
 }
 

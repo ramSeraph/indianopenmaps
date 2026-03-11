@@ -1,28 +1,15 @@
 // UI for partial (bbox-filtered) downloads
-import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
+import { PartialDownloadHandler, FORMAT_OPTIONS, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
 import { parquetMetadata } from './parquet_metadata.js';
 import { ExtentHandler } from './extent_handler.js';
 
-const FORMAT_OPTIONS = [
-  { value: 'geojson', label: 'GeoJSON' },
-  { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
-  { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
-  { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
-  { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
-  { value: 'csv', label: 'CSV (WKT geometry)' }
-];
-
-const FORMAT_LABELS = {
-  geojson: 'GeoJSON', geojsonseq: 'GeoJSONSeq',
-  geoparquet: 'GeoParquet v1.1', geoparquet2: 'GeoParquet v2.0',
-  geopackage: 'GeoPackage', csv: 'CSV'
-};
+const FORMAT_LABELS = Object.fromEntries(FORMAT_OPTIONS.map(f => [f.value, f.label]));
 
 export class PartialDownloadUI {
-  constructor({ map, routesHandler, getSelectedSource }) {
+  constructor({ map, routesHandler }) {
     this.map = map;
     this.routesHandler = routesHandler;
-    this.getSelectedSource = getSelectedSource;
+    this.selectedSource = null;
     this.extentHandler = new ExtentHandler(map, routesHandler);
     this.partialDownloadHandler = new PartialDownloadHandler();
 
@@ -106,8 +93,10 @@ export class PartialDownloadUI {
 
   // --- Public API for DownloadPanelControl ---
 
-  setSourcePath(path) { this.extentHandler.setSourcePath(path); }
-  reset() { this.extentHandler.reset(); }
+  setSourcePath(path) {
+    this.selectedSource = path;
+    this.extentHandler.setSourcePath(path);
+  }
 
   setVisible(visible) {
     if (this.extentsContainer) this.extentsContainer.style.display = visible ? '' : 'none';
@@ -118,14 +107,15 @@ export class PartialDownloadUI {
     this.extentHandler.destroy();
   }
 
-  async startDownload(selectedSource) {
-    if (!selectedSource || !this.map) {
+  async startDownload() {
+    const sourcePath = this.selectedSource;
+    if (!sourcePath) {
       this._showError('Please select a source first');
       return;
     }
 
     const routes = this.routesHandler.getVectorSources();
-    const routeInfo = routes[selectedSource];
+    const routeInfo = routes[sourcePath];
 
     if (!routeInfo || !routeInfo.url) {
       this._showError('No parquet data available for this source');
@@ -141,7 +131,7 @@ export class PartialDownloadUI {
     };
 
     const format = this.formatSelect.value;
-    const sourceName = routeInfo.name || selectedSource;
+    const sourceName = routeInfo.name || sourcePath;
     const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);
     const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
@@ -330,7 +320,7 @@ export class PartialDownloadUI {
     this.startButton = document.createElement('button');
     this.startButton.className = 'partial-start-btn';
     this.startButton.textContent = 'Start Download';
-    this.startButton.addEventListener('click', () => this.startDownload(this.getSelectedSource()));
+    this.startButton.addEventListener('click', () => this.startDownload());
 
     this.cancelButton = document.createElement('button');
     this.cancelButton.className = 'partial-cancel-btn';

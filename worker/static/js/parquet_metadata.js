@@ -2,6 +2,7 @@
 // Used by download_panel_control.js and extent_handler.js.
 
 import { duckdbClient } from './duckdb_client.js';
+import { proxyUrl } from './utils.js';
 
 class ParquetMetadata {
   constructor() {
@@ -30,8 +31,8 @@ class ParquetMetadata {
     }
 
     try {
-      const proxyUrl = `/proxy?url=${encodeURIComponent(metaUrl)}`;
-      const response = await fetch(proxyUrl);
+      const proxied = proxyUrl(metaUrl);
+      const response = await fetch(proxied);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch meta.json: ${response.status}`);
@@ -57,10 +58,9 @@ class ParquetMetadata {
     return this.partitionCache.get(metaUrl);
   }
 
-  getExtents(metaUrl) {
-    const metaJson = this.metaJsonCache.get(metaUrl);
-    if (!metaJson || !metaJson.extents) return null;
-    return metaJson.extents;
+  async getExtents(metaUrl) {
+    const metaJson = await this.fetchMetaJson(metaUrl);
+    return metaJson?.extents ?? null;
   }
 
   // --- DuckDB-based parquet metadata reading ---

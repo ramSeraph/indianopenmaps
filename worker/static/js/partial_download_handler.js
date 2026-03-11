@@ -7,6 +7,15 @@ import { GeoJsonFormatHandler } from './format_geojson.js';
 import { GeoParquetFormatHandler } from './format_geoparquet.js';
 import { GeoPackageFormatHandler } from './format_geopackage.js';
 
+export const FORMAT_OPTIONS = [
+  { value: 'geojson', label: 'GeoJSON' },
+  { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
+  { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
+  { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
+  { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
+  { value: 'csv', label: 'CSV (WKT geometry)' }
+];
+
 function getFormatHandler(format, opts) {
   switch (format) {
     case 'csv': return new CsvFormatHandler(opts);
