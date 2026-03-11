@@ -10,6 +10,7 @@ Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtile
 """
 
 import argparse
+import copy
 import json
 import math
 import os
@@ -21,6 +22,7 @@ import duckdb
 
 TWO_GB = 2 * 1024 * 1024 * 1024
 
+GPIO_VERSION = "0.9.0"
 
 def run_cmd(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
     """Run a command, printing it first."""
@@ -37,21 +39,26 @@ def calculate_partition_count(file_size_bytes: int) -> int:
     return 2 ** power
 
 
-def filter_empty_geometries(geojsonl_file: Path) -> tuple[int, int]:
+def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tuple[int, int]:
     """Filter out features with empty or null geometries from a geojsonl file.
     Also renames properties containing 'geom' to avoid DuckDB geometry detection issues.
+    Also attempts to fix bad coordinates (swapped lat/lon, misplaced decimals).
+    Writes a separate cleaned file; the original is left intact.
     
-    Returns: (original_count, filtered_count)
+    Returns: (original_count, filtered_count, cleaned_file_path)
     """
-    filtered_file = geojsonl_file.parent / f"{geojsonl_file.stem}.filtered.geojsonl"
+    cleaned_file = geojsonl_file.parent / f"{geojsonl_file.stem}.cleaned.geojsonl"
     original_count = 0
     filtered_count = 0
+    fixed_count = 0
+    dropped_count = 0
     renamed_props: dict[str, str] = {}
     rename_counter = 0
+    bbox = INDIA_BBOX if check_india else None
 
-    print("filtering empty geometries...")
+    print("cleaning features (fixing coordinates, filtering empty geometries)...")
 
-    with open(geojsonl_file, 'r') as infile, open(filtered_file, 'w') as outfile:
+    with open(geojsonl_file, 'r') as infile, open(cleaned_file, 'w') as outfile:
         for line in infile:
             original_count += 1
             line = line.strip()
@@ -64,24 +71,43 @@ def filter_empty_geometries(geojsonl_file: Path) -> tuple[int, int]:
 
                 # Skip if geometry is null or empty
                 if geometry is None:
+                    dropped_count += 1
                     continue
 
                 coords = geometry.get("coordinates")
                 if coords is None:
+                    dropped_count += 1
                     continue
 
                 # Check for empty coordinate arrays
                 if isinstance(coords, list) and len(coords) == 0:
+                    dropped_count += 1
                     continue
 
                 # For nested coordinate arrays (Polygon, MultiLineString, etc.)
                 if isinstance(coords, list) and len(coords) > 0:
                     if isinstance(coords[0], list) and len(coords[0]) == 0:
+                        dropped_count += 1
+                        continue
+
+                # Try to fix bad coordinates (India bbox check or basic validity)
+                if bbox and not _coords_in_bbox(geometry, bbox):
+                    fixed_geom, fix_info = _fix_geometry_coords(geometry, bbox)
+                    if fixed_geom is not None:
+                        feature["geometry"] = fixed_geom
+                        fixed_count += 1
+                        label = _feature_label(feature)
+                        for desc in fix_info:
+                            print(f"  fixed {label}: {desc}")
+                    else:
+                        dropped_count += 1
+                        label = _feature_label(feature)
+                        reasons = fix_info if fix_info else ["unfixable coordinates"]
+                        for r in reasons:
+                            print(f"  dropped {label}: {r}")
                         continue
 
                 # Rename properties containing 'geom' to avoid GDAL confusion.
-                # GDAL assigns 'geom' as the default geometry field name, so a property named 'geom'
-                # clashes with it and would require special handling elsewhere during conversion.
                 props = feature.get("properties", {})
                 if props:
                     new_props = {}
@@ -101,20 +127,229 @@ def filter_empty_geometries(geojsonl_file: Path) -> tuple[int, int]:
 
             except json.JSONDecodeError:
                 # Skip malformed lines
+                dropped_count += 1
                 continue
 
     removed_count = original_count - filtered_count
     print(f"  original features: {original_count}")
-    print(f"  after filtering: {filtered_count}")
-    print(f"  removed (empty/null geometry): {removed_count}")
+    print(f"  after cleaning: {filtered_count}")
+    print(f"  fixed coordinates: {fixed_count}")
+    print(f"  dropped: {dropped_count}")
     if renamed_props:
         print(f"  renamed properties: {renamed_props}")
 
-    # Replace original with filtered file
-    geojsonl_file.unlink()
-    filtered_file.rename(geojsonl_file)
+    return original_count, filtered_count, cleaned_file
 
-    return original_count, filtered_count
+
+# --- Coordinate validation & fixing (India-specific) ---
+
+# Rough bounding box for India (with padding for all claimed territories)
+INDIA_BBOX = {"minx": 67, "miny": 5, "maxx": 98, "maxy": 38}
+
+
+def _feature_label(feature):
+    """Return a short label for identifying a feature."""
+    props = feature.get("properties") or {}
+    for key in ("HAB_NAME", "NAME", "name", "id", "ID"):
+        if key in props and props[key] is not None:
+            return str(props[key])
+    for v in props.values():
+        if isinstance(v, str) and v:
+            return v
+    return "(no name)"
+
+
+def _extract_coords(geometry):
+    """Recursively extract all [lon, lat] pairs from a GeoJSON geometry."""
+    gtype = geometry.get("type", "")
+    coords = geometry.get("coordinates")
+
+    if gtype == "Point":
+        yield coords
+    elif gtype in ("MultiPoint", "LineString"):
+        yield from coords
+    elif gtype in ("MultiLineString", "Polygon"):
+        for ring in coords:
+            yield from ring
+    elif gtype == "MultiPolygon":
+        for polygon in coords:
+            for ring in polygon:
+                yield from ring
+    elif gtype == "GeometryCollection":
+        for geom in geometry.get("geometries", []):
+            yield from _extract_coords(geom)
+
+
+def _in_bbox(lon, lat, bb):
+    return bb["minx"] <= lon <= bb["maxx"] and bb["miny"] <= lat <= bb["maxy"]
+
+
+def _coords_in_bbox(geometry, bb):
+    """Check if all coordinate pairs in a geometry fall within the bounding box."""
+    for pair in _extract_coords(geometry):
+        if not isinstance(pair, (list, tuple)) or len(pair) < 2:
+            return False
+        lon, lat = pair[0], pair[1]
+        if not isinstance(lon, (int, float)) or not isinstance(lat, (int, float)):
+            return False
+        if not _in_bbox(lon, lat, bb):
+            return False
+    return True
+
+
+def _try_fix_decimal(value, min_val, max_val):
+    """Try adjusting decimal placement so value falls within [min_val, max_val]."""
+    if min_val <= value <= max_val:
+        return value
+    if abs(value) > 1e15:
+        return None
+
+    s = f"{abs(value):.10f}".rstrip("0").rstrip(".")
+    digits = s.replace(".", "")
+    digits = digits.lstrip("0") or "0"
+    negative = value < 0
+
+    for i in range(1, min(len(digits), 5)):
+        try:
+            candidate = float(digits[:i] + "." + digits[i:])
+        except ValueError:
+            continue
+        if negative:
+            candidate = -candidate
+        if min_val <= candidate <= max_val:
+            return candidate
+    return None
+
+
+def _try_fix_coord_pair(lon, lat, bb):
+    """Attempt to repair a (lon, lat) pair so it falls inside bb.
+
+    Returns (fixed_lon, fixed_lat, description) or None when unfixable.
+    """
+    if _in_bbox(lon, lat, bb):
+        return lon, lat, None
+
+    # Identical values — unfixable
+    if lon == lat:
+        return None
+
+    # Strategy 1: swap lat/lon
+    if _in_bbox(lat, lon, bb):
+        return lat, lon, f"swapped lat/lon: ({lon}, {lat}) → ({lat}, {lon})"
+
+    # Strategy 2: fix decimal placement
+    f_lon = _try_fix_decimal(lon, bb["minx"], bb["maxx"])
+    f_lat = _try_fix_decimal(lat, bb["miny"], bb["maxy"])
+    if f_lon is not None and f_lat is not None:
+        parts = []
+        if f_lon != lon:
+            parts.append(f"lon {lon} → {f_lon}")
+        if f_lat != lat:
+            parts.append(f"lat {lat} → {f_lat}")
+        if parts:
+            return f_lon, f_lat, "decimal fix: " + ", ".join(parts)
+
+    # Strategy 3: swap first, then fix decimals
+    f_lon_s = _try_fix_decimal(lat, bb["minx"], bb["maxx"])
+    f_lat_s = _try_fix_decimal(lon, bb["miny"], bb["maxy"])
+    if f_lon_s is not None and f_lat_s is not None:
+        parts = ["swapped"]
+        if f_lon_s != lat:
+            parts.append(f"lon {lat} → {f_lon_s}")
+        if f_lat_s != lon:
+            parts.append(f"lat {lon} → {f_lat_s}")
+        return f_lon_s, f_lat_s, " + decimal fix: ".join(
+            [parts[0], ", ".join(parts[1:])]
+        ) if len(parts) > 1 else parts[0]
+
+    return None
+
+
+def _fix_geometry_coords(geometry, bb):
+    """Walk a geometry, attempt to fix every coordinate pair.
+
+    Returns (fixed_geometry, list_of_descriptions) or (None, list_of_failure_reasons).
+    """
+    gtype = geometry.get("type", "")
+    fixes = []
+    failures = []
+
+    def fix_pair(pair, idx):
+        lon, lat = pair[0], pair[1]
+        result = _try_fix_coord_pair(lon, lat, bb)
+        if result is None:
+            failures.append(f"unfixable ({lon}, {lat})")
+            return None
+        f_lon, f_lat, desc = result
+        if desc:
+            fixes.append(desc)
+        extra = pair[2:] if len(pair) > 2 else []
+        return [f_lon, f_lat] + extra
+
+    def fix_ring(ring, base_idx):
+        out = []
+        for j, pair in enumerate(ring):
+            fixed = fix_pair(pair, base_idx + j)
+            if fixed is None:
+                return None, base_idx + len(ring)
+            out.append(fixed)
+        return out, base_idx + len(ring)
+
+    geom = copy.deepcopy(geometry)
+
+    if gtype == "Point":
+        fixed = fix_pair(geom["coordinates"], 0)
+        if fixed is None:
+            return None, failures
+        geom["coordinates"] = fixed
+
+    elif gtype in ("MultiPoint", "LineString"):
+        new_coords = []
+        for i, pair in enumerate(geom["coordinates"]):
+            fixed = fix_pair(pair, i)
+            if fixed is None:
+                return None, failures
+            new_coords.append(fixed)
+        geom["coordinates"] = new_coords
+
+    elif gtype in ("MultiLineString", "Polygon"):
+        idx = 0
+        new_rings = []
+        for ring in geom["coordinates"]:
+            fixed_ring, idx = fix_ring(ring, idx)
+            if fixed_ring is None:
+                return None, failures
+            new_rings.append(fixed_ring)
+        geom["coordinates"] = new_rings
+
+    elif gtype == "MultiPolygon":
+        idx = 0
+        new_polys = []
+        for polygon in geom["coordinates"]:
+            new_rings = []
+            for ring in polygon:
+                fixed_ring, idx = fix_ring(ring, idx)
+                if fixed_ring is None:
+                    return None, failures
+                new_rings.append(fixed_ring)
+            new_polys.append(new_rings)
+        geom["coordinates"] = new_polys
+
+    elif gtype == "GeometryCollection":
+        new_geoms = []
+        for sub in geom.get("geometries", []):
+            fixed_sub, sub_info = _fix_geometry_coords(sub, bb)
+            if fixed_sub is None:
+                failures.extend(sub_info)
+                return None, failures
+            fixes.extend(sub_info)
+            new_geoms.append(fixed_sub)
+        geom["geometries"] = new_geoms
+        return geom, fixes
+
+    if failures:
+        return None, failures
+    return geom, fixes
 
 
 def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
@@ -124,7 +359,7 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
 
     try:
         result = run_cmd(
-            ["uvx", "--from", "geoparquet-io", "gpio", "inspect", "meta", "--json", str(parquet_path)],
+            ["uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "inspect", "meta", "--json", str(parquet_path)],
             capture_output=True, text=True, check=True,
         )
         geo_meta = json.loads(result.stdout)
@@ -133,7 +368,7 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
 
     try:
         result = run_cmd(
-            ["uvx", "--from", "geoparquet-io", "gpio", "inspect", "meta", "--parquet", "--json", str(parquet_path)],
+            ["uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "inspect", "meta", "--parquet", "--json", str(parquet_path)],
             capture_output=True, text=True, check=True,
         )
         parquet_meta = json.loads(result.stdout)
@@ -424,18 +659,22 @@ def main():
         description="Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtiles."
     )
     parser.add_argument("file", type=Path, help="Input geojsonl file")
-    parser.add_argument("src_url", help="Source URL for attribution")
-    parser.add_argument("src_name", help="Source name for attribution")
+    parser.add_argument("src_url", nargs="?", default=None, help="Source URL for attribution")
+    parser.add_argument("src_name", nargs="?", default=None, help="Source name for attribution")
     parser.add_argument("--points", action="store_true", help="Use drop-densest-as-needed for point data")
     parser.add_argument("--no-zip", action="store_true", help="Skip creating the 7z archive")
     parser.add_argument("--no-pmtiles", action="store_true", help="Skip creating mbtiles and pmtiles")
     parser.add_argument("--no-parquet", action="store_true", help="Skip creating geoparquet file")
-    parser.add_argument("--no-filter", action="store_true", help="Skip empty geometry filtering")
+    parser.add_argument("--no-filter", action="store_true", help="Skip coordinate fixing and empty geometry filtering")
+    parser.add_argument("--no-india", action="store_true", help="Skip India bounding box checks during coordinate fixing")
 
     args = parser.parse_args()
 
     if args.file.suffix != ".geojsonl":
         parser.error(f"{args.file} is not a geojsonl file")
+
+    if not args.no_pmtiles and (not args.src_url or not args.src_name):
+        parser.error("src_url and src_name are required unless --no-pmtiles is set")
 
     fbase = args.file.name
     lname = args.file.stem
@@ -443,11 +682,7 @@ def main():
 
     os.chdir(work_dir)
 
-    # Filter out empty geometries first (unless --no-filter is set)
-    if not args.no_filter:
-        filter_empty_geometries(Path(fbase))
-
-    # Create archive unless --no-zip is set
+    # Create archive from ORIGINAL data (before any cleaning)
     if not args.no_zip:
         print("creating archive")
         run_cmd(["7z", "a", "-v2000m", "-m0=PPMd", f"{fbase}.7z", fbase], check=True)
@@ -461,126 +696,140 @@ def main():
             for f in sorted(Path(".").glob(f"{fbase}.7z.*")):
                 print(f"created: {f.name}")
 
-    # Create mbtiles and pmtiles unless --no-pmtiles is set
-    if not args.no_pmtiles:
-        # Choose tippecanoe command based on points vs polygons
-        cmd = "drop-densest-as-needed" if args.points else "coalesce-smallest-as-needed"
+    # Create cleaned file for pmtiles/parquet (fixes coords, drops unfixable)
+    needs_clean = not args.no_filter and (not args.no_pmtiles or not args.no_parquet)
+    cleaned_file = None
+    if needs_clean:
+        _, _, cleaned_file = filter_empty_geometries(Path(fbase), check_india=not args.no_india)
+        tile_input = str(cleaned_file)
+    else:
+        tile_input = fbase
 
-        attribution = f'Source: <a href="{args.src_url}" target="_blank" rel="noopener noreferrer">{args.src_name}</a>'
+    try:
+        # Create mbtiles and pmtiles unless --no-pmtiles is set
+        if not args.no_pmtiles:
+            # Choose tippecanoe command based on points vs polygons
+            cmd = "drop-densest-as-needed" if args.points else "coalesce-smallest-as-needed"
 
-        print("creating mbtiles file")
-        run_cmd(
-            [
-                "tippecanoe",
-                "-P",
-                "-S", "10",
-                "--increase-gamma-as-needed",
-                "-zg",
-                "-o", f"{lname}.mbtiles",
-                "--simplify-only-low-zooms",
-                f"--{cmd}",
-                "--extend-zooms-if-still-dropping",
-                "-n", lname,
-                "-l", lname,
-                "-A", attribution,
-                fbase,
-            ],
-            check=True,
-        )
+            attribution = f'Source: <a href="{args.src_url}" target="_blank" rel="noopener noreferrer">{args.src_name}</a>'
 
-        # Convert to pmtiles
-        print("converting to pmtiles")
-        run_cmd(["pmtiles", "convert", f"{lname}.mbtiles", f"{lname}.pmtiles"], check=True)
-
-        pmtiles_file = Path(f"{lname}.pmtiles")
-        if pmtiles_file.stat().st_size > TWO_GB:
-            print("pmtiles file > 2GB, splitting...")
-            split_dir = Path("split")
-            split_dir.mkdir(exist_ok=True)
+            print("creating mbtiles file")
             run_cmd(
                 [
-                    "uvx", "--from", "pmtiles-mosaic", "partition",
-                    "--from-source", str(pmtiles_file),
-                    "--to-pmtiles", str(split_dir / pmtiles_file.name),
+                    "tippecanoe",
+                    "-P",
+                    "-S", "10",
+                    "--increase-gamma-as-needed",
+                    "-zg",
+                    "-o", f"{lname}.mbtiles",
+                    "--simplify-only-low-zooms",
+                    f"--{cmd}",
+                    "--extend-zooms-if-still-dropping",
+                    "-n", lname,
+                    "-l", lname,
+                    "-A", attribution,
+                    tile_input,
                 ],
                 check=True,
             )
-            # Move split files and mosaic.json to current directory and remove original
-            for f in split_dir.glob("*.pmtiles"):
-                shutil.move(str(f), f.name)
-                print(f"created: {f.name}")
-            for f in split_dir.glob("*.mosaic.json"):
-                shutil.move(str(f), f.name)
-                print(f"created: {f.name}")
-            split_dir.rmdir()
-            pmtiles_file.unlink()
-        else:
-            print(f"created: {pmtiles_file.name}")
 
-    # Create geoparquet file unless --no-parquet is set
-    if not args.no_parquet:
-        print("creating geoparquet file")
-        parquet_file = Path(f"{lname}.parquet")
-        run_cmd(
-            [
-                "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "convert",
-                "--geoparquet-version", "1.1",
-                "--compression", "zstd",
-                "--compression-level", "22",
-                fbase,
-                str(parquet_file),
-            ],
-            check=True,
-        )
+            # Convert to pmtiles
+            print("converting to pmtiles")
+            run_cmd(["pmtiles", "convert", f"{lname}.mbtiles", f"{lname}.pmtiles"], check=True)
 
-        # Analyze fields for unique ID before potential partitioning
-        create_field_analysis(lname, [parquet_file])
-
-        if parquet_file.stat().st_size > TWO_GB:
-            print("parquet file > 2GB, splitting...")
-            partition_count = calculate_partition_count(parquet_file.stat().st_size)
-            split_dir = Path("split_parquet")
-
-            while True:
+            pmtiles_file = Path(f"{lname}.pmtiles")
+            if pmtiles_file.stat().st_size > TWO_GB:
+                print("pmtiles file > 2GB, splitting...")
+                split_dir = Path("split")
                 split_dir.mkdir(exist_ok=True)
                 run_cmd(
                     [
-                        "uvx", "--from", "git+https://github.com/geoparquet/geoparquet-io", "gpio", "partition", "kdtree",
-                        str(parquet_file), str(split_dir),
-                        "--geoparquet-version", "1.1",
-                        "--compression", "zstd",
-                        "--compression-level", "22",
-                        "--partitions", str(partition_count), "-v",
+                        "uvx", "--from", "pmtiles-mosaic", "partition",
+                        "--from-source", str(pmtiles_file),
+                        "--to-pmtiles", str(split_dir / pmtiles_file.name),
                     ],
                     check=True,
                 )
-                # Check if any split exceeds 2GB
-                split_files = sorted(split_dir.glob("*.parquet"))
-                oversized = [f for f in split_files if f.stat().st_size > TWO_GB]
-                if not oversized:
-                    break
-                # Clean up and retry with more partitions
-                print(f"found {len(oversized)} split(s) > 2GB, retrying with {partition_count * 2} partitions...")
-                for f in split_files:
-                    f.unlink()
+                # Move split files and mosaic.json to current directory and remove original
+                for f in split_dir.glob("*.pmtiles"):
+                    shutil.move(str(f), f.name)
+                    print(f"created: {f.name}")
+                for f in split_dir.glob("*.mosaic.json"):
+                    shutil.move(str(f), f.name)
+                    print(f"created: {f.name}")
                 split_dir.rmdir()
-                partition_count *= 2
+                pmtiles_file.unlink()
+            else:
+                print(f"created: {pmtiles_file.name}")
 
-            # Move split files to current directory, prefixing with original name
-            renamed_files = []
-            for f in split_files:
-                new_name = f"{lname}.{f.name}"
-                shutil.move(str(f), new_name)
-                print(f"created: {new_name}")
-                renamed_files.append(Path(new_name))
-            split_dir.rmdir()
-            parquet_file.unlink()
+        # Create geoparquet file unless --no-parquet is set
+        if not args.no_parquet:
+            print("creating geoparquet file")
+            parquet_file = Path(f"{lname}.parquet")
+            run_cmd(
+                [
+                    "uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "convert",
+                    "--geoparquet-version", "1.1",
+                    "--compression", "zstd",
+                    "--compression-level", "22",
+                    tile_input,
+                    str(parquet_file),
+                ],
+                check=True,
+            )
 
-            # Create meta.json for partitioned files
-            print("creating parquet meta.json")
-            create_parquet_meta(lname, renamed_files)
-        else:
-            print(f"created: {parquet_file.name}")
+            # Analyze fields for unique ID before potential partitioning
+            create_field_analysis(lname, [parquet_file])
+
+            if parquet_file.stat().st_size > TWO_GB:
+                print("parquet file > 2GB, splitting...")
+                partition_count = calculate_partition_count(parquet_file.stat().st_size)
+                split_dir = Path("split_parquet")
+
+                while True:
+                    split_dir.mkdir(exist_ok=True)
+                    run_cmd(
+                        [
+                            "uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "partition", "kdtree",
+                            str(parquet_file), str(split_dir),
+                            "--geoparquet-version", "1.1",
+                            "--compression", "zstd",
+                            "--compression-level", "22",
+                            "--partitions", str(partition_count), "-v",
+                        ],
+                        check=True,
+                    )
+                    # Check if any split exceeds 2GB
+                    split_files = sorted(split_dir.glob("*.parquet"))
+                    oversized = [f for f in split_files if f.stat().st_size > TWO_GB]
+                    if not oversized:
+                        break
+                    # Clean up and retry with more partitions
+                    print(f"found {len(oversized)} split(s) > 2GB, retrying with {partition_count * 2} partitions...")
+                    for f in split_files:
+                        f.unlink()
+                    split_dir.rmdir()
+                    partition_count *= 2
+
+                # Move split files to current directory, prefixing with original name
+                renamed_files = []
+                for f in split_files:
+                    new_name = f"{lname}.{f.name}"
+                    shutil.move(str(f), new_name)
+                    print(f"created: {new_name}")
+                    renamed_files.append(Path(new_name))
+                split_dir.rmdir()
+                parquet_file.unlink()
+
+                # Create meta.json for partitioned files
+                print("creating parquet meta.json")
+                create_parquet_meta(lname, renamed_files)
+            else:
+                print(f"created: {parquet_file.name}")
+    finally:
+        # Clean up the temporary cleaned file
+        if cleaned_file and cleaned_file.exists():
+            cleaned_file.unlink()
 
 
 if __name__ == "__main__":
