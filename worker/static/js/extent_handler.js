@@ -30,8 +30,9 @@ const LAYER_CONFIGS = {
   },
 };
 
-export class ExtentHandler {
+export class ExtentHandler extends EventTarget {
   constructor(routesHandler) {
+    super();
     this.routesHandler = routesHandler;
     this.map = null;
     this.checkbox = null;
@@ -39,7 +40,6 @@ export class ExtentHandler {
     this._hoveredFeatures = new Map();
     this.statusEl = null;
     this.loading = false;
-    this.onLoadingChange = null;
   }
 
   createCheckbox() {
@@ -333,6 +333,6 @@ export class ExtentHandler {
   _setLoading(isLoading) {
     this.loading = isLoading;
     if (isLoading) this._setStatus('Loading...');
-    if (this.onLoadingChange) this.onLoadingChange(isLoading);
+    this.dispatchEvent(new CustomEvent('loadingchange', { detail: { loading: isLoading } }));
   }
 }

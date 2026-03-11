@@ -1,6 +1,7 @@
 // Extracted SourcePanelControl
-export class SourcePanelControl {
+export class SourcePanelControl extends EventTarget {
   constructor(searchParams, routesHandler, vectorSourceHandler) {
+    super();
     this.map = null;
     this.container = null;
     this.panelContent = null;
@@ -22,18 +23,10 @@ export class SourcePanelControl {
     this.selectedCategories = new Set();
     this.sourcesByCategory = {};
     this.initialSourcesApplied = false;
-    
-    this.onSourceChangeCallback = null;
-  }
-
-  setOnSourceChangeCallback(callback) {
-    this.onSourceChangeCallback = callback;
   }
 
   notifySourceChange() {
-    if (this.onSourceChangeCallback) {
-      this.onSourceChangeCallback();
-    }
+    this.dispatchEvent(new Event('sourcechange'));
   }
 
   initializeCategoryFilters() {

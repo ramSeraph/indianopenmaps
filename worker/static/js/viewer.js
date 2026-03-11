@@ -140,7 +140,7 @@ function setupMap() {
   let downloadPanelControl = new DownloadPanelControl(routesHandler, vectorSourceHandler);
   
   // Wire up source change notifications
-  sourcePanelControl.setOnSourceChangeCallback(() => {
+  sourcePanelControl.addEventListener('sourcechange', () => {
     downloadPanelControl.updateSourceDropdown();
   });
 

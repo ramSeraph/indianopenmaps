@@ -34,9 +34,9 @@ export class DownloadPanelControl {
     // Partial download state
     this.partialDownloadHandler = new PartialDownloadHandler();
     this.extentHandler = new ExtentHandler(routesHandler);
-    this.extentHandler.onLoadingChange = (loading) => {
-      if (this.startButton) this.startButton.disabled = loading;
-    };
+    this.extentHandler.addEventListener('loadingchange', (e) => {
+      if (this.startButton) this.startButton.disabled = e.detail.loading;
+    });
     this.partialDownloadSection = null;
     this.formatSelect = null;
     this.startButton = null;
