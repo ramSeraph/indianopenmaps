@@ -2,7 +2,6 @@
 export class SourcePanelControl extends EventTarget {
   constructor(searchParams, routesHandler, vectorSourceHandler) {
     super();
-    this.map = null;
     this.container = null;
     this.panelContent = null;
     this.searchInput = null;
@@ -333,15 +332,7 @@ export class SourcePanelControl extends EventTarget {
     return this.container;
   }
 
-  /**
-   * Set the map reference (called by sidebar or directly)
-   */
-  setMap(map) {
-    this.map = map;
-  }
-
   onRemove() {
     this.container?.parentNode?.removeChild(this.container);
-    this.map = undefined;
   }
 }

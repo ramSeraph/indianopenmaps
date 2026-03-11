@@ -361,10 +361,4 @@ export class BaseLayerPicker {
     return this.container;
   }
 
-  /**
-   * Set the map reference (for sidebar usage)
-   */
-  setMap(map) {
-    this.map = map;
-  }
 }

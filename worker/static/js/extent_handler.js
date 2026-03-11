@@ -31,10 +31,10 @@ const LAYER_CONFIGS = {
 };
 
 export class ExtentHandler extends EventTarget {
-  constructor(routesHandler) {
+  constructor(map, routesHandler) {
     super();
     this.routesHandler = routesHandler;
-    this.map = null;
+    this.map = map;
     this.checkbox = null;
     this._hoverHandlers = [];
     this._hoveredFeatures = new Map();
@@ -67,10 +67,6 @@ export class ExtentHandler extends EventTarget {
     this.checkbox.addEventListener('change', () => this._onToggle());
     container.appendChild(row);
     return container;
-  }
-
-  setMap(map) {
-    this.map = map;
   }
 
   reset() {

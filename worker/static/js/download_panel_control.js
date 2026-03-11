@@ -15,8 +15,8 @@ const COPY_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
 
 export class DownloadPanelControl {
-  constructor(routesHandler, vectorSourceHandler) {
-    this.map = null;
+  constructor(map, routesHandler, vectorSourceHandler) {
+    this.map = map;
     this.container = null;
     this.panelContent = null;
     this.sourceDropdown = null;
@@ -33,7 +33,7 @@ export class DownloadPanelControl {
     
     // Partial download state
     this.partialDownloadHandler = new PartialDownloadHandler();
-    this.extentHandler = new ExtentHandler(routesHandler);
+    this.extentHandler = new ExtentHandler(map, routesHandler);
     this.extentHandler.addEventListener('loadingchange', (e) => {
       if (this.startButton) this.startButton.disabled = e.detail.loading;
     });
@@ -44,6 +44,9 @@ export class DownloadPanelControl {
     this.progressContainer = null;
     this.progressBar = null;
     this.statusText = null;
+
+    // Wire up map events
+    this.map.on('moveend', () => this.updateBboxDisplay());
   }
 
   _populateSelectedDisplay(container, color, name) {
@@ -458,6 +461,10 @@ export class DownloadPanelControl {
 
     this.container.appendChild(this.panelContent);
 
+    // Initial updates now that DOM is ready
+    this.updateBboxDisplay();
+    this.updateSourceDropdown();
+
     return this.container;
   }
 
@@ -752,20 +759,6 @@ export class DownloadPanelControl {
     setTimeout(() => {
       this.statusText.classList.remove('error');
     }, 3000);
-  }
-
-  setMap(map) {
-    this.map = map;
-    this.extentHandler.setMap(map);
-    
-    // Update bbox on map move
-    this.map.on('moveend', () => this.updateBboxDisplay());
-    
-    // Initial bbox update
-    this.updateBboxDisplay();
-    
-    // Initial dropdown update
-    this.updateSourceDropdown();
   }
 
   onRemove() {

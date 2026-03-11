@@ -137,7 +137,7 @@ function setupMap() {
   
   let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
 
-  let downloadPanelControl = new DownloadPanelControl(routesHandler, vectorSourceHandler);
+  let downloadPanelControl = new DownloadPanelControl(map, routesHandler, vectorSourceHandler);
   
   // Wire up source change notifications
   sourcePanelControl.addEventListener('sourcechange', () => {
@@ -161,10 +161,6 @@ function setupMap() {
   
   // Add sidebar to map
   map.addControl(sidebar, 'top-left');
-  
-  // Set map references for panels that need it
-  downloadPanelControl.setMap(map);
-  sourcePanelControl.setMap(map);
 
   let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
   let hoverToggleControl = new HoverPopupToggleControl(popupHandler);
