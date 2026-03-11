@@ -110,13 +110,7 @@ export class PopupHandler {
       const sourceId = feature.source;
       
       // Find the source path from vectorSourceHandler
-      let sourcePath = null;
-      for (const [path, _] of this.vectorSourceHandler.selectedSources) {
-        if (this.vectorSourceHandler.getSourceName(path) === sourceId) {
-          sourcePath = path;
-          break;
-        }
-      }
+      let sourcePath = this.vectorSourceHandler.getPathBySourceName(feature.source);
       
       if (!sourcePath || !routes[sourcePath]) continue;
       
@@ -140,13 +134,8 @@ export class PopupHandler {
   }
 
   getLayerColor(feature) {
-    const sourceId = feature.source;
-    for (const [path, _] of this.vectorSourceHandler.selectedSources) {
-      if (this.vectorSourceHandler.getSourceName(path) === sourceId) {
-        return this.vectorSourceHandler.getColorForPath(path);
-      }
-    }
-    return null;
+    const path = this.vectorSourceHandler.getPathBySourceName(feature.source);
+    return path ? this.vectorSourceHandler.getColorForPath(path) : null;
   }
 
   queryFeatures(e) {

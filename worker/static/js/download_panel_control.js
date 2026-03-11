@@ -64,10 +64,10 @@ export class DownloadPanelControl {
   }
 
   updateSourceDropdown() {
-    const selectedSources = this.vectorSourceHandler.selectedSources;
+    const handler = this.vectorSourceHandler;
 
     // Always clear stale extents when the selected source is gone
-    if (selectedSources.size === 0 || (this.selectedSource && !selectedSources.has(this.selectedSource))) {
+    if (handler.selectedSourceCount === 0 || (this.selectedSource && !handler.hasSource(this.selectedSource))) {
       this.selectedSource = null;
       this.extentHandler.reset();
     }
@@ -77,7 +77,7 @@ export class DownloadPanelControl {
     // Clear dropdown
     this.sourceDropdownContainer.innerHTML = '';
     
-    const hasSources = selectedSources.size > 0;
+    const hasSources = handler.selectedSourceCount > 0;
     this.noSourcesMessage.style.display = hasSources ? 'none' : 'block';
     this.sourceDropdownContainer.style.display = hasSources ? 'block' : 'none';
     this.extentsContainer.style.display = hasSources ? '' : 'none';
@@ -91,11 +91,11 @@ export class DownloadPanelControl {
 
     // Default to first source if nothing selected
     if (!this.selectedSource) {
-      this.selectedSource = selectedSources.keys().next().value;
+      this.selectedSource = handler.getSelectedPaths()[0];
     }
 
-    const currentData = selectedSources.get(this.selectedSource);
-    const currentColor = this.vectorSourceHandler.getColorForPath(this.selectedSource);
+    const currentData = handler.getSourceData(this.selectedSource);
+    const currentColor = handler.getColorForPath(this.selectedSource);
 
     // Add label above dropdown
     const dropdownLabel = document.createElement('div');
@@ -118,12 +118,12 @@ export class DownloadPanelControl {
     optionsList.style.display = 'none';
 
     // Add options for each selected source
-    for (const [path, data] of selectedSources) {
+    for (const [path, data] of handler.getSelectedEntries()) {
       const option = document.createElement('div');
       option.className = 'dropdown-option';
       option.dataset.value = path;
       
-      const color = this.vectorSourceHandler.getColorForPath(path);
+      const color = handler.getColorForPath(path);
       if (color) {
         const colorDot = document.createElement('span');
         colorDot.className = 'source-color-dot';

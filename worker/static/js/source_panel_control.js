@@ -119,7 +119,7 @@ export class SourcePanelControl {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.id = `source-${source.path.replace(/\//g, '-')}`;
-      checkbox.checked = this.vectorSourceHandler.selectedSources.has(source.path);
+      checkbox.checked = this.vectorSourceHandler.hasSource(source.path);
       
       checkbox.addEventListener('change', (e) => {
         const sourceInfo = {
@@ -155,7 +155,7 @@ export class SourcePanelControl {
     
     if (sourcesToSelect.length > 0) {
       for (const item of sourcesToSelect) {
-        if (!this.vectorSourceHandler.selectedSources.has(item.source.path)) {
+        if (!this.vectorSourceHandler.hasSource(item.source.path)) {
           item.checkbox.checked = true;
           this.vectorSourceHandler.addVectorSource(item.source);
         }
@@ -176,7 +176,7 @@ export class SourcePanelControl {
   updateSelectedSourcesList() {
     if (!this.selectedSourcesList) return;
     
-    if (this.vectorSourceHandler.selectedSources.size === 0) {
+    if (this.vectorSourceHandler.selectedSourceCount === 0) {
       this.selectedSourcesList.style.display = 'none';
       return;
     }
@@ -184,7 +184,7 @@ export class SourcePanelControl {
     this.selectedSourcesList.style.display = 'block';
     this.selectedSourcesContent.innerHTML = '';
     
-    for (const [path, data] of this.vectorSourceHandler.selectedSources) {
+    for (const [path, data] of this.vectorSourceHandler.getSelectedEntries()) {
       const item = document.createElement('div');
       item.className = 'selected-source-item';
       

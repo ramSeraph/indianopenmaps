@@ -2,6 +2,8 @@
 import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
 
 export class VectorSourceHandler {
+  #selectedSources = new Map();
+
   constructor(map, colorHandler, searchParams, routesHandler) {
     this.map = map;
     this.layers = {
@@ -9,11 +11,39 @@ export class VectorSourceHandler {
       lines: [],
       polygons: []
     };
-    this.selectedSources = new Map();
 
     this.colorHandler = colorHandler;
     this.searchParams = searchParams;
     this.routesHandler = routesHandler;
+  }
+
+  get selectedSourceCount() {
+    return this.#selectedSources.size;
+  }
+
+  hasSource(path) {
+    return this.#selectedSources.has(path);
+  }
+
+  getSourceData(path) {
+    return this.#selectedSources.get(path);
+  }
+
+  getSelectedEntries() {
+    return this.#selectedSources.entries();
+  }
+
+  getSelectedPaths() {
+    return Array.from(this.#selectedSources.keys());
+  }
+
+  getPathBySourceName(sourceName) {
+    for (const [path, _] of this.#selectedSources) {
+      if (this.getSourceName(path) === sourceName) {
+        return path;
+      }
+    }
+    return null;
   }
 
   getSourceName(sourcePath) {
@@ -21,7 +51,7 @@ export class VectorSourceHandler {
   }
  
   updateUrlWithSelectedSources() {
-    const sourcePaths = Array.from(this.selectedSources.keys());
+    const sourcePaths = Array.from(this.#selectedSources.keys());
     this.searchParams.updateSources(sourcePaths);
   }
 
@@ -30,7 +60,7 @@ export class VectorSourceHandler {
   }
 
   getColorForPath(sourcePath) {
-    const sourceData = this.selectedSources.get(sourcePath);
+    const sourceData = this.#selectedSources.get(sourcePath);
     if (!sourceData) return null;
     return '#' + this.getColor(sourceData);
   }
@@ -41,7 +71,7 @@ export class VectorSourceHandler {
       return;
     }
     
-    const sourceData = this.selectedSources.get(sourcePath);
+    const sourceData = this.#selectedSources.get(sourcePath);
     
     if (!sourceData || !sourceData.vectorLayers) return;
     
@@ -182,7 +212,7 @@ export class VectorSourceHandler {
 
   removeVectorSource(sourcePath) {
     const srcName = this.getSourceName(sourcePath);
-    const sourceData = this.selectedSources.get(sourcePath);
+    const sourceData = this.#selectedSources.get(sourcePath);
     
     if (!sourceData) return;
     
@@ -214,7 +244,7 @@ export class VectorSourceHandler {
     }
     
     this.colorHandler.releaseColors(sourceData.color);
-    this.selectedSources.delete(sourcePath);
+    this.#selectedSources.delete(sourcePath);
     this.updateUrlWithSelectedSources();
   }
 
@@ -223,22 +253,22 @@ export class VectorSourceHandler {
   }
 
   addVectorSource(sourceInfo) {
-    if (this.selectedSources.has(sourceInfo.path)) {
+    if (this.#selectedSources.has(sourceInfo.path)) {
       return; // Already added
     }
 
     const maxSourcesAllowed = this.getMaxSources();
     
-    if (this.selectedSources.size >= maxSourcesAllowed) {
+    if (this.#selectedSources.size >= maxSourcesAllowed) {
       alert(`Maximum ${maxSourcesAllowed} sources can be selected at once.`);
       return;
     }
     
     const color = this.colorHandler.assignColors(
       sourceInfo.path,
-      () => Array.from(this.selectedSources.keys())
+      () => Array.from(this.#selectedSources.keys())
     );
-    this.selectedSources.set(sourceInfo.path, {
+    this.#selectedSources.set(sourceInfo.path, {
       name: sourceInfo.name,
       color: color,
       vectorLayers: null
@@ -256,7 +286,7 @@ export class VectorSourceHandler {
         
         // Store vector layer IDs from TileJSON
         const vectorLayerIds = (tileJson.vector_layers || []).map(layer => layer.id);
-        const sourceData = this.selectedSources.get(sourceInfo.path);
+        const sourceData = this.#selectedSources.get(sourceInfo.path);
         if (sourceData) {
           sourceData.vectorLayers = vectorLayerIds;
         }
@@ -285,7 +315,7 @@ export class VectorSourceHandler {
         
         const handler = (e) => {
           if (e.sourceId === srcName && e.isSourceLoaded) {
-            const sourceData = this.selectedSources.get(sourceInfo.path);
+            const sourceData = this.#selectedSources.get(sourceInfo.path);
             if (sourceData && sourceData.vectorLayers && sourceData.vectorLayers.length > 0) {
               this.addLayers(e, sourceInfo.path);
               this.map.off('sourcedata', handler);
@@ -298,11 +328,11 @@ export class VectorSourceHandler {
       .catch(error => {
         console.error(`Error loading TileJSON for ${sourceInfo.name}:`, error);
         // Remove from selected sources since it failed
-        const sourceData = this.selectedSources.get(sourceInfo.path);
+        const sourceData = this.#selectedSources.get(sourceInfo.path);
         if (sourceData) {
           this.colorHandler.releaseColors(sourceData.color);
         }
-        this.selectedSources.delete(sourceInfo.path);
+        this.#selectedSources.delete(sourceInfo.path);
         this.updateUrlWithSelectedSources();
       });
     
