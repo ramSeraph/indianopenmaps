@@ -1,8 +1,7 @@
 // Download panel control for parquet file downloads
 import { SizeGetter } from './size_getter.js';
-import { PartialDownloadHandler, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
 import { parquetMetadata } from './parquet_metadata.js';
-import { ExtentHandler } from './extent_handler.js';
+import { PartialDownloadUI } from './partial_download_ui.js';
 
 const DEFAULT_LICENSE = '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
 
@@ -28,25 +27,13 @@ export class DownloadPanelControl {
     this.selectedSource = null;
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
-    this.bboxContainer = null;
     this.sizeGetter = new SizeGetter();
     
-    // Partial download state
-    this.partialDownloadHandler = new PartialDownloadHandler();
-    this.extentHandler = new ExtentHandler(map, routesHandler);
-    this.extentHandler.addEventListener('loadingchange', (e) => {
-      if (this.startButton) this.startButton.disabled = e.detail.loading;
+    this.partialUI = new PartialDownloadUI({
+      map,
+      routesHandler,
+      getSelectedSource: () => this.selectedSource
     });
-    this.partialDownloadSection = null;
-    this.formatSelect = null;
-    this.startButton = null;
-    this.cancelButton = null;
-    this.progressContainer = null;
-    this.progressBar = null;
-    this.statusText = null;
-
-    // Wire up map events
-    this.map.on('moveend', () => this.updateBboxDisplay());
   }
 
   _populateSelectedDisplay(container, color, name) {
@@ -72,7 +59,7 @@ export class DownloadPanelControl {
     // Always clear stale extents when the selected source is gone
     if (handler.selectedSourceCount === 0 || (this.selectedSource && !handler.hasSource(this.selectedSource))) {
       this.selectedSource = null;
-      this.extentHandler.reset();
+      this.partialUI.reset();
     }
 
     if (!this.sourceDropdownContainer) return;
@@ -83,8 +70,7 @@ export class DownloadPanelControl {
     const hasSources = handler.selectedSourceCount > 0;
     this.noSourcesMessage.style.display = hasSources ? 'none' : 'block';
     this.sourceDropdownContainer.style.display = hasSources ? 'block' : 'none';
-    this.extentsContainer.style.display = hasSources ? '' : 'none';
-    this.partialDownloadSection.style.display = hasSources ? '' : 'none';
+    this.partialUI.setVisible(hasSources);
 
     if (!hasSources) {
       this.sourceInfoContainer.innerHTML = '';
@@ -169,8 +155,8 @@ export class DownloadPanelControl {
   async loadDownloadLinks(sourcePath) {
     this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
     this.sourceInfoContainer.innerHTML = '';
-    this.extentHandler.setSourcePath(sourcePath);
-    this.extentHandler.reset();
+    this.partialUI.setSourcePath(sourcePath);
+    this.partialUI.reset();
 
     try {
       const routes = this.routesHandler.getVectorSources();
@@ -407,18 +393,6 @@ export class DownloadPanelControl {
     }
   }
 
-  updateBboxDisplay() {
-    if (!this.bboxContainer || !this.map) return;
-    
-    const bounds = this.map.getBounds();
-    const west = bounds.getWest().toFixed(7);
-    const south = bounds.getSouth().toFixed(7);
-    const east = bounds.getEast().toFixed(7);
-    const north = bounds.getNorth().toFixed(7);
-    
-    this.bboxContainer.innerHTML = `<span class="bbox-label">Current bbox:</span> <code>${west},${south},${east},${north}</code>`;
-  }
-
   createPanel() {
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl-download-panel';
@@ -450,319 +424,21 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.linksContainer);
 
     // Data extents checkbox (between full download and partial download)
-    this.extentsContainer = this.extentHandler.createCheckbox();
-    this.extentsContainer.style.display = 'none';
-    this.panelContent.appendChild(this.extentsContainer);
+    this.panelContent.appendChild(this.partialUI.createExtentsCheckbox());
 
     // Partial download section
-    this.partialDownloadSection = this.createPartialDownloadSection();
-    this.partialDownloadSection.style.display = 'none';
-    this.panelContent.appendChild(this.partialDownloadSection);
+    this.panelContent.appendChild(this.partialUI.createSection());
 
     this.container.appendChild(this.panelContent);
 
-    // Initial updates now that DOM is ready
-    this.updateBboxDisplay();
+    // Initial update now that DOM is ready
     this.updateSourceDropdown();
 
     return this.container;
   }
 
-  createPartialDownloadSection() {
-    const section = document.createElement('div');
-    section.className = 'download-section partial-download-section';
-
-    // Section heading
-    const heading = document.createElement('div');
-    heading.className = 'download-section-heading';
-    
-    const leftPart = document.createElement('div');
-    leftPart.className = 'download-section-left';
-    
-    const label = document.createElement('span');
-    label.textContent = 'Partial Download';
-    
-    leftPart.appendChild(label);
-    
-    const toggleIcon = document.createElement('span');
-    toggleIcon.className = 'download-toggle-icon';
-    toggleIcon.textContent = '▼';
-    
-    heading.appendChild(leftPart);
-    heading.appendChild(toggleIcon);
-    
-    heading.addEventListener('click', () => {
-      section.classList.toggle('collapsed');
-    });
-    
-    section.appendChild(heading);
-
-    // Content container
-    const content = document.createElement('div');
-    content.className = 'partial-download-content';
-
-    // Bbox display (moved here from bottom)
-    this.bboxContainer = document.createElement('div');
-    this.bboxContainer.className = 'bbox-display partial-bbox';
-    content.appendChild(this.bboxContainer);
-
-    // Format selector row
-    const formatRow = document.createElement('div');
-    formatRow.className = 'partial-format-row';
-    
-    const formatLabel = document.createElement('label');
-    formatLabel.textContent = 'Format:';
-    formatLabel.className = 'partial-format-label';
-    
-    this.formatSelect = document.createElement('select');
-    this.formatSelect.className = 'partial-format-select';
-    
-    const formats = [
-      { value: 'geojson', label: 'GeoJSON' },
-      { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
-      { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
-      { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
-      { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
-      { value: 'csv', label: 'CSV (WKT geometry)' }
-    ];
-    
-    for (const fmt of formats) {
-      const option = document.createElement('option');
-      option.value = fmt.value;
-      option.textContent = fmt.label;
-      this.formatSelect.appendChild(option);
-    }
-    
-    formatRow.appendChild(formatLabel);
-    formatRow.appendChild(this.formatSelect);
-    content.appendChild(formatRow);
-
-    // Memory limit slider row
-    const memRow = document.createElement('div');
-    memRow.className = 'partial-format-row';
-
-    const memLabel = document.createElement('label');
-    memLabel.className = 'partial-format-label';
-    memLabel.textContent = 'Memory:';
-
-    this.memorySlider = document.createElement('input');
-    this.memorySlider.type = 'range';
-    this.memorySlider.className = 'partial-memory-slider';
-    this.memorySlider.min = String(MEMORY_MIN_MB);
-    this.memorySlider.step = String(MEMORY_STEP);
-    this.memorySlider.max = String(getDeviceMaxMemoryMB());
-    this.memorySlider.value = String(getDefaultMemoryLimitMB());
-
-    this.memoryValue = document.createElement('span');
-    this.memoryValue.className = 'partial-memory-value';
-    const initMB = parseInt(this.memorySlider.value);
-    this.memoryValue.textContent = initMB >= 1024 ? `${(initMB / 1024).toFixed(1)} GB` : `${initMB} MB`;
-
-    this.memorySlider.addEventListener('input', () => {
-      const mb = parseInt(this.memorySlider.value);
-      this.memoryValue.textContent = mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`;
-    });
-
-    memRow.appendChild(memLabel);
-    memRow.appendChild(this.memorySlider);
-    memRow.appendChild(this.memoryValue);
-    content.appendChild(memRow);
-
-    // Buttons row
-    const buttonsRow = document.createElement('div');
-    buttonsRow.className = 'partial-buttons-row';
-    
-    this.startButton = document.createElement('button');
-    this.startButton.className = 'partial-start-btn';
-    this.startButton.textContent = 'Start Download';
-    this.startButton.addEventListener('click', () => this.startPartialDownload());
-    
-    this.cancelButton = document.createElement('button');
-    this.cancelButton.className = 'partial-cancel-btn';
-    this.cancelButton.textContent = 'Cancel';
-    this.cancelButton.style.display = 'none';
-    this.cancelButton.addEventListener('click', () => this.cancelPartialDownload());
-    
-    buttonsRow.appendChild(this.startButton);
-    buttonsRow.appendChild(this.cancelButton);
-    content.appendChild(buttonsRow);
-
-    // Progress container
-    this.progressContainer = document.createElement('div');
-    this.progressContainer.className = 'partial-progress-container';
-    this.progressContainer.style.display = 'none';
-
-    // Download info summary (shown during download)
-    this.downloadInfo = document.createElement('div');
-    this.downloadInfo.className = 'partial-download-info';
-    this.progressContainer.appendChild(this.downloadInfo);
-    
-    const progressBarOuter = document.createElement('div');
-    progressBarOuter.className = 'partial-progress-bar-outer';
-    
-    this.progressBar = document.createElement('div');
-    this.progressBar.className = 'partial-progress-bar-inner';
-    this.progressBar.style.width = '0%';
-    
-    progressBarOuter.appendChild(this.progressBar);
-    this.progressContainer.appendChild(progressBarOuter);
-    
-    this.statusText = document.createElement('div');
-    this.statusText.className = 'partial-status-text';
-    this.progressContainer.appendChild(this.statusText);
-    
-    content.appendChild(this.progressContainer);
-
-    section.appendChild(content);
-    return section;
-  }
-
-  async startPartialDownload() {
-    if (!this.selectedSource || !this.map) {
-      this.showError('Please select a source first');
-      return;
-    }
-
-    const routes = this.routesHandler.getVectorSources();
-    const routeInfo = routes[this.selectedSource];
-    
-    if (!routeInfo || !routeInfo.url) {
-      this.showError('No parquet data available for this source');
-      return;
-    }
-
-    // Capture current bbox
-    const bounds = this.map.getBounds();
-    const bbox = {
-      west: bounds.getWest(),
-      south: bounds.getSouth(),
-      east: bounds.getEast(),
-      north: bounds.getNorth()
-    };
-
-    const format = this.formatSelect.value;
-    const sourceName = routeInfo.name || this.selectedSource;
-
-    const isPartitioned = routeInfo.partitioned_parquet === true;
-    const memMB = parseInt(this.memorySlider.value);
-    const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
-    const formatLabels = { geojson: 'GeoJSON', geojsonseq: 'GeoJSONSeq', geoparquet: 'GeoParquet v1.1', geoparquet2: 'GeoParquet v2.0', geopackage: 'GeoPackage', csv: 'CSV' };
-
-    // Update UI state
-    this.setDownloadingState(true);
-    this.updateProgress(0);
-
-    // Show download info summary
-    const bboxDisplay = `${bbox.west.toFixed(4)}, ${bbox.south.toFixed(4)} → ${bbox.east.toFixed(4)}, ${bbox.north.toFixed(4)}`;
-    this.downloadInfo.innerHTML = 
-      `<b>${sourceName}</b><br>` +
-      `<span class="partial-download-info-detail">format: ${formatLabels[format] || format}</span>` +
-      `<span class="partial-download-info-detail">bbox: ${bboxDisplay}</span>` +
-      `<span class="partial-download-info-detail">memory: ${memStr}</span>`;
-
-    this.updateStatus(`Starting download...`);
-
-    try {
-      let parquetUrl = null;
-      let baseUrl = null;
-      let filteredPartitions = null;
-
-      if (isPartitioned) {
-        // Get partitions filtered by bbox
-        const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
-        baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
-        
-        // Ensure we have the meta.json cached
-        const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
-        if (metaJson) {
-          filteredPartitions = this.partialDownloadHandler.getPartitionsForBbox(metaJson, bbox);
-          
-          if (filteredPartitions.length === 0) {
-            this.showError('No data found in current bbox');
-            this.setDownloadingState(false);
-            return;
-          }
-          
-          this.updateStatus(`Found ${filteredPartitions.length} partition(s) in bbox...`);
-        } else {
-          this.showError('Could not load partition metadata');
-          this.setDownloadingState(false);
-          return;
-        }
-      } else {
-        // Single parquet file
-        parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
-      }
-
-      await this.partialDownloadHandler.download({
-        sourceName,
-        parquetUrl,
-        baseUrl,
-        partitions: filteredPartitions,
-        bbox,
-        format,
-        memoryLimit: `${this.memorySlider.value}MB`,
-        onProgress: (pct) => this.updateProgress(pct),
-        onStatus: (msg) => this.updateStatus(msg)
-      });
-
-      this.updateProgress(100);
-      this.updateStatus('Complete!');
-
-      this.setDownloadingState(false);
-      this.updateProgress(0);
-      this.updateStatus('');
-      this.downloadInfo.innerHTML = '';
-
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Partial download failed:', error);
-        this.showError(`Download failed: ${error.message}`);
-      } else {
-        this.updateStatus('Cancelled');
-        setTimeout(() => this.updateStatus(''), 2000);
-      }
-      this.setDownloadingState(false);
-      this.downloadInfo.innerHTML = '';
-    }
-  }
-
-  cancelPartialDownload() {
-    this.partialDownloadHandler.cancel();
-    this.updateStatus('Cancelling after current operation finishes...');
-  }
-
-  setDownloadingState(isDownloading) {
-    this.startButton.disabled = isDownloading;
-    this.cancelButton.style.display = isDownloading ? 'block' : 'none';
-    this.progressContainer.style.display = isDownloading ? 'block' : 'none';
-    if (this.extentHandler?.checkbox) {
-      this.extentHandler.checkbox.disabled = isDownloading;
-    }
-  }
-
-  updateProgress(percent) {
-    if (this.progressBar) {
-      this.progressBar.style.width = `${percent}%`;
-    }
-  }
-
-  updateStatus(message) {
-    if (this.statusText) {
-      this.statusText.textContent = message;
-    }
-  }
-
-  showError(message) {
-    this.updateStatus(message);
-    this.statusText.classList.add('error');
-    setTimeout(() => {
-      this.statusText.classList.remove('error');
-    }, 3000);
-  }
-
   onRemove() {
-    this.extentHandler.destroy();
+    this.partialUI.destroy();
     this.container?.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
