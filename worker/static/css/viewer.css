@@ -694,7 +694,7 @@ body { margin:0; padding:0; }
 .download-link {
   color: #1976d2;
   text-decoration: none;
-  font-size: 11px;
+  font-size: 10px;
   word-break: break-all;
   flex: 1;
 }
@@ -728,9 +728,6 @@ body { margin:0; padding:0; }
 }
 .copy-url-btn:hover {
   background: #e0e0e0;
-}
-.partition-link {
-  font-size: 10px;
 }
 .bbox-display {
   margin-top: 12px;
@@ -934,9 +931,6 @@ body { margin:0; padding:0; }
     max-height: 100px;
   }
   .download-link {
-    font-size: 10px;
-  }
-  .partition-link {
     font-size: 9px;
   }
 }

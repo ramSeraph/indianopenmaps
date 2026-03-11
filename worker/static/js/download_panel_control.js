@@ -128,7 +128,7 @@ export class DownloadPanelControl {
         this.selectedSource = path;
         this._populateSelectedDisplay(selectedDisplay, color, data.name);
         optionsList.style.display = 'none';
-        this.loadDownloadLinks(path);
+        this._onSourceSelected(path);
       });
       
       optionsList.appendChild(option);
@@ -148,34 +148,50 @@ export class DownloadPanelControl {
     dropdownWrapper.appendChild(optionsList);
     this.sourceDropdownContainer.appendChild(dropdownWrapper);
 
-    // Load links for current selection
-    this.loadDownloadLinks(this.selectedSource);
+    // Load details for current selection
+    this._onSourceSelected(this.selectedSource);
   }
 
-  async loadDownloadLinks(sourcePath) {
-    this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
-    this.sourceInfoContainer.innerHTML = '';
+  async _onSourceSelected(sourcePath) {
     this.partialUI.setSourcePath(sourcePath);
     this.partialUI.reset();
 
+    const routes = this.routesHandler.getVectorSources();
+    const routeInfo = routes[sourcePath];
+
+    if (!routeInfo || !routeInfo.url) {
+      this.sourceInfoContainer.innerHTML = '';
+      this.linksContainer.innerHTML = '<div class="error-message">No download available for this source</div>';
+      return;
+    }
+
+    this.updateSourceInfo(routeInfo);
+    await this.loadDownloadLinks(routeInfo);
+  }
+
+  async loadDownloadLinks(routeInfo) {
+    this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
+
     try {
-      const routes = this.routesHandler.getVectorSources();
-      const routeInfo = routes[sourcePath];
-
-      if (!routeInfo || !routeInfo.url) {
-        this.linksContainer.innerHTML = '<div class="error-message">No download available for this source</div>';
-        return;
-      }
-
-      this.updateSourceInfo(routeInfo);
-
       const isPartitioned = routeInfo.partitioned_parquet === true;
+      let files;
 
       if (isPartitioned) {
-        await this.loadPartitionedLinks(routeInfo.url, routeInfo.name || sourcePath);
+        const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
+        const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
+        const partitions = await parquetMetadata.getPartitions(metaUrl);
+
+        if (!partitions || partitions.length === 0) {
+          this.linksContainer.innerHTML = '<div class="error-message">No partitions found</div>';
+          return;
+        }
+        files = partitions.map(p => ({ url: baseUrl + p, label: p }));
       } else {
-        this.loadSingleLink(routeInfo.url, routeInfo.name || sourcePath);
+        const parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
+        files = [{ url: parquetUrl, label: parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1) }];
       }
+
+      this._renderDownloadLinks(files);
     } catch (error) {
       console.error('Error loading download links:', error);
       this.linksContainer.innerHTML = '<div class="error-message">Error loading download links</div>';
@@ -307,90 +323,41 @@ export class DownloadPanelControl {
     return copyBtn;
   }
 
-  loadSingleLink(originalUrl, name) {
-    const parquetUrl = parquetMetadata.getParquetUrl(originalUrl);
-    // Extract filename from URL
-    const filename = parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1);
-    
-    this.linksContainer.innerHTML = '';
-
-    const listContainer = document.createElement('div');
-    listContainer.className = 'partitions-list';
-    
+  _createLinkItem(url, label) {
     const linkItem = document.createElement('div');
     linkItem.className = 'download-link-item';
-    
+
     const link = document.createElement('a');
-    link.href = parquetUrl;
+    link.href = url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = filename;
+    link.textContent = label;
     link.className = 'download-link';
-    
+
     const sizeSpan = document.createElement('span');
     sizeSpan.className = 'file-size loading';
-    
+
     linkItem.appendChild(link);
     linkItem.appendChild(sizeSpan);
-    linkItem.appendChild(this.createCopyButton(parquetUrl));
-    listContainer.appendChild(linkItem);
-    
-    const section = this.createDownloadSection('Full Download', listContainer);
-    this.linksContainer.appendChild(section);
+    linkItem.appendChild(this.createCopyButton(url));
 
-    // Fetch file size asynchronously
-    this.sizeGetter.updateElement(parquetUrl, sizeSpan);
+    this.sizeGetter.updateElement(url, sizeSpan);
+    return linkItem;
   }
 
-  async loadPartitionedLinks(originalUrl, name) {
-    const metaUrl = parquetMetadata.getMetaJsonUrl(originalUrl);
-    const baseUrl = parquetMetadata.getBaseUrl(originalUrl);
-    
-    const partitions = await parquetMetadata.getPartitions(metaUrl);
-    
-    if (!partitions || partitions.length === 0) {
-      this.linksContainer.innerHTML = '<div class="error-message">No partitions found</div>';
-      return;
-    }
-
+  _renderDownloadLinks(files) {
     this.linksContainer.innerHTML = '';
 
     const listContainer = document.createElement('div');
     listContainer.className = 'partitions-list';
 
-    const sizeElements = [];
-
-    for (const partition of partitions) {
-      const partitionUrl = baseUrl + partition;
-      
-      const linkItem = document.createElement('div');
-      linkItem.className = 'download-link-item';
-      
-      const link = document.createElement('a');
-      link.href = partitionUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.textContent = partition;
-      link.className = 'download-link partition-link';
-      
-      const sizeSpan = document.createElement('span');
-      sizeSpan.className = 'file-size loading';
-      
-      linkItem.appendChild(link);
-      linkItem.appendChild(sizeSpan);
-      linkItem.appendChild(this.createCopyButton(partitionUrl));
-      listContainer.appendChild(linkItem);
-
-      sizeElements.push({ url: partitionUrl, element: sizeSpan });
+    for (const { url, label } of files) {
+      listContainer.appendChild(this._createLinkItem(url, label));
     }
 
-    const section = this.createDownloadSection(`Full Download (${partitions.length} files)`, listContainer);
+    const heading = isMulti ? `Full Download (${files.length} files)` : 'Full Download';
+    const section = this.createDownloadSection(heading, listContainer);
     this.linksContainer.appendChild(section);
-
-    // Fetch file sizes asynchronously
-    for (const { url, element } of sizeElements) {
-      this.sizeGetter.updateElement(url, element);
-    }
   }
 
   createPanel() {
