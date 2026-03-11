@@ -126,7 +126,7 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 
 ### Styling
 - `css/main-dark.css` - Shared dark theme (console-style)
-- `css/view.css` - Map viewer styles (sidebar, panels, map controls)
+- `css/viewer.css` - Map viewer styles (sidebar, panels, map controls)
 - `css/raster_view.css` - Dual-map raster viewer styles
 - **`viewer.html`** - Contains inline `<style>` block with source panel, download panel, and category filter styles (search for `.maplibregl-ctrl-source-panel`, `.category-filter`, `.download-panel`)
 
