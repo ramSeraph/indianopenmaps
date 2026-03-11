@@ -89,22 +89,27 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 
 ### Main Viewer (`js/viewer.js`)
 - Vector tile viewer with MapLibre GL
+- All dependencies injected at construction (no late `setMap()` calls)
+- Constructors with 3+ params use destructured config objects for readability
 - Modular architecture with separate handlers:
   - `base_layer_picker.js` - Base map selection (Carto/OSM/ESRI/Google + custom raster sources)
-  - `vector_source_handler.js` - Vector layer management (MVT tiles, fill-extrusion for 3D buildings)
+  - `vector_source_handler.js` - Vector layer management (MVT tiles, fill-extrusion for 3D buildings); `#selectedSources` is private with accessor methods (`selectedSourceCount`, `hasSource()`, `getSourceData()`, `getSelectedEntries()`, `getSelectedPaths()`, `getPathBySourceName()`, `getColorForPath()`)
   - `color_handler.js` - Layer color palette (12 colors, session memory via sessionStorage)
   - `terrain_handler.js` - 3D terrain using CartoDEM v3r1
   - `search_param_handler.js` - URL parameter state (query & hash params)
-  - `source_panel_control.js` - Vector source selector panel with category filtering
+  - `source_panel_control.js` - Vector source selector panel with category filtering; extends `EventTarget`, dispatches `'sourcechange'` events
   - `sidebar_control.js` - Modular sidebar with icon buttons (search, layers, sources, downloads)
   - `inspect_control.js` - Feature inspection popups with HTML-escaped property display
   - `nominatim_geocoder.js` - Nominatim search adapter for MapLibre geocoder
   - `routes_handler.js` - Fetches `/api/routes`, separates raster vs vector sources
   - `size_getter.js` - File size estimation utilities
-  - `extent_handler.js` - Visualizes data extents and row group extents as map rectangles
+  - `extent_handler.js` - Visualizes data extents and row group extents as map rectangles; extends `EventTarget`, dispatches `'loadingchange'` CustomEvents
 
 ### Download System (`js/download_panel_control.js` + related)
 - Multi-format download UI with spatial filtering (bbox or polygon)
+- Split into two focused classes:
+  - `download_panel_control.js` - Source dropdown, source info display, full download links
+  - `partial_download_ui.js` - Partial download UI: extents checkbox, bbox display, format picker, memory slider, download execution, and progress tracking
 - **Download pipeline**: Remote Parquet → DuckDB (httpfs) → spatial filter → OPFS intermediate → format handler → Blob download
 - Format handlers (all extend `format_base.js`):
   - `format_csv.js` - CSV with geometry as WKT
@@ -125,10 +130,9 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 - Dual-map Leaflet viewer with side-by-side comparison and synchronized panning
 
 ### Styling
-- `css/main-dark.css` - Shared dark theme (console-style)
-- `css/viewer.css` - Map viewer styles (sidebar, panels, map controls)
+- `css/viewer.css` - All viewer styles (sidebar, panels, map controls, source panel, download panel, category filters)
 - `css/raster_view.css` - Dual-map raster viewer styles
-- **`viewer.html`** - Contains inline `<style>` block with source panel, download panel, and category filter styles (search for `.maplibregl-ctrl-source-panel`, `.category-filter`, `.download-panel`)
+- `viewer.html` is minimal (~29 lines) — just head with stylesheet links and body with map div
 
 ## Code Style & Conventions
 
@@ -173,6 +177,10 @@ Even with `nodejs_compat` enabled, Workers have significant limitations:
 - No bundler - use browser-native ES modules
 - Import external libs from `https://esm.sh/`
 - MapLibre controls as ES6 classes
+- Constructors with 3+ params use destructured config objects: `new Foo({ map, handler })` not `new Foo(map, handler)`
+- Dependencies injected at construction time — no late `setMap()` pattern
+- Inter-component communication via `EventTarget` (`addEventListener`/`dispatchEvent`), not callbacks
+- Use JS `#private` class fields for internal state (e.g., `#selectedSources` in VectorSourceHandler)
 - URL hash for map state (`#map=zoom/lat/lon`)
 - Web Workers for CPU-heavy tasks (GeoPackage writing)
 - OPFS for temporary file storage during downloads
