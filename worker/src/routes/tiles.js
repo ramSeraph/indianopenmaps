@@ -1,6 +1,6 @@
 import { PhotonImage } from '@cf-wasm/photon';
-import MosaicHandler from '../mosaic_handler.js';
-import PMTilesHandler from '../pmtiles_handler.js';
+import MosaicHandler from '../lib/mosaic_handler.js';
+import PMTilesHandler from '../lib/pmtiles_handler.js';
 
 import routes from './listing.json' with { type: 'json' };
 

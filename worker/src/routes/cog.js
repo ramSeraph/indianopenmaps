@@ -1,4 +1,4 @@
-import COGHandler from '../cog_handler.js';
+import COGHandler from '../lib/cog_handler.js';
 
 let cogHandler = null;
 

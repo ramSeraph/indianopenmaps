@@ -1,4 +1,4 @@
-import STACHandler from '../stac_handler.js';
+import STACHandler from '../lib/stac_handler.js';
 import stacCatalog from './stac_catalog.json' with { type: 'json' };
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
