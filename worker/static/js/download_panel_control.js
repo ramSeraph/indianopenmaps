@@ -55,26 +55,22 @@ export class DownloadPanelControl {
       this.extentHandler.reset();
     }
 
-    // Disable checkbox when no sources are active
-    if (this.extentHandler.checkbox) {
-      this.extentHandler.checkbox.disabled = selectedSources.size === 0;
-    }
-
     if (!this.sourceDropdownContainer) return;
 
     // Clear dropdown
     this.sourceDropdownContainer.innerHTML = '';
     
-    if (selectedSources.size === 0) {
-      this.noSourcesMessage.style.display = 'block';
-      this.sourceDropdownContainer.style.display = 'none';
+    const hasSources = selectedSources.size > 0;
+    this.noSourcesMessage.style.display = hasSources ? 'none' : 'block';
+    this.sourceDropdownContainer.style.display = hasSources ? 'block' : 'none';
+    this.extentsContainer.style.display = hasSources ? '' : 'none';
+    this.partialDownloadSection.style.display = hasSources ? '' : 'none';
+
+    if (!hasSources) {
       this.sourceInfoContainer.innerHTML = '';
       this.linksContainer.innerHTML = '';
       return;
     }
-
-    this.noSourcesMessage.style.display = 'none';
-    this.sourceDropdownContainer.style.display = 'block';
 
     // Default to first source if nothing selected
     if (!this.selectedSource) {
@@ -461,10 +457,13 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.linksContainer);
 
     // Data extents checkbox (between full download and partial download)
-    this.panelContent.appendChild(this.extentHandler.createCheckbox());
+    this.extentsContainer = this.extentHandler.createCheckbox();
+    this.extentsContainer.style.display = 'none';
+    this.panelContent.appendChild(this.extentsContainer);
 
     // Partial download section
     this.partialDownloadSection = this.createPartialDownloadSection();
+    this.partialDownloadSection.style.display = 'none';
     this.panelContent.appendChild(this.partialDownloadSection);
 
     this.container.appendChild(this.panelContent);
