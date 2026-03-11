@@ -1,6 +1,6 @@
 // Extracted SourcePanelControl
 export class SourcePanelControl extends EventTarget {
-  constructor(searchParams, routesHandler, vectorSourceHandler) {
+  constructor({ searchParams, routesHandler, vectorSourceHandler }) {
     super();
     this.container = null;
     this.panelContent = null;

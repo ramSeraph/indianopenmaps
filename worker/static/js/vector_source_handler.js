@@ -4,7 +4,7 @@ import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
 export class VectorSourceHandler {
   #selectedSources = new Map();
 
-  constructor(map, colorHandler, searchParams, routesHandler) {
+  constructor({ map, colorHandler, searchParams, routesHandler }) {
     this.map = map;
     this.layers = {
       pts: [],

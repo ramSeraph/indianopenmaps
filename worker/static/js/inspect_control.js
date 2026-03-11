@@ -56,7 +56,7 @@ function renderPopup(features, lngLat, getLayerColor) {
 }
 
 export class PopupHandler {
-  constructor(map, layers, routesHandler, vectorSourceHandler) {
+  constructor({ map, layers, routesHandler, vectorSourceHandler }) {
     this.map = map;
     this.layers = layers;
     this.routesHandler = routesHandler;

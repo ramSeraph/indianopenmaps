@@ -180,9 +180,8 @@ export function getLayersAndSources(layerInfo) {
 }
 
 export class BaseLayerPicker {
-  constructor(map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler) {
+  constructor({ map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler }) {
     this.map = map;
-
     this.colorHandler = colorHandler;
     this.routesHandler = routesHandler;
     this.searchParams = searchParams;

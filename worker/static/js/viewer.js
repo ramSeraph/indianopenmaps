@@ -129,15 +129,15 @@ function setupMap() {
       .togglePopup();
   });
   
-  let vectorSourceHandler = new VectorSourceHandler(map, colorHandler, searchParams, routesHandler);
+  let vectorSourceHandler = new VectorSourceHandler({ map, colorHandler, searchParams, routesHandler });
 
-  let baseLayerPicker = new BaseLayerPicker(map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler);
+  let baseLayerPicker = new BaseLayerPicker({ map, colorHandler, searchParams, routesHandler, terrainHandler, vectorSourceHandler });
 
   registerCorrectionProtocol(maplibregl);
   
-  let sourcePanelControl = new SourcePanelControl(searchParams, routesHandler, vectorSourceHandler);
+  let sourcePanelControl = new SourcePanelControl({ searchParams, routesHandler, vectorSourceHandler });
 
-  let downloadPanelControl = new DownloadPanelControl(map, routesHandler, vectorSourceHandler);
+  let downloadPanelControl = new DownloadPanelControl({ map, routesHandler, vectorSourceHandler });
   
   // Wire up source change notifications
   sourcePanelControl.addEventListener('sourcechange', () => {
@@ -162,7 +162,7 @@ function setupMap() {
   // Add sidebar to map
   map.addControl(sidebar, 'top-left');
 
-  let popupHandler = new PopupHandler(map, vectorSourceHandler.layers, routesHandler, vectorSourceHandler);
+  let popupHandler = new PopupHandler({ map, layers: vectorSourceHandler.layers, routesHandler, vectorSourceHandler });
   let hoverToggleControl = new HoverPopupToggleControl(popupHandler);
 
   map.addControl(terrainHandler.getControl(), 'top-right');
