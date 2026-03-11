@@ -141,6 +141,9 @@ This repository contains a geospatial tile server and web viewer for Indian map 
 - Prefer `async/await` over callbacks
 - Use `const`/`let`, avoid `var`
 - Error handling: throw custom error classes from `errors.js`
+- **Consistency**: Before introducing a new pattern, check how similar problems are already solved in the codebase. Follow existing conventions.
+- **Single source of truth**: When splitting code, ensure constants and domain knowledge live in the owning module and are imported by consumers. Don't duplicate definitions across files.
+- **Post-split review**: After extracting or splitting code, review the result for: duplicated state or constants across files, callbacks that could be replaced by pushing state down, and data/logic that ended up in the wrong module based on responsibility. Fix these before committing.
 
 ### Worker Patterns
 - All route handlers should set CORS headers: `Access-Control-Allow-Origin: *`
