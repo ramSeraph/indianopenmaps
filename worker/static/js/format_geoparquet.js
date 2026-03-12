@@ -3,6 +3,7 @@
 // v2.0 support inspired by https://github.com/geoparquet/geoparquet-io
 
 import { FormatHandler } from './format_base.js';
+import { OPFS_PREFIX_TMP, ScopedProgress } from './utils.js';
 
 // DuckDB returns uppercase; GeoParquet spec requires title case
 const DUCKDB_TO_SPEC = {
@@ -65,26 +66,56 @@ export class GeoParquetFormatHandler extends FormatHandler {
 
   get extension() { return '.parquet'; }
 
-  async write({ onStatus, cancelled }) {
+  // Peak browser storage: intermediate parquet (~1× source) + final output coexist on OPFS
+  getExpectedBrowserStorageUsage() {
+    const outputFactor = this.versionConfig.metadataVersion.startsWith('2') ? 0.8 : 1;
+    return this.estimatedBytes * (1 + outputFactor);
+  }
+
+  // Intermediate deleted before save; peak total = max(browser, output + download copy)
+  getTotalExpectedDiskUsage() {
+    const outputFactor = this.versionConfig.metadataVersion.startsWith('2') ? 0.8 : 1;
+    return this.estimatedBytes * Math.max(1 + outputFactor, 2 * outputFactor);
+  }
+
+  async _write({ onProgress, onStatus, cancelled }) {
     const cfg = this.versionConfig;
 
-    // Step 1: Write initial parquet
+    // Stage 1 (0–50%): Write initial parquet from remote source
     onStatus?.(`Writing GeoParquet (v${cfg.metadataVersion})...`);
-    const tempOpfsPath = await this.createTempOpfsFile('temp');
+    const stage1 = new ScopedProgress(onProgress, 0, 50);
+    const tempOpfsPath = await this.createTempOpfsFile(OPFS_PREFIX_TMP);
 
-    await this.conn.query(`
-      COPY (
-        SELECT * REPLACE (${cfg.geomExpr})${cfg.bboxSelect}
-        FROM ${this.parquetSource}
-        WHERE ${this.bboxFilter}
-      ) TO '${tempOpfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE')
-    `);
+    const stopTracker1 = this.startDiskProgressTracker(
+      stage1.callback, onStatus, 'Fetching data:', this.estimatedBytes
+    );
+    try {
+      await this.conn.query(`
+        COPY (
+          SELECT * EXCLUDE (bbox) REPLACE (${cfg.geomExpr})${cfg.bboxSelect}
+          FROM ${this.parquetSource}
+          WHERE ${this.bboxFilter}
+        ) TO '${tempOpfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE')
+      `);
+    } finally {
+      stopTracker1();
+    }
+
+    // Measure actual temp file size for accurate stage 3 progress tracking
+    const root = await navigator.storage.getDirectory();
+    const tempHandle = await root.getFileHandle(tempOpfsPath.replace('opfs://', ''));
+    const tempFile = await tempHandle.getFile();
+    const tempFileSize = tempFile.size;
 
     if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
 
-    // Step 2: Compute actual bbox and geometry_types from local OPFS file
+    // Stage 2 (50–60%): Compute actual bbox and geometry_types from local OPFS file
     onStatus?.('Computing metadata...');
+    onProgress?.(50);
     const statsResult = await this.conn.query(cfg.getBboxQuery(tempOpfsPath));
+
+    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+
     const geoBbox = [
       statsResult.getChildAt(0).get(0),
       statsResult.getChildAt(1).get(0),
@@ -92,17 +123,23 @@ export class GeoParquetFormatHandler extends FormatHandler {
       statsResult.getChildAt(3).get(0)
     ];
 
+    onStatus?.('Determining geometry types...');
+    onProgress?.(60);
     const typesResult = await this.conn.query(`
       SELECT DISTINCT ST_GeometryType(${cfg.geomRef}) as geom_type
       FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL
     `);
+
+    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+
     const geomTypes = [];
     for (let i = 0; i < typesResult.numRows; i++) {
       const raw = typesResult.getChildAt(0).get(i);
       geomTypes.push(DUCKDB_TO_SPEC[raw] || raw);
     }
+    onProgress?.(70);
 
-    // Step 3: Re-COPY with correct geo metadata + Hilbert sort
+    // Stage 3 (70–100%): Re-COPY with correct geo metadata + Hilbert sort
     const geoMeta = {
       version: cfg.metadataVersion,
       primary_column: 'geometry',
@@ -111,19 +148,31 @@ export class GeoParquetFormatHandler extends FormatHandler {
     const geoMetaEscaped = JSON.stringify(geoMeta).replace(/'/g, "''");
 
     onStatus?.('Sorting by Hilbert curve & finalizing...');
+    const stage2 = new ScopedProgress(onProgress, 70, 100);
     const [bxmin, bymin, bxmax, bymax] = geoBbox;
-    await this.conn.query(`
-      COPY (
-        SELECT * FROM '${tempOpfsPath}'
-        ORDER BY ST_Hilbert(${cfg.geomRef},
-          ST_Extent(ST_MakeEnvelope(${bxmin}, ${bymin}, ${bxmax}, ${bymax})))
-      ) TO '${this._opfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE', KV_METADATA {geo: '${geoMetaEscaped}'})
-    `);
+
+    const stopTracker2 = this.startDiskProgressTracker(
+      stage2.callback, onStatus, 'Sorting & finalizing:', tempFileSize
+    );
+    try {
+      await this.conn.query(`
+        COPY (
+          SELECT * FROM '${tempOpfsPath}'
+          ORDER BY ST_Hilbert(${cfg.geomRef},
+            ST_Extent(ST_MakeEnvelope(${bxmin}, ${bymin}, ${bxmax}, ${bymax})))
+        ) TO '${this._opfsPath}' (FORMAT PARQUET, COMPRESSION ZSTD, COMPRESSION_LEVEL 15, ROW_GROUP_SIZE 100000, GEOPARQUET_VERSION 'NONE', KV_METADATA {geo: '${geoMetaEscaped}'})
+      `);
+    } finally {
+      stopTracker2();
+    }
+
+    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
 
     // Release DuckDB hold and eagerly clean up temp file
     try {
       await this.db.dropFile(tempOpfsPath);
     } catch (e) { /* ignore */ }
     await this.releaseTempFile(tempOpfsPath.replace('opfs://', ''));
+    onProgress?.(100);
   }
 }

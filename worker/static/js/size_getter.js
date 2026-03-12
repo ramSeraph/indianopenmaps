@@ -1,20 +1,12 @@
 // Fetches and caches file sizes via HEAD requests through CORS proxy
-import { proxyUrl } from './utils.js';
+import { proxyUrl, formatSize } from './utils.js';
 
 export class SizeGetter {
   constructor() {
-    this.cache = new Map();
+    this.cache = new Map(); // url → bytes (integer)
   }
 
-  formatSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  async getSize(url) {
+  async getSizeBytes(url) {
     if (this.cache.has(url)) {
       return this.cache.get(url);
     }
@@ -22,32 +14,24 @@ export class SizeGetter {
     try {
       const proxied = proxyUrl(url);
       const response = await fetch(proxied, { method: 'HEAD' });
-      
+
       if (response.ok) {
         const contentLength = response.headers.get('content-length');
         if (contentLength) {
-          const size = this.formatSize(parseInt(contentLength, 10));
-          this.cache.set(url, size);
-          return size;
+          const bytes = parseInt(contentLength, 10);
+          this.cache.set(url, bytes);
+          return bytes;
         }
       }
     } catch (error) {
       console.error('Error fetching file size:', error);
     }
-    
+
     return null;
   }
 
-  async updateElement(url, element) {
-    const size = await this.getSize(url);
-    // Check if element is still in DOM before updating
-    if (!element.isConnected) return;
-    
-    if (size) {
-      element.textContent = size;
-    } else {
-      element.textContent = '';
-    }
-    element.classList.remove('loading');
+  async getSize(url) {
+    const bytes = await this.getSizeBytes(url);
+    return bytes != null ? formatSize(bytes) : null;
   }
 }

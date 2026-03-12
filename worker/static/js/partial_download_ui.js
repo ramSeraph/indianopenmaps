@@ -1,9 +1,14 @@
-// UI for partial (bbox-filtered) downloads
+// UI for partial (bbox-filtered) downloads and the show extents checkbox.
+// Clubbed together because the show extents checkbox is only relevant in the context of partial downloads, and it needs to interact with the same map/events/etc.
 import { PartialDownloadHandler, FORMAT_OPTIONS, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
-import { parquetMetadata } from './parquet_metadata.js';
 import { ExtentHandler } from './extent_handler.js';
+import { formatSize, getStorageEstimate } from './utils.js';
 
 const FORMAT_LABELS = Object.fromEntries(FORMAT_OPTIONS.map(f => [f.value, f.label]));
+
+function formatMemory(mb) {
+  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`;
+}
 
 export class PartialDownloadUI {
   constructor({ map, routesHandler }) {
@@ -91,8 +96,6 @@ export class PartialDownloadUI {
     return this.section;
   }
 
-  // --- Public API for DownloadPanelControl ---
-
   setSourcePath(path) {
     this.selectedSource = path;
     this.extentHandler.setSourcePath(path);
@@ -104,23 +107,14 @@ export class PartialDownloadUI {
   }
 
   destroy() {
+    this.partialDownloadHandler.destroy();
     this.extentHandler.destroy();
   }
 
   async startDownload() {
     const sourcePath = this.selectedSource;
-    if (!sourcePath) {
-      this._showError('Please select a source first');
-      return;
-    }
-
     const routes = this.routesHandler.getVectorSources();
     const routeInfo = routes[sourcePath];
-
-    if (!routeInfo || !routeInfo.url) {
-      this._showError('No parquet data available for this source');
-      return;
-    }
 
     const bounds = this.map.getBounds();
     const bbox = {
@@ -134,10 +128,9 @@ export class PartialDownloadUI {
     const sourceName = routeInfo.name || sourcePath;
     const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);
-    const memStr = memMB >= 1024 ? `${(memMB / 1024).toFixed(1)} GB` : `${memMB} MB`;
+    const memStr = formatMemory(memMB);
 
     this._setDownloadingState(true);
-    this._updateProgress(0);
 
     const bboxDisplay = `${bbox.west.toFixed(4)}, ${bbox.south.toFixed(4)} → ${bbox.east.toFixed(4)}, ${bbox.north.toFixed(4)}`;
     this.downloadInfo.innerHTML =
@@ -146,76 +139,79 @@ export class PartialDownloadUI {
       `<span class="partial-download-info-detail">bbox: ${bboxDisplay}</span>` +
       `<span class="partial-download-info-detail">memory: ${memStr}</span>`;
 
-    this._updateStatus('Starting download...');
+    const callbacks = {
+      onProgress: (pct) => this._updateProgress(pct),
+      onStatus: (msg) => this._updateStatus(msg)
+    };
 
     try {
-      let parquetUrl = null;
-      let baseUrl = null;
-      let filteredPartitions = null;
+      this._updateStatus('Preparing...');
 
-      if (isPartitioned) {
-        const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
-        baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
-
-        const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
-        if (metaJson) {
-          filteredPartitions = this.partialDownloadHandler.getPartitionsForBbox(metaJson, bbox);
-
-          if (filteredPartitions.length === 0) {
-            this._showError('No data found in current bbox');
-            this._setDownloadingState(false);
-            return;
-          }
-
-          this._updateStatus(`Found ${filteredPartitions.length} partition(s) in bbox...`);
-        } else {
-          this._showError('Could not load partition metadata');
-          this._setDownloadingState(false);
-          return;
-        }
-      } else {
-        parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
-      }
-
-      await this.partialDownloadHandler.download({
-        sourceName,
-        parquetUrl,
-        baseUrl,
-        partitions: filteredPartitions,
+      const formatHandler = await this.partialDownloadHandler.prepare({
+        routeUrl: routeInfo.url,
+        isPartitioned,
         bbox,
         format,
         memoryLimit: `${this.memorySlider.value}MB`,
-        onProgress: (pct) => this._updateProgress(pct),
-        onStatus: (msg) => this._updateStatus(msg)
+        ...callbacks
       });
 
-      this._updateProgress(100);
-      this._updateStatus('Complete!');
-
-      this._setDownloadingState(false);
-      this._updateProgress(0);
-      this._updateStatus('');
-      this.downloadInfo.innerHTML = '';
-
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Partial download failed:', error);
-        this._showError(`Download failed: ${error.message}`);
-      } else {
-        this._updateStatus('Cancelled');
-        setTimeout(() => this._updateStatus(''), 2000);
+      if (!await this._checkStorageAvailability(formatHandler, callbacks.onStatus)) {
+        this._finishDownload('Cancelled');
+        return;
       }
-      this._setDownloadingState(false);
-      this.downloadInfo.innerHTML = '';
+
+      await this.partialDownloadHandler.download(formatHandler, {
+        sourceName, bbox, ...callbacks
+      });
+
+      this._finishDownload('Complete!');
+    } catch (error) {
+      if (error.name === 'AbortError' || this.partialDownloadHandler.cancelled) {
+        this._finishDownload('Cancelled');
+      } else {
+        console.error('Partial download failed:', error);
+        this._finishDownload(`Download failed: ${error.message}`, true);
+      }
     }
   }
 
   cancel() {
     this.partialDownloadHandler.cancel();
-    this._updateStatus('Cancelling after current operation finishes...');
+    this._updateStatus('Cancelling...');
   }
 
   // --- Private helpers ---
+
+  /** Returns false if user declines to proceed due to storage constraints. */
+  async _checkStorageAvailability(formatHandler, onStatus) {
+    const browserUsage = formatHandler.getExpectedBrowserStorageUsage();
+    const totalDisk = formatHandler.getTotalExpectedDiskUsage();
+    const { usage, quota } = await getStorageEstimate();
+    const available = quota - usage;
+
+    onStatus(
+      `Browser storage — expected: ${formatSize(browserUsage)}, available: ${formatSize(available)}. Total disk usage: ${formatSize(totalDisk)}`
+    );
+
+    if (browserUsage > available) {
+      const msg = `Expected browser storage usage (${formatSize(browserUsage)}) exceeds available browser storage (${formatSize(available)}).\nTotal disk usage: ${formatSize(totalDisk)}.\nContinue anyway?`;
+      return confirm(msg);
+    }
+    return true;
+  }
+
+  _finishDownload(statusMessage, isError = false) {
+    this._setDownloadingState(false);
+    this.downloadInfo.innerHTML = '';
+
+    if (isError) {
+      this._showError(statusMessage);
+    } else {
+      this._updateStatus(statusMessage);
+      setTimeout(() => this._updateStatus(''), 2000);
+    }
+  }
 
   _updateBboxDisplay() {
     if (!this.bboxContainer || !this.map) return;
@@ -236,6 +232,7 @@ export class PartialDownloadUI {
     if (this.extentHandler?.checkbox) {
       this.extentHandler.checkbox.disabled = isDownloading;
     }
+    this._updateProgress(0);
   }
 
   _updateProgress(percent) {
@@ -244,18 +241,20 @@ export class PartialDownloadUI {
     }
   }
 
-  _updateStatus(message) {
+  _updateStatus(message, isError = false) {
     if (this.statusText) {
       this.statusText.textContent = message;
+      const hadErrorClass = this.statusText.classList.contains('error');
+      if (isError && !hadErrorClass) {
+        this.statusText.classList.add('error');
+      } else if (!isError && hadErrorClass) {
+        this.statusText.classList.remove('error');
+      }
     }
   }
 
   _showError(message) {
-    this._updateStatus(message);
-    this.statusText.classList.add('error');
-    setTimeout(() => {
-      this.statusText.classList.remove('error');
-    }, 3000);
+    this._updateStatus(message, true);
   }
 
   _createFormatRow() {
@@ -299,12 +298,10 @@ export class PartialDownloadUI {
 
     this.memoryValue = document.createElement('span');
     this.memoryValue.className = 'partial-memory-value';
-    const initMB = parseInt(this.memorySlider.value);
-    this.memoryValue.textContent = initMB >= 1024 ? `${(initMB / 1024).toFixed(1)} GB` : `${initMB} MB`;
+    this.memoryValue.textContent = formatMemory(parseInt(this.memorySlider.value));
 
     this.memorySlider.addEventListener('input', () => {
-      const mb = parseInt(this.memorySlider.value);
-      this.memoryValue.textContent = mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`;
+      this.memoryValue.textContent = formatMemory(parseInt(this.memorySlider.value));
     });
 
     memRow.appendChild(memLabel);

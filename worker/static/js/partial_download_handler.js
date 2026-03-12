@@ -2,6 +2,9 @@
 // manages OPFS temp directories and download lifecycle.
 
 import { duckdbClient } from './duckdb_client.js';
+import { parquetMetadata } from './parquet_metadata.js';
+import { SizeGetter } from './size_getter.js';
+import { proxyUrl, OPFS_PREFIX_TMPDIR, getOpfsPrefixes, ScopedProgress } from './utils.js';
 import { CsvFormatHandler } from './format_csv.js';
 import { GeoJsonFormatHandler } from './format_geojson.js';
 import { GeoParquetFormatHandler } from './format_geoparquet.js';
@@ -15,6 +18,24 @@ export const FORMAT_OPTIONS = [
   { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
   { value: 'csv', label: 'CSV (WKT geometry)' }
 ];
+
+/** Normalize extent (array or object) to [minx, miny, maxx, maxy]. */
+function extentBounds(extent) {
+  return Array.isArray(extent)
+    ? extent
+    : [extent.minx, extent.miny, extent.maxx, extent.maxy];
+}
+
+/** Returns the fraction of extent overlapped by bbox (0–1), or null if extent is missing/degenerate. */
+function bboxOverlapRatio(extent, bbox) {
+  if (!extent) return null;
+  const [minx, miny, maxx, maxy] = extentBounds(extent);
+  const area = (maxx - minx) * (maxy - miny);
+  if (area <= 0) return null;
+  const ix = Math.max(0, Math.min(bbox.east, maxx) - Math.max(bbox.west, minx));
+  const iy = Math.max(0, Math.min(bbox.north, maxy) - Math.max(bbox.south, miny));
+  return Math.min(1, (ix * iy) / area);
+}
 
 function getFormatHandler(format, opts) {
   switch (format) {
@@ -33,15 +54,24 @@ function getFormatHandler(format, opts) {
 // (showSaveFilePicker) would give explicit completion, but is Chrome/Edge only.
 const DOWNLOAD_CLEANUP_DELAY_MS = 120000;
 
-// Unique tab ID to avoid OPFS conflicts between tabs
-const TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+// Progress phases: 0→WRITE_START (init), WRITE_START→WRITE_END (format handler write),
+// WRITE_END→100 (save + cleanup)
+const PROGRESS_WRITE_START = 5;
+const PROGRESS_WRITE_END = 90;
+
+// Unique tab ID to avoid OPFS conflicts between tabs.
+// Uses '-' internally so it can be extracted from '_'-delimited filenames with a single split.
+const TAB_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 // Web Lock held for this tab's lifetime — used to detect orphaned OPFS files.
 // The lock name encodes the TAB_ID so other tabs can query which IDs are alive.
-const TAB_LOCK_NAME = `iom_tab_${TAB_ID}`;
+const TAB_LOCK_PREFIX = 'iom_tab_';
+const TAB_LOCK_NAME = `${TAB_LOCK_PREFIX}${TAB_ID}`;
+
 // Hold a Web Lock for this tab's lifetime. The lock is acquired via a
 // never-resolving promise so it auto-releases when the tab closes/crashes.
-// We store the ready promise so orphan cleanup can wait for it.
+// We store the ready promise so cleanup in other tabs won't treat our files as orphaned
+// before our lock is visible in navigator.locks.query().
 const lockReady = new Promise(resolve => {
   navigator.locks.request(TAB_LOCK_NAME, () => {
     resolve();
@@ -49,24 +79,21 @@ const lockReady = new Promise(resolve => {
   });
 });
 
-// OPFS files/dirs created by this module use these prefixes followed by TAB_ID.
-const OPFS_PREFIXES = ['temp_gpkg_', 'partial_', 'temp_', 'gpkg_', 'tmp_'];
+// OPFS file/dir name prefixes — each followed by TAB_ID.
+const OPFS_PREFIXES = getOpfsPrefixes();
 
 function extractTabId(name) {
   for (const prefix of OPFS_PREFIXES) {
-    if (name.startsWith(prefix)) return name.slice(prefix.length).split('_').slice(0, 2).join('_');
+    if (name.startsWith(prefix)) return name.slice(prefix.length).split('_')[0];
   }
   return null;
 }
 
 async function cleanupOrphanedOpfsEntries() {
   try {
-    // Wait until our own lock is held so it shows up in locks.query()
-    await lockReady;
-
     const { held } = await navigator.locks.query();
     const aliveTabIds = new Set(
-      held.filter(l => l.name.startsWith('iom_tab_')).map(l => l.name.slice('iom_tab_'.length))
+      held.filter(l => l.name.startsWith(TAB_LOCK_PREFIX)).map(l => l.name.slice(TAB_LOCK_PREFIX.length))
     );
 
     const root = await navigator.storage.getDirectory();
@@ -110,43 +137,67 @@ export class PartialDownloadHandler {
   constructor() {
     this.initialized = false;
     this.cancelled = false;
+    this.tempDirSeq = 0;
     this.currentDownload = null;
+    this.sizeGetter = new SizeGetter();
   }
 
-  async init() {
+  async _init(onStatus) {
     if (this.initialized) return;
 
+    // Ensure our lock is visible before creating OPFS files,
+    // so other tabs' cleanup won't treat them as orphaned.
+    await lockReady;
+
+    onStatus?.('Initializing DuckDB...');
     await duckdbClient.init();
-    this.tempDirSeq = 0;
-    await duckdbClient.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
+    await duckdbClient.conn.query(`SET temp_directory = 'opfs://${this._tempDirName()}'`);
 
     this.initialized = true;
     console.log('[PartialDownload] Ready');
   }
 
+  _tempDirName() {
+    return `${OPFS_PREFIX_TMPDIR}${TAB_ID}_${this.tempDirSeq}`;
+  }
+
   cancel() {
     this.cancelled = true;
     this.currentDownload = null;
+    // Reject the cancellation promise to unblock any in-flight download
+    if (this._rejectCancel) {
+      this._rejectCancel(new DOMException('Download cancelled', 'AbortError'));
+      this._rejectCancel = null;
+    }
+    // Terminate the DuckDB worker to immediately abort any blocking query.
+    // The next download will reinitialize DuckDB automatically.
+    duckdbClient.terminate();
+    this.initialized = false;
+    console.log('[PartialDownload] Cancelled — DuckDB worker terminated');
   }
 
-  async rotateTempDir() {
+  destroy() {
+    this.cancel();
+  }
+
+  async _rotateTempDir() {
     try {
-      const oldDirName = `tmp_${TAB_ID}_${this.tempDirSeq}`;
+      const oldDirName = this._tempDirName();
       this.tempDirSeq++;
-      await duckdbClient.conn.query(`SET temp_directory = 'opfs://tmp_${TAB_ID}_${this.tempDirSeq}'`);
+      if (duckdbClient.conn) {
+        await duckdbClient.conn.query(`SET temp_directory = 'opfs://${this._tempDirName()}'`);
+      }
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(oldDirName, { recursive: true });
     } catch (e) { /* dir may not exist or already removed */ }
   }
 
-  getPartitionsForBbox(metaJson, bbox) {
+  _getPartitionsForBbox(metaJson, bbox) {
     if (!metaJson.extents) return [];
     
     const partitions = [];
     for (const [filename, extent] of Object.entries(metaJson.extents)) {
-      const [minx, miny, maxx, maxy] = Array.isArray(extent)
-        ? extent
-        : [extent.minx, extent.miny, extent.maxx, extent.maxy];
+      const [minx, miny, maxx, maxy] = extentBounds(extent);
       if (!(bbox.east < minx || bbox.west > maxx || 
             bbox.north < miny || bbox.south > maxy)) {
         partitions.push(filename);
@@ -156,9 +207,71 @@ export class PartialDownloadHandler {
   }
 
   /**
+   * Resolve routeUrl + bbox into an array of parquet URLs.
+   * For partitioned sources, filters partitions by bbox overlap.
+   */
+  async _resolveParquetUrls(routeUrl, isPartitioned, bbox, onStatus) {
+    if (!isPartitioned) {
+      return [parquetMetadata.getParquetUrl(routeUrl)];
+    }
+
+    const metaUrl = parquetMetadata.getMetaJsonUrl(routeUrl);
+    const baseUrl = parquetMetadata.getBaseUrl(routeUrl);
+    const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
+
+    if (!metaJson) {
+      throw new Error('Could not load partition metadata');
+    }
+
+    const filteredPartitions = this._getPartitionsForBbox(metaJson, bbox);
+    if (filteredPartitions.length === 0) {
+      throw new Error('No data found in current bbox');
+    }
+
+    onStatus?.(`Found ${filteredPartitions.length} partition(s) in bbox...`);
+    return filteredPartitions.map(p => baseUrl + p);
+  }
+
+  /**
+   * Estimate download size by fetching file sizes (HEAD) and computing
+   * the ratio of bbox overlap with each file's extent.
+   */
+  async _estimateSize(parquetUrls, bbox, routeUrl, isPartitioned) {
+    const sizes = await Promise.all(
+      parquetUrls.map(url => this.sizeGetter.getSizeBytes(url))
+    );
+
+    // Get per-file extents
+    let fileExtents;
+    if (isPartitioned) {
+      const metaUrl = parquetMetadata.getMetaJsonUrl(routeUrl);
+      const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
+      fileExtents = metaJson?.extents ?? {};
+    } else {
+      const parquetBbox = await parquetMetadata.getParquetBbox(parquetUrls[0]);
+      fileExtents = parquetBbox ? { [parquetUrls[0]]: parquetBbox } : {};
+    }
+
+    let totalEstimate = 0;
+
+    for (let i = 0; i < parquetUrls.length; i++) {
+      const fileSize = sizes[i];
+      if (!fileSize) continue;
+
+      // Find matching extent — for partitioned, key is the filename portion
+      const filename = parquetUrls[i].split('/').pop();
+      const extent = fileExtents[filename] || fileExtents[parquetUrls[i]];
+      const ratio = bboxOverlapRatio(extent, bbox);
+      totalEstimate += fileSize * (ratio ?? 1);
+    }
+
+    return Math.round(totalEstimate);
+  }
+
+  /**
    * Generate suggested filename for download.
    */
-  getSuggestedFileName(sourceName, bbox, extension) {
+  _getDownloadFileName(sourceName, bbox, extension) {
     const coordStr = [bbox.west, bbox.south, bbox.east, bbox.north]
       .map(c => c.toFixed(4).replace(/\./g, '-'))
       .join('--');
@@ -167,85 +280,90 @@ export class PartialDownloadHandler {
   }
 
   /**
-   * 1. COPY TO opfs:// temp file (large file stays on disk via OPFS)
-   * 2. copyFileToBuffer to read it back
-   * 3. Stream to download via service worker
+   * Prepare for download: init DuckDB, resolve URLs, estimate size, create format handler.
+   * Returns the format handler for the caller to inspect (e.g. estimatedOutputBytes)
+   * before committing to the download.
    */
-  async download(options) {
-    const { sourceName, parquetUrl, baseUrl, partitions, bbox, format, onProgress, onStatus, memoryLimit } = options;
+  async prepare(options) {
+    const { routeUrl, isPartitioned, bbox, format, onProgress, onStatus, memoryLimit } = options;
 
-    if (!this.initialized) {
-      onStatus?.('Initializing DuckDB...');
-      await this.init();
-    }
+    this.cancelled = false;
+
+    // Set up cancellation promise early — cancel() rejects this to unblock
+    // any hung async operation (DuckDB init, queries, etc.)
+    this._cancelPromise = new Promise((_, reject) => {
+      this._rejectCancel = reject;
+    });
+
+    await Promise.race([this._init(onStatus), this._cancelPromise]);
+
+    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
 
     // Apply memory limit (can change between downloads)
     if (memoryLimit) {
       await duckdbClient.conn.query(`SET memory_limit = '${memoryLimit}'`);
     }
-    await duckdbClient.conn.query('SET arrow_large_buffer_size=true');
 
-    this.cancelled = false;
+    onProgress?.(0);
+
+    // Resolve parquet URLs from route config
+    const parquetUrls = await this._resolveParquetUrls(routeUrl, isPartitioned, bbox, onStatus);
+
+    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+
+    onStatus?.(`Estimating download size from ${parquetUrls.length} file(s)...`);
+    const estimatedBytes = await this._estimateSize(parquetUrls, bbox, routeUrl, isPartitioned);
+
+    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+
+    onProgress?.(PROGRESS_WRITE_START);
+
+    const urls = parquetUrls.map(u => proxyUrl(u, { absolute: true }));
+
+    return getFormatHandler(format, {
+      tabId: TAB_ID, conn: duckdbClient.conn, db: duckdbClient.db,
+      urls, bbox, estimatedBytes
+    });
+  }
+
+  /**
+   * Execute the download using a previously prepared format handler.
+   */
+  async download(formatHandler, { sourceName, bbox, onProgress, onStatus }) {
     this.currentDownload = { sourceName, bbox };
-    let handler = null;
 
     try {
-      onProgress?.(5);
-      onStatus?.('Preparing...');
+      const writeProgress = new ScopedProgress(onProgress, PROGRESS_WRITE_START, PROGRESS_WRITE_END);
 
-      // Build list of URLs to query
-      let urls = [];
-      if (parquetUrl) {
-        urls = [duckdbClient.buildProxyUrl(parquetUrl)];
-      } else if (partitions && partitions.length > 0) {
-        urls = partitions.map(p => duckdbClient.buildProxyUrl(baseUrl + p));
-      }
+      await Promise.race([
+        formatHandler.write({
+          onProgress: writeProgress.callback,
+          onStatus,
+          cancelled: () => this.cancelled,
+        }),
+        this._cancelPromise
+      ]);
 
-      if (urls.length === 0) {
-        throw new Error('No parquet files to query');
-      }
+      onProgress?.(PROGRESS_WRITE_END);
 
-      handler = getFormatHandler(format, { tabId: TAB_ID, conn: duckdbClient.conn, db: duckdbClient.db, urls, bbox });
-      await handler.prepareOpfs();
-
-      if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
-
-      onProgress?.(10);
-      onStatus?.(`Filtering ${urls.length} file(s) and writing to OPFS...`);
-
-      await handler.write({
-        onStatus,
-        cancelled: () => this.cancelled,
-      });
-
-      if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
-
-      onProgress?.(70);
-      onStatus?.('Streaming to your file...');
-
-      await handler.releaseOpfs();
-
-      const downloadFileName = this.getSuggestedFileName(sourceName, bbox, handler.extension);
+      const downloadFileName = this._getDownloadFileName(sourceName, bbox, formatHandler.extension);
 
       onStatus?.('Saving file...');
-      await handler.triggerDownload(downloadFileName, DOWNLOAD_CLEANUP_DELAY_MS);
+      await formatHandler.triggerDownload(downloadFileName, DOWNLOAD_CLEANUP_DELAY_MS);
 
       onProgress?.(100);
-      onStatus?.('Download complete!');
 
       return true;
 
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        onStatus?.('Download cancelled');
-      } else {
-        console.error('[PartialDownload] Download failed:', error);
-        onStatus?.(`Error: ${error.message}`);
-      }
-      throw error;
+    } catch (e) {
+      // Worker termination from cancel() throws a generic error, not AbortError
+      if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+      throw e;
     } finally {
-      await handler?.cleanup();
-      await this.rotateTempDir();
+      this._rejectCancel = null;
+      this._cancelPromise = null;
+      await formatHandler.cleanup();
+      await this._rotateTempDir();
       this.currentDownload = null;
     }
   }

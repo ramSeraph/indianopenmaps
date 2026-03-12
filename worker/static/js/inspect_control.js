@@ -93,6 +93,7 @@ export class PopupHandler {
 
   clearHighlight() {
     for (const { source, sourceLayer, id } of this.highlightedFeatures) {
+      if (!this.map.getSource(source)) continue;
       this.map.setFeatureState(
         { source, sourceLayer, id },
         { highlight: false }

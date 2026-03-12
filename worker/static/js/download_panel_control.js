@@ -336,8 +336,15 @@ export class DownloadPanelControl {
     linkItem.appendChild(sizeSpan);
     linkItem.appendChild(this.createCopyButton(url));
 
-    this.sizeGetter.updateElement(url, sizeSpan);
+    this._updateSizeElement(url, sizeSpan);
     return linkItem;
+  }
+
+  async _updateSizeElement(url, element) {
+    const size = await this.sizeGetter.getSize(url);
+    if (!element.isConnected) return;
+    element.textContent = size || '';
+    element.classList.remove('loading');
   }
 
   _renderDownloadLinks(files) {

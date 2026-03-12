@@ -75,7 +75,7 @@ class ParquetMetadata {
     await duckdbClient.init();
 
     try {
-      const safeUrl = duckdbClient.buildProxyUrl(parquetUrl).replace(/'/g, "''");
+      const safeUrl = proxyUrl(parquetUrl, { absolute: true }).replace(/'/g, "''");
       const geoMeta = await this._getGeoMetadata(safeUrl);
       if (!geoMeta) { this.bboxCache.set(parquetUrl, null); return null; }
 
@@ -127,7 +127,7 @@ class ParquetMetadata {
     await duckdbClient.init();
 
     try {
-      const proxyUrls = parquetUrls.map(u => duckdbClient.buildProxyUrl(u));
+      const proxyUrls = parquetUrls.map(u => proxyUrl(u, { absolute: true }));
       const proxyToFilename = {};
       for (let i = 0; i < parquetUrls.length; i++) {
         proxyToFilename[proxyUrls[i]] = parquetUrls[i].split('/').pop();
