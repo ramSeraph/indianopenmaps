@@ -49,6 +49,22 @@ let currentRightLayer = null;
 let geocoderMarker1 = null;
 let geocoderMarker2 = null;
 
+// Each panel shows exactly one layer, so we track and swap attribution explicitly
+// instead of relying on Leaflet's reference-counted add/removeAttribution.
+let shownLeftAttr = '';
+let shownRightAttr = '';
+
+function updateMapAttribution(map, newAttr) {
+  const ctrl = map?.attributionControl;
+  if (!ctrl) return;
+  const isLeft = map === map1;
+  const old = isLeft ? shownLeftAttr : shownRightAttr;
+  if (old) ctrl.removeAttribution(old);
+  if (newAttr) ctrl.addAttribution(newAttr);
+  if (isLeft) shownLeftAttr = newAttr || '';
+  else shownRightAttr = newAttr || '';
+}
+
 // Parse hash params
 function getHashParams() {
   return new URLSearchParams(window.location.hash.substring(1));
@@ -76,18 +92,14 @@ function buildLayersObject() {
   // Add presets
   for (const [id, preset] of Object.entries(PRESETS)) {
     let layer;
+    const opts = { ...preset.options }; // no attribution — managed explicitly
     if (preset.indiaBoundary) {
-      layer = L.tileLayer.indiaBoundaryCorrected(preset.url, {
-        ...preset.options,
-        attribution: preset.attribution
-      });
+      layer = L.tileLayer.indiaBoundaryCorrected(preset.url, opts);
     } else {
-      layer = L.tileLayer(preset.url, {
-        ...preset.options,
-        attribution: preset.attribution
-      });
+      layer = L.tileLayer(preset.url, opts);
     }
     layer._layerId = id;
+    layer._layerAttribution = preset.attribution;
     layers[preset.name] = layer;
   }
   
@@ -96,6 +108,7 @@ function buildLayersObject() {
     const layer = L.tileLayer(TRANSPARENT_TILE, {});
     layer._layerId = id;
     layer._tileJsonLoaded = false;
+    layer._layerAttribution = '';
     
     layer.on('add', async function() {
       if (this._tileJsonLoaded) return;
@@ -105,10 +118,10 @@ function buildLayersObject() {
         this._tileJsonLoaded = true;
         this.options.maxNativeZoom = tileJSON.maxzoom;
         this.options.minZoom = tileJSON.minzoom;
-        this.options.attribution = tileJSON.attribution;
+        this._layerAttribution = tileJSON.attribution;
         this.setUrl(tileJSON.tiles[0]);
-        if (this._map?.attributionControl) {
-          this._map.attributionControl.addAttribution(tileJSON.attribution);
+        if (this._map) {
+          updateMapAttribution(this._map, tileJSON.attribution);
         }
       } catch (err) {
         console.error(`Failed to load ${id}:`, err);
@@ -210,12 +223,17 @@ async function init() {
   L.control.scale({metric: true, imperial: false, position: 'bottomright'}).addTo(map2);
   L.control.zoom({ position: 'bottomright' }).addTo(map2);
   
+  // Set initial layer attributions (controls now exist)
+  updateMapAttribution(map1, currentLeftLayer._layerAttribution || '');
+  updateMapAttribution(map2, currentRightLayer._layerAttribution || '');
+  
   // Add layer controls (Leaflet's native control)
   L.control.layers(leftLayers, {}, { collapsed: true, position: 'topleft' }).addTo(map1);
   L.control.layers(rightLayers, {}, { collapsed: true, position: 'topright' }).addTo(map2);
   
   // Track layer changes and update URL
   map1.on('baselayerchange', (e) => {
+    updateMapAttribution(map1, e.layer._layerAttribution || '');
     currentLeftLayer = e.layer;
     const params = getHashParams();
     params.set('left', e.layer._layerId || 'osm');
@@ -224,6 +242,7 @@ async function init() {
   });
   
   map2.on('baselayerchange', (e) => {
+    updateMapAttribution(map2, e.layer._layerAttribution || '');
     currentRightLayer = e.layer;
     const params = getHashParams();
     params.set('right', e.layer._layerId || 'osm');
