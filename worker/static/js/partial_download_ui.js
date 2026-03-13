@@ -226,7 +226,7 @@ export class PartialDownloadUI {
   }
 
   _setDownloadingState(isDownloading) {
-    this.startButton.disabled = isDownloading;
+    this.startButton.style.display = isDownloading ? 'none' : '';
     this.cancelButton.style.display = isDownloading ? 'block' : 'none';
     this.progressContainer.style.display = isDownloading ? 'block' : 'none';
     if (this.extentHandler?.checkbox) {
