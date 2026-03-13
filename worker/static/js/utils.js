@@ -23,6 +23,7 @@ export const OPFS_PREFIX_GPKG_TMP = opfsPrefix('dl_gpkg_tmp_');
 export const OPFS_PREFIX_GPKG = opfsPrefix('dl_gpkg_');
 export const OPFS_PREFIX_OUTPUT = opfsPrefix('dl_output_');
 export const OPFS_PREFIX_TMP = opfsPrefix('dl_tmp_');
+export const OPFS_PREFIX_SHP_TMP = opfsPrefix('dl_shp_tmp_');
 export const OPFS_PREFIX_TMPDIR = opfsPrefix('tmpdir_');
 
 export function getOpfsPrefixes() {
@@ -52,3 +53,11 @@ export async function getStorageEstimate() {
   const { usage, quota } = await navigator.storage.estimate();
   return { usage, quota };
 }
+
+export function fileToAsyncBuffer(file) {
+  return {
+    byteLength: file.size,
+    slice(start, end) { return file.slice(start, end).arrayBuffer(); }
+  };
+}
+

@@ -1,14 +1,15 @@
 // GeoJSON / GeoJSONSeq format handler for partial downloads
 
 import { FormatHandler } from './format_base.js';
+import { OPFS_PREFIX_OUTPUT } from './utils.js';
 
 export class GeoJsonFormatHandler extends FormatHandler {
   constructor({ commaSeparated = false, ...opts } = {}) {
     super(opts);
     this.commaSeparated = commaSeparated;
+    this.extension = commaSeparated ? 'geojson' : 'geojsonl';
+    this.opfsPath = null;
   }
-
-  get extension() { return this.commaSeparated ? '.geojson' : '.geojsonl'; }
 
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * 10; }
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 20; }
@@ -18,9 +19,11 @@ export class GeoJsonFormatHandler extends FormatHandler {
       onProgress, onStatus, 'Writing GeoJSON:', this.getExpectedBrowserStorageUsage()
     );
 
+    this.opfsPath = await this.createDuckdbOpfsFile(OPFS_PREFIX_OUTPUT, this.extension);
+
     try {
       // Discover non-geometry columns
-      const schemaResult = await this.conn.query(
+      const schemaResult = await this.duckdb.conn.query(
         `SELECT column_name FROM (DESCRIBE SELECT * FROM ${this.parquetSource}) WHERE column_name NOT IN ('geometry', 'bbox')`
       );
       const propCols = [];
@@ -46,20 +49,22 @@ export class GeoJsonFormatHandler extends FormatHandler {
         WHERE ${this.bboxFilter}
       `;
 
-      await this.conn.query(`
-        COPY (${featureQuery}) TO '${this._opfsPath}' (FORMAT CSV, HEADER false, QUOTE '', DELIMITER E'\\x01')
+      await this.duckdb.conn.query(`
+        COPY (${featureQuery}) TO '${this.opfsPath}' (FORMAT CSV, HEADER false, QUOTE '', DELIMITER E'\\x01')
       `);
     } finally {
       stopTracker();
     }
 
+    await this.releaseDuckdbOpfsFile(this.opfsPath);
     onProgress?.(100);
   }
 
-  wrapBlobParts(file) {
-    if (this.commaSeparated) {
-      return ['{"type":"FeatureCollection","features":[\n', file, ']}'];
-    }
-    return [file];
+  async getDownloadMap(baseName) {
+    const file = await this.getOpfsFile(this.opfsPath);
+    const blobParts = this.commaSeparated
+      ? ['{"type":"FeatureCollection","features":[\n', file, ']}']
+      : [file];
+    return [{ downloadName: `${baseName}.${this.extension}`, blobParts }];
   }
 }

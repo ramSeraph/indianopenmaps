@@ -2,6 +2,7 @@
 // as rectangles on the map. Single checkbox toggles both layers simultaneously.
 
 import { parquetMetadata } from './parquet_metadata.js';
+import { DuckDBClient } from './duckdb_client.js';
 
 const LAYER_CONFIGS = {
   data: {
@@ -40,6 +41,7 @@ export class ExtentHandler extends EventTarget {
     this._hoveredFeatures = new Map();
     this.statusEl = null;
     this.loading = false;
+    this._duckdb = new DuckDBClient();
   }
 
   createCheckbox() {
@@ -129,7 +131,7 @@ export class ExtentHandler extends EventTarget {
       const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
       this._setStatus('Loading row groups...');
       const allRgBboxes = await parquetMetadata.getRowGroupBboxesMulti(
-        partitions.map(p => baseUrl + p)
+        partitions.map(p => baseUrl + p), this._duckdb
       );
       if (allRgBboxes) {
         rgExtents = {};
@@ -148,10 +150,10 @@ export class ExtentHandler extends EventTarget {
 
   async _showSingle(routeInfo) {
     const parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
-    const bbox = await parquetMetadata.getParquetBbox(parquetUrl);
+    const bbox = await parquetMetadata.getParquetBbox(parquetUrl, this._duckdb);
 
     this._setStatus('Loading row groups...');
-    const rgExtents = await parquetMetadata.getRowGroupBboxes(parquetUrl);
+    const rgExtents = await parquetMetadata.getRowGroupBboxes(parquetUrl, this._duckdb);
 
     let dataExtents = null;
     if (bbox) {

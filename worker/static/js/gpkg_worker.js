@@ -7,6 +7,7 @@ import * as SQLite from 'https://ramseraph.github.io/sqwab/src/sqlite-api.js';
 import { OPFSAdaptiveVFS } from 'https://ramseraph.github.io/sqwab/src/examples/OPFSAdaptiveVFS.js';
 import { parquetRead, parquetMetadataAsync, parquetSchema } from 'https://esm.sh/hyparquet@1.25.0';
 import { compressors } from 'https://esm.sh/hyparquet-compressors@1';
+import { fileToAsyncBuffer } from './utils.js';
 
 let sqlite3 = null;
 let db = null;
@@ -107,15 +108,6 @@ function buildGpkgGeom(wkbHex, needsPromote) {
   result.set(GP_HEADER, 0);
   result.set(wkb, GP_HEADER.length);
   return result;
-}
-
-function fileToAsyncBuffer(file) {
-  return {
-    byteLength: file.size,
-    slice(start, end) {
-      return file.slice(start, end).arrayBuffer();
-    }
-  };
 }
 
 const MULTI_MAP = {

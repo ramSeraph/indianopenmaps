@@ -1,7 +1,7 @@
-// Partial download handler — uses shared DuckDB client for queries,
+// Partial download handler — owns a DuckDB client for queries,
 // manages OPFS temp directories and download lifecycle.
 
-import { duckdbClient } from './duckdb_client.js';
+import { DuckDBClient } from './duckdb_client.js';
 import { parquetMetadata } from './parquet_metadata.js';
 import { SizeGetter } from './size_getter.js';
 import { proxyUrl, OPFS_PREFIX_TMPDIR, getOpfsPrefixes, ScopedProgress } from './utils.js';
@@ -9,6 +9,7 @@ import { CsvFormatHandler } from './format_csv.js';
 import { GeoJsonFormatHandler } from './format_geojson.js';
 import { GeoParquetFormatHandler } from './format_geoparquet.js';
 import { GeoPackageFormatHandler } from './format_geopackage.js';
+import { ShapefileFormatHandler } from './format_shapefile.js';
 
 export const FORMAT_OPTIONS = [
   { value: 'geojson', label: 'GeoJSON' },
@@ -16,6 +17,7 @@ export const FORMAT_OPTIONS = [
   { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
   { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
   { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
+  { value: 'shapefile', label: 'Shapefile (.shp)' },
   { value: 'csv', label: 'CSV (WKT geometry)' }
 ];
 
@@ -45,6 +47,7 @@ function getFormatHandler(format, opts) {
     case 'geoparquet': return new GeoParquetFormatHandler({ version: '1.1', ...opts });
     case 'geoparquet2': return new GeoParquetFormatHandler({ version: '2.0', ...opts });
     case 'geopackage': return new GeoPackageFormatHandler(opts);
+    case 'shapefile': return new ShapefileFormatHandler(opts);
     default: throw new Error(`Unsupported format: ${format}`);
   }
 }
@@ -137,9 +140,8 @@ export class PartialDownloadHandler {
   constructor() {
     this.initialized = false;
     this.cancelled = false;
-    this.tempDirSeq = 0;
-    this.currentDownload = null;
     this.sizeGetter = new SizeGetter();
+    this._duckdb = new DuckDBClient();
   }
 
   async _init(onStatus) {
@@ -150,46 +152,32 @@ export class PartialDownloadHandler {
     await lockReady;
 
     onStatus?.('Initializing DuckDB...');
-    await duckdbClient.init();
-    await duckdbClient.conn.query(`SET temp_directory = 'opfs://${this._tempDirName()}'`);
+    await this._duckdb.init();
+    await this._duckdb.conn.query(`SET temp_directory = 'opfs://${OPFS_PREFIX_TMPDIR}${TAB_ID}'`);
 
     this.initialized = true;
     console.log('[PartialDownload] Ready');
   }
 
-  _tempDirName() {
-    return `${OPFS_PREFIX_TMPDIR}${TAB_ID}_${this.tempDirSeq}`;
-  }
-
   cancel() {
     this.cancelled = true;
-    this.currentDownload = null;
     // Reject the cancellation promise to unblock any in-flight download
     if (this._rejectCancel) {
       this._rejectCancel(new DOMException('Download cancelled', 'AbortError'));
       this._rejectCancel = null;
     }
-    // Terminate the DuckDB worker to immediately abort any blocking query.
     // The next download will reinitialize DuckDB automatically.
-    duckdbClient.terminate();
+    this._duckdb.terminate();
     this.initialized = false;
     console.log('[PartialDownload] Cancelled — DuckDB worker terminated');
   }
 
-  destroy() {
-    this.cancel();
+  throwIfCancelled() {
+    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
   }
 
-  async _rotateTempDir() {
-    try {
-      const oldDirName = this._tempDirName();
-      this.tempDirSeq++;
-      if (duckdbClient.conn) {
-        await duckdbClient.conn.query(`SET temp_directory = 'opfs://${this._tempDirName()}'`);
-      }
-      const root = await navigator.storage.getDirectory();
-      await root.removeEntry(oldDirName, { recursive: true });
-    } catch (e) { /* dir may not exist or already removed */ }
+  destroy() {
+    this.cancel();
   }
 
   _getPartitionsForBbox(metaJson, bbox) {
@@ -248,9 +236,11 @@ export class PartialDownloadHandler {
       const metaJson = await parquetMetadata.fetchMetaJson(metaUrl);
       fileExtents = metaJson?.extents ?? {};
     } else {
-      const parquetBbox = await parquetMetadata.getParquetBbox(parquetUrls[0]);
+      const parquetBbox = await parquetMetadata.getParquetBbox(parquetUrls[0], this._duckdb);
       fileExtents = parquetBbox ? { [parquetUrls[0]]: parquetBbox } : {};
     }
+
+    this.throwIfCancelled();
 
     let totalEstimate = 0;
 
@@ -271,12 +261,11 @@ export class PartialDownloadHandler {
   /**
    * Generate suggested filename for download.
    */
-  _getDownloadFileName(sourceName, bbox, extension) {
+  _getDownloadBaseName(sourceName, bbox) {
     const coordStr = [bbox.west, bbox.south, bbox.east, bbox.north]
       .map(c => c.toFixed(4).replace(/\./g, '-'))
       .join('--');
-    const baseName = sourceName.replace(/\s+/g, '_');
-    return `${baseName}.${coordStr}${extension}`;
+    return `${sourceName.replace(/\s+/g, '_')}.${coordStr}`;
   }
 
   /**
@@ -297,11 +286,11 @@ export class PartialDownloadHandler {
 
     await Promise.race([this._init(onStatus), this._cancelPromise]);
 
-    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     // Apply memory limit (can change between downloads)
     if (memoryLimit) {
-      await duckdbClient.conn.query(`SET memory_limit = '${memoryLimit}'`);
+      await this._duckdb.conn.query(`SET memory_limit = '${memoryLimit}'`);
     }
 
     onProgress?.(0);
@@ -309,19 +298,19 @@ export class PartialDownloadHandler {
     // Resolve parquet URLs from route config
     const parquetUrls = await this._resolveParquetUrls(routeUrl, isPartitioned, bbox, onStatus);
 
-    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     onStatus?.(`Estimating download size from ${parquetUrls.length} file(s)...`);
     const estimatedBytes = await this._estimateSize(parquetUrls, bbox, routeUrl, isPartitioned);
 
-    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     onProgress?.(PROGRESS_WRITE_START);
 
     const urls = parquetUrls.map(u => proxyUrl(u, { absolute: true }));
 
     return getFormatHandler(format, {
-      tabId: TAB_ID, conn: duckdbClient.conn, db: duckdbClient.db,
+      tabId: TAB_ID, duckdb: this._duckdb,
       urls, bbox, estimatedBytes
     });
   }
@@ -330,8 +319,6 @@ export class PartialDownloadHandler {
    * Execute the download using a previously prepared format handler.
    */
   async download(formatHandler, { sourceName, bbox, onProgress, onStatus }) {
-    this.currentDownload = { sourceName, bbox };
-
     try {
       const writeProgress = new ScopedProgress(onProgress, PROGRESS_WRITE_START, PROGRESS_WRITE_END);
 
@@ -344,12 +331,14 @@ export class PartialDownloadHandler {
         this._cancelPromise
       ]);
 
+      this.throwIfCancelled();
+
       onProgress?.(PROGRESS_WRITE_END);
 
-      const downloadFileName = this._getDownloadFileName(sourceName, bbox, formatHandler.extension);
+      const baseName = this._getDownloadBaseName(sourceName, bbox);
 
       onStatus?.('Saving file...');
-      await formatHandler.triggerDownload(downloadFileName, DOWNLOAD_CLEANUP_DELAY_MS);
+      await formatHandler.triggerDownload(baseName, DOWNLOAD_CLEANUP_DELAY_MS);
 
       onProgress?.(100);
 
@@ -357,14 +346,12 @@ export class PartialDownloadHandler {
 
     } catch (e) {
       // Worker termination from cancel() throws a generic error, not AbortError
-      if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+      this.throwIfCancelled();
       throw e;
     } finally {
       this._rejectCancel = null;
       this._cancelPromise = null;
       await formatHandler.cleanup();
-      await this._rotateTempDir();
-      this.currentDownload = null;
     }
   }
 }

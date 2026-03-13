@@ -1,7 +1,6 @@
 // Shared module for parquet metadata fetching, caching, and URL helpers.
 // Used by download_panel_control.js and extent_handler.js.
 
-import { duckdbClient } from './duckdb_client.js';
 import { proxyUrl } from './utils.js';
 
 class ParquetMetadata {
@@ -70,13 +69,13 @@ class ParquetMetadata {
    * Uses DuckDB's parquet_kv_metadata() — only reads the file footer via range requests.
    * @returns {Promise<[number,number,number,number]|null>} [minx, miny, maxx, maxy] or null
    */
-  async getParquetBbox(parquetUrl) {
+  async getParquetBbox(parquetUrl, duckdbClient) {
     if (this.bboxCache.has(parquetUrl)) return this.bboxCache.get(parquetUrl);
     await duckdbClient.init();
 
     try {
       const safeUrl = proxyUrl(parquetUrl, { absolute: true }).replace(/'/g, "''");
-      const geoMeta = await this._getGeoMetadata(safeUrl);
+      const geoMeta = await this._getGeoMetadata(safeUrl, duckdbClient);
       if (!geoMeta) { this.bboxCache.set(parquetUrl, null); return null; }
 
       const primaryCol = geoMeta.primary_column || 'geometry';
@@ -103,8 +102,8 @@ class ParquetMetadata {
    * Read per-row-group bounding boxes from a single parquet file.
    * @returns {Promise<Object<string,[number,number,number,number]>|null>} {rg_N: bbox} or null
    */
-  async getRowGroupBboxes(parquetUrl) {
-    const result = await this.getRowGroupBboxesMulti([parquetUrl]);
+  async getRowGroupBboxes(parquetUrl, duckdbClient) {
+    const result = await this.getRowGroupBboxesMulti([parquetUrl], duckdbClient);
     if (!result) return null;
     const firstKey = Object.keys(result)[0];
     return firstKey ? result[firstKey] : null;
@@ -117,7 +116,7 @@ class ParquetMetadata {
    * @returns {Promise<Object<string, Object<string,[number,number,number,number]>>|null>}
    *   { filename: { rg_0: [minx,miny,maxx,maxy], ... }, ... } or null
    */
-  async getRowGroupBboxesMulti(parquetUrls) {
+  async getRowGroupBboxesMulti(parquetUrls, duckdbClient) {
     if (!parquetUrls?.length) return null;
 
     // Check if all URLs are already cached
@@ -134,7 +133,7 @@ class ParquetMetadata {
       }
 
       const firstSafeUrl = proxyUrls[0].replace(/'/g, "''");
-      const coveringPaths = await this._getCoveringBboxPaths(firstSafeUrl);
+      const coveringPaths = await this._getCoveringBboxPaths(firstSafeUrl, duckdbClient);
       if (!coveringPaths) { this.rgBboxCache.set(cacheKey, null); return null; }
 
       const { xminPath, yminPath, xmaxPath, ymaxPath } = coveringPaths;
@@ -190,7 +189,7 @@ class ParquetMetadata {
   // --- Internal helpers ---
 
   /** Read and parse the 'geo' key-value metadata from a parquet file */
-  async _getGeoMetadata(safeUrl) {
+  async _getGeoMetadata(safeUrl, duckdbClient) {
     const result = await duckdbClient.conn.query(
       `SELECT value FROM parquet_kv_metadata('${safeUrl}') WHERE key='geo'`
     );
@@ -200,8 +199,8 @@ class ParquetMetadata {
   }
 
   /** Get covering.bbox paths from geo kv metadata (GeoParquet 1.1+) */
-  async _getCoveringBboxPaths(safeUrl) {
-    const geoMeta = await this._getGeoMetadata(safeUrl);
+  async _getCoveringBboxPaths(safeUrl, duckdbClient) {
+    const geoMeta = await this._getGeoMetadata(safeUrl, duckdbClient);
     if (!geoMeta) return null;
 
     const primaryCol = geoMeta.primary_column || 'geometry';

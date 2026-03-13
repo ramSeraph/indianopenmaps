@@ -1,27 +1,22 @@
 // Base class for partial download format handlers
 
-import { OPFS_PREFIX_OUTPUT, getStorageEstimate, formatSize } from './utils.js';
+import { getStorageEstimate, formatSize } from './utils.js';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export class FormatHandler {
-  constructor({ tabId, conn, db, urls, bbox, estimatedBytes } = {}) {
+  constructor({ tabId, duckdb, urls, bbox, estimatedBytes } = {}) {
     this.tabId = tabId;
-    this.conn = conn;
-    this.db = db;
+    this.duckdb = duckdb;
     this.urls = urls || [];
     this.bbox = bbox;
     this.estimatedBytes = estimatedBytes ?? null;
-    this._opfsPath = null;
+    this._duckdbRegisteredPaths = new Set();
     this._prepared = false;
-    this._outputFileName = null;
-    this._downloadTriggered = false;
+    this._downloadedFiles = new Set();
   }
-
-  get extension() { throw new Error('Not implemented'); }
-  get needsDuckDBRegistration() { return true; }
 
   getExpectedBrowserStorageUsage() { throw new Error('Not implemented'); }
   getTotalExpectedDiskUsage() { throw new Error('Not implemented'); }
@@ -66,42 +61,51 @@ export class FormatHandler {
     return `read_parquet([${urlList}], union_by_name=true)`;
   }
 
-  async createTempOpfsFile(prefix) {
-    const path = `opfs://${prefix}${this.tabId}_${Date.now()}.parquet`;
-    await this.db.registerOPFSFileName(path);
+  async createDuckdbOpfsFile(prefix, ext) {
+    const path = `opfs://${prefix}${this.tabId}_${Date.now()}.${ext}`;
+    await this.duckdb.db.registerOPFSFileName(path);
     await sleep(5);
+    this._duckdbRegisteredPaths.add(path);
     return path;
   }
 
-  async releaseTempFile(opfsFileName) {
+  async removeOpfsFile(opfsFileName) {
     try {
       const root = await navigator.storage.getDirectory();
       await root.removeEntry(opfsFileName);
     } catch (e) { /* may already be cleaned up */ }
   }
 
-  async prepareOpfs() {
-    this._opfsPath = `opfs://${OPFS_PREFIX_OUTPUT}${this.tabId}_${Date.now()}${this.extension}`;
-    this._outputFileName = this._opfsPath.replace('opfs://', '');
-    if (this.needsDuckDBRegistration) {
-      await this.db.registerOPFSFileName(this._opfsPath);
-      this._prepared = true;
-      await sleep(5);
+  async releaseDuckdbOpfsFile(opfsFileName) {
+    try {
+      await this.duckdb.db.dropFile(opfsFileName);
+    } catch (e) { /* db terminated or file already gone */ }
+    this._duckdbRegisteredPaths.delete(opfsFileName);
+  }
+
+  async releaseDuckDbOpfsFiles() {
+    const paths = Array.from(this._duckdbRegisteredPaths);
+
+    for (const path of paths) {
+      await this.releaseDuckdbOpfsFile(path);
     }
   }
 
-  async releaseOpfs() {
-    if (this._prepared && this.db) {
-      try {
-        await this.db.dropFile(this._opfsPath);
-      } catch (e) { /* db may have been terminated */ }
-      this._prepared = false;
-    }
+  async getOpfsFile(opfsPath) {
+    const root = await navigator.storage.getDirectory();
+    const handle = await root.getFileHandle(opfsPath.replace('opfs://', ''));
+    return await handle.getFile();
   }
 
-  get outputFileName() { return this._outputFileName; }
-
-  wrapBlobParts(file) { return [file]; }
+  /**
+   * Return a list of { downloadName, blobParts } for triggerDownload.
+   * blobParts may contain File objects (from OPFS) and Uint8Array headers.
+   * OPFS files to clean up are derived from File objects in blobParts.
+   * Subclasses override to provide multi-file or wrapped downloads.
+   */
+  async getDownloadMap(baseName) {
+    throw new Error('Not implemented');
+  }
 
   get bboxWkt() {
     return `POLYGON((${this.bbox.west} ${this.bbox.south}, ${this.bbox.east} ${this.bbox.south}, ${this.bbox.east} ${this.bbox.north}, ${this.bbox.west} ${this.bbox.north}, ${this.bbox.west} ${this.bbox.south}))`;
@@ -115,47 +119,45 @@ export class FormatHandler {
     return `${bboxRowGroupFilter} AND ST_Intersects(geometry, ST_GeomFromText('${this.bboxWkt}'))`;
   }
 
-  async triggerDownload(downloadFileName, cleanupDelayMs) {
-    const root = await navigator.storage.getDirectory();
-    const handle = await root.getFileHandle(this._outputFileName);
-    const file = await handle.getFile();
-    const blobParts = this.wrapBlobParts(file);
+  async triggerDownload(baseName, cleanupDelayMs) {
+    const entries = await this.getDownloadMap(baseName);
 
-    const blob = new Blob(blobParts);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = downloadFileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    for (const { downloadName, blobParts } of entries) {
+      const blob = new Blob(blobParts);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
-    this._downloadTriggered = true;
+      // Derive OPFS files to clean up from File objects in blobParts
+      const opfsFiles = blobParts.filter(p => p instanceof File).map(f => f.name);
+      for (const f of opfsFiles) this._downloadedFiles.add(f);
 
-    const outputFileName = this._outputFileName;
-    setTimeout(async () => {
-      URL.revokeObjectURL(url);
-      try {
+      // Clean up blob URL and OPFS files after delay
+      setTimeout(async () => {
+        URL.revokeObjectURL(url);
         const root = await navigator.storage.getDirectory();
-        await root.removeEntry(outputFileName);
-      } catch (e) { /* ignore */ }
-    }, cleanupDelayMs);
+        for (const name of opfsFiles) {
+          try { await root.removeEntry(name); } catch (e) { /* ignore */ }
+        }
+      }, cleanupDelayMs);
+
+      // Small delay between downloads so browser doesn't block them
+      if (entries.length > 1) await new Promise(r => setTimeout(r, 200));
+    }
   }
 
   async write(callbacks) {
     // callbacks: { onProgress(0–100), onStatus(msg), cancelled() }
-    await this.prepareOpfs();
     try {
       await this._write(callbacks);
     } finally {
-      // Only release DuckDB's file handle if not cancelled — on cancellation
-      // the db worker is terminated and dropFile would hang. cleanup() handles
-      // OPFS file removal directly without DuckDB.
-      if (!callbacks?.cancelled?.()) {
-        await this.releaseOpfs();
-      } else {
-        this._prepared = false;
-      }
+      // Safety net: release any DuckDB file handles not already released by _write().
+      // On cancellation, dropFile throws AbortError which releaseDuckdbOpfsFile eats.
+      await this.releaseDuckDbOpfsFiles();
     }
   }
 
@@ -164,18 +166,14 @@ export class FormatHandler {
   }
 
   async cleanup() {
-    this._prepared = false;
-
-    // Sweep all OPFS files belonging to this tab, except the output file if download was triggered
+    // Sweep all OPFS files belonging to this tab, except files already handed to delayed cleanup
     const root = await navigator.storage.getDirectory();
     for await (const [name] of root) {
       if (!name.includes(this.tabId)) continue;
-      if (this._downloadTriggered && name === this._outputFileName) continue;
+      if (this._downloadedFiles.has(name)) continue;
       try {
         await root.removeEntry(name, { recursive: true });
       } catch (e) { /* may already be cleaned up */ }
     }
-    this._opfsPath = null;
-    this._outputFileName = null;
   }
 }

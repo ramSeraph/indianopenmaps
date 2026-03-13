@@ -6,8 +6,11 @@ import { FormatHandler } from './format_base.js';
 import { OPFS_PREFIX_GPKG_TMP, OPFS_PREFIX_GPKG, ScopedProgress } from './utils.js';
 
 export class GeoPackageFormatHandler extends FormatHandler {
-  get extension() { return '.gpkg'; }
-  get needsDuckDBRegistration() { return false; }
+  constructor({ ...opts } = {}) {
+    super(opts);
+    this.gpkgFileName = null;
+    this.extension = 'gpkg';
+  }
 
   // Peak browser storage: intermediate parquet (~1× source) + gpkg output coexist on OPFS
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * (1 + 1.5); }
@@ -18,14 +21,13 @@ export class GeoPackageFormatHandler extends FormatHandler {
     // Stage 1 (0–70%): Write intermediate parquet to OPFS (remote data fetch)
     onStatus?.('Filtering data...');
     const stage1 = new ScopedProgress(onProgress, 0, 70);
-    const tempParquetPath = await this.createTempOpfsFile(OPFS_PREFIX_GPKG_TMP);
-    const tempParquetFileName = tempParquetPath.replace('opfs://', '');
+    const tempParquetPath = await this.createDuckdbOpfsFile(OPFS_PREFIX_GPKG_TMP, 'parquet');
 
     const stopTracker1 = this.startDiskProgressTracker(
       stage1.callback, onStatus, 'Filtering data:', this.estimatedBytes
     );
     try {
-      await this.conn.query(`
+      await this.duckdb.conn.query(`
         COPY (
           SELECT
             hex(ST_AsWKB(geometry)::BLOB) AS geom_wkb,
@@ -41,15 +43,14 @@ export class GeoPackageFormatHandler extends FormatHandler {
       stopTracker1();
     }
 
-    // Release DuckDB's hold so the worker can read the file
-    await this.db.dropFile(tempParquetPath);
+    await this.releaseDuckdbOpfsFile(tempParquetPath);
 
     if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
 
     // Stage 2 (70–100%): Worker reads parquet + writes GPKG
     onStatus?.('Writing GeoPackage...');
     const stage2 = new ScopedProgress(onProgress, 70, 100);
-    const gpkgFileName = `${OPFS_PREFIX_GPKG}${this.tabId}_${Date.now()}.gpkg`;
+    this.gpkgFileName = `${OPFS_PREFIX_GPKG}${this.tabId}_${Date.now()}.gpkg`;
 
     const stopTracker2 = this.startDiskProgressTracker(
       stage2.callback, onStatus, 'Writing GeoPackage:', this.estimatedBytes * 1.5
@@ -83,16 +84,20 @@ export class GeoPackageFormatHandler extends FormatHandler {
         worker.postMessage({
           id: msgId,
           method: 'writeFromParquet',
-          args: { parquetFileName: tempParquetFileName, gpkgFileName },
+          args: { parquetFileName: tempParquetPath.replace('opfs://', ''), gpkgFileName: this.gpkgFileName },
         });
       });
     } finally {
       stopTracker2();
       worker.terminate();
-      await this.releaseTempFile(tempParquetFileName);
+      await this.removeOpfsFile(tempParquetPath.replace('opfs://', ''));
     }
 
-    this._outputFileName = gpkgFileName;
     onProgress?.(100);
+  }
+
+  async getDownloadMap(baseName) {
+    const file = await this.getOpfsFile(this.gpkgFileName);
+    return [{ downloadName: `${baseName}.${this.extension}`, blobParts: [file] }];
   }
 }

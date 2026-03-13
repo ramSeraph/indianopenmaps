@@ -1,7 +1,5 @@
-// UI for partial (bbox-filtered) downloads and the show extents checkbox.
-// Clubbed together because the show extents checkbox is only relevant in the context of partial downloads, and it needs to interact with the same map/events/etc.
+// UI for partial (bbox-filtered) downloads.
 import { PartialDownloadHandler, FORMAT_OPTIONS, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
-import { ExtentHandler } from './extent_handler.js';
 import { formatSize, getStorageEstimate } from './utils.js';
 
 const FORMAT_LABELS = Object.fromEntries(FORMAT_OPTIONS.map(f => [f.value, f.label]));
@@ -15,11 +13,9 @@ export class PartialDownloadUI {
     this.map = map;
     this.routesHandler = routesHandler;
     this.selectedSource = null;
-    this.extentHandler = new ExtentHandler(map, routesHandler);
     this.partialDownloadHandler = new PartialDownloadHandler();
 
-    // UI elements (created in createSection / createExtentsCheckbox)
-    this.extentsContainer = null;
+    // UI elements (created in createSection)
     this.section = null;
     this.formatSelect = null;
     this.startButton = null;
@@ -32,17 +28,7 @@ export class PartialDownloadUI {
     this.memoryValue = null;
     this.downloadInfo = null;
 
-    this.extentHandler.addEventListener('loadingchange', (e) => {
-      if (this.startButton) this.startButton.disabled = e.detail.loading;
-    });
-
     this.map.on('moveend', () => this._updateBboxDisplay());
-  }
-
-  createExtentsCheckbox() {
-    this.extentsContainer = this.extentHandler.createCheckbox();
-    this.extentsContainer.style.display = 'none';
-    return this.extentsContainer;
   }
 
   createSection() {
@@ -98,17 +84,14 @@ export class PartialDownloadUI {
 
   setSourcePath(path) {
     this.selectedSource = path;
-    this.extentHandler.setSourcePath(path);
   }
 
   setVisible(visible) {
-    if (this.extentsContainer) this.extentsContainer.style.display = visible ? '' : 'none';
     if (this.section) this.section.style.display = visible ? '' : 'none';
   }
 
   destroy() {
     this.partialDownloadHandler.destroy();
-    this.extentHandler.destroy();
   }
 
   async startDownload() {
@@ -229,14 +212,14 @@ export class PartialDownloadUI {
     this.startButton.style.display = isDownloading ? 'none' : '';
     this.cancelButton.style.display = isDownloading ? 'block' : 'none';
     this.progressContainer.style.display = isDownloading ? 'block' : 'none';
-    if (this.extentHandler?.checkbox) {
-      this.extentHandler.checkbox.disabled = isDownloading;
-    }
+    this._lastProgress = 0;
     this._updateProgress(0);
   }
 
   _updateProgress(percent) {
     if (this.progressBar) {
+      if (percent < this._lastProgress) return;
+      this._lastProgress = percent;
       this.progressBar.style.width = `${percent}%`;
     }
   }

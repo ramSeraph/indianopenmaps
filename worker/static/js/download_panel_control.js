@@ -2,6 +2,7 @@
 import { SizeGetter } from './size_getter.js';
 import { parquetMetadata } from './parquet_metadata.js';
 import { PartialDownloadUI } from './partial_download_ui.js';
+import { ExtentHandler } from './extent_handler.js';
 
 const DEFAULT_LICENSE = '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
 
@@ -29,6 +30,7 @@ export class DownloadPanelControl {
     this.copyResetTimeout = null;
     this.sizeGetter = new SizeGetter();
     
+    this.extentHandler = new ExtentHandler(map, routesHandler);
     this.partialUI = new PartialDownloadUI({ map, routesHandler });
   }
 
@@ -56,6 +58,7 @@ export class DownloadPanelControl {
     if (handler.selectedSourceCount === 0 || (this.selectedSource && !handler.hasSource(this.selectedSource))) {
       this.selectedSource = null;
       this.partialUI.setSourcePath(null);
+      this.extentHandler.setSourcePath(null);
     }
 
     if (!this.sourceDropdownContainer) return;
@@ -67,6 +70,7 @@ export class DownloadPanelControl {
     this.noSourcesMessage.style.display = hasSources ? 'none' : 'block';
     this.sourceDropdownContainer.style.display = hasSources ? 'block' : 'none';
     this.partialUI.setVisible(hasSources);
+    if (this.extentsContainer) this.extentsContainer.style.display = hasSources ? '' : 'none';
 
     if (!hasSources) {
       this.sourceInfoContainer.innerHTML = '';
@@ -150,6 +154,7 @@ export class DownloadPanelControl {
 
   async _onSourceSelected(sourcePath) {
     this.partialUI.setSourcePath(sourcePath);
+    this.extentHandler.setSourcePath(sourcePath);
 
     const routes = this.routesHandler.getVectorSources();
     const routeInfo = routes[sourcePath];
@@ -394,7 +399,9 @@ export class DownloadPanelControl {
     this.panelContent.appendChild(this.linksContainer);
 
     // Data extents checkbox (between full download and partial download)
-    this.panelContent.appendChild(this.partialUI.createExtentsCheckbox());
+    this.extentsContainer = this.extentHandler.createCheckbox();
+    this.extentsContainer.style.display = 'none';
+    this.panelContent.appendChild(this.extentsContainer);
 
     // Partial download section
     this.panelContent.appendChild(this.partialUI.createSection());
@@ -409,6 +416,7 @@ export class DownloadPanelControl {
 
   onRemove() {
     this.partialUI.destroy();
+    this.extentHandler.destroy();
     this.container?.parentNode?.removeChild(this.container);
     this.map = undefined;
   }
