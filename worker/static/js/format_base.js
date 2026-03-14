@@ -69,9 +69,14 @@ export class FormatHandler {
     return path;
   }
 
+  async _getRoot() {
+    if (!this._opfsRoot) this._opfsRoot = await navigator.storage.getDirectory();
+    return this._opfsRoot;
+  }
+
   async removeOpfsFile(opfsFileName) {
     try {
-      const root = await navigator.storage.getDirectory();
+      const root = await this._getRoot();
       await root.removeEntry(opfsFileName);
     } catch (e) { /* may already be cleaned up */ }
   }
@@ -91,10 +96,73 @@ export class FormatHandler {
     }
   }
 
+  async getOpfsHandle(name, { create = false } = {}) {
+    const root = await this._getRoot();
+    return root.getFileHandle(name.replace('opfs://', ''), { create });
+  }
+
   async getOpfsFile(opfsPath) {
-    const root = await navigator.storage.getDirectory();
-    const handle = await root.getFileHandle(opfsPath.replace('opfs://', ''));
-    return await handle.getFile();
+    const handle = await this.getOpfsHandle(opfsPath);
+    return handle.getFile();
+  }
+
+  /**
+   * Create an intermediate parquet file on OPFS with WKB geometry from the remote source.
+   * Common to handlers that need row-level streaming (shapefile, KML, geopackage).
+   * @param {Object} opts
+   * @param {string} opts.prefix - OPFS filename prefix
+   * @param {string[]} [opts.extraColumns] - Additional SQL expressions for the SELECT
+   * @param {Function} opts.onProgress - Progress callback (0–100, already scoped by caller)
+   * @param {Function} opts.onStatus - Status message callback
+   * @param {Function} opts.cancelled - Cancellation check
+   * @returns {Promise<string>} The opfs:// path to the intermediate parquet file
+   */
+  async createIntermediateParquet({ prefix, extraColumns, onProgress, onStatus, cancelled }) {
+    onStatus?.('Filtering data...');
+    const tempPath = await this.createDuckdbOpfsFile(prefix, 'parquet');
+
+    const stopTracker = this.startDiskProgressTracker(
+      onProgress, onStatus, 'Filtering data:', this.estimatedBytes
+    );
+    const extraSelect = extraColumns?.length
+      ? extraColumns.join(', ') + ', '
+      : '';
+    try {
+      await this.duckdb.conn.query(`
+        COPY (
+          SELECT
+            hex(ST_AsWKB(geometry)::BLOB) AS geom_wkb,
+            ${extraSelect}* EXCLUDE (geometry, bbox)
+          FROM ${this.parquetSource}
+          WHERE ${this.bboxFilter}
+        ) TO '${tempPath}' (FORMAT PARQUET, COMPRESSION ZSTD)
+      `);
+    } finally {
+      stopTracker();
+    }
+
+    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    return tempPath;
+  }
+
+  /**
+   * Discover attribute columns from an intermediate parquet file via DuckDB DESCRIBE.
+   * @param {string} parquetPath - opfs:// path to the parquet file
+   * @param {Set<string>} internalCols - Column names to exclude (e.g. geom_wkb, _geom_type)
+   * @returns {Promise<Array<{name: string, type: string}>>} Column names and DuckDB types
+   */
+  async describeColumns(parquetPath, internalCols) {
+    const result = await this.duckdb.conn.query(
+      `SELECT column_name, column_type FROM (DESCRIBE SELECT * FROM '${parquetPath}')`
+    );
+    const columns = [];
+    for (let i = 0; i < result.numRows; i++) {
+      const name = result.getChildAt(0).get(i);
+      const type = result.getChildAt(1).get(i);
+      if (internalCols.has(name)) continue;
+      columns.push({ name, type });
+    }
+    return columns;
   }
 
   /**
@@ -139,7 +207,7 @@ export class FormatHandler {
       // Clean up blob URL and OPFS files after delay
       setTimeout(async () => {
         URL.revokeObjectURL(url);
-        const root = await navigator.storage.getDirectory();
+        const root = await this._getRoot();
         for (const name of opfsFiles) {
           try { await root.removeEntry(name); } catch (e) { /* ignore */ }
         }
@@ -167,7 +235,7 @@ export class FormatHandler {
 
   async cleanup() {
     // Sweep all OPFS files belonging to this tab, except files already handed to delayed cleanup
-    const root = await navigator.storage.getDirectory();
+    const root = await this._getRoot();
     for await (const [name] of root) {
       if (!name.includes(this.tabId)) continue;
       if (this._downloadedFiles.has(name)) continue;

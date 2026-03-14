@@ -10,6 +10,7 @@ import { GeoJsonFormatHandler } from './format_geojson.js';
 import { GeoParquetFormatHandler } from './format_geoparquet.js';
 import { GeoPackageFormatHandler } from './format_geopackage.js';
 import { ShapefileFormatHandler } from './format_shapefile.js';
+import { KmlFormatHandler } from './format_kml.js';
 
 export const FORMAT_OPTIONS = [
   { value: 'geojson', label: 'GeoJSON' },
@@ -18,6 +19,7 @@ export const FORMAT_OPTIONS = [
   { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
   { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
   { value: 'shapefile', label: 'Shapefile (.shp)' },
+  { value: 'kml', label: 'KML (.kml)' },
   { value: 'csv', label: 'CSV (WKT geometry)' }
 ];
 
@@ -48,6 +50,7 @@ function getFormatHandler(format, opts) {
     case 'geoparquet2': return new GeoParquetFormatHandler({ version: '2.0', ...opts });
     case 'geopackage': return new GeoPackageFormatHandler(opts);
     case 'shapefile': return new ShapefileFormatHandler(opts);
+    case 'kml': return new KmlFormatHandler(opts);
     default: throw new Error(`Unsupported format: ${format}`);
   }
 }

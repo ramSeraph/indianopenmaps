@@ -19,29 +19,16 @@ export class GeoPackageFormatHandler extends FormatHandler {
 
   async _write({ onProgress, onStatus, cancelled }) {
     // Stage 1 (0–70%): Write intermediate parquet to OPFS (remote data fetch)
-    onStatus?.('Filtering data...');
     const stage1 = new ScopedProgress(onProgress, 0, 70);
-    const tempParquetPath = await this.createDuckdbOpfsFile(OPFS_PREFIX_GPKG_TMP, 'parquet');
-
-    const stopTracker1 = this.startDiskProgressTracker(
-      stage1.callback, onStatus, 'Filtering data:', this.estimatedBytes
-    );
-    try {
-      await this.duckdb.conn.query(`
-        COPY (
-          SELECT
-            hex(ST_AsWKB(geometry)::BLOB) AS geom_wkb,
-            ST_GeometryType(geometry) AS _geom_type,
-            ST_XMin(geometry) AS _bbox_minx, ST_YMin(geometry) AS _bbox_miny,
-            ST_XMax(geometry) AS _bbox_maxx, ST_YMax(geometry) AS _bbox_maxy,
-            * EXCLUDE (geometry, bbox)
-          FROM ${this.parquetSource}
-          WHERE ${this.bboxFilter}
-        ) TO '${tempParquetPath}' (FORMAT PARQUET, COMPRESSION ZSTD)
-      `);
-    } finally {
-      stopTracker1();
-    }
+    const tempParquetPath = await this.createIntermediateParquet({
+      prefix: OPFS_PREFIX_GPKG_TMP,
+      extraColumns: [
+        "ST_GeometryType(geometry) AS _geom_type",
+        "ST_XMin(geometry) AS _bbox_minx", "ST_YMin(geometry) AS _bbox_miny",
+        "ST_XMax(geometry) AS _bbox_maxx", "ST_YMax(geometry) AS _bbox_maxy",
+      ],
+      onProgress: stage1.callback, onStatus, cancelled,
+    });
 
     await this.releaseDuckdbOpfsFile(tempParquetPath);
 

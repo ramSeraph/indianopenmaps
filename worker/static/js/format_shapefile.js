@@ -4,11 +4,11 @@
 // record data streamed to OPFS → headers prepended at download time.
 
 import { FormatHandler } from './format_base.js';
-import { OPFS_PREFIX_SHP_TMP, ScopedProgress, fileToAsyncBuffer } from './utils.js';
+import { OPFS_PREFIX_SHP_TMP, ScopedProgress, fileToAsyncBuffer, parseWkbHex } from './utils.js';
 import { parquetRead, parquetMetadataAsync, parquetSchema } from 'https://esm.sh/hyparquet@1.25.0';
 import { compressors } from 'https://esm.sh/hyparquet-compressors@1';
 import {
-  parseWkbHex, promoteGeometry, resolveShpTypeMapping, truncateFieldNames,
+  promoteGeometry, resolveShpTypeMapping, truncateFieldNames,
   ShpWriter, DbfWriter,
   PRJ_WGS84, SHP_TYPE_LABELS,
 } from './shp_writer.js';
@@ -35,43 +35,18 @@ export class ShapefileFormatHandler extends FormatHandler {
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 3; }
 
   async _write({ onProgress, onStatus, cancelled }) {
-    // Stage 1 (0–50%): DuckDB → intermediate parquet on OPFS
-    onStatus?.('Filtering data...');
+    // Stage 1 (0–60%): DuckDB → intermediate parquet on OPFS
     const stage1 = new ScopedProgress(onProgress, 0, 60);
-    const tempParquetPath = await this.createDuckdbOpfsFile(OPFS_PREFIX_SHP_TMP, 'parquet');
-
-    const stopTracker1 = this.startDiskProgressTracker(
-      stage1.callback, onStatus, 'Filtering data:', this.estimatedBytes
-    );
-    try {
-      await this.duckdb.conn.query(`
-        COPY (
-          SELECT
-            hex(ST_AsWKB(geometry)::BLOB) AS geom_wkb,
-            ST_GeometryType(geometry) AS _geom_type,
-            * EXCLUDE (geometry, bbox)
-          FROM ${this.parquetSource}
-          WHERE ${this.bboxFilter}
-        ) TO '${tempParquetPath}' (FORMAT PARQUET, COMPRESSION ZSTD)
-      `);
-    } finally {
-      stopTracker1();
-    }
-
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    const tempParquetPath = await this.createIntermediateParquet({
+      prefix: OPFS_PREFIX_SHP_TMP,
+      extraColumns: ["ST_GeometryType(geometry) AS _geom_type"],
+      onProgress: stage1.callback, onStatus, cancelled,
+    });
 
     // Discover columns and geometry types from local intermediate parquet via DuckDB
     onStatus?.('Reading schema...');
-    const schemaResult = await this.duckdb.conn.query(
-      `SELECT column_name, column_type FROM (DESCRIBE SELECT * FROM '${tempParquetPath}')`
-    );
-    const attrColumns = [];
-    for (let i = 0; i < schemaResult.numRows; i++) {
-      const name = schemaResult.getChildAt(0).get(i);
-      const type = schemaResult.getChildAt(1).get(i);
-      if (INTERNAL_COLS.has(name)) continue;
-      attrColumns.push({ originalName: name, type: duckdbTypeToDbf(type) });
-    }
+    const columns = await this.describeColumns(tempParquetPath, INTERNAL_COLS);
+    const attrColumns = columns.map(c => ({ originalName: c.name, type: duckdbTypeToDbf(c.type) }));
 
     onProgress?.(65);
 
@@ -129,15 +104,14 @@ export class ShapefileFormatHandler extends FormatHandler {
     }
 
     // Open OPFS writable streams for each type's .shp and .dbf body data
-    const root = await navigator.storage.getDirectory();
     const opfsStreams = {};
     for (const shpType of shpTypes) {
       const typeSuffix = shpTypes.length > 1 ? `_${SHP_TYPE_LABELS[shpType]}` : '';
       const prefix = `${OPFS_PREFIX_SHP_TMP}${this.tabId}_${Date.now()}`;
       const shpName = `${prefix}${typeSuffix}.shp.body`;
       const dbfName = `${prefix}${typeSuffix}.dbf.body`;
-      const shpHandle = await root.getFileHandle(shpName, { create: true });
-      const dbfHandle = await root.getFileHandle(dbfName, { create: true });
+      const shpHandle = await this.getOpfsHandle(shpName, { create: true });
+      const dbfHandle = await this.getOpfsHandle(dbfName, { create: true });
       opfsStreams[shpType] = {
         shpName, dbfName, typeSuffix, prefix,
         shpStream: await shpHandle.createWritable(),
@@ -213,11 +187,11 @@ export class ShapefileFormatHandler extends FormatHandler {
       // .shx is small (header + 8 bytes per record) — write fully now
       const shxParts = shp.generateShxParts();
       const shxName = `${prefix}${typeSuffix}.shx`;
-      await this._writeOpfsFile(root, shxName, [shxParts.header, shxParts.records]);
+      await this._writeOpfsFile(shxName, [shxParts.header, shxParts.records]);
 
       // .prj is tiny
       const prjName = `${prefix}${typeSuffix}.prj`;
-      await this._writeOpfsFile(root, prjName, [new TextEncoder().encode(PRJ_WGS84)]);
+      await this._writeOpfsFile(prjName, [new TextEncoder().encode(PRJ_WGS84)]);
 
       this._shpOutputFiles[shpType] = {
         shpBody: shpName,
@@ -237,8 +211,8 @@ export class ShapefileFormatHandler extends FormatHandler {
     onStatus?.('Shapefile complete');
   }
 
-  async _writeOpfsFile(root, fileName, parts) {
-    const handle = await root.getFileHandle(fileName, { create: true });
+  async _writeOpfsFile(fileName, parts) {
+    const handle = await this.getOpfsHandle(fileName, { create: true });
     const writable = await handle.createWritable();
     for (const part of parts) await writable.write(part);
     await writable.close();
@@ -247,7 +221,6 @@ export class ShapefileFormatHandler extends FormatHandler {
   async getDownloadMap(baseName) {
     if (!this._shpOutputFiles) return [];
 
-    const root = await navigator.storage.getDirectory();
     const typeEntries = Object.entries(this._shpOutputFiles);
     const entries = [];
 
@@ -256,19 +229,19 @@ export class ShapefileFormatHandler extends FormatHandler {
       const name = `${baseName}${typeSuffix}`;
 
       // .shp: header + body
-      const shpBodyFile = await (await root.getFileHandle(info.shpBody)).getFile();
+      const shpBodyFile = await this.getOpfsFile(info.shpBody);
       entries.push({ downloadName: `${name}.shp`, blobParts: [info.shpHeader, shpBodyFile] });
 
       // .shx: already complete on disk
-      const shxFile = await (await root.getFileHandle(info.shx)).getFile();
+      const shxFile = await this.getOpfsFile(info.shx);
       entries.push({ downloadName: `${name}.shx`, blobParts: [shxFile] });
 
       // .dbf: header + body + terminator
-      const dbfBodyFile = await (await root.getFileHandle(info.dbfBody)).getFile();
+      const dbfBodyFile = await this.getOpfsFile(info.dbfBody);
       entries.push({ downloadName: `${name}.dbf`, blobParts: [info.dbfHeader, dbfBodyFile, info.dbfTerminator] });
 
       // .prj: already complete on disk
-      const prjFile = await (await root.getFileHandle(info.prj)).getFile();
+      const prjFile = await this.getOpfsFile(info.prj);
       entries.push({ downloadName: `${name}.prj`, blobParts: [prjFile] });
     }
 
