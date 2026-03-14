@@ -283,11 +283,6 @@
 
                 showInfo(`COG loaded successfully. Bounds: [${cogInfo.bounds.west.toFixed(4)}, ${cogInfo.bounds.south.toFixed(4)}, ${cogInfo.bounds.east.toFixed(4)}, ${cogInfo.bounds.north.toFixed(4)}]`);
                 
-                // Listen for tile load events
-                cogLayer.on('tileload', () => {
-                    showInfo('COG tiles loaded');
-                });
-
                 cogLayer.on('tileerror', (e) => {
                     console.error('Tile error:', e);
                 });
