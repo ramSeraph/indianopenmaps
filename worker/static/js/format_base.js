@@ -36,7 +36,7 @@ export class FormatHandler {
    * based on estimated output size. Returns a stop function.
    */
   startDiskProgressTracker(onProgress, onStatus, messagePrefix, expectedBytes, intervalMs = 5000) {
-    if (!expectedBytes || expectedBytes <= 0) return () => {};
+    if (!expectedBytes || expectedBytes <= 0 || this.cancelled) return () => {};
 
     let baselineUsage = null;
     let stopped = false;
