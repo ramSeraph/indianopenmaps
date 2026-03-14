@@ -1,6 +1,7 @@
 // UI for partial (bbox-filtered) downloads.
 import { PartialDownloadHandler, FORMAT_OPTIONS, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
 import { formatSize, getStorageEstimate } from './utils.js';
+import { bboxUtmZone } from './utils.js';
 
 const FORMAT_LABELS = Object.fromEntries(FORMAT_OPTIONS.map(f => [f.value, f.label]));
 
@@ -108,6 +109,18 @@ export class PartialDownloadUI {
     };
 
     const format = this.formatSelect.value;
+
+    if (format === 'dxf') {
+      const utmInfo = bboxUtmZone(bbox);
+      if (!utmInfo) {
+        alert(
+          'DXF export requires the current view to fit within a single UTM zone (6° of longitude).\n\n'
+          + 'Please zoom in or pan so the map view does not cross a UTM zone boundary.'
+        );
+        return;
+      }
+    }
+
     const sourceName = routeInfo.name || sourcePath;
     const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);

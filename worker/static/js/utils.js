@@ -25,7 +25,25 @@ export const OPFS_PREFIX_OUTPUT = opfsPrefix('dl_output_');
 export const OPFS_PREFIX_TMP = opfsPrefix('dl_tmp_');
 export const OPFS_PREFIX_SHP_TMP = opfsPrefix('dl_shp_tmp_');
 export const OPFS_PREFIX_KML_TMP = opfsPrefix('dl_kml_tmp_');
+export const OPFS_PREFIX_DXF_TMP = opfsPrefix('dl_dxf_tmp_');
 export const OPFS_PREFIX_TMPDIR = opfsPrefix('tmpdir_');
+
+/** Return the UTM zone number (1–60) for a given longitude. */
+export function getUtmZone(lon) {
+  return Math.floor((lon + 180) / 6) + 1;
+}
+
+/**
+ * Check whether a bbox fits in a single UTM zone.
+ * @returns {{ zone: number, hemisphere: string }} or null if it spans multiple zones.
+ */
+export function bboxUtmZone(bbox) {
+  const westZone = getUtmZone(bbox.west);
+  const eastZone = getUtmZone(bbox.east);
+  if (westZone !== eastZone) return null;
+  const hemisphere = ((bbox.south + bbox.north) / 2) >= 0 ? 'N' : 'S';
+  return { zone: westZone, hemisphere };
+}
 
 export function getOpfsPrefixes() {
   return OPFS_PREFIXES;
