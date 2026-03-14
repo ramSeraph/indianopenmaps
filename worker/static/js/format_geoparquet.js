@@ -78,7 +78,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
     return this.estimatedBytes * Math.max(1 + outputFactor, 2 * outputFactor);
   }
 
-  async _write({ onProgress, onStatus, cancelled }) {
+  async _write({ onProgress, onStatus }) {
     const cfg = this.versionConfig;
 
     // Stage 1 (0–50%): Write initial parquet from remote source
@@ -101,7 +101,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
       stopTracker1();
     }
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
     // Measure actual temp file size for accurate stage 3 progress tracking
     const tempFile = await this.getOpfsFile(tempOpfsPath);
     const tempFileSize = tempFile.size;
@@ -112,7 +112,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
     onProgress?.(50);
     const statsResult = await this.duckdb.conn.query(cfg.getBboxQuery(tempOpfsPath));
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     const geoBbox = [
       statsResult.getChildAt(0).get(0),
@@ -128,7 +128,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
       FROM '${tempOpfsPath}' WHERE geometry IS NOT NULL
     `);
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     const geomTypes = [];
     for (let i = 0; i < typesResult.numRows; i++) {
@@ -165,7 +165,7 @@ export class GeoParquetFormatHandler extends FormatHandler {
       stopTracker2();
     }
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     // Release DuckDB hold and eagerly clean up temp file
     await this.releaseDuckdbOpfsFile(tempOpfsPath);

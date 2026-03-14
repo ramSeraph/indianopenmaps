@@ -16,10 +16,20 @@ export class FormatHandler {
     this._duckdbRegisteredPaths = new Set();
     this._prepared = false;
     this._downloadedFiles = new Set();
+    this._activeTrackers = [];
+    this.cancelled = false;
   }
 
   getExpectedBrowserStorageUsage() { throw new Error('Not implemented'); }
   getTotalExpectedDiskUsage() { throw new Error('Not implemented'); }
+
+  cancel() {
+    this.cancelled = true;
+  }
+
+  throwIfCancelled() {
+    if (this.cancelled) throw new DOMException('Download cancelled', 'AbortError');
+  }
 
   /**
    * Start a background interval that polls disk usage and reports progress
@@ -50,10 +60,13 @@ export class FormatHandler {
     poll();
     const id = setInterval(poll, intervalMs);
 
-    return () => {
+    const stop = () => {
       stopped = true;
       clearInterval(id);
+      this._activeTrackers = this._activeTrackers.filter(s => s !== stop);
     };
+    this._activeTrackers.push(stop);
+    return stop;
   }
 
   get parquetSource() {
@@ -114,10 +127,9 @@ export class FormatHandler {
    * @param {string[]} [opts.extraColumns] - Additional SQL expressions for the SELECT
    * @param {Function} opts.onProgress - Progress callback (0–100, already scoped by caller)
    * @param {Function} opts.onStatus - Status message callback
-   * @param {Function} opts.cancelled - Cancellation check
    * @returns {Promise<string>} The opfs:// path to the intermediate parquet file
    */
-  async createIntermediateParquet({ prefix, extraColumns, onProgress, onStatus, cancelled }) {
+  async createIntermediateParquet({ prefix, extraColumns, onProgress, onStatus }) {
     onStatus?.('Filtering data...');
     const tempPath = await this.createDuckdbOpfsFile(prefix, 'parquet');
 
@@ -141,7 +153,7 @@ export class FormatHandler {
       stopTracker();
     }
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
     return tempPath;
   }
 
@@ -219,7 +231,7 @@ export class FormatHandler {
   }
 
   async write(callbacks) {
-    // callbacks: { onProgress(0–100), onStatus(msg), cancelled() }
+    // callbacks: { onProgress(0–100), onStatus(msg) }
     try {
       await this._write(callbacks);
     } finally {
@@ -234,6 +246,10 @@ export class FormatHandler {
   }
 
   async cleanup() {
+    // Kill any progress trackers still running (e.g. from a cancelled write
+    // whose Promise.race lost but whose async body hasn't finished yet)
+    for (const stop of [...this._activeTrackers]) stop();
+
     // Sweep all OPFS files belonging to this tab, except files already handed to delayed cleanup
     const root = await this._getRoot();
     for await (const [name] of root) {

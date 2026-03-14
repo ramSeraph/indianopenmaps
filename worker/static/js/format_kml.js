@@ -20,12 +20,12 @@ export class KmlFormatHandler extends FormatHandler {
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * 8; }
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 16; }
 
-  async _write({ onProgress, onStatus, cancelled }) {
+  async _write({ onProgress, onStatus }) {
     // Stage 1 (0–50%): DuckDB → intermediate parquet on OPFS
     const stage1 = new ScopedProgress(onProgress, 0, 50);
     const tempParquetPath = await this.createIntermediateParquet({
       prefix: OPFS_PREFIX_KML_TMP,
-      onProgress: stage1.callback, onStatus, cancelled,
+      onProgress: stage1.callback, onStatus,
     });
 
     // Discover columns from local intermediate parquet via DuckDB
@@ -33,7 +33,7 @@ export class KmlFormatHandler extends FormatHandler {
     const columns = await this.describeColumns(tempParquetPath, INTERNAL_COLS);
     const attrColumns = columns.map(c => ({ originalName: c.name }));
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     // Release DuckDB hold on intermediate file
     await this.releaseDuckdbOpfsFile(tempParquetPath);
@@ -64,7 +64,7 @@ export class KmlFormatHandler extends FormatHandler {
 
     try {
       for (const rg of metadata.row_groups) {
-        if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+        this.throwIfCancelled();
 
         const rgEnd = rowOffset + Number(rg.num_rows);
         let rows;

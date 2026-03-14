@@ -34,13 +34,13 @@ export class ShapefileFormatHandler extends FormatHandler {
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * 2.5; }
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 3; }
 
-  async _write({ onProgress, onStatus, cancelled }) {
+  async _write({ onProgress, onStatus }) {
     // Stage 1 (0–60%): DuckDB → intermediate parquet on OPFS
     const stage1 = new ScopedProgress(onProgress, 0, 60);
     const tempParquetPath = await this.createIntermediateParquet({
       prefix: OPFS_PREFIX_SHP_TMP,
       extraColumns: ["ST_GeometryType(geometry) AS _geom_type"],
-      onProgress: stage1.callback, onStatus, cancelled,
+      onProgress: stage1.callback, onStatus,
     });
 
     // Discover columns and geometry types from local intermediate parquet via DuckDB
@@ -50,7 +50,7 @@ export class ShapefileFormatHandler extends FormatHandler {
 
     onProgress?.(65);
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     const typesResult = await this.duckdb.conn.query(
       `SELECT DISTINCT _geom_type FROM '${tempParquetPath}' WHERE _geom_type IS NOT NULL`
@@ -65,7 +65,7 @@ export class ShapefileFormatHandler extends FormatHandler {
     // Release DuckDB hold on intermediate file
     await this.releaseDuckdbOpfsFile(tempParquetPath);
 
-    if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+    this.throwIfCancelled();
 
     const { shpTypes, typeMapping } = resolveShpTypeMapping(allGeomTypes);
     if (shpTypes.length === 0) throw new Error('No supported geometry types found');
@@ -126,7 +126,7 @@ export class ShapefileFormatHandler extends FormatHandler {
 
     try {
       for (const rg of metadata.row_groups) {
-        if (cancelled()) throw new DOMException('Download cancelled', 'AbortError');
+        this.throwIfCancelled();
 
         const rgEnd = rowOffset + Number(rg.num_rows);
         let rows;

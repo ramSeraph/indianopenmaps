@@ -164,14 +164,21 @@ export class PartialDownloadHandler {
 
   cancel() {
     this.cancelled = true;
-    // Reject the cancellation promise to unblock any in-flight download
-    if (this._rejectCancel) {
-      this._rejectCancel(new DOMException('Download cancelled', 'AbortError'));
-      this._rejectCancel = null;
-    }
-    // The next download will reinitialize DuckDB automatically.
+    // Cancel the format handler first (kills gpkg worker, sets cancelled flag, etc.)
+    this._formatHandler?.cancel();
+    // Terminate DuckDB so in-flight queries throw and write() finally blocks run
     this._duckdb.terminate();
     this.initialized = false;
+
+    // Delayed fallback: reject the cancel promise to unblock Promise.race
+    // if write() hasn't thrown yet despite DuckDB + worker termination
+    setTimeout(() => {
+      if (this._rejectCancel) {
+        this._rejectCancel(new DOMException('Download cancelled', 'AbortError'));
+        this._rejectCancel = null;
+      }
+    }, 1000);
+
     console.log('[PartialDownload] Cancelled — DuckDB worker terminated');
   }
 
@@ -312,10 +319,11 @@ export class PartialDownloadHandler {
 
     const urls = parquetUrls.map(u => proxyUrl(u, { absolute: true }));
 
-    return getFormatHandler(format, {
+    this._formatHandler = getFormatHandler(format, {
       tabId: TAB_ID, duckdb: this._duckdb,
       urls, bbox, estimatedBytes
     });
+    return this._formatHandler;
   }
 
   /**
@@ -329,7 +337,6 @@ export class PartialDownloadHandler {
         formatHandler.write({
           onProgress: writeProgress.callback,
           onStatus,
-          cancelled: () => this.cancelled,
         }),
         this._cancelPromise
       ]);
@@ -354,6 +361,7 @@ export class PartialDownloadHandler {
     } finally {
       this._rejectCancel = null;
       this._cancelPromise = null;
+      this._formatHandler = null;
       await formatHandler.cleanup();
     }
   }
