@@ -21,19 +21,16 @@
     "name": "SOI Flood Risk Area Maps",
     "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-nhp-pmtiles/SOI-NHP-25k.mosaic.json"
   },
-  "/czmp/goa/2019/4k/ncess/": {
-    "handlertype": "pmtiles",
+  "/dem/terrain-rgb/cartodem-v3r1/bhuvan/": {
+    "handlertype": "mosaic",
     "type": "raster",
     "category": [
-      "raster",
-      "ncess",
-      "4k",
-      "czmp",
-      "goa"
+      "digital elevation model",
+      "terrain rgb",
+      "raster"
     ],
-    "name": "CZMP 2019 Goa 4k",
-    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/4k-goa-2019-czmp-pmtiles/CZMP-2019-Goa-4k.pmtiles",
-    "license": "unknown"
+    "name": "Bhuvan CartoDEM 30m v3r1 Terrain RGB",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_TerrainRGB.mosaic.json"
   },
   "/not-so-open/states/lgd/": {
     "handlertype": "pmtiles",
@@ -1965,6 +1962,20 @@
     "source": "National Centre for Sustainable Coastal Management - https://czmp.ncscm.res.in/",
     "notes": "Missing Goa data"
   },
+  "/czmp/goa/2019/4k/ncess/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster",
+      "ncess",
+      "4k",
+      "czmp",
+      "goa"
+    ],
+    "name": "CZMP 2019 Goa 4k",
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/4k-goa-2019-czmp-pmtiles/CZMP-2019-Goa-4k.pmtiles",
+    "license": "unknown"
+  },
   "/not-so-open/coastal/goa/regulation/ncscm/": {
     "handlertype": "pmtiles",
     "type": "raster",
@@ -1976,19 +1987,6 @@
     ],
     "name": "NCSCM Raster Coastal Regulation Map of Goa",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/NCSCM_Goa_CRZ_Map.pmtiles",
-    "license": "unknown"
-  },
-  "/not-so-open/coastal/2019/goa/landuse/regulation/ncess/": {
-    "handlertype": "pmtiles",
-    "type": "raster",
-    "category": [
-      "coastal",
-      "raster",
-      "goa",
-      "ncess"
-    ],
-    "name": "NCESS Raster Coastal Regulation 2019 Landuse Map of Goa",
-    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP-2019-Landuse-Goa-25k.pmtiles",
     "license": "unknown"
   },
   "/not-so-open/coastal/regulation-zones/2019/parivesh/": {
@@ -5759,16 +5757,18 @@
     "name": "Bhuvan CartoDEM 30m v3r1 Contours",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Contours.mosaic.json"
   },
-  "/dem/terrain-rgb/cartodem-v3r1/bhuvan/": {
-    "handlertype": "mosaic",
+  "/not-so-open/coastal/2019/goa/landuse/regulation/ncess/": {
+    "handlertype": "pmtiles",
     "type": "raster",
     "category": [
-      "digital elevation model",
-      "terrain rgb",
-      "raster"
+      "coastal",
+      "raster",
+      "goa",
+      "ncess"
     ],
-    "name": "Bhuvan CartoDEM 30m v3r1 Terrain RGB",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_TerrainRGB.mosaic.json"
+    "name": "NCESS Raster Coastal Regulation 2019 Landuse Map of Goa",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP-2019-Landuse-Goa-25k.pmtiles",
+    "license": "unknown"
   },
   "/not-so-open/landuse/10k/sisdpv2/bhuvan/": {
     "handlertype": "mosaic",
@@ -5919,6 +5919,71 @@
     "promoteid": "part1Code",
     "source": "Reserve Bank of india - https://data.rbi.org.in/DBIE/#/banking-outlet"
   },
+  "/nepal/topo/ultrajourneys/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "nepal",
+      "ultrajourneys"
+    ],
+    "name": "Nepal Topo Maps",
+    "tilesuffix": "jpg",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/ultrajourneys/Nepal_Topo_Survey_JICA_Pahar_Ultrajourneys.mosaic.json",
+    "license": "unknown"
+  },
+  "/nepal/topo/maze/main/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "nepal"
+    ],
+    "name": "Nepal Topo Maps from Survey Department through 'the maze'",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_main.mosaic.json",
+    "license": "unknown"
+  },
+  "/nepal/topo/maze/jica/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "nepal",
+      "jica"
+    ],
+    "name": "Nepal Topo Maps from Survey Department through 'the maze', JICA subset",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_jica.pmtiles",
+    "license": "unknown"
+  },
+  "/nepal/topo/border/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "nepal",
+      "border"
+    ],
+    "name": "Nepal China border alignment 1979",
+    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/border/Nepal_border.pmtiles",
+    "license": "unknown"
+  },
+  "/myanmar/topo/50k/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "myanmar",
+      "50k"
+    ],
+    "name": "Myanmar Topo Maps from Survey Department through 'Old Survey of India Maps Collection",
+    "url": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-pmtiles/Myanmar_50k.mosaic.json",
+    "license": "unknown"
+  },
   "/world/topo/american/onc/": {
     "handlertype": "mosaic",
     "type": "raster",
@@ -6027,71 +6092,6 @@
     ],
     "name": "Soviet Genshtab 1:25k Topographic Maps",
     "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/25k-gs-pmtiles/Soviet-GS-25k.mosaic.json",
-    "license": "unknown"
-  },
-  "/nepal/topo/ultrajourneys/": {
-    "handlertype": "mosaic",
-    "type": "raster",
-    "category": [
-      "raster",
-      "topographic",
-      "nepal",
-      "ultrajourneys"
-    ],
-    "name": "Nepal Topo Maps",
-    "tilesuffix": "jpg",
-    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/ultrajourneys/Nepal_Topo_Survey_JICA_Pahar_Ultrajourneys.mosaic.json",
-    "license": "unknown"
-  },
-  "/nepal/topo/maze/main/": {
-    "handlertype": "mosaic",
-    "type": "raster",
-    "category": [
-      "raster",
-      "topographic",
-      "nepal"
-    ],
-    "name": "Nepal Topo Maps from Survey Department through 'the maze'",
-    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_main.mosaic.json",
-    "license": "unknown"
-  },
-  "/nepal/topo/maze/jica/": {
-    "handlertype": "pmtiles",
-    "type": "raster",
-    "category": [
-      "raster",
-      "topographic",
-      "nepal",
-      "jica"
-    ],
-    "name": "Nepal Topo Maps from Survey Department through 'the maze', JICA subset",
-    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/maze/Nepal_jica.pmtiles",
-    "license": "unknown"
-  },
-  "/nepal/topo/border/": {
-    "handlertype": "pmtiles",
-    "type": "raster",
-    "category": [
-      "raster",
-      "topographic",
-      "nepal",
-      "border"
-    ],
-    "name": "Nepal China border alignment 1979",
-    "url": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/border/Nepal_border.pmtiles",
-    "license": "unknown"
-  },
-  "/myanmar/topo/50k/": {
-    "handlertype": "mosaic",
-    "type": "raster",
-    "category": [
-      "raster",
-      "topographic",
-      "myanmar",
-      "50k"
-    ],
-    "name": "Myanmar Topo Maps from Survey Department through 'Old Survey of India Maps Collection",
-    "url": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-pmtiles/Myanmar_50k.mosaic.json",
     "license": "unknown"
   },
   "/ultrajourneys/altitude/himalayas/": {
