@@ -5722,7 +5722,8 @@
     "partitioned_parquet": true,
     "promoteid": "id",
     "description": "Raw Contour Data from SOI",
-    "source": "Survey Of India - https://indiamaps.gov.in/elevation"
+    "source": "Survey Of India - https://indiamaps.gov.in/elevation",
+    "notes": "For converting to DEM see <a href=\"https://github.com/ramSeraph/indian_land_features/issues/2\">ramSeraph/indian_land_features#2</a>"
   },
   "/dem/grid/cartodem-v3r1/bhuvan/": {
     "handlertype": "pmtiles",
