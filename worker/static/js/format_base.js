@@ -23,6 +23,14 @@ export class FormatHandler {
   getExpectedBrowserStorageUsage() { throw new Error('Not implemented'); }
   getTotalExpectedDiskUsage() { throw new Error('Not implemented'); }
 
+  /**
+   * Return a format-specific warning or error before download starts, or null.
+   * @returns {{ message: string, isBlocking: boolean } | null}
+   *   isBlocking=true → hard error (alert, cannot proceed)
+   *   isBlocking=false → soft warning (confirm, user may proceed)
+   */
+  getFormatWarning() { return null; }
+
   cancel() {
     this.cancelled = true;
   }

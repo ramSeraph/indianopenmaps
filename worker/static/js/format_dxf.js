@@ -4,22 +4,33 @@
 // DXF entities streamed to OPFS → header/tables/footer wrapped at download.
 
 import { FormatHandler } from './format_base.js';
-import { OPFS_PREFIX_DXF_TMP, ScopedProgress, fileToAsyncBuffer, parseWkbHex } from './utils.js';
+import { OPFS_PREFIX_DXF_TMP, ScopedProgress, bboxUtmZone, fileToAsyncBuffer, parseWkbHex } from './utils.js';
 import { parquetRead, parquetMetadataAsync, parquetSchema } from 'https://esm.sh/hyparquet@1.25.0';
 import { compressors } from 'https://esm.sh/hyparquet-compressors@1';
 import { featureToDxfEntities, buildDxfEnvelope, createUtmTransform } from './dxf_writer.js';
-import { bboxUtmZone } from './utils.js';
 
 const INTERNAL_COLS = new Set(['geom_wkb']);
 
 export class DxfFormatHandler extends FormatHandler {
-  constructor({ ...opts } = {}) {
+  constructor(opts = {}) {
     super(opts);
     this.extension = 'dxf';
   }
 
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * 8; }
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 16; }
+
+  getFormatWarning() {
+    const utmInfo = bboxUtmZone(this.bbox);
+    if (!utmInfo) {
+      return {
+        message: 'DXF export requires the current view to fit within a single UTM zone (6° of longitude).\n\n'
+          + 'Please zoom in or pan so the map view does not cross a UTM zone boundary.',
+        isBlocking: true,
+      };
+    }
+    return null;
+  }
 
   async _write({ onProgress, onStatus }) {
     // Stage 1 (0–50%): DuckDB → intermediate parquet on OPFS
@@ -43,7 +54,7 @@ export class DxfFormatHandler extends FormatHandler {
     onStatus?.('Writing DXF...');
     const stage2 = new ScopedProgress(onProgress, 50, 100);
 
-    // Compute UTM transform from bbox (zone already validated by UI)
+    // Compute UTM transform from bbox (validated by getFormatWarning)
     const utmInfo = bboxUtmZone(this.bbox);
     if (!utmInfo) throw new Error('DXF export requires bbox within a single UTM zone');
     const transform = createUtmTransform(utmInfo.zone, utmInfo.hemisphere);

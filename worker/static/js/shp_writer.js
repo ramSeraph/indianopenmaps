@@ -14,13 +14,7 @@ const GEOM_TYPE_TO_SHP_BASE = {
 };
 
 // Promote single → multi so we can unify into one file per base type
-const PROMOTE_MAP = {
-  'Point': 'MultiPoint', 'LineString': 'MultiLineString', 'Polygon': 'MultiPolygon',
-};
-
 export function promoteGeometry(geom) {
-  const promoted = PROMOTE_MAP[geom.type];
-  if (!promoted) return geom;
   switch (geom.type) {
     case 'Point':
       return { type: 'MultiPoint', coordinates: [geom.coordinates] };
@@ -28,6 +22,8 @@ export function promoteGeometry(geom) {
       return { type: 'MultiLineString', coordinates: [geom.coordinates] };
     case 'Polygon':
       return { type: 'MultiPolygon', coordinates: [geom.coordinates] };
+    default:
+      return geom;
   }
 }
 
@@ -56,6 +52,14 @@ export function resolveShpTypeMapping(duckdbGeomTypes) {
   const shpTypes = [...new Set([...typeMapping.values()].map(v => v.shpType))];
   return { shpTypes, typeMapping };
 }
+
+// --- Shapefile size limit ---
+
+// Maximum .shp file size: 2 GB (widely accepted compatibility limit).
+// The header stores file length as a signed 32-bit int in 16-bit words,
+// allowing up to ~4 GB technically, but most GIS tools fail above 2 GB.
+export const SHP_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
+const SHP_MAX_SIZE_WORDS = SHP_MAX_FILE_BYTES / 2;
 
 // --- Shapefile type codes ---
 
@@ -110,8 +114,14 @@ export class ShpWriter {
 
   writeRecord(geom) {
     const data = this._createRecord(geom);
-    this._pendingChunks.push(data);
     const lenWords = data.byteLength / 2;
+    if (this.shpLength + lenWords > SHP_MAX_SIZE_WORDS) {
+      throw new Error(
+        'Shapefile .shp component would exceed the 2 GB size limit. '
+        + 'Use GeoPackage or GeoParquet for large datasets.'
+      );
+    }
+    this._pendingChunks.push(data);
     this.shxRecords.push({ offset: this.shpLength, length: lenWords });
     this.shpLength += lenWords;
   }

@@ -4,13 +4,13 @@
 // record data streamed to OPFS → headers prepended at download time.
 
 import { FormatHandler } from './format_base.js';
-import { OPFS_PREFIX_SHP_TMP, ScopedProgress, fileToAsyncBuffer, parseWkbHex } from './utils.js';
+import { OPFS_PREFIX_SHP_TMP, ScopedProgress, fileToAsyncBuffer, formatSize, parseWkbHex } from './utils.js';
 import { parquetRead, parquetMetadataAsync, parquetSchema } from 'https://esm.sh/hyparquet@1.25.0';
 import { compressors } from 'https://esm.sh/hyparquet-compressors@1';
 import {
   promoteGeometry, resolveShpTypeMapping, truncateFieldNames,
   ShpWriter, DbfWriter,
-  PRJ_WGS84, SHP_TYPE_LABELS,
+  PRJ_WGS84, SHP_TYPE_LABELS, SHP_MAX_FILE_BYTES,
 } from './shp_writer.js';
 
 // DuckDB type name → DBF field type
@@ -27,12 +27,22 @@ function duckdbTypeToDbf(type) {
 const INTERNAL_COLS = new Set(['geom_wkb', '_geom_type']);
 
 export class ShapefileFormatHandler extends FormatHandler {
-  constructor({ ...opts } = {}) {
+  constructor(opts = {}) {
     super(opts);
   }
 
   getExpectedBrowserStorageUsage() { return this.estimatedBytes * 2.5; }
   getTotalExpectedDiskUsage() { return this.estimatedBytes * 3; }
+
+  getFormatWarning() {
+    if (this.estimatedBytes && this.estimatedBytes > SHP_MAX_FILE_BYTES) {
+      return {
+        message: `Estimated data size (~${formatSize(this.estimatedBytes)}) may produce shapefile components exceeding the 2 GB size limit. Most GIS tools cannot read shapefiles larger than 2 GB. Consider using GeoPackage or GeoParquet instead.`,
+        isBlocking: false,
+      };
+    }
+    return null;
+  }
 
   async _write({ onProgress, onStatus }) {
     // Stage 1 (0–60%): DuckDB → intermediate parquet on OPFS
@@ -76,7 +86,6 @@ export class ShapefileFormatHandler extends FormatHandler {
       dbfName: fieldMapping[i].dbfName,
       type: col.type,
     }));
-
 
     // Stage 2 (50–100%): Read parquet with hyparquet, stream records to OPFS
     onStatus?.('Writing shapefile records...');

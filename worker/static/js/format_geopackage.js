@@ -6,7 +6,7 @@ import { FormatHandler } from './format_base.js';
 import { OPFS_PREFIX_GPKG_TMP, OPFS_PREFIX_GPKG, ScopedProgress } from './utils.js';
 
 export class GeoPackageFormatHandler extends FormatHandler {
-  constructor({ ...opts } = {}) {
+  constructor(opts = {}) {
     super(opts);
     this.gpkgFileName = null;
     this.extension = 'gpkg';

@@ -4,7 +4,7 @@ import { FormatHandler } from './format_base.js';
 import { OPFS_PREFIX_OUTPUT } from './utils.js';
 
 export class CsvFormatHandler extends FormatHandler {
-  constructor({ ...opts } = {}) {
+  constructor(opts = {}) {
     super(opts);
     this.opfsPath = null;
     this.extension = 'csv';

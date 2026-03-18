@@ -12,7 +12,7 @@ import { featureToPlacemark, KML_HEADER, KML_FOOTER } from './kml_writer.js';
 const INTERNAL_COLS = new Set(['geom_wkb']);
 
 export class KmlFormatHandler extends FormatHandler {
-  constructor({ ...opts } = {}) {
+  constructor(opts = {}) {
     super(opts);
     this.extension = 'kml';
   }
