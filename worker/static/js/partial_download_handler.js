@@ -14,15 +14,15 @@ import { KmlFormatHandler } from './format_kml.js';
 import { DxfFormatHandler } from './format_dxf.js';
 
 export const FORMAT_OPTIONS = [
+  { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
   { value: 'geojson', label: 'GeoJSON' },
   { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
   { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
   { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
-  { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
+  { value: 'csv', label: 'CSV (WKT geometry)' },
   { value: 'shapefile', label: 'Shapefile (.shp)' },
   { value: 'kml', label: 'KML (.kml)' },
   { value: 'dxf', label: 'DXF (.dxf)' },
-  { value: 'csv', label: 'CSV (WKT geometry)' }
 ];
 
 /** Normalize extent (array or object) to [minx, miny, maxx, maxy]. */
