@@ -96,6 +96,7 @@ export class ExtentHandler extends EventTarget {
     this.statusEl = null;
     this.loading = false;
     this._extentData = null;
+    this._duckdb = null;
     this._duckdbPromise = null;
   }
 
@@ -128,6 +129,7 @@ export class ExtentHandler extends EventTarget {
 
   setSourcePath(sourcePath) {
     this._sourcePath = sourcePath;
+    if (this.loading) this._cancelFetch();
     this._removeAll();
     if (this.checkbox) this.checkbox.checked = false;
     this._setStatus('');
@@ -162,15 +164,7 @@ export class ExtentHandler extends EventTarget {
         return;
       }
 
-      // Lazy-init ExtentData with DuckDB
-      if (!this._extentData) {
-        if (!this._duckdbPromise) this._duckdbPromise = bootstrapDuckDB();
-        const duckdb = await this._duckdbPromise;
-        this._extentData = new ExtentData({
-          metadataProvider: new IomMetadataProvider(),
-          duckdb,
-        });
-      }
+      await this._initExtentData();
 
       const isPartitioned = routeInfo.partitioned_parquet === true;
       const { dataExtents, rgExtents } = await this._extentData.fetchExtents({
@@ -181,11 +175,32 @@ export class ExtentHandler extends EventTarget {
 
       this._showExtentLayers(dataExtents, rgExtents);
     } catch (error) {
+      if (error.name === 'AbortError') return;
       console.error('[ExtentHandler] Failed to show extents:', error);
       this._setStatus('Error loading extents');
     } finally {
       this._setLoading(false);
     }
+  }
+
+  async _initExtentData() {
+    if (!this._duckdbPromise) this._duckdbPromise = bootstrapDuckDB();
+    const duckdb = await this._duckdbPromise;
+    this._duckdb = duckdb;
+    this._extentData = new ExtentData({
+      metadataProvider: new IomMetadataProvider(),
+      duckdb,
+    });
+  }
+
+  _cancelFetch() {
+    if (this._duckdb) {
+      this._duckdb.terminate();
+      this._duckdb = null;
+    }
+    this._extentData = null;
+    this._duckdbPromise = null;
+    this._setLoading(false);
   }
 
   /** Add layers to map: row groups (bottom), then file extents (top) */
