@@ -1,6 +1,48 @@
 // UI for partial (bbox-filtered) downloads.
-import { PartialDownloadHandler, FORMAT_OPTIONS, getDefaultMemoryLimitMB, getDeviceMaxMemoryMB, MEMORY_STEP, MEMORY_MIN_MB } from './partial_download_handler.js';
-import { formatSize, getStorageEstimate } from './utils.js';
+import {
+  GeoParquetExtractor,
+  formatSize, getStorageEstimate,
+} from 'geoparquet-extractor';
+import { bootstrapDuckDB } from './utils.js';
+import { IomMetadataProvider } from './iom_metadata_provider.js';
+
+const FORMAT_OPTIONS = [
+  { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
+  { value: 'geojson', label: 'GeoJSON' },
+  { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
+  { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
+  { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
+  { value: 'csv', label: 'CSV (WKT geometry)' },
+  { value: 'shapefile', label: 'Shapefile (.shp)' },
+  { value: 'kml', label: 'KML (.kml)' },
+  { value: 'dxf', label: 'DXF (.dxf)' },
+];
+
+// Memory slider constants
+const MEMORY_STEP = 128;
+const MEMORY_MIN_MB = 512;
+
+function getDeviceMaxMemoryMB() {
+  const deviceMemGB = navigator.deviceMemory || 4;
+  return Math.max(MEMORY_MIN_MB, Math.floor(deviceMemGB * 1024 * 0.75 / MEMORY_STEP) * MEMORY_STEP);
+}
+
+function getDefaultMemoryLimitMB() {
+  const deviceMemGB = navigator.deviceMemory || 4;
+  const halfMB = Math.floor(deviceMemGB * 1024 * 0.5 / MEMORY_STEP) * MEMORY_STEP;
+  return Math.max(MEMORY_MIN_MB, Math.min(halfMB, getDeviceMaxMemoryMB()));
+}
+
+// Derive gpkg worker URL from the library's import map entry.
+// esm.sh rewrites JS modules (breaking standalone workers), so for production
+// we extract the version from the resolved URL and fetch the raw worker bundle
+// from jsdelivr instead. For local dev (no @version in URL), we fall back to
+// resolving relative to the library URL (e.g. localhost:8788/gpkg_worker.js).
+const _libUrl = import.meta.resolve('geoparquet-extractor');
+const _libVersion = _libUrl.match(/@([\d.]+)/)?.[1];
+const GPKG_WORKER_URL = _libVersion
+  ? `https://cdn.jsdelivr.net/npm/geoparquet-extractor@${_libVersion}/dist/gpkg_worker.js`
+  : new URL('gpkg_worker.js', _libUrl).href;
 
 const FORMAT_LABELS = Object.fromEntries(FORMAT_OPTIONS.map(f => [f.value, f.label]));
 
@@ -13,7 +55,8 @@ export class PartialDownloadUI {
     this.map = map;
     this.routesHandler = routesHandler;
     this.selectedSource = null;
-    this.partialDownloadHandler = new PartialDownloadHandler();
+    this.extractor = null;
+    this._duckdbPromise = null;
 
     // UI elements (created in createSection)
     this.section = null;
@@ -91,7 +134,7 @@ export class PartialDownloadUI {
   }
 
   destroy() {
-    this.partialDownloadHandler.destroy();
+    this.extractor?.cancel();
   }
 
   async startDownload() {
@@ -100,12 +143,7 @@ export class PartialDownloadUI {
     const routeInfo = routes[sourcePath];
 
     const bounds = this.map.getBounds();
-    const bbox = {
-      west: bounds.getWest(),
-      south: bounds.getSouth(),
-      east: bounds.getEast(),
-      north: bounds.getNorth()
-    };
+    const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
 
     const format = this.formatSelect.value;
 
@@ -116,7 +154,7 @@ export class PartialDownloadUI {
 
     this._setDownloadingState(true);
 
-    const bboxDisplay = `${bbox.west.toFixed(4)}, ${bbox.south.toFixed(4)} → ${bbox.east.toFixed(4)}, ${bbox.north.toFixed(4)}`;
+    const bboxDisplay = `${bbox[0].toFixed(4)}, ${bbox[1].toFixed(4)} → ${bbox[2].toFixed(4)}, ${bbox[3].toFixed(4)}`;
     this.downloadInfo.innerHTML =
       `<b>${sourceName}</b><br>` +
       `<span class="partial-download-info-detail">format: ${FORMAT_LABELS[format] || format}</span>` +
@@ -131,12 +169,24 @@ export class PartialDownloadUI {
     try {
       this._updateStatus('Preparing...');
 
-      const formatHandler = await this.partialDownloadHandler.prepare({
-        routeUrl: routeInfo.url,
-        isPartitioned,
+      // Lazy-init DuckDB and create extractor on first download
+      if (!this.extractor) {
+        if (!this._duckdbPromise) this._duckdbPromise = bootstrapDuckDB();
+        const duckdb = await this._duckdbPromise;
+        this.extractor = new GeoParquetExtractor({
+          duckdb,
+          metadataProvider: new IomMetadataProvider(),
+          gpkgWorkerUrl: GPKG_WORKER_URL,
+        });
+        GeoParquetExtractor.cleanupOrphanedFiles();
+      }
+
+      const formatHandler = await this.extractor.prepare({
+        sourceUrl: routeInfo.url,
+        partitioned: isPartitioned,
         bbox,
         format,
-        memoryLimit: `${this.memorySlider.value}MB`,
+        memoryLimitMB: memMB,
         ...callbacks
       });
 
@@ -158,13 +208,14 @@ export class PartialDownloadUI {
         }
       }
 
-      await this.partialDownloadHandler.download(formatHandler, {
-        sourceName, bbox, ...callbacks
+      const baseName = GeoParquetExtractor.getDownloadBaseName(sourceName, bbox);
+      await this.extractor.download(formatHandler, {
+        baseName, ...callbacks
       });
 
       this._finishDownload('Complete!');
     } catch (error) {
-      if (error.name === 'AbortError' || this.partialDownloadHandler.cancelled) {
+      if (error.name === 'AbortError' || this.extractor?.cancelled) {
         this._finishDownload('Cancelled');
       } else {
         console.error('Partial download failed:', error);
@@ -174,7 +225,7 @@ export class PartialDownloadUI {
   }
 
   cancel() {
-    this.partialDownloadHandler.cancel();
+    this.extractor?.cancel();
     this._updateStatus('Cancelling...');
   }
 

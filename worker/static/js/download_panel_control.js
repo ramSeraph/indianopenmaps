@@ -1,8 +1,11 @@
 // Download panel control for parquet file downloads
-import { SizeGetter } from './size_getter.js';
-import { parquetMetadata } from './parquet_metadata.js';
+import { SizeGetter, setProxyUrl } from 'geoparquet-extractor';
+import { metadataProvider } from './iom_metadata_provider.js';
+import { proxyUrl } from './utils.js';
 import { PartialDownloadUI } from './partial_download_ui.js';
 import { ExtentHandler } from './extent_handler.js';
+
+setProxyUrl((url) => proxyUrl(url, { absolute: true }));
 
 const DEFAULT_LICENSE = '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
 
@@ -177,9 +180,8 @@ export class DownloadPanelControl {
       let files;
 
       if (isPartitioned) {
-        const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
-        const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
-        const partitions = await parquetMetadata.getPartitions(metaUrl);
+        const baseUrl = metadataProvider.getBaseUrl(routeInfo.url);
+        const partitions = await metadataProvider.getPartitions(routeInfo.url);
 
         if (!partitions || partitions.length === 0) {
           this.linksContainer.innerHTML = '<div class="error-message">No partitions found</div>';
@@ -187,7 +189,7 @@ export class DownloadPanelControl {
         }
         files = partitions.map(p => ({ url: baseUrl + p, label: p }));
       } else {
-        const parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
+        const parquetUrl = metadataProvider.getParquetUrl(routeInfo.url);
         files = [{ url: parquetUrl, label: parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1) }];
       }
 

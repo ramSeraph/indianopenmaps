@@ -1,8 +1,62 @@
 // Extent visualization handler: shows parquet data extents and row group extents
 // as rectangles on the map. Single checkbox toggles both layers simultaneously.
 
-import { parquetMetadata } from './parquet_metadata.js';
-import { DuckDBClient } from './duckdb_client.js';
+import { ExtentData } from 'geoparquet-extractor';
+import { IomMetadataProvider, extractLabel } from './iom_metadata_provider.js';
+import { bootstrapDuckDB } from './utils.js';
+
+function emptyFC() {
+  return { type: 'FeatureCollection', features: [] };
+}
+
+// Convert a flat { name: bbox } map to GeoJSON polygons + label points.
+function extentsToGeoJSON(extents) {
+  if (!extents) return { polygons: emptyFC(), labelPoints: emptyFC() };
+
+  const polyFeatures = [];
+  const labelFeatures = [];
+
+  for (const [name, bbox] of Object.entries(extents)) {
+    const [minx, miny, maxx, maxy] = bbox;
+    const label = extractLabel(name) ?? '';
+
+    polyFeatures.push({
+      type: 'Feature',
+      properties: { name, label },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy], [minx, miny]]],
+      },
+    });
+
+    if (label) {
+      labelFeatures.push({
+        type: 'Feature',
+        properties: { label },
+        geometry: { type: 'Point', coordinates: [minx, maxy] },
+      });
+    }
+  }
+
+  return {
+    polygons: { type: 'FeatureCollection', features: polyFeatures },
+    labelPoints: { type: 'FeatureCollection', features: labelFeatures },
+  };
+}
+
+// Flatten nested rgExtents { filename: { rg_N: bbox } } to { label: bbox }.
+function flattenRgExtents(rgExtents) {
+  if (!rgExtents) return null;
+  const flat = {};
+  for (const [filename, rgGroups] of Object.entries(rgExtents)) {
+    const partLabel = extractLabel(filename);
+    for (const [rgKey, bbox] of Object.entries(rgGroups)) {
+      const rgNum = rgKey.replace('rg_', '');
+      flat[partLabel ? `${partLabel}.${rgNum}` : rgKey] = bbox;
+    }
+  }
+  return Object.keys(flat).length ? flat : null;
+}
 
 const LAYER_CONFIGS = {
   data: {
@@ -41,7 +95,8 @@ export class ExtentHandler extends EventTarget {
     this._hoveredFeatures = new Map();
     this.statusEl = null;
     this.loading = false;
-    this._duckdb = new DuckDBClient();
+    this._extentData = null;
+    this._duckdbPromise = null;
   }
 
   createCheckbox() {
@@ -107,13 +162,24 @@ export class ExtentHandler extends EventTarget {
         return;
       }
 
-      const isPartitioned = routeInfo.partitioned_parquet === true;
-
-      if (isPartitioned) {
-        await this._showPartitioned(routeInfo);
-      } else {
-        await this._showSingle(routeInfo);
+      // Lazy-init ExtentData with DuckDB
+      if (!this._extentData) {
+        if (!this._duckdbPromise) this._duckdbPromise = bootstrapDuckDB();
+        const duckdb = await this._duckdbPromise;
+        this._extentData = new ExtentData({
+          metadataProvider: new IomMetadataProvider(),
+          duckdb,
+        });
       }
+
+      const isPartitioned = routeInfo.partitioned_parquet === true;
+      const { dataExtents, rgExtents } = await this._extentData.fetchExtents({
+        sourceUrl: routeInfo.url,
+        partitioned: isPartitioned,
+        onStatus: (msg) => this._setStatus(msg),
+      });
+
+      this._showExtentLayers(dataExtents, rgExtents);
     } catch (error) {
       console.error('[ExtentHandler] Failed to show extents:', error);
       this._setStatus('Error loading extents');
@@ -122,56 +188,16 @@ export class ExtentHandler extends EventTarget {
     }
   }
 
-  async _showPartitioned(routeInfo) {
-    const metaUrl = parquetMetadata.getMetaJsonUrl(routeInfo.url);
-    const partitions = await parquetMetadata.getPartitions(metaUrl);
-    const dataExtents = await parquetMetadata.getExtents(metaUrl);
-    let rgExtents = null;
-    if (partitions?.length) {
-      const baseUrl = parquetMetadata.getBaseUrl(routeInfo.url);
-      this._setStatus('Loading row groups...');
-      const allRgBboxes = await parquetMetadata.getRowGroupBboxesMulti(
-        partitions.map(p => baseUrl + p), this._duckdb
-      );
-      if (allRgBboxes) {
-        rgExtents = {};
-        for (const [filename, rgGroups] of Object.entries(allRgBboxes)) {
-          const partLabel = this._extractLabel(filename);
-          for (const [rgKey, bbox] of Object.entries(rgGroups)) {
-            rgExtents[partLabel ? `${partLabel}.${rgKey.replace('rg_', '')}` : rgKey] = bbox;
-          }
-        }
-        if (!Object.keys(rgExtents).length) rgExtents = null;
-      }
-    }
-
-    this._showExtentLayers(dataExtents, rgExtents);
-  }
-
-  async _showSingle(routeInfo) {
-    const parquetUrl = parquetMetadata.getParquetUrl(routeInfo.url);
-    const bbox = await parquetMetadata.getParquetBbox(parquetUrl, this._duckdb);
-
-    this._setStatus('Loading row groups...');
-    const rgExtents = await parquetMetadata.getRowGroupBboxes(parquetUrl, this._duckdb);
-
-    let dataExtents = null;
-    if (bbox) {
-      const filename = parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1);
-      dataExtents = { [filename]: bbox };
-    }
-    this._showExtentLayers(dataExtents, rgExtents);
-  }
-
   /** Add layers to map: row groups (bottom), then file extents (top) */
   _showExtentLayers(dataExtents, rgExtents) {
-    const hasRg = rgExtents && Object.keys(rgExtents).length;
+    const flatRg = flattenRgExtents(rgExtents);
+    const hasRg = flatRg && Object.keys(flatRg).length;
     const hasData = dataExtents && Object.keys(dataExtents).length;
     if (!hasRg && !hasData) {
       this._setStatus('Extents are invalid and cannot be displayed');
       return;
     }
-    if (hasRg) this._addExtentLayer(LAYER_CONFIGS.rg, rgExtents);
+    if (hasRg) this._addExtentLayer(LAYER_CONFIGS.rg, flatRg);
     if (hasData) this._addExtentLayer(LAYER_CONFIGS.data, dataExtents);
     this._setStatus('');
   }
@@ -186,41 +212,8 @@ export class ExtentHandler extends EventTarget {
 
   // --- Map layer helpers ---
 
-  _bboxCoords(bbox) {
-    if (Array.isArray(bbox)) return bbox;
-    return [bbox.minx, bbox.miny, bbox.maxx, bbox.maxy];
-  }
-
-  _buildGeoJSON(extents) {
-    const polyFeatures = [];
-    const labelFeatures = [];
-    for (const [name, bbox] of Object.entries(extents)) {
-      const [minx, miny, maxx, maxy] = this._bboxCoords(bbox);
-      const label = this._extractLabel(name) ?? '';
-      polyFeatures.push({
-        type: 'Feature',
-        properties: { name, label },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy], [minx, miny]]],
-        },
-      });
-      if (label) {
-        labelFeatures.push({
-          type: 'Feature',
-          properties: { label },
-          geometry: { type: 'Point', coordinates: [minx, maxy] },
-        });
-      }
-    }
-    return {
-      polygons: { type: 'FeatureCollection', features: polyFeatures },
-      labelPoints: { type: 'FeatureCollection', features: labelFeatures },
-    };
-  }
-
   _addExtentLayer(cfg, extents) {
-    const { polygons, labelPoints } = this._buildGeoJSON(extents);
+    const { polygons, labelPoints } = extentsToGeoJSON(extents);
     this.map.addSource(cfg.sourceId, { type: 'geojson', data: polygons, generateId: true });
     this.map.addLayer({
       id: cfg.fillLayer, type: 'fill', source: cfg.sourceId,
@@ -308,15 +301,6 @@ export class ExtentHandler extends EventTarget {
     }
     this._hoverHandlers.length = 0;
     this._hoveredFeatures.clear();
-  }
-
-  _extractLabel(name) {
-    const clean = name.replace(/\.parquet$/, '');
-    const dotMatch = clean.match(/\.(\d+)$/);
-    if (dotMatch) return dotMatch[1];
-    const rgMatch = clean.match(/^rg_(\d+)$/);
-    if (rgMatch) return rgMatch[1];
-    return null;
   }
 
   _setStatus(text) {
