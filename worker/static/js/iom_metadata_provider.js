@@ -14,6 +14,11 @@ export class IomMetadataProvider extends MetadataProvider {
     this._partitionCache = new Map();
   }
 
+  getBaseUrl(sourceUrl) {
+    const lastSlash = sourceUrl.lastIndexOf('/');
+    return sourceUrl.substring(0, lastSlash + 1);
+  }
+
   getParquetUrl(sourceUrl) {
     return sourceUrl.replace(/\.(mosaic\.json|pmtiles)$/, '.parquet');
   }
