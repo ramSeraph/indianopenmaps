@@ -128,6 +128,7 @@ export class ExtentHandler extends EventTarget {
   }
 
   setSourcePath(sourcePath) {
+    if (sourcePath === this._sourcePath) return;
     this._sourcePath = sourcePath;
     if (this.loading) this._cancelFetch();
     this._removeAll();
