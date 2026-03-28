@@ -39,7 +39,7 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 - Item indices are stored in geoparquet files and spatially indexed with [flatbush](https://github.com/mourner/flatbush)
 
 **Web viewers (in `worker/static/`):**
-- Vector tile viewer using [MapLibre GL JS](https://maplibre.org/) — layer selection, feature inspection, styling, 3D terrain, geocoding, download
+- Vector tile viewer using [MapLibre GL JS](https://maplibre.org/) — layer selection, feature inspection, styling, 3D terrain, geocoding, and partial data download from remote parquet sources in multiple formats using [geoparquet-extractor](https://github.com/ramSeraph/geoparquet-extractor)
 - Raster tile viewer for raster/COG data
 - STAC viewer using [Leaflet](https://leafletjs.com/) for browsing STAC collections
 - COG viewer for on-demand COG visualization
