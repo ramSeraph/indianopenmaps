@@ -4,7 +4,7 @@ import {
   formatSize, getStorageEstimate,
 } from 'geoparquet-extractor';
 import { bootstrapDuckDB } from './utils.js';
-import { IomMetadataProvider } from './iom_metadata_provider.js';
+import { sourceResolver } from './iom_metadata_provider.js';
 
 const FORMAT_OPTIONS = [
   { value: 'geopackage', label: 'GeoPackage (.gpkg)' },
@@ -148,7 +148,6 @@ export class PartialDownloadUI {
     const format = this.formatSelect.value;
 
     const sourceName = routeInfo.name || sourcePath;
-    const isPartitioned = routeInfo.partitioned_parquet === true;
     const memMB = parseInt(this.memorySlider.value);
     const memStr = formatMemory(memMB);
 
@@ -175,15 +174,15 @@ export class PartialDownloadUI {
         const duckdb = await this._duckdbPromise;
         this.extractor = new GeoParquetExtractor({
           duckdb,
-          metadataProvider: new IomMetadataProvider(),
+          sourceResolver,
           gpkgWorkerUrl: GPKG_WORKER_URL,
         });
         GeoParquetExtractor.cleanupOrphanedFiles();
       }
 
+      sourceResolver.setPartitioned(routeInfo.url, routeInfo.partitioned_parquet === true);
       const formatHandler = await this.extractor.prepare({
         sourceUrl: routeInfo.url,
-        partitioned: isPartitioned,
         bbox,
         format,
         memoryLimitMB: memMB,

@@ -1,17 +1,19 @@
-// Metadata provider for indianopenmaps tile sources.
-// Extends MetadataProvider with meta.json partition support
-// and .mosaic.json/.pmtiles URL resolution.
+// Source resolver for indianopenmaps tile sources.
+// Resolves .mosaic.json/.pmtiles URLs to concrete parquet files with optional meta.json bboxes.
 
-import { MetadataProvider } from 'geoparquet-extractor';
+import { SourceResolver } from 'geoparquet-extractor';
 import { proxyUrl } from './utils.js';
 
-export class IomMetadataProvider extends MetadataProvider {
+export class IomSourceResolver extends SourceResolver {
   constructor() {
     super();
-    /** @type {Map<string, object>} */
     this._metaJsonCache = new Map();
-    /** @type {Map<string, string[]>} */
-    this._partitionCache = new Map();
+    this._partitionedHints = new Map();
+  }
+
+  /** Register whether a sourceUrl is partitioned, so resolve() can skip meta.json fetches. */
+  setPartitioned(sourceUrl, partitioned) {
+    this._partitionedHints.set(sourceUrl, partitioned);
   }
 
   getBaseUrl(sourceUrl) {
@@ -27,50 +29,39 @@ export class IomMetadataProvider extends MetadataProvider {
     return this.getParquetUrl(sourceUrl) + '.meta.json';
   }
 
-  /** @override */
-  async getPartitions(sourceUrl) {
-    const metaUrl = this.getMetaJsonUrl(sourceUrl);
-    if (this._partitionCache.has(metaUrl)) {
-      return this._partitionCache.get(metaUrl);
-    }
-    const metaJson = await this._fetchMetaJson(metaUrl);
-    if (!metaJson) return null;
-    return this._partitionCache.get(metaUrl);
-  }
-
-  /** @override */
-  async getExtents(sourceUrl) {
-    const metaUrl = this.getMetaJsonUrl(sourceUrl);
-    const metaJson = await this._fetchMetaJson(metaUrl);
-    return metaJson?.extents ?? null;
-  }
-
-  /** @override */
-  async getParquetUrls(sourceUrl, partitioned, bbox) {
-    if (!partitioned) {
-      return [this.getParquetUrl(sourceUrl)];
+  async resolve(sourceUrl, { bbox, partitioned } = {}) {
+    const isPartitioned = partitioned ?? this._partitionedHints.get(sourceUrl) ?? undefined;
+    if (isPartitioned === false) {
+      const parquetUrl = this.getParquetUrl(sourceUrl);
+      const fileName = parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1);
+      return { files: [{ id: fileName, url: parquetUrl, bbox: null }] };
     }
 
-    const metaUrl = this.getMetaJsonUrl(sourceUrl);
-    const metaJson = await this._fetchMetaJson(metaUrl);
-    if (!metaJson) return [this.getParquetUrl(sourceUrl)];
+    const metaJson = await this._fetchMetaJson(this.getMetaJsonUrl(sourceUrl));
+    if (!metaJson?.extents) {
+      const parquetUrl = this.getParquetUrl(sourceUrl);
+      const fileName = parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1);
+      return { files: [{ id: fileName, url: parquetUrl, bbox: null }] };
+    }
 
     const baseUrl = this.getBaseUrl(sourceUrl);
-    const partitions = metaJson.extents ? Object.keys(metaJson.extents) : [];
+    let files = Object.entries(metaJson.extents).map(([id, fileBbox]) => ({
+      id,
+      url: baseUrl + id,
+      bbox: fileBbox,
+    }));
 
-    if (!bbox || !metaJson.extents) {
-      return partitions.map(p => baseUrl + p);
+    if (bbox) {
+      const [west, south, east, north] = bbox;
+      files = files.filter(file => {
+        const ext = file.bbox;
+        if (!ext || ext.length < 4) return true;
+        const [minx, miny, maxx, maxy] = ext;
+        return minx <= east && maxx >= west && miny <= north && maxy >= south;
+      });
     }
 
-    const [west, south, east, north] = bbox;
-    return partitions
-      .filter(p => {
-        const ext = metaJson.extents[p];
-        if (!ext || ext.length < 4) return true;
-        const [pMinx, pMiny, pMaxx, pMaxy] = ext;
-        return pMinx <= east && pMaxx >= west && pMiny <= north && pMaxy >= south;
-      })
-      .map(p => baseUrl + p);
+    return { files };
   }
 
   async _fetchMetaJson(metaUrl) {
@@ -78,25 +69,25 @@ export class IomMetadataProvider extends MetadataProvider {
       return this._metaJsonCache.get(metaUrl);
     }
 
-    try {
+    const pending = (async () => {
       const response = await fetch(proxyUrl(metaUrl));
       if (!response.ok) {
         throw new Error(`Failed to fetch meta.json: ${response.status}`);
       }
 
-      const metaJson = await response.json();
-      this._metaJsonCache.set(metaUrl, metaJson);
-      const partitions = metaJson.extents ? Object.keys(metaJson.extents) : [];
-      this._partitionCache.set(metaUrl, partitions);
-      return metaJson;
-    } catch (error) {
+      return response.json();
+    })().catch((error) => {
+      this._metaJsonCache.delete(metaUrl);
       console.error('Error fetching partition metadata:', error);
       return null;
-    }
+    });
+
+    this._metaJsonCache.set(metaUrl, pending);
+    return pending;
   }
 }
 
-export const metadataProvider = new IomMetadataProvider();
+export const sourceResolver = new IomSourceResolver();
 
 // Extract a human-readable label from partition filenames or row-group keys.
 // e.g. "data.0.parquet" → "0", "rg_15" → "15"

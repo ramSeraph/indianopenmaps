@@ -1,6 +1,6 @@
 // Download panel control for parquet file downloads
 import { SizeGetter, setProxyUrl } from 'geoparquet-extractor';
-import { metadataProvider } from './iom_metadata_provider.js';
+import { sourceResolver } from './iom_metadata_provider.js';
 import { proxyUrl } from './utils.js';
 import { PartialDownloadUI } from './partial_download_ui.js';
 import { ExtentHandler } from './extent_handler.js';
@@ -176,24 +176,16 @@ export class DownloadPanelControl {
     this.linksContainer.innerHTML = '<div class="loading-message">Loading...</div>';
 
     try {
-      const isPartitioned = routeInfo.partitioned_parquet === true;
-      let files;
-
-      if (isPartitioned) {
-        const baseUrl = metadataProvider.getBaseUrl(routeInfo.url);
-        const partitions = await metadataProvider.getPartitions(routeInfo.url);
-
-        if (!partitions || partitions.length === 0) {
-          this.linksContainer.innerHTML = '<div class="error-message">No partitions found</div>';
-          return;
-        }
-        files = partitions.map(p => ({ url: baseUrl + p, label: p }));
-      } else {
-        const parquetUrl = metadataProvider.getParquetUrl(routeInfo.url);
-        files = [{ url: parquetUrl, label: parquetUrl.substring(parquetUrl.lastIndexOf('/') + 1) }];
+      sourceResolver.setPartitioned(routeInfo.url, routeInfo.partitioned_parquet === true);
+      const { files: resolvedFiles } = await sourceResolver.resolve(routeInfo.url);
+      if (!resolvedFiles || resolvedFiles.length === 0) {
+        this.linksContainer.innerHTML = '<div class="error-message">No parquet files found</div>';
+        return;
       }
 
-      this._renderDownloadLinks(files);
+      this._renderDownloadLinks(
+        resolvedFiles.map(file => ({ url: file.url, label: file.id }))
+      );
     } catch (error) {
       console.error('Error loading download links:', error);
       this.linksContainer.innerHTML = '<div class="error-message">Error loading download links</div>';

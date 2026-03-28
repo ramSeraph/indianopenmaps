@@ -2,7 +2,7 @@
 // as rectangles on the map. Single checkbox toggles both layers simultaneously.
 
 import { ExtentData } from 'geoparquet-extractor';
-import { IomMetadataProvider, extractLabel } from './iom_metadata_provider.js';
+import { sourceResolver, extractLabel } from './iom_metadata_provider.js';
 import { bootstrapDuckDB } from './utils.js';
 
 function emptyFC() {
@@ -167,10 +167,9 @@ export class ExtentHandler extends EventTarget {
 
       await this._initExtentData();
 
-      const isPartitioned = routeInfo.partitioned_parquet === true;
+      sourceResolver.setPartitioned(routeInfo.url, routeInfo.partitioned_parquet === true);
       const { dataExtents, rgExtents } = await this._extentData.fetchExtents({
         sourceUrl: routeInfo.url,
-        partitioned: isPartitioned,
         onStatus: (msg) => this._setStatus(msg),
       });
 
@@ -188,18 +187,15 @@ export class ExtentHandler extends EventTarget {
     if (!this._duckdbPromise) this._duckdbPromise = bootstrapDuckDB();
     const duckdb = await this._duckdbPromise;
     this._duckdb = duckdb;
-    this._extentData = new ExtentData({
-      metadataProvider: new IomMetadataProvider(),
-      duckdb,
-    });
+    if (!this._extentData) {
+      this._extentData = new ExtentData({ sourceResolver });
+    }
+    this._extentData.setDuckDB(duckdb);
   }
 
   _cancelFetch() {
-    if (this._duckdb) {
-      this._duckdb.terminate();
-      this._duckdb = null;
-    }
-    this._extentData = null;
+    this._extentData?.cancel?.();
+    this._duckdb = null;
     this._duckdbPromise = null;
     this._setLoading(false);
   }
@@ -255,7 +251,8 @@ export class ExtentHandler extends EventTarget {
           'text-size': 11,
           'text-anchor': 'top-left',
           'text-offset': [0.3, 0.3],
-          'text-allow-overlap': true,
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
           'text-font': ['Open Sans Semibold'],
         },
         paint: {
