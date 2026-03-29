@@ -2903,7 +2903,7 @@
     "promoteid": "FACILITY_I",
     "description": "Locations of rural facilities from PMGSY(Pradhan Mantri Gram Sadak Yojana)",
     "source": "PMGSY - https://geosadak-pmgsy.nic.in/OpenData",
-    "license": "“Ministry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India’s Government Open Data License: <a href=\"https://data.gov.in/government-open-data-license-india\">https://data.gov.in/government-open-data-license-india</a>”",
+    "license": "\u201cMinistry of Rural Development, 2022. PMGSY Rural Connectivity Datasets, https://geosadak-pmgsy.nic.in/opendata/. Published under India\u2019s Government Open Data License: <a href=\"https://data.gov.in/government-open-data-license-india\">https://data.gov.in/government-open-data-license-india</a>\u201d",
     "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.csv\">PMGSY_Masterdata.csv</a>: has mappings of the block/district/state ids to names.</li><li><a href=\"https://github.com/ramSeraph/indian_admin_boundaries/releases/download/habitations/PMGSY_Masterdata.corrections.csv\">PMGSY_Masterdata.corrections.csv</a>: Corrections by me to the above file - CC0</li></ul>"
   },
   "/not-so-open/facilities/jjm/": {
@@ -6877,5 +6877,15 @@
     "url": "https://github.com/ramSeraph/indian_transport/releases/download/urban-roads/AMRUT_Bridges_and_Flyovers.pmtiles",
     "promoteid": "id",
     "source": "Bhuvan layer: amrut_ph1:*_Bridge_Flyover_Line_V0 - https://bhuvan-vec3.nrsc.gov.in/bhuvan/wms"
+  },
+  "/not-so-open/coastal/regulation-lines/goa/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "coastal",
+      "goa"
+    ],
+    "name": "CZMP 2019 Goa Regulation Lines",
+    "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP_2019_Goa_Hazard_Lines.pmtiles",
+    "promoteid": "bbox"
   }
 }
