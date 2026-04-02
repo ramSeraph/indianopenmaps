@@ -4,6 +4,17 @@
 import { SourceResolver } from 'geoparquet-extractor';
 import { proxyUrl } from './utils.js';
 
+function normalizeBbox(extent) {
+  if (!extent) return null;
+
+  if (Array.isArray(extent)) {
+    return extent.length >= 4 ? extent : null;
+  }
+
+  const values = [extent.minx, extent.miny, extent.maxx, extent.maxy];
+  return values.every(value => Number.isFinite(value)) ? values : null;
+}
+
 export class IomSourceResolver extends SourceResolver {
   constructor() {
     super();
@@ -48,14 +59,14 @@ export class IomSourceResolver extends SourceResolver {
     let files = Object.entries(metaJson.extents).map(([id, fileBbox]) => ({
       id,
       url: baseUrl + id,
-      bbox: fileBbox,
+      bbox: normalizeBbox(fileBbox),
     }));
 
     if (bbox) {
       const [west, south, east, north] = bbox;
       files = files.filter(file => {
         const ext = file.bbox;
-        if (!ext || ext.length < 4) return true;
+        if (!ext) return true;
         const [minx, miny, maxx, maxy] = ext;
         return minx <= east && maxx >= west && miny <= north && maxy >= south;
       });
