@@ -85,6 +85,8 @@ const LAYER_CONFIGS = {
   },
 };
 
+const SHOW_DATA_EXTENTS_TOOLTIP = 'Shows the extents of the individual parquet files and the row groups within them.';
+
 export class ExtentHandler extends EventTarget {
   constructor(map, routesHandler) {
     super();
@@ -114,8 +116,12 @@ export class ExtentHandler extends EventTarget {
     this.checkbox.type = 'checkbox';
     this.checkbox.className = 'extents-checkbox';
 
+    const labelText = document.createElement('span');
+    labelText.textContent = 'Show Data Extents';
+    labelText.title = SHOW_DATA_EXTENTS_TOOLTIP;
+
     label.appendChild(this.checkbox);
-    label.appendChild(document.createTextNode(' Show Data Extents'));
+    label.appendChild(labelText);
     row.appendChild(label);
 
     this.statusEl = document.createElement('span');

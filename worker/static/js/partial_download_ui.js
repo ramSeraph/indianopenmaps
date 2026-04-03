@@ -269,7 +269,7 @@ export class PartialDownloadUI {
     const east = bounds.getEast().toFixed(7);
     const north = bounds.getNorth().toFixed(7);
 
-    this.bboxContainer.innerHTML = `<span class="bbox-label">Current bbox:</span> <code>${west},${south},${east},${north}</code>`;
+    this.bboxContainer.innerHTML = `<span class="bbox-label">Bbox to download:</span> <code>${west},${south},${east},${north}</code>`;
   }
 
   _setDownloadingState(isDownloading) {
