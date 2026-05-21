@@ -2891,6 +2891,21 @@
     "source": "Environmental Information System - Bhuvan - https://bhuvan.nrsc.gov.in",
     "notes": "<ul><li>Caves</li><li>Gardens</li><li>Groves</li><li>Mountains</li><li>Sites</li><li>Waterbodies</li></ul>"
   },
+  "/not-so-open/environmental/approvals/delhi/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "delhi",
+      "parivesh"
+    ],
+    "name": "Delhi Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7.pmtiles",
+    "promoteid": "ID",
+    "description": "Delhi environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7.csv.7z\">Projects_7.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7.parquet\">Projects_7.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7_run.txt\">Projects_7_run.txt</a></li></ul>"
+  },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
     "category": [
