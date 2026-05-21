@@ -2891,6 +2891,111 @@
     "source": "Environmental Information System - Bhuvan - https://bhuvan.nrsc.gov.in",
     "notes": "<ul><li>Caves</li><li>Gardens</li><li>Groves</li><li>Mountains</li><li>Sites</li><li>Waterbodies</li></ul>"
   },
+  "/not-so-open/environmental/approvals/andaman-and-nicobar-islands/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "andaman and nicobar islands",
+      "parivesh"
+    ],
+    "name": "Andaman And Nicobar Islands Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_35.pmtiles",
+    "promoteid": "ID",
+    "description": "Andaman And Nicobar Islands environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_35.csv.7z\">Projects_35.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_35.parquet\">Projects_35.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_35_run.txt\">Projects_35_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/andhra-pradesh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "andhra pradesh",
+      "parivesh"
+    ],
+    "name": "Andhra Pradesh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_28.pmtiles",
+    "promoteid": "ID",
+    "description": "Andhra Pradesh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_28.csv.7z\">Projects_28.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_28.parquet\">Projects_28.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_28_run.txt\">Projects_28_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/arunachal-pradesh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "arunachal pradesh",
+      "parivesh"
+    ],
+    "name": "Arunachal Pradesh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_12.pmtiles",
+    "promoteid": "ID",
+    "description": "Arunachal Pradesh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_12.csv.7z\">Projects_12.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_12.parquet\">Projects_12.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_12_run.txt\">Projects_12_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/assam/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "assam",
+      "parivesh"
+    ],
+    "name": "Assam Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_18.pmtiles",
+    "promoteid": "ID",
+    "description": "Assam environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_18.csv.7z\">Projects_18.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_18.parquet\">Projects_18.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_18_run.txt\">Projects_18_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/bihar/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "bihar",
+      "parivesh"
+    ],
+    "name": "Bihar Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_10.pmtiles",
+    "promoteid": "ID",
+    "description": "Bihar environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_10.csv.7z\">Projects_10.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_10.parquet\">Projects_10.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_10_run.txt\">Projects_10_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/chandigarh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "chandigarh",
+      "parivesh"
+    ],
+    "name": "Chandigarh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_4.pmtiles",
+    "promoteid": "ID",
+    "description": "Chandigarh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_4.csv.7z\">Projects_4.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_4.parquet\">Projects_4.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_4_run.txt\">Projects_4_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/chhattisgarh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "chhattisgarh",
+      "parivesh"
+    ],
+    "name": "Chhattisgarh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_22.pmtiles",
+    "promoteid": "ID",
+    "description": "Chhattisgarh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_22.csv.7z\">Projects_22.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_22.parquet\">Projects_22.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_22_run.txt\">Projects_22_run.txt</a></li></ul>"
+  },
   "/not-so-open/environmental/approvals/delhi/parivesh/": {
     "handlertype": "pmtiles",
     "category": [
@@ -2905,6 +3010,426 @@
     "description": "Delhi environmental clearance applications from Parivesh",
     "source": "Parivesh - https://parivesh.nic.in/",
     "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7.csv.7z\">Projects_7.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7.parquet\">Projects_7.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_7_run.txt\">Projects_7_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/goa/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "goa",
+      "parivesh"
+    ],
+    "name": "Goa Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_30.pmtiles",
+    "promoteid": "ID",
+    "description": "Goa environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_30.csv.7z\">Projects_30.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_30.parquet\">Projects_30.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_30_run.txt\">Projects_30_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/gujarat/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "gujarat",
+      "parivesh"
+    ],
+    "name": "Gujarat Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_24.pmtiles",
+    "promoteid": "ID",
+    "description": "Gujarat environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_24.csv.7z\">Projects_24.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_24.parquet\">Projects_24.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_24_run.txt\">Projects_24_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/haryana/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "haryana",
+      "parivesh"
+    ],
+    "name": "Haryana Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_6.pmtiles",
+    "promoteid": "ID",
+    "description": "Haryana environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_6.csv.7z\">Projects_6.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_6.parquet\">Projects_6.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_6_run.txt\">Projects_6_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/himachal-pradesh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "himachal pradesh",
+      "parivesh"
+    ],
+    "name": "Himachal Pradesh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_2.pmtiles",
+    "promoteid": "ID",
+    "description": "Himachal Pradesh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_2.csv.7z\">Projects_2.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_2.parquet\">Projects_2.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_2_run.txt\">Projects_2_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/jammu-and-kashmir/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "jammu and kashmir",
+      "parivesh"
+    ],
+    "name": "Jammu And Kashmir Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_1.pmtiles",
+    "promoteid": "ID",
+    "description": "Jammu And Kashmir environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_1.csv.7z\">Projects_1.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_1.parquet\">Projects_1.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_1_run.txt\">Projects_1_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/jharkhand/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "jharkhand",
+      "parivesh"
+    ],
+    "name": "Jharkhand Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_20.pmtiles",
+    "promoteid": "ID",
+    "description": "Jharkhand environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_20.csv.7z\">Projects_20.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_20.parquet\">Projects_20.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_20_run.txt\">Projects_20_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/karnataka/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "karnataka",
+      "parivesh"
+    ],
+    "name": "Karnataka Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_29.pmtiles",
+    "promoteid": "ID",
+    "description": "Karnataka environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_29.csv.7z\">Projects_29.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_29.parquet\">Projects_29.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_29_run.txt\">Projects_29_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/kerala/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "kerala",
+      "parivesh"
+    ],
+    "name": "Kerala Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_32.pmtiles",
+    "promoteid": "ID",
+    "description": "Kerala environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_32.csv.7z\">Projects_32.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_32.parquet\">Projects_32.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_32_run.txt\">Projects_32_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/ladakh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "ladakh",
+      "parivesh"
+    ],
+    "name": "Ladakh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_37.pmtiles",
+    "promoteid": "ID",
+    "description": "Ladakh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_37.csv.7z\">Projects_37.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_37.parquet\">Projects_37.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_37_run.txt\">Projects_37_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/lakshadweep/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "lakshadweep",
+      "parivesh"
+    ],
+    "name": "Lakshadweep Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_31.pmtiles",
+    "promoteid": "ID",
+    "description": "Lakshadweep environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_31.csv.7z\">Projects_31.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_31.parquet\">Projects_31.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_31_run.txt\">Projects_31_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/madhya-pradesh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "madhya pradesh",
+      "parivesh"
+    ],
+    "name": "Madhya Pradesh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_23.pmtiles",
+    "promoteid": "ID",
+    "description": "Madhya Pradesh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_23.csv.7z\">Projects_23.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_23.parquet\">Projects_23.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_23_run.txt\">Projects_23_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/maharashtra/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "maharashtra",
+      "parivesh"
+    ],
+    "name": "Maharashtra Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_27.pmtiles",
+    "promoteid": "ID",
+    "description": "Maharashtra environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_27.csv.7z\">Projects_27.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_27.parquet\">Projects_27.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_27_run.txt\">Projects_27_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/manipur/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "manipur",
+      "parivesh"
+    ],
+    "name": "Manipur Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_14.pmtiles",
+    "promoteid": "ID",
+    "description": "Manipur environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_14.csv.7z\">Projects_14.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_14.parquet\">Projects_14.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_14_run.txt\">Projects_14_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/meghalaya/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "meghalaya",
+      "parivesh"
+    ],
+    "name": "Meghalaya Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_17.pmtiles",
+    "promoteid": "ID",
+    "description": "Meghalaya environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_17.csv.7z\">Projects_17.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_17.parquet\">Projects_17.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_17_run.txt\">Projects_17_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/mizoram/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "mizoram",
+      "parivesh"
+    ],
+    "name": "Mizoram Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_15.pmtiles",
+    "promoteid": "ID",
+    "description": "Mizoram environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_15.csv.7z\">Projects_15.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_15.parquet\">Projects_15.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_15_run.txt\">Projects_15_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/nagaland/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "nagaland",
+      "parivesh"
+    ],
+    "name": "Nagaland Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_13.pmtiles",
+    "promoteid": "ID",
+    "description": "Nagaland environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_13.csv.7z\">Projects_13.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_13.parquet\">Projects_13.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_13_run.txt\">Projects_13_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/odisha/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "odisha",
+      "parivesh"
+    ],
+    "name": "Odisha Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_21.pmtiles",
+    "promoteid": "ID",
+    "description": "Odisha environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_21.csv.7z\">Projects_21.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_21.parquet\">Projects_21.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_21_run.txt\">Projects_21_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/puducherry/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "puducherry",
+      "parivesh"
+    ],
+    "name": "Puducherry Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_34.pmtiles",
+    "promoteid": "ID",
+    "description": "Puducherry environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_34.csv.7z\">Projects_34.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_34.parquet\">Projects_34.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_34_run.txt\">Projects_34_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/punjab/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "punjab",
+      "parivesh"
+    ],
+    "name": "Punjab Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_3.pmtiles",
+    "promoteid": "ID",
+    "description": "Punjab environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_3.csv.7z\">Projects_3.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_3.parquet\">Projects_3.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_3_run.txt\">Projects_3_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/rajasthan/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "rajasthan",
+      "parivesh"
+    ],
+    "name": "Rajasthan Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_8.pmtiles",
+    "promoteid": "ID",
+    "description": "Rajasthan environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_8.csv.7z\">Projects_8.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_8.parquet\">Projects_8.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_8_run.txt\">Projects_8_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/sikkim/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "sikkim",
+      "parivesh"
+    ],
+    "name": "Sikkim Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_11.pmtiles",
+    "promoteid": "ID",
+    "description": "Sikkim environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_11.csv.7z\">Projects_11.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_11.parquet\">Projects_11.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_11_run.txt\">Projects_11_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/tamil-nadu/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "tamil nadu",
+      "parivesh"
+    ],
+    "name": "Tamil Nadu Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_33.pmtiles",
+    "promoteid": "ID",
+    "description": "Tamil Nadu environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_33.csv.7z\">Projects_33.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_33.parquet\">Projects_33.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_33_run.txt\">Projects_33_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/telangana/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "telangana",
+      "parivesh"
+    ],
+    "name": "Telangana Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_36.pmtiles",
+    "promoteid": "ID",
+    "description": "Telangana environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_36.csv.7z\">Projects_36.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_36.parquet\">Projects_36.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_36_run.txt\">Projects_36_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/the-dadra-and-nagar-haveli-and-daman-and-diu/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "the dadra and nagar haveli and daman and diu",
+      "parivesh"
+    ],
+    "name": "The Dadra And Nagar Haveli And Daman And Diu Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_38.pmtiles",
+    "promoteid": "ID",
+    "description": "The Dadra And Nagar Haveli And Daman And Diu environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_38.csv.7z\">Projects_38.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_38.parquet\">Projects_38.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_38_run.txt\">Projects_38_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/tripura/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "tripura",
+      "parivesh"
+    ],
+    "name": "Tripura Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_16.pmtiles",
+    "promoteid": "ID",
+    "description": "Tripura environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_16.csv.7z\">Projects_16.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_16.parquet\">Projects_16.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_16_run.txt\">Projects_16_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/uttarakhand/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "uttarakhand",
+      "parivesh"
+    ],
+    "name": "Uttarakhand Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_5.pmtiles",
+    "promoteid": "ID",
+    "description": "Uttarakhand environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_5.csv.7z\">Projects_5.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_5.parquet\">Projects_5.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_5_run.txt\">Projects_5_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/uttar-pradesh/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "uttar pradesh",
+      "parivesh"
+    ],
+    "name": "Uttar Pradesh Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_9.pmtiles",
+    "promoteid": "ID",
+    "description": "Uttar Pradesh environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_9.csv.7z\">Projects_9.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_9.parquet\">Projects_9.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_9_run.txt\">Projects_9_run.txt</a></li></ul>"
+  },
+  "/not-so-open/environmental/approvals/west-bengal/parivesh/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "environmental",
+      "approvals",
+      "west bengal",
+      "parivesh"
+    ],
+    "name": "West Bengal Environmental Approvals",
+    "url": "https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_19.pmtiles",
+    "promoteid": "ID",
+    "description": "West Bengal environmental clearance applications from Parivesh",
+    "source": "Parivesh - https://parivesh.nic.in/",
+    "notes": "<ul><li>Related files:</li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_19.csv.7z\">Projects_19.csv.7z</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_19.parquet\">Projects_19.parquet</a></li><li><a href=\"https://github.com/ramSeraph/india-environmental-approvals/releases/latest/download/Projects_19_run.txt\">Projects_19_run.txt</a></li></ul>"
   },
   "/facilities/pmgsy/": {
     "handlertype": "pmtiles",
@@ -6551,7 +7076,7 @@
   "/not-so-open/polling-stations/2014/andhra-pradesh/bhuvan/": {
     "handlertype": "pmtiles",
     "category": [
-      "andhra-pradesh",
+      "andhra pradesh",
       "electoral"
     ],
     "name": "Bhuvan Andhra Pradesh Polling Stations 2014",
@@ -6769,7 +7294,7 @@
     "handlertype": "pmtiles",
     "category": [
       "industrial",
-      "tamil-nadu"
+      "tamil nadu"
     ],
     "name": "TNGIS SIPCOT Cadastrals",
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/TNGIS_SIPCOT_Estate_Cadastrals.pmtiles",
@@ -6780,7 +7305,7 @@
     "handlertype": "pmtiles",
     "category": [
       "landuse",
-      "tamil-nadu"
+      "tamil nadu"
     ],
     "name": "TNGIS DTCP Master Plan",
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/TNGIS_DTCP_Master_Plan.pmtiles",
