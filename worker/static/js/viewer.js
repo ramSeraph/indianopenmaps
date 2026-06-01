@@ -1,5 +1,6 @@
 import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
 import { Protocol } from 'https://esm.sh/pmtiles@4.3.0';
+import MaplibreGeocoder from 'https://esm.sh/@maplibre/maplibre-gl-geocoder@1.9.1';
 
 import { BaseLayerPicker } from '/js/base_layer_picker.js';
 import { SearchParamHandler } from '/js/search_param_handler.js';
