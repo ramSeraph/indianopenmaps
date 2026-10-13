@@ -1,8 +1,8 @@
-import { PMTiles, SharedPromiseCache } from 'pmtiles';
+import { PMTiles, ResolvedValueCache } from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
 
-// Shared cache across all PMTiles instances to reduce memory usage
-const sharedCache = new SharedPromiseCache(100, true);
+// Cache resolved data only: pending I/O belongs to the request that started it.
+const sharedCache = new ResolvedValueCache(100, true);
 
 class PMTilesHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
@@ -17,15 +17,19 @@ class PMTilesHandler {
     this.datameetAttribution = datameetAttribution;
     this.title = null;
     this.inited = false;
-    this.initializingPromise = null;
   }
 
   async init() {
-    this.source = new PMTiles(this.url, sharedCache);
-    const header = await this.source.getHeader();
+    const source = new PMTiles(this.url, sharedCache);
+    const header = await source.getHeader();
+    const metadata = await source.getMetadata();
+    const mimeType = getMimeType(header.tileType);
+
+    // Publish complete state together; concurrent requests initialize independently.
+    this.source = source;
     this.header = header;
-    this.mimeType = getMimeType(header.tileType);
-    this.metadata = await this.source.getMetadata();
+    this.mimeType = mimeType;
+    this.metadata = metadata;
     this.inited = true;
   }
 
@@ -33,17 +37,7 @@ class PMTilesHandler {
     if (this.inited) {
       return;
     }
-    if (this.initializingPromise) {
-      await this.initializingPromise;
-      return;
-    }
-    this.initializingPromise = this.init();
-    try {
-      await this.initializingPromise;
-    } catch (e) {
-      this.initializingPromise = null;
-      throw e;
-    }
+    await this.init();
   }
 
   async getTile(z, x, y) {

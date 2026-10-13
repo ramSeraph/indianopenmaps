@@ -55,6 +55,9 @@ npm install
 npm run dev  # http://localhost:8787
 ```
 
+To override the Protomaps browser key locally, set `PROTOMAPS_API_KEY` in
+`worker/.dev.vars`. This local configuration file is ignored by Git.
+
 ### Python CLI — `iomaps` (`python/`)
 
 A Python package ([available on PyPI](https://pypi.org/project/iomaps/)) providing CLI tools for working with the data.

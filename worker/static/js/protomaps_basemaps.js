@@ -1,5 +1,5 @@
-// Public browser key; allowed origins are managed in the Protomaps account.
-const API_KEY = '693abf6cacee62be';
+// Public browser key; local overrides come from the Worker's runtime config.
+const API_KEY = globalThis.IOMAPS_CONFIG?.protomapsApiKey || '693abf6cacee62be';
 export const PROTOMAPS_DEFAULT_LAYER_NAME = 'Protomaps Black';
 export const PROTOMAPS_GLYPHS = 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf';
 const BOUNDARY_SOURCE_ID = 'basemap-soi-states';

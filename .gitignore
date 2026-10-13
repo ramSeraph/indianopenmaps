@@ -4,3 +4,4 @@ plans/
 .secrets
 data_processing/data
 .wrangler
+worker/.dev.vars*

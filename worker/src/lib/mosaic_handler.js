@@ -1,10 +1,10 @@
-import { PMTiles, SharedPromiseCache } from 'pmtiles';
+import { PMTiles, ResolvedValueCache } from 'pmtiles';
 import * as tilebelt from '@mapbox/tilebelt';
 import Flatbush from 'flatbush';
 import { getMimeType, extendAttribution } from './common.js';
 
-// Shared cache across all PMTiles instances to reduce memory usage
-const sharedCache = new SharedPromiseCache(100, true);
+// Cache resolved data only: pending I/O belongs to the request that started it.
+const sharedCache = new ResolvedValueCache(100, true);
 
 const COORD_SCALER = 10000000;
 // TODO: measure performance and adjust this threshold
@@ -53,7 +53,6 @@ class MosaicHandler {
     this.datameetAttribution = datameetAttribution;
     this.title = null;
     this.inited = false;
-    this.initializingPromise = null;
     this.mosaicVersion = null;
     this.index_map = {};
     this.keys_map = {};
@@ -65,74 +64,76 @@ class MosaicHandler {
   }
 
   async _populateMosaic() {
-    let res = await fetch(this.url);
-    let data = await res.json();
+    const res = await fetch(this.url);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch mosaic: ${res.status}`);
+    }
+    const data = await res.json();
 
     if (!data || data.version !== 1) {
       throw new Error('Unsupported mosaic format: version must be 1');
     }
 
-    this.mosaicVersion = data.version;
+    const pmtilesDict = {};
+    const keys_map = {};
 
     for (const [key, entry] of Object.entries(data.slices)) {
-      var header = entry.header;
-      var resolvedUrl = this._resolveKey(key);
-      var archive = new PMTiles(resolvedUrl, sharedCache);
-      header = Object.assign({}, entry.header);
-      this.pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
+      const header = { ...entry.header };
+      const resolvedUrl = this._resolveKey(key);
+      const archive = new PMTiles(resolvedUrl, sharedCache);
+      pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
 
       for (let z = header.min_zoom; z <= header.max_zoom; z++) {
-        if (!this.keys_map.hasOwnProperty(z)) {
-          this.keys_map[z] = [];
+        if (!keys_map.hasOwnProperty(z)) {
+          keys_map[z] = [];
         }
-        this.keys_map[z].push(key);
+        keys_map[z].push(key);
       }
     }
 
-    this.mosaicConfig = { 'header': data.header, 'metadata': data.metadata };
-    this.mimeType = getMimeType(this.mosaicConfig.header.tile_type);
+    return {
+      mosaicVersion: data.version,
+      pmtilesDict,
+      keys_map,
+      mosaicConfig: { header: data.header, metadata: data.metadata },
+      mimeType: getMimeType(data.header.tile_type),
+    };
   }
 
-  _populateIndices() {
-    for (const [z, keys] of Object.entries(this.keys_map)) {
+  _populateIndices(pmtilesDict, keys_map) {
+    const index_map = {};
+    for (const [z, keys] of Object.entries(keys_map)) {
       if (keys.length < FLATBUSH_THRESHOLD) {
-        this.index_map[z] = null;
+        index_map[z] = null;
         continue;
       }
 
       const index = new Flatbush(keys.length, 16, Int32Array);
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        const entry = this.pmtilesDict[key];
+        const entry = pmtilesDict[key];
         const header = entry.header;
         index.add(header.min_lon_e7, header.min_lat_e7, header.max_lon_e7, header.max_lat_e7);
       }
       index.finish();
-      this.index_map[z] = index;
+      index_map[z] = index;
     }
+    return index_map;
   }
 
   async init() {
-    await this._populateMosaic();
-    this._populateIndices();
-    this.inited = true;
+    const state = await this._populateMosaic();
+    const index_map = this._populateIndices(state.pmtilesDict, state.keys_map);
+    // Each request builds its own maps so concurrent initialization cannot append
+    // duplicate shards or expose partially initialized state to other requests.
+    Object.assign(this, state, { index_map, inited: true });
   }
 
   async initIfNeeded() {
     if (this.inited) {
-        return;
+      return;
     }
-    if (this.initializingPromise) {
-        await this.initializingPromise;
-        return;
-    }
-    this.initializingPromise = this.init();
-    try {
-        await this.initializingPromise;
-    } catch (e) {
-        this.initializingPromise = null;
-        throw e;
-    }
+    await this.init();
   }
 
   _getSource(key) {
