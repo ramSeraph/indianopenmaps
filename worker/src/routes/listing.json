@@ -7427,5 +7427,16 @@
     "name": "CZMP 2019 Goa Regulation Lines",
     "url": "https://github.com/ramSeraph/indian_admin_boundaries/releases/download/coastal/CZMP_2019_Goa_Hazard_Lines.pmtiles",
     "promoteid": "bbox"
+  },
+  "/not-so-open/urban/regulation/landuse/delhi/dda/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "landuse",
+      "delhi"
+    ],
+    "name": "DDA Delhi Land Use Plan",
+    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/DDA_Delhi_Master_Plan.pmtiles",
+    "notes": "Source layer: MPD41_LANDUSE (layer 9). Land-use classification fields: luse2041 and use_zones. Eight source features have self-intersecting geometries; the GeoJSONL and GeoParquet downloads preserve the source geometries.",
+    "promoteid": "fid"
   }
 }
