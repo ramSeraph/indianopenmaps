@@ -3,6 +3,7 @@ import { Protocol } from 'https://esm.sh/pmtiles@4.3.0';
 import MaplibreGeocoder from 'https://esm.sh/@maplibre/maplibre-gl-geocoder@1.9.1';
 
 import { BaseLayerPicker } from '/js/base_layer_picker.js';
+import { PROTOMAPS_GLYPHS } from '/js/protomaps_basemaps.js';
 import { SearchParamHandler } from '/js/search_param_handler.js';
 import { ColorHandler } from '/js/color_handler.js';
 import { VectorSourceHandler } from '/js/vector_source_handler.js';
@@ -35,7 +36,7 @@ function getMapConfig() {
     'hash': 'map',
     'style': {
       'version': 8,
-      'glyphs': 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+      'glyphs': PROTOMAPS_GLYPHS,
       'sources': {},
       'layers': [],
     },

@@ -1,10 +1,14 @@
-
+import {
+  getProtomapsBaseLayers,
+  loadProtomapsStyle,
+  fetchMapJSON,
+  resolveBaseLayerName,
+  PROTOMAPS_DEFAULT_LAYER_NAME,
+} from './protomaps_basemaps.js';
 
 // Extracted BaseLayerPicker control
 // Base layer definitions
 export const ESRI_WORLD_IMAGERY_LAYER_NAME = 'ESRI World Imagery';
-export const CARTO_OSM_DARK_LAYER_NAME = 'Carto OSM Dark';
-export const CARTODB_LIGHT_LAYER_NAME = 'CartoDB Light';
 export const OSM_CARTO_LAYER_NAME = 'OSM Carto';
 export const GOOGLE_STREETS_LAYER_NAME = 'Google Streets';
 export const GOOGLE_HYBRID_LAYER_NAME = 'Google Hybrid';
@@ -26,56 +30,6 @@ export function getDefaultBaseLayers() {
           }
         ],
         'maxZoom': 17,
-      }
-    }
-  };
-
-  const Carto_Dark = {
-    'name': CARTO_OSM_DARK_LAYER_NAME,
-    'sources': {
-      'carto-dark': {
-        'type': 'raster',
-        'tiles': [
-          "ibc://https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
-        ],
-        'attribution': '<strong>Carto OSM Dark:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        'layers': [
-          {
-            'id': 'carto-dark-layer',
-            'type': 'raster',
-            'minZoom': 0,
-            'maxZoom': 20,
-          }
-        ],
-        'maxZoom': 20,
-      }
-    }
-  };
-
-  const Carto_Light = {
-    'name': CARTODB_LIGHT_LAYER_NAME,
-    'sources': {
-      'carto-light': {
-        'type': 'raster',
-        'tiles': [
-          "ibc://https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-          "ibc://https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"
-        ],
-        'attribution': '<strong>CartoDB Light:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        'layers': [
-          {
-            'id': 'carto-light-layer',
-            'type': 'raster',
-            'minZoom': 0,
-            'maxZoom': 20,
-          }
-        ],
-        'maxZoom': 20,
       }
     }
   };
@@ -156,8 +110,7 @@ export function getDefaultBaseLayers() {
   };
 
   return [
-    Carto_Dark,
-    Carto_Light,
+    ...getProtomapsBaseLayers(),
     OSM_Carto,
     Esri_WorldImagery,
     Google_Streets,
@@ -166,6 +119,7 @@ export function getDefaultBaseLayers() {
 }
 
 export function getLayersAndSources(layerInfo) {
+  if (layerInfo.layers) return [layerInfo.sources, layerInfo.layers];
   var sources = JSON.parse(JSON.stringify(layerInfo.sources));
   var layers = [];
   for (const [sname, source] of Object.entries(sources)) {
@@ -193,6 +147,8 @@ export class BaseLayerPicker {
     this.container = null;
     this.layerList = null;
     this.currentLayerName = null;
+    this.switchRequest = 0;
+    this.statusElement = null;
   }
 
 
@@ -218,67 +174,82 @@ export class BaseLayerPicker {
     }
   }
 
+  async loadLayerInfo(layerInfo) {
+    if (layerInfo.styleUrl && !layerInfo.layers) {
+      Object.assign(layerInfo, await loadProtomapsStyle(layerInfo));
+    } else if (layerInfo.tileJsonUrl && Object.keys(layerInfo.sources).length === 0) {
+      const tileJson = await fetchMapJSON(layerInfo.tileJsonUrl);
+      const srcId = `raster-${layerInfo.path.replace(/\//g, '-')}`;
+      layerInfo.sources = {
+        [srcId]: {
+          type: 'raster',
+          tiles: tileJson.tiles || [],
+          attribution: `<strong>${layerInfo.name}:</strong> ${tileJson.attribution || ''}`,
+          minzoom: tileJson.minzoom ?? 0,
+          maxzoom: tileJson.maxzoom ?? 15,
+          ...(tileJson.bounds ? { bounds: tileJson.bounds } : {}),
+          layers: [{
+            id: `raster-layer-${layerInfo.path.replace(/\//g, '-')}`,
+            type: 'raster',
+          }],
+        },
+      };
+    }
+  }
+
   async switchLayer(layerName) {
+    const request = ++this.switchRequest;
+    layerName = resolveBaseLayerName(layerName);
+    const newLayerInfo = this.getLayerInfo(layerName);
+    if (!newLayerInfo) return;
+    this.setStatus('');
     if (this.currentLayerName === layerName) return;
 
-    if (this.currentLayerName) {
-      const currentLayerInfo = this.getLayerInfo(this.currentLayerName);
-      if (currentLayerInfo) {
-        const [sources, layers] = getLayersAndSources(currentLayerInfo);
-        for (const layer of layers) if (this.map.getLayer(layer.id)) this.map.removeLayer(layer.id);
-        for (const [sname] of Object.entries(sources)) if (this.map.getSource(sname)) this.map.removeSource(sname);
-      }
-    }
-
-    const newLayerInfo = this.getLayerInfo(layerName);
-    if (newLayerInfo) {
-      if (newLayerInfo.tileJsonUrl && Object.keys(newLayerInfo.sources).length === 0) {
-        try {
-          const resp = await fetch(newLayerInfo.tileJsonUrl);
-          const tileJson = await resp.json();
-          const attribution = tileJson.attribution || '';
-          const attributionWithName = `<strong>${newLayerInfo.name}:</strong> ${attribution}`;
-          const srcId = `raster-${newLayerInfo.path.replace(/\//g, '-')}`;
-          const srcLayerId = `raster-layer-${newLayerInfo.path.replace(/\//g, '-')}`;
-          newLayerInfo.sources = {
-            [srcId] : {
-              type: 'raster',
-              tiles: tileJson.tiles || [],
-              attribution: attributionWithName,
-              minzoom: tileJson.minzoom || 0,
-              maxzoom: tileJson.maxzoom || 15,
-              bounds: tileJson.bounds,
-              layers: [{
-                id: srcLayerId,
-                type: 'raster',
-                minZoom: tileJson.minzoom || 0,
-                maxZoom: tileJson.maxzoom || 15
-              }]
-            }
-          };
-        } catch (err) {
-          console.error(`Error loading TileJSON for ${newLayerInfo.name}:`, err);
-          return;
-        }
-      }
+    try {
+      this.setStatus(`Loading ${layerName}…`);
+      // Keep the current map visible until the requested style is ready.
+      await this.loadLayerInfo(newLayerInfo);
+      if (request !== this.switchRequest) return;
 
       const [sources, layers] = getLayersAndSources(newLayerInfo);
-      for (const [sname, source] of Object.entries(sources)) this.map.addSource(sname, source);
-      for (const layer of layers) {
-        // Only specify 'before' if the hills layer exists
-        if (this.map.getLayer(this.HILLSHADE_LAYER_ID)) {
-          this.map.addLayer(layer, this.HILLSHADE_LAYER_ID);
-        } else {
-          this.map.addLayer(layer);
+      const currentLayerInfo = this.getLayerInfo(this.currentLayerName);
+      if (currentLayerInfo) {
+        const [oldSources, oldLayers] = getLayersAndSources(currentLayerInfo);
+        for (const layer of oldLayers) {
+          if (this.map.getLayer(layer.id)) this.map.removeLayer(layer.id);
+        }
+        for (const id of Object.keys(oldSources)) {
+          // Protomaps themes share tiles; retain those sources when switching.
+          if (!sources[id] && this.map.getSource(id)) this.map.removeSource(id);
         }
       }
-    }
 
-    this.currentLayerName = layerName;
-    this.searchParams.updateBaseLayer(layerName);
-    
-    // Update UI to show active layer
-    this._updateActiveState();
+      if (newLayerInfo.glyphs && this.map.getGlyphs() !== newLayerInfo.glyphs) {
+        this.map.setGlyphs(newLayerInfo.glyphs);
+      }
+      this.map.setSprite(newLayerInfo.sprite || null);
+      for (const [id, source] of Object.entries(sources)) {
+        if (!this.map.getSource(id)) this.map.addSource(id, source);
+      }
+      // Insert below terrain and user data without resetting the map style.
+      const beforeId = this.map.getLayer(this.HILLSHADE_LAYER_ID)
+        ? this.HILLSHADE_LAYER_ID : this.map.getStyle().layers[0]?.id;
+      for (const layer of layers) this.map.addLayer(layer, beforeId);
+
+      this.currentLayerName = layerName;
+      this.searchParams.updateBaseLayer(layerName);
+      this._updateActiveState();
+      this.setStatus('');
+    } catch (error) {
+      if (request !== this.switchRequest) return;
+      console.error(`Error loading basemap ${layerName}:`, error);
+      this.setStatus(`Could not load ${layerName}. Try selecting it again.`);
+      this._updateActiveState();
+    }
+  }
+
+  setStatus(message) {
+    if (this.statusElement) this.statusElement.textContent = message;
   }
 
   _updateActiveState() {
@@ -324,7 +295,8 @@ export class BaseLayerPicker {
       this.layerList.appendChild(option);
     });
 
-    const initialChoice = this.searchParams.getBaseLayer(CARTO_OSM_DARK_LAYER_NAME);
+    const requestedChoice = resolveBaseLayerName(this.searchParams.getBaseLayer(PROTOMAPS_DEFAULT_LAYER_NAME));
+    const initialChoice = this.getLayerInfo(requestedChoice) ? requestedChoice : PROTOMAPS_DEFAULT_LAYER_NAME;
     
     // Wait for map style to be loaded before switching layers
     if (this.map.isStyleLoaded()) {
@@ -353,6 +325,11 @@ export class BaseLayerPicker {
     
     this.container.appendChild(title);
     this.container.appendChild(this.layerList);
+
+    this.statusElement = document.createElement('div');
+    this.statusElement.className = 'base-layer-status';
+    this.statusElement.setAttribute('role', 'status');
+    this.container.appendChild(this.statusElement);
     
     // Initialize layers
     this.initialize();
