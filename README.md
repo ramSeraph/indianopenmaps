@@ -81,5 +81,7 @@ iomaps cli filter-7z -i data.7z -o output.geojsonl -b "min_lon,min_lat,max_lon,m
 
 ### Utilities (`utils/`)
 
-Helper scripts for release management and endpoint validation.
+Helper scripts for endpoint validation. Dataset preparation and publication use
+`iomaps admin prepare` and `iomaps admin make-release`; see the
+[maintainer workflow](python/README.md#preparing-and-publishing-datasets).
 

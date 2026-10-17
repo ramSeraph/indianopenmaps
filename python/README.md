@@ -2,6 +2,9 @@
 
 This project provides command-line tools and a PyQt UI for processing geographical data from Indianopenmaps. It supports extracting data from remote geoparquet files as well as filtering local 7z archives containing geojsonl files.
 
+Maintainers adding a dataset should use the existing
+[preparation and publication commands](#preparing-and-publishing-datasets).
+
 ## Installation
 
 The `iomaps` package is available on PyPI. You can install it using `pip` or `uv`.
@@ -198,3 +201,106 @@ Launches a PyQt-based graphical user interface for processing local 7z archives.
 ```bash
 uvx iomaps ui
 ```
+
+## Preparing and publishing datasets
+
+Use the checkout's hidden `admin` command group to prepare data and publish it.
+These commands replace the older `utils/prepare.py` and `utils/make_release.py`
+scripts. Run the following commands from the repository root.
+
+Install the admin dependencies if the local environment does not already have them:
+
+```bash
+uv sync --project python --extra admin
+```
+
+Preparation also needs `7z`, `tippecanoe`, `pmtiles`, and `uvx` on `PATH`.
+Check the existing installation before downloading another environment.
+
+### Prepare a dataset
+
+Sync the checkout with upstream before the next dataset or local commit. The
+release utility commits routes directly through GitHub's API, so the local branch
+and cached `origin/main` can be behind even after a successful publication. Run
+`git fetch origin`, inspect incoming changes, then use `git merge --ff-only
+origin/main` when possible. Preserve local edits and resolve any divergence before
+continuing; see [AGENTS.md](../AGENTS.md#sync-before-local-work).
+
+Find a similar existing listing and GitHub release first. Choose the final basename
+and rename a working copy of the input GeoJSONL before processing. For example,
+Delhi follows `TNGIS_DTCP_Master_Plan` with `DDA_Delhi_Master_Plan`. Preparation uses
+this basename for the archive member, tile layer, and output files.
+
+```bash
+python/.venv/bin/iomaps admin prepare \
+  /absolute/path/Authority_City_Master_Plan.geojsonl \
+  'https://source.example/layer' \
+  'Source authority'
+```
+
+The command writes the original `.geojsonl.7z`, `.pmtiles`, `.parquet`, and
+`.analysis.json` beside the input, with partitions and metadata for large datasets.
+The `.mbtiles` file is an intermediate. The archive preserves the original input;
+tiles and GeoParquet use the preparation tool's cleaned data. Review the reported
+fixes/drops and validate feature counts and ID uniqueness before publishing.
+
+### Preview the exact publication
+
+Substitute the new dataset's filenames and metadata in this example. The
+`urban-land-use` release already exists in `ramSeraph/indian_land_features`.
+
+```bash
+mkdir -p scratch/new-city
+python/.venv/bin/iomaps admin make-release \
+  --owner ramSeraph \
+  --repo indian_land_features \
+  --release urban-land-use \
+  --base-file /absolute/path/Authority_City_Master_Plan.geojsonl.7z \
+  --description 'Authority City Master Plan' \
+  --source 'Source authority' \
+  --source-url 'https://source.example/layer' \
+  --route /not-so-open/urban/regulation/landuse/city/authority/ \
+  --category landuse --category city \
+  --promoteid fid \
+  --dry-run > scratch/new-city/release-preview.json
+```
+
+`--dry-run` needs an explicit `--owner` and `--release`. It reads local assets and
+prints JSON without reading credentials or accessing GitHub. The JSON contains
+the upload list, both repository destinations, exact route entry, exact license
+Markdown, and exact release-note Markdown. Preview and publishing share the same
+payload builders. This offline preview does not check whether the remote release
+exists or the token has write permission.
+
+Use `--notes`/`--notes-file` and `--license`/`--license-file` for optional Markdown.
+Links become HTML in the route entry and remain Markdown in release notes. Without
+a license override, the release uses the existing default:
+[CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md).
+Without `--promoteid`, the command reads the field chosen in `.analysis.json`.
+For split datasets, the original `.geojsonl` can be used as `--base-file` to discover
+all related parts.
+
+### Publish and verify
+
+After reviewing the preview and confirming publication is authorized, rerun the
+same command without `--dry-run` and without the preview-file redirection. The
+utility uploads the assets, appends to the existing release notes, and commits
+`worker/src/routes/listing.json` directly to `<owner>/indianopenmaps` on `main`.
+There is no need to upload each asset or edit the listing manually. The local
+checkout's listing is not changed by this command.
+
+**`--no-uploads` still writes release notes and routes. It is not a preview.**
+Publication is not atomic: after a failed or interrupted run, inspect uploaded
+assets, release notes, and the route before retrying to avoid duplicates.
+
+Authentication uses `GH_TOKEN`, then `GITHUB_TOKEN`, then `.secrets/gh_token.txt`
+or legacy `utils/token.txt` in the current directory or enclosing checkout.
+Never print or commit the token. Grant it access to both the selected data repo
+and `indianopenmaps`, with Contents read/write permissions. `--owner` defaults to
+the authenticated user when publishing; set it explicitly to match the preview.
+
+Verify asset checksums, the release-note addition, and the remote listing entry.
+Check the Cloudflare Workers build and live `/api/routes`, `<route>tiles.json`, and
+a vector tile before reporting the dataset as live. Keep unrelated local changes
+out of deployment. Delhi has already been published; use only `--dry-run` when
+using its files to exercise the tooling.

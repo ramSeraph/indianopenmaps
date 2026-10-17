@@ -1,15 +1,7 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.10"
-# dependencies = [
-#     "duckdb",
-# ]
-# ///
 """
 Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtiles.
 """
 
-import argparse
 import copy
 import json
 import math
@@ -18,11 +10,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import click
 import duckdb
 
 TWO_GB = 2 * 1024 * 1024 * 1024
 
 GPIO_VERSION = "0.9.0"
+
 
 def run_cmd(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
     """Run a command, printing it first."""
@@ -36,7 +30,7 @@ def calculate_partition_count(file_size_bytes: int) -> int:
         return 1
     min_partitions = math.ceil(file_size_bytes / TWO_GB)
     power = math.ceil(math.log2(min_partitions))
-    return 2 ** power
+    return 2**power
 
 
 def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tuple[int, int]:
@@ -44,7 +38,7 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
     Also renames properties containing 'geom' to avoid DuckDB geometry detection issues.
     Also attempts to fix bad coordinates (swapped lat/lon, misplaced decimals).
     Writes a separate cleaned file; the original is left intact.
-    
+
     Returns: (original_count, filtered_count, cleaned_file_path)
     """
     cleaned_file = geojsonl_file.parent / f"{geojsonl_file.stem}.cleaned.geojsonl"
@@ -58,7 +52,7 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
 
     print("cleaning features (fixing coordinates, filtering empty geometries)...")
 
-    with open(geojsonl_file, 'r') as infile, open(cleaned_file, 'w') as outfile:
+    with open(geojsonl_file) as infile, open(cleaned_file, "w") as outfile:
         for line in infile:
             original_count += 1
             line = line.strip()
@@ -122,7 +116,7 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
                     feature["properties"] = new_props
 
                 # Valid geometry, write it
-                outfile.write(json.dumps(feature) + '\n')
+                outfile.write(json.dumps(feature) + "\n")
                 filtered_count += 1
 
             except json.JSONDecodeError:
@@ -130,7 +124,6 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
                 dropped_count += 1
                 continue
 
-    removed_count = original_count - filtered_count
     print(f"  original features: {original_count}")
     print(f"  after cleaning: {filtered_count}")
     print(f"  fixed coordinates: {fixed_count}")
@@ -258,9 +251,11 @@ def _try_fix_coord_pair(lon, lat, bb):
             parts.append(f"lon {lat} → {f_lon_s}")
         if f_lat_s != lon:
             parts.append(f"lat {lon} → {f_lat_s}")
-        return f_lon_s, f_lat_s, " + decimal fix: ".join(
-            [parts[0], ", ".join(parts[1:])]
-        ) if len(parts) > 1 else parts[0]
+        return (
+            f_lon_s,
+            f_lat_s,
+            " + decimal fix: ".join([parts[0], ", ".join(parts[1:])]) if len(parts) > 1 else parts[0],
+        )
 
     return None
 
@@ -360,7 +355,9 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
     try:
         result = run_cmd(
             ["uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "inspect", "meta", "--json", str(parquet_path)],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         geo_meta = json.loads(result.stdout)
     except (subprocess.CalledProcessError, json.JSONDecodeError):
@@ -368,8 +365,20 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
 
     try:
         result = run_cmd(
-            ["uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "inspect", "meta", "--parquet", "--json", str(parquet_path)],
-            capture_output=True, text=True, check=True,
+            [
+                "uvx",
+                "--from",
+                f"geoparquet-io=={GPIO_VERSION}",
+                "gpio",
+                "inspect",
+                "meta",
+                "--parquet",
+                "--json",
+                str(parquet_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         parquet_meta = json.loads(result.stdout)
     except (subprocess.CalledProcessError, json.JSONDecodeError):
@@ -435,8 +444,10 @@ def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
             bbox = extract_bbox(geo_meta)
             if bbox:
                 meta["extents"][pf.name] = {
-                    "minx": bbox[0], "miny": bbox[1],
-                    "maxx": bbox[2], "maxy": bbox[3],
+                    "minx": bbox[0],
+                    "miny": bbox[1],
+                    "maxx": bbox[2],
+                    "maxy": bbox[3],
                 }
             geometry_types = extract_geometry_types(geo_meta)
             if geometry_types:
@@ -454,47 +465,44 @@ def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
 def analyze_unique_fields(parquet_files: list[Path]) -> dict:
     """
     Analyze parquet files to find which fields can uniquely identify features.
-    
+
     Returns dict with field analysis results.
     """
     if not parquet_files:
         return {"error": "No parquet files provided"}
-    
+
     conn = duckdb.connect()
     file_list = [str(f) for f in parquet_files]
-    
+
     try:
         if len(file_list) == 1:
             conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet('{file_list[0]}')")
         else:
             file_str = ", ".join([f"'{f}'" for f in file_list])
             conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet([{file_str}])")
-        
+
         total_rows = conn.execute("SELECT COUNT(*) FROM data").fetchone()[0]
         columns_result = conn.execute("DESCRIBE data").fetchall()
-        property_columns = [col[0] for col in columns_result if col[0] != 'geometry']
-        
-        results = {
-            "total_features": total_rows,
-            "fields": {}
-        }
-        
+        property_columns = [col[0] for col in columns_result if col[0] != "geometry"]
+
+        results = {"total_features": total_rows, "fields": {}}
+
         for col in property_columns:
             try:
                 distinct_count = conn.execute(f'SELECT COUNT(DISTINCT "{col}") FROM data').fetchone()[0]
                 null_count = conn.execute(f'SELECT COUNT(*) FROM data WHERE "{col}" IS NULL').fetchone()[0]
-                
+
                 results["fields"][col] = {
                     "distinct_values": distinct_count,
                     "null_count": null_count,
-                    "is_unique": distinct_count == total_rows and null_count == 0
+                    "is_unique": distinct_count == total_rows and null_count == 0,
                 }
             except Exception as e:
                 results["fields"][col] = {"error": str(e)}
-        
+
         conn.close()
         return results
-        
+
     except Exception as e:
         conn.close()
         return {"error": str(e)}
@@ -503,11 +511,11 @@ def analyze_unique_fields(parquet_files: list[Path]) -> dict:
 def score_field_name(name: str) -> int | None:
     """Score a field name for ID-likeness. Higher is better. Returns None to exclude."""
     name_lower = name.lower()
-    
+
     shape_patterns = ["shape", "length", "area", "perimeter", "centroid", "st_area", "st_length", "starea", "stlength"]
     if any(p in name_lower for p in shape_patterns):
         return None
-    
+
     if name_lower == "id":
         return 100
     if name_lower == "uid" or name_lower == "uuid":
@@ -526,14 +534,14 @@ def score_field_name(name: str) -> int | None:
         return 20
     if any(x in name_lower for x in ["objectid", "fid", "inpoly", "simpgn", "simptol"]):
         return -5
-    
+
     return 0
 
 
 def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
     """
     Pick the best unique ID field from analysis results.
-    
+
     Returns dict with:
         - field: chosen field name (or None)
         - is_unique: whether field is truly unique
@@ -542,41 +550,41 @@ def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
     """
     fields = analysis.get("fields", {})
     total = analysis.get("total_features", 0)
-    
+
     if not fields or total == 0:
         return {"field": None, "reason": "no fields or no features"}
-    
+
     unique_fields = []
     candidate_fields = []
     all_fields = []
-    
+
     for name, info in fields.items():
         if isinstance(info, dict) and "error" not in info:
             name_score = score_field_name(name)
             if name_score is None:
                 continue
-            
+
             distinct = info.get("distinct_values", 0)
             null_count = info.get("null_count", 0)
             is_unique = info.get("is_unique", False)
             ratio = distinct / total if total > 0 else 0
-            
+
             field_info = {
                 "name": name,
                 "distinct": distinct,
                 "null_count": null_count,
                 "ratio": ratio,
                 "is_unique": is_unique,
-                "name_score": name_score
+                "name_score": name_score,
             }
-            
+
             all_fields.append(field_info)
-            
+
             if is_unique:
                 unique_fields.append(field_info)
             elif ratio >= threshold:
                 candidate_fields.append(field_info)
-    
+
     if unique_fields:
         unique_fields.sort(key=lambda x: (-x["name_score"], len(x["name"])))
         best = unique_fields[0]
@@ -584,9 +592,9 @@ def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
             "field": best["name"],
             "is_unique": True,
             "uniqueness_ratio": best["ratio"],
-            "reason": f"unique field with name_score={best['name_score']}"
+            "reason": f"unique field with name_score={best['name_score']}",
         }
-    
+
     if candidate_fields:
         candidate_fields.sort(key=lambda x: (-x["ratio"], -x["name_score"]))
         best = candidate_fields[0]
@@ -594,22 +602,18 @@ def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
             "field": best["name"],
             "is_unique": False,
             "uniqueness_ratio": best["ratio"],
-            "reason": f"best candidate above threshold ({threshold})"
+            "reason": f"best candidate above threshold ({threshold})",
         }
-    
+
     if all_fields:
         all_fields.sort(key=lambda x: (-x["ratio"], x["null_count"], -x["name_score"]))
         best = all_fields[0]
         return {
-            "field": None, 
+            "field": None,
             "reason": f"no unique or high-cardinality fields above {threshold}",
-            "best_below_threshold": {
-                "field": best["name"],
-                "ratio": best["ratio"],
-                "null_count": best["null_count"]
-            }
+            "best_below_threshold": {"field": best["name"], "ratio": best["ratio"], "null_count": best["null_count"]},
         }
-    
+
     return {"field": None, "reason": f"no unique or high-cardinality fields above {threshold}"}
 
 
@@ -617,24 +621,20 @@ def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
     """Analyze parquet files and create field analysis JSON with picked unique ID."""
     print("analyzing fields for unique ID...")
     analysis = analyze_unique_fields(parquet_files)
-    
+
     if "error" in analysis:
         print(f"  error: {analysis['error']}")
         return
-    
+
     picked = pick_best_id(analysis)
-    
-    result = {
-        "base_name": lname,
-        "analysis": analysis,
-        "picked_id": picked
-    }
-    
+
+    result = {"base_name": lname, "analysis": analysis, "picked_id": picked}
+
     analysis_file = Path(f"{lname}.analysis.json")
     with open(analysis_file, "w") as f:
         json.dump(result, f, indent=2)
     print(f"created: {analysis_file.name}")
-    
+
     if picked.get("field"):
         unique_str = "unique" if picked.get("is_unique") else f"{picked.get('uniqueness_ratio', 0):.2%}"
         print(f"  picked ID: {picked['field']} ({unique_str})")
@@ -643,7 +643,9 @@ def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
         print("  available fields and their uniqueness:")
         fields = analysis.get("fields", {})
         total = analysis.get("total_features", 0)
-        for name, info in sorted(fields.items(), key=lambda x: x[1].get("distinct_values", 0) if isinstance(x[1], dict) else 0, reverse=True):
+        for name, info in sorted(
+            fields.items(), key=lambda x: x[1].get("distinct_values", 0) if isinstance(x[1], dict) else 0, reverse=True
+        ):
             if isinstance(info, dict) and "error" not in info:
                 distinct = info.get("distinct_values", 0)
                 null_count = info.get("null_count", 0)
@@ -654,36 +656,32 @@ def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
                 print(f"    {name}: {unique_str}{null_str}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Prepare a geojsonl file for distribution: compress and convert to mbtiles/pmtiles."
-    )
-    parser.add_argument("file", type=Path, help="Input geojsonl file")
-    parser.add_argument("src_url", nargs="?", default=None, help="Source URL for attribution")
-    parser.add_argument("src_name", nargs="?", default=None, help="Source name for attribution")
-    parser.add_argument("--points", action="store_true", help="Use drop-densest-as-needed for point data")
-    parser.add_argument("--no-zip", action="store_true", help="Skip creating the 7z archive")
-    parser.add_argument("--no-pmtiles", action="store_true", help="Skip creating mbtiles and pmtiles")
-    parser.add_argument("--no-parquet", action="store_true", help="Skip creating geoparquet file")
-    parser.add_argument("--no-filter", action="store_true", help="Skip coordinate fixing and empty geometry filtering")
-    parser.add_argument("--no-india", action="store_true", help="Skip India bounding box checks during coordinate fixing")
+@click.command("prepare")
+@click.argument("file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.argument("src_url", required=False)
+@click.argument("src_name", required=False)
+@click.option("--points", is_flag=True, help="Use drop-densest-as-needed for point data")
+@click.option("--no-zip", is_flag=True, help="Skip creating the 7z archive")
+@click.option("--no-pmtiles", is_flag=True, help="Skip creating mbtiles and pmtiles")
+@click.option("--no-parquet", is_flag=True, help="Skip creating geoparquet file")
+@click.option("--no-filter", is_flag=True, help="Skip coordinate fixing and empty geometry filtering")
+@click.option("--no-india", is_flag=True, help="Skip India bounding box checks during coordinate fixing")
+def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_filter, no_india):
+    """Prepare a GeoJSONL file for distribution."""
+    if file.suffix != ".geojsonl":
+        raise click.UsageError(f"{file} is not a geojsonl file")
 
-    args = parser.parse_args()
+    if not no_pmtiles and (not src_url or not src_name):
+        raise click.UsageError("SRC_URL and SRC_NAME are required unless --no-pmtiles is set")
 
-    if args.file.suffix != ".geojsonl":
-        parser.error(f"{args.file} is not a geojsonl file")
-
-    if not args.no_pmtiles and (not args.src_url or not args.src_name):
-        parser.error("src_url and src_name are required unless --no-pmtiles is set")
-
-    fbase = args.file.name
-    lname = args.file.stem
-    work_dir = args.file.parent
+    fbase = file.name
+    lname = file.stem
+    work_dir = file.parent
 
     os.chdir(work_dir)
 
     # Create archive from ORIGINAL data (before any cleaning)
-    if not args.no_zip:
+    if not no_zip:
         print("creating archive")
         run_cmd(["7z", "a", "-v2000m", "-m0=PPMd", f"{fbase}.7z", fbase], check=True)
         # If only one split was created, rename to drop the .001 suffix
@@ -697,37 +695,42 @@ def main():
                 print(f"created: {f.name}")
 
     # Create cleaned file for pmtiles/parquet (fixes coords, drops unfixable)
-    needs_clean = not args.no_filter and (not args.no_pmtiles or not args.no_parquet)
+    needs_clean = not no_filter and (not no_pmtiles or not no_parquet)
     cleaned_file = None
     if needs_clean:
-        _, _, cleaned_file = filter_empty_geometries(Path(fbase), check_india=not args.no_india)
+        _, _, cleaned_file = filter_empty_geometries(Path(fbase), check_india=not no_india)
         tile_input = str(cleaned_file)
     else:
         tile_input = fbase
 
     try:
         # Create mbtiles and pmtiles unless --no-pmtiles is set
-        if not args.no_pmtiles:
+        if not no_pmtiles:
             # Choose tippecanoe command based on points vs polygons
-            cmd = "drop-densest-as-needed" if args.points else "coalesce-smallest-as-needed"
+            cmd = "drop-densest-as-needed" if points else "coalesce-smallest-as-needed"
 
-            attribution = f'Source: <a href="{args.src_url}" target="_blank" rel="noopener noreferrer">{args.src_name}</a>'
+            attribution = f'Source: <a href="{src_url}" target="_blank" rel="noopener noreferrer">{src_name}</a>'
 
             print("creating mbtiles file")
             run_cmd(
                 [
                     "tippecanoe",
                     "-P",
-                    "-S", "10",
+                    "-S",
+                    "10",
                     "--increase-gamma-as-needed",
                     "-zg",
-                    "-o", f"{lname}.mbtiles",
+                    "-o",
+                    f"{lname}.mbtiles",
                     "--simplify-only-low-zooms",
                     f"--{cmd}",
                     "--extend-zooms-if-still-dropping",
-                    "-n", lname,
-                    "-l", lname,
-                    "-A", attribution,
+                    "-n",
+                    lname,
+                    "-l",
+                    lname,
+                    "-A",
+                    attribution,
                     tile_input,
                 ],
                 check=True,
@@ -744,9 +747,14 @@ def main():
                 split_dir.mkdir(exist_ok=True)
                 run_cmd(
                     [
-                        "uvx", "--from", "pmtiles-mosaic", "partition",
-                        "--from-source", str(pmtiles_file),
-                        "--to-pmtiles", str(split_dir / pmtiles_file.name),
+                        "uvx",
+                        "--from",
+                        "pmtiles-mosaic",
+                        "partition",
+                        "--from-source",
+                        str(pmtiles_file),
+                        "--to-pmtiles",
+                        str(split_dir / pmtiles_file.name),
                     ],
                     check=True,
                 )
@@ -763,15 +771,22 @@ def main():
                 print(f"created: {pmtiles_file.name}")
 
         # Create geoparquet file unless --no-parquet is set
-        if not args.no_parquet:
+        if not no_parquet:
             print("creating geoparquet file")
             parquet_file = Path(f"{lname}.parquet")
             run_cmd(
                 [
-                    "uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "convert",
-                    "--geoparquet-version", "1.1",
-                    "--compression", "zstd",
-                    "--compression-level", "22",
+                    "uvx",
+                    "--from",
+                    f"geoparquet-io=={GPIO_VERSION}",
+                    "gpio",
+                    "convert",
+                    "--geoparquet-version",
+                    "1.1",
+                    "--compression",
+                    "zstd",
+                    "--compression-level",
+                    "22",
                     tile_input,
                     str(parquet_file),
                 ],
@@ -790,12 +805,23 @@ def main():
                     split_dir.mkdir(exist_ok=True)
                     run_cmd(
                         [
-                            "uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "partition", "kdtree",
-                            str(parquet_file), str(split_dir),
-                            "--geoparquet-version", "1.1",
-                            "--compression", "zstd",
-                            "--compression-level", "22",
-                            "--partitions", str(partition_count), "-v",
+                            "uvx",
+                            "--from",
+                            f"geoparquet-io=={GPIO_VERSION}",
+                            "gpio",
+                            "partition",
+                            "kdtree",
+                            str(parquet_file),
+                            str(split_dir),
+                            "--geoparquet-version",
+                            "1.1",
+                            "--compression",
+                            "zstd",
+                            "--compression-level",
+                            "22",
+                            "--partitions",
+                            str(partition_count),
+                            "-v",
                         ],
                         check=True,
                     )
@@ -833,4 +859,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    prepare()

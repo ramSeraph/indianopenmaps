@@ -5,6 +5,7 @@ description = "Tools to handle data from indianopenmaps"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "click>=8.1.0",
     "py7zr>=1.0.0",
     "multivolumefile>=0.2.3",
     "shapely>=2.1.2",
@@ -13,6 +14,13 @@ dependencies = [
     "geoparquet-io>=0.1.0",
     "requests>=2.31.0",
     "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+admin = [
+    "duckdb>=1.4.0",
+    "pygithub>=2.8.0",
+    "questionary>=2.1.0",
 ]
 
 [project.scripts]
