@@ -8,6 +8,7 @@ import math
 import os
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import click
@@ -476,15 +477,13 @@ def analyze_unique_fields(parquet_files: list[Path]) -> dict:
     if not parquet_files:
         return {"error": "No parquet files provided"}
 
+    # Query Parquet directly: materializing all geometries/properties duplicates
+    # the dataset and can exhaust RAM or spill space on large server-side runs.
     conn = duckdb.connect()
     file_list = [str(f) for f in parquet_files]
 
     try:
-        if len(file_list) == 1:
-            conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet('{file_list[0]}')")
-        else:
-            file_str = ", ".join([f"'{f}'" for f in file_list])
-            conn.execute(f"CREATE TABLE data AS SELECT * FROM read_parquet([{file_str}])")
+        conn.read_parquet(file_list).create_view("data")
 
         total_rows = conn.execute("SELECT COUNT(*) FROM data").fetchone()[0]
         columns_result = conn.execute("DESCRIBE data").fetchall()
@@ -720,6 +719,8 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
             run_cmd(
                 [
                     "tippecanoe",
+                    "--temporary-directory",
+                    tempfile.gettempdir(),
                     "-P",
                     "-S",
                     "10",

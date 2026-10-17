@@ -132,3 +132,15 @@ def test_local_sample_and_promoteid_are_checked_before_uploads(plan, monkeypatch
             verify.choose_sample_tile(plan)
     else:
         assert verify.choose_sample_tile(plan)["data"] == b"sample tile"
+
+
+@pytest.mark.parametrize("wrong_tile", [False, True])
+def test_live_verification_uses_remote_sample_checksum(plan, sample, monkeypatch, fake_clock, wrong_tile):
+    fake_requests(monkeypatch, plan, sample, wrong_tile=wrong_tile)
+    handoff = json.loads(json.dumps(verify.sample_manifest(sample)))
+    assert "data" not in handoff
+    if wrong_tile:
+        with pytest.raises(click.ClickException, match="live sample tile differs"):
+            verify.verify_live(plan, "commit-sha", handoff, 15)
+    else:
+        assert verify.verify_live(plan, "commit-sha", handoff, 30)["tile_matches_local"]

@@ -30,7 +30,7 @@ def wrap_release_notes(route, section):
     return f"\n<!-- iomaps:{key} -->\n{section.strip()}\n<!-- /iomaps:{key} -->\n"
 
 
-def validate_plan(plan):
+def validate_plan(plan, check_files=True):
     """Reject incomplete/old plans and changed files before any remote operation."""
     try:
         if plan.get("schema_version") != PLAN_VERSION:
@@ -68,7 +68,7 @@ def validate_plan(plan):
                 raise ValueError(f"invalid asset size: {name}")
             if not re.fullmatch(r"[0-9a-f]{64}", asset["sha256"]):
                 raise ValueError(f"invalid SHA-256: {name}")
-            if path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]:
+            if check_files and (path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]):
                 raise ValueError(f"asset changed since preview: {name}; generate and review a new preview")
             names.add(name)
             paths.add(path)
@@ -255,9 +255,12 @@ def release_assets(release):
     return {asset.name: asset for asset in release.get_assets()}
 
 
-def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300):
+def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, phase="all"):
     """Run resumable publication; the caller validates the plan before authentication."""
-    from .admin_verify import choose_sample_tile, verify_live
+    from .admin_verify import choose_sample_tile, sample_manifest, validate_sample_manifest, verify_live
+
+    if phase not in ("all", "assets", "routes"):
+        raise click.ClickException(f"Unknown publication phase: {phase}")
 
     fingerprint = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
     receipt_path = Path(receipt_path).resolve()
@@ -278,13 +281,25 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300):
         temporary.write_text(json.dumps(receipt, indent=2) + "\n")
         temporary.replace(receipt_path)
 
-    routes = LocalRoutes(checkout, plan, receipt, save)
-    protected = {Path(a["path"]).resolve() for a in plan["uploads"]} | {routes.root / ROUTE_FILE}
-    if receipt_path in protected or receipt_path.is_relative_to(routes.root / ".git"):
+    if phase == "routes" and not receipt.get("assets_verified"):
+        raise click.ClickException("--phase routes requires the successful receipt from --phase assets")
+    routes = None if phase == "assets" else LocalRoutes(checkout, plan, receipt, save)
+    protected = {Path(a["path"]).resolve() for a in plan["uploads"]}
+    if routes:
+        protected.add(routes.root / ROUTE_FILE)
+    if receipt_path in protected or (routes and receipt_path.is_relative_to(routes.root / ".git")):
         raise click.ClickException("Receipt path must not overwrite an asset, the route listing, or Git metadata")
     try:
-        routes.preflight()
-        sample = choose_sample_tile(plan) if verify else None
+        if routes:
+            routes.preflight()
+        sample = None
+        if phase == "routes":
+            if verify:
+                sample = receipt.get("sample_tile")
+                validate_sample_manifest(sample)
+        elif verify:
+            sample = sample_manifest(choose_sample_tile(plan))
+            receipt["sample_tile"] = sample
         data_repo = api.get_repo(plan["data_repository"])
         release = data_repo.get_release(plan["release"])
         existing = release_assets(release)
@@ -292,31 +307,40 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300):
         for asset in plan["uploads"]:
             if asset["name"] in existing:
                 verify_asset(existing[asset["name"]], asset)
-            elif plan["skip_uploads"]:
-                raise click.ClickException(f"--no-uploads requires an already uploaded asset: {asset['name']}")
+            elif plan["skip_uploads"] or phase == "routes":
+                raise click.ClickException(f"This phase requires an already uploaded asset: {asset['name']}")
         merge_release_notes(release.body or "", plan["release_notes_markdown"])
-        receipt.update(stage="assets", release_url=release.html_url)
-        save()
-        for asset in plan["uploads"]:
-            if asset["name"] in existing:
-                click.echo(f"Verified existing asset: {asset['name']}")
-            else:
-                click.echo(f"Uploading {asset['name']} ({asset['bytes']:,} bytes)...")
-                uploaded = release.upload_asset(
-                    path=asset["path"], name=asset["name"], content_type="application/octet-stream"
-                )
-                verify_asset(uploaded, asset)
-            receipt.setdefault("verified_assets", {})[asset["name"]] = asset["sha256"]
+        if phase != "routes":
+            receipt.update(stage="assets", release_url=release.html_url)
             save()
-        # Refresh so we preserve notes written by others while our uploads ran.
-        release = data_repo.get_release(plan["release"])
-        body = release.body or ""
-        updated = merge_release_notes(body, plan["release_notes_markdown"])
-        if updated != body:
-            click.echo("Updating the dataset's release notes section...")
-            release.update_release(release.name, updated)
-        receipt.update(stage="release_notes")
-        save()
+            for asset in plan["uploads"]:
+                if asset["name"] in existing:
+                    click.echo(f"Verified existing asset: {asset['name']}")
+                else:
+                    click.echo(f"Uploading {asset['name']} ({asset['bytes']:,} bytes)...")
+                    uploaded = release.upload_asset(
+                        path=asset["path"], name=asset["name"], content_type="application/octet-stream"
+                    )
+                    verify_asset(uploaded, asset)
+                receipt.setdefault("verified_assets", {})[asset["name"]] = asset["sha256"]
+                save()
+            # Refresh so we preserve notes written by others while our uploads ran.
+            release = data_repo.get_release(plan["release"])
+            body = release.body or ""
+            updated = merge_release_notes(body, plan["release_notes_markdown"])
+            if updated != body:
+                click.echo("Updating the dataset's release notes section...")
+                release.update_release(release.name, updated)
+            receipt.update(stage="release_notes")
+            save()
+        # Both phases verify the release; routes never trusts a receipt alone.
+        verify_release(plan, data_repo)
+        receipt["assets_verified"] = True
+        if phase == "assets":
+            receipt.update(status="assets published; route pending", stage="assets_complete")
+            save()
+            click.echo(f"{receipt['status']}. Copy the plan and receipt to the route checkout: {receipt_path}")
+            return receipt
         sha = routes.publish()
         receipt.update(
             stage="published",
@@ -325,14 +349,7 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300):
         )
         save()
         # Verify actual remote state even when deployment polling was explicitly skipped.
-        remote_assets = release_assets(data_repo.get_release(plan["release"]))
-        for asset in plan["uploads"]:
-            if asset["name"] not in remote_assets:
-                raise click.ClickException(f"Missing uploaded asset: {asset['name']}")
-            verify_asset(remote_assets[asset["name"]], asset)
-        body = data_repo.get_release(plan["release"]).body or ""
-        if merge_release_notes(body, plan["release_notes_markdown"]) != body:
-            raise click.ClickException("Remote release notes differ from the plan")
+        verify_release(plan, data_repo)
         remote = api.get_repo(plan["route_repository"]).get_contents(ROUTE_FILE, ref="main")
         remote_routes = json.loads(remote.decoded_content)
         route, entry = next(iter(plan["route_entry"].items()))
@@ -355,3 +372,14 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300):
         if isinstance(exc, (click.ClickException, KeyboardInterrupt)):
             raise
         raise click.ClickException(f"Publication stopped: {exc}. Resume the same plan; see {receipt_path}") from exc
+
+
+def verify_release(plan, data_repo):
+    release = data_repo.get_release(plan["release"])
+    remote_assets = release_assets(release)
+    for asset in plan["uploads"]:
+        if asset["name"] not in remote_assets:
+            raise click.ClickException(f"Missing uploaded asset: {asset['name']}")
+        verify_asset(remote_assets[asset["name"]], asset)
+    if merge_release_notes(release.body or "", plan["release_notes_markdown"]) != (release.body or ""):
+        raise click.ClickException("Remote release notes differ from the plan")

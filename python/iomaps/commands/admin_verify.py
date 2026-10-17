@@ -4,6 +4,7 @@ import gzip
 import hashlib
 import json
 import math
+import re
 import subprocess
 import time
 
@@ -23,6 +24,32 @@ def pmtiles(*args):
 
 def decoded(data):
     return gzip.decompress(data) if data.startswith(b"\x1f\x8b") else data
+
+
+def sample_manifest(sample):
+    """Carry only a tile's checksum/metadata between hosts, never the large dataset."""
+    return {
+        **{key: value for key, value in sample.items() if key != "data"},
+        "data_sha256": hashlib.sha256(sample["data"]).hexdigest(),
+        "data_bytes": len(sample["data"]),
+    }
+
+
+def validate_sample_manifest(sample):
+    try:
+        z, x, y = (sample[key] for key in ("z", "x", "y"))
+        if not all(isinstance(value, int) for value in (z, x, y)) or not 0 <= z <= 30:
+            raise ValueError("invalid tile coordinates")
+        if not 0 <= x < 2**z or not 0 <= y < 2**z:
+            raise ValueError("invalid tile coordinates")
+        if not re.fullmatch(r"[0-9a-f]{64}", sample["data_sha256"]) or sample["data_bytes"] <= 0:
+            raise ValueError("invalid tile checksum/size")
+        if not sample["layers"] or any(not layer["id"] for layer in sample["layers"]):
+            raise ValueError("missing tile layers")
+    except (KeyError, TypeError, ValueError) as exc:
+        raise click.ClickException(
+            "Receipt has no valid sample tile; rerun --phase assets with verification enabled"
+        ) from exc
 
 
 def choose_sample_tile(plan):
@@ -53,6 +80,9 @@ def choose_sample_tile(plan):
 
 
 def verify_live(plan, sha, sample, timeout):
+    if "data" in sample:
+        sample = sample_manifest(sample)
+    validate_sample_manifest(sample)
     route, entry = next(iter(plan["route_entry"].items()))
     base = "https://indianopenmaps.com"
     deadline = time.monotonic() + timeout
@@ -91,7 +121,7 @@ def verify_live(plan, sha, sample, timeout):
                 else:
                     url = f"{base}{route}{sample['z']}/{sample['x']}/{sample['y']}.pbf"
                     data = decoded(get(url).content)
-                    if data == sample["data"]:
+                    if len(data) == sample["data_bytes"] and hashlib.sha256(data).hexdigest() == sample["data_sha256"]:
                         return {
                             "status": "verified",
                             "viewer_url": f"{base}{route}view",

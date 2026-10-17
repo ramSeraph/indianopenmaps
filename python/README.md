@@ -320,6 +320,44 @@ The default receipt is `release-preview.receipt.json` beside the plan. Use
 the route commit, verification results and any error. A timeout after publication
 returns a nonzero exit code with the published stage recorded in the receipt.
 
+### Prepare/upload remotely, publish the route locally
+
+When the dataset lives on a server, run `admin prepare` and generate the dry-run
+plan there. Keep the original basename consistent with similar releases. Put the
+working directory, `TMPDIR`, and tool caches on the volume with enough space;
+large runs should have a durable background process and a log. Check whether a
+scraper is still writing the input. An incomplete snapshot needs an explicit
+coverage note and a stable input before preparation.
+
+On the asset server, use the existing publisher's asset phase:
+
+```bash
+python/.venv/bin/iomaps admin make-release --plan release-preview.json --phase assets
+```
+
+This validates local hashes, captures a sample tile checksum, uploads the files,
+and updates/verifies release notes. It does not use Git or need route push access.
+Keep verification enabled so the receipt includes the sample for the next phase.
+On a headless host, the same commands can be invoked directly as
+`python -m iomaps.commands.admin_prepare` and
+`python -m iomaps.commands.admin_release` from the package's Python environment.
+
+Copy only `release-preview.json` and `release-preview.receipt.json` to the local
+checkout, keeping their contents unchanged; the asset paths still point to the
+server. Then run:
+
+```bash
+python/.venv/bin/iomaps admin make-release \
+  --plan scratch/dataset/release-preview.json --phase routes
+```
+
+This phase needs no local dataset files or PMTiles executable. It checks the
+receipt belongs to the exact plan, independently verifies GitHub asset hashes
+and notes, and uses local Git for the listing commit/push. It then checks the
+deployment against the server's recorded tile checksum. It never uploads assets
+or changes release notes. Both phases can be retried with their respective
+receipts. The default `--phase all` retains single-machine publication.
+
 ### Resume an interrupted publication
 
 Rerun the same `--plan` command with the same receipt path. Publication is not

@@ -97,6 +97,26 @@ retried. Differing assets are never overwritten. An incomplete remote asset or
 conflicting local work needs inspection. If intentionally changing a reviewed
 plan after an attempt, review it again and use a new `--receipt` path.
 
+## Remote preparation with local route commits
+
+For datasets that do not fit locally, use the same tools on the data server.
+Keep the working data, `TMPDIR`, and caches on its data volume, and run long
+preparation jobs durably with logs. Check permissions and download completeness
+first. Stabilize the input before processing; label incomplete snapshots when
+the user has authorized publishing them. Preserve the source and choose the
+published basename before preparation. A hard link saves space only when the
+source cannot be modified for the duration of the job.
+
+Run `make-release --plan ... --phase assets` on the server, with verification
+enabled. This needs data-repository credentials but no Git checkout or route
+push credentials. Copy only the exact plan and its `.receipt.json` to this
+checkout, then run `make-release --plan ... --phase routes` here. Do not rewrite
+the asset paths or copy large assets locally. The local phase validates remote
+hashes/notes again, commits and pushes the listing through local Git, and verifies
+the live tile using the checksum in the server receipt. See the Python README
+for headless module invocations and examples. Keep credentials out of logs and
+handoff files; do not copy local SSH keys to the server.
+
 ## Authentication
 
 The release utility reads `GH_TOKEN`, then `GITHUB_TOKEN`, then

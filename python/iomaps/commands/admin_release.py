@@ -256,6 +256,13 @@ class DynamicReleaseOption(click.Option):
 
 @click.command("make-release")
 @click.option(
+    "--phase",
+    type=click.Choice(["all", "assets", "routes"]),
+    default="all",
+    show_default=True,
+    help="Publish everything, upload assets/notes on a server, or publish routes locally from its receipt",
+)
+@click.option(
     "--plan",
     "plan_file",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -339,6 +346,7 @@ class DynamicReleaseOption(click.Option):
 @click.option("--notes-file", type=click.Path(exists=True), default=None, help="file containing notes text (markdown)")
 @click.option("--promoteid", type=str, help="override promoteid for vector tiles")
 def make_release(
+    phase,
     plan_file,
     checkout,
     receipt,
@@ -389,16 +397,20 @@ def make_release(
             plan = json.loads(plan_file.read_text())
         except (OSError, ValueError) as exc:
             raise click.ClickException(f"Cannot read publication plan: {exc}") from exc
-        validate_plan(plan)
+        validate_plan(plan, check_files=phase != "routes")
         if dry_run:
             click.echo(json.dumps(plan, indent=2))
             return
         receipt = receipt or plan_file.with_suffix(".receipt.json")
         if receipt.resolve() == plan_file.resolve():
             raise click.UsageError("--receipt must not overwrite --plan")
-        publish_plan(plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout)
+        publish_plan(
+            plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout, phase=phase
+        )
         return
 
+    if phase == "routes":
+        raise click.UsageError("--phase routes requires --plan and the receipt from --phase assets")
     if dry_run and not owner:
         raise click.UsageError("--owner is required with --dry-run; no GitHub lookup is made")
     if base_file is None:
@@ -500,7 +512,7 @@ def make_release(
     for warning in warnings:
         click.echo(f"Warning: {warning}", err=True)
     receipt = receipt or base_path.parent / "publication-receipt.json"
-    publish_plan(plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout)
+    publish_plan(plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout, phase=phase)
 
 
 if __name__ == "__main__":

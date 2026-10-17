@@ -380,3 +380,75 @@ def test_retry_rejects_user_changes_to_interrupted_listing(saved_plan, git_check
     assert result.exit_code != 0
     assert "has local edits" in result.output
     assert listing.read_text() == '{"user edit": true}'
+
+
+def test_remote_assets_then_local_routes_without_dataset_files(saved_plan, git_checkout, authenticated, monkeypatch):
+    from iomaps.commands import admin_verify
+
+    api, release = authenticated
+    before = git(git_checkout, "rev-parse", "HEAD")
+    sample = {"z": 4, "x": 11, "y": 6, "data": b"tile", "layers": [{"id": "Test_Plots"}]}
+    monkeypatch.setattr(admin_verify, "choose_sample_tile", Mock(return_value=sample))
+    live = Mock(return_value={"status": "verified"})
+    monkeypatch.setattr(admin_verify, "verify_live", live)
+    # The asset host has no Git checkout or Git credentials.
+    result = CliRunner().invoke(cli.make_release, ["--plan", str(saved_plan), "--phase", "assets"])
+    assert result.exit_code == 0, result.output
+    assert git(git_checkout, "rev-parse", "HEAD") == before
+    assert release.upload_asset.call_count == 3
+    assert all(call.args[0] != "ramSeraph/indianopenmaps" for call in api.get_repo.call_args_list)
+    live.assert_not_called()
+    receipt = json.loads(saved_plan.with_suffix(".receipt.json").read_text())
+    assert receipt["assets_verified"] is True
+    assert receipt["stage"] == "assets_complete"
+    assert "data" not in receipt["sample_tile"]
+    for asset in json.loads(saved_plan.read_text())["uploads"]:
+        Path(asset["path"]).unlink()
+    monkeypatch.setattr(admin_verify, "choose_sample_tile", Mock(side_effect=AssertionError("Local dataset needed")))
+    args = ["--plan", str(saved_plan), "--phase", "routes", "--checkout", str(git_checkout)]
+    for _ in range(2):
+        result = CliRunner().invoke(cli.make_release, args)
+        assert result.exit_code == 0, result.output
+    assert git(git_checkout, "rev-parse", "HEAD") != before
+    assert git(git_checkout, "rev-parse", "HEAD") == git(git_checkout, "rev-parse", "origin/main")
+    assert release.upload_asset.call_count == 3
+    assert release.update_release.call_count == 1
+    assert live.call_args.args[2] == receipt["sample_tile"]
+
+
+@pytest.mark.parametrize("problem", ["missing_receipt", "bad_notes", "bad_digest", "missing_asset", "missing_sample"])
+def test_local_route_phase_rechecks_handoff_before_committing(
+    saved_plan, git_checkout, authenticated, problem, monkeypatch
+):
+    from iomaps.commands import admin_verify
+
+    _, release = authenticated
+    monkeypatch.setattr(
+        admin_verify,
+        "choose_sample_tile",
+        Mock(return_value={"z": 4, "x": 11, "y": 6, "data": b"tile", "layers": [{"id": "Test"}]}),
+    )
+    result = CliRunner().invoke(cli.make_release, ["--plan", str(saved_plan), "--phase", "assets"])
+    assert result.exit_code == 0, result.output
+    receipt_path = saved_plan.with_suffix(".receipt.json")
+    if problem == "missing_receipt":
+        receipt_path.unlink()
+    elif problem == "bad_notes":
+        release.body = "Changed by someone else"
+    elif problem == "bad_digest":
+        release.get_assets()[0].raw_data["digest"] = "sha256:" + "0" * 64
+    elif problem == "missing_asset":
+        assets = release.get_assets()[1:]
+        release.get_assets.side_effect = lambda: assets
+    else:
+        receipt = json.loads(receipt_path.read_text())
+        receipt.pop("sample_tile")
+        receipt_path.write_text(json.dumps(receipt))
+    before = git(git_checkout, "rev-parse", "HEAD")
+    result = CliRunner().invoke(
+        cli.make_release, ["--plan", str(saved_plan), "--phase", "routes", "--checkout", str(git_checkout)]
+    )
+    assert result.exit_code != 0
+    assert git(git_checkout, "rev-parse", "HEAD") == before
+    assert release.upload_asset.call_count == 3
+    assert release.update_release.call_count == 1
