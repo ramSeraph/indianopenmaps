@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import re
@@ -7,7 +6,9 @@ from pathlib import Path
 
 import click
 import questionary
-from github import Auth, Github, InputGitTreeElement
+from github import Auth, Github
+
+from .admin_publish import PLAN_VERSION, describe_asset, publish_plan, validate_plan, wrap_release_notes
 
 known_repos = [
     "indian_admin_boundaries",
@@ -193,85 +194,10 @@ def build_route_entry(
     return entry
 
 
-def update_routes_file(
-    repo_name,
-    release,
-    file_pmtiles,
-    route,
-    description,
-    category,
-    is_mosaic=False,
-    is_partitioned_parquet=False,
-    promoteid=None,
-    license_str=None,
-    notes_html=None,
-    owner=None,
-):
-    code_repo_name = "indianopenmaps"
-    branch = "main"
-    file_path = "worker/src/routes/listing.json"
-    gh = get_github_api()
-    owner = owner or gh.get_user().login
-    github_repo = gh.get_repo(f"{owner}/{code_repo_name}")
-
-    base_ref = github_repo.get_git_ref(f"heads/{branch}")
-    base_sha = base_ref.object.sha
-    base_tree = github_repo.get_git_tree(base_sha)
-
-    file_content = github_repo.get_contents(file_path, ref=branch)
-
-    # Decode content if it's base64 encoded
-    if isinstance(file_content.content, bytes):
-        file_content = base64.b64decode(file_content.content).decode("utf-8")
-    else:
-        file_content = base64.b64decode(file_content.content.encode("utf-8")).decode("utf-8")
-
-    commit_msg = f"[ROUTE ADDITION] {file_pmtiles.name}"
-    route_data = json.loads(file_content)
-
-    entry = build_route_entry(
-        owner,
-        repo_name,
-        release,
-        file_pmtiles,
-        description,
-        category,
-        is_mosaic,
-        is_partitioned_parquet,
-        promoteid,
-        license_str,
-        notes_html,
-    )
-    route_data.update({route: entry})
-
-    content = json.dumps(route_data, indent=2)
-
-    # Create blob with new content
-    blob = github_repo.create_git_blob(content, "utf-8")
-    element = InputGitTreeElement(path=file_path, mode="100644", type="blob", sha=blob.sha)
-
-    # Create new tree with the updated file
-    new_tree = github_repo.create_git_tree([element], base_tree)
-
-    # Create commit
-    parent = github_repo.get_git_commit(base_sha)
-    commit = github_repo.create_git_commit(commit_msg, new_tree, [parent])
-
-    base_ref.edit(commit.sha)
-
-
-def upload_file(repo_name, release, file, owner=None):
-    gh = get_github_api()
-    owner = owner or gh.get_user().login
-    github_repo = gh.get_repo(f"{owner}/{repo_name}")
-    release_obj = github_repo.get_release(release)
-    release_obj.upload_asset(path=str(file), content_type="application/octet-stream", name=file.name)
-
-
 def build_release_notes(
     owner, repo_name, release, description, files_7z, route, source, source_url, license_str=None, notes_md=None
 ):
-    """Build the exact Markdown appended to the existing release."""
+    """Build the exact dataset section inserted or replaced in the release."""
     # Build the header with file links
     if len(files_7z) == 1:
         # Single file
@@ -297,23 +223,7 @@ def build_release_notes(
     - Tiles - https://indianopenmaps.com{route}{{z}}/{{x}}/{{y}}.pbf - [view](https://indianopenmaps.com{route}view)
     """
 
-    return textwrap.dedent(to_append)
-
-
-def update_release_doc(
-    repo_name, release, description, files_7z, route, source, source_url, license_str=None, notes_md=None, owner=None
-):
-    gh = get_github_api()
-    owner = owner or gh.get_user().login
-    github_repo = gh.get_repo(f"{owner}/{repo_name}")
-    release_obj = github_repo.get_release(release)
-    body = release_obj.raw_data["body"] or ""
-    to_append = build_release_notes(
-        owner, repo_name, release, description, files_7z, route, source, source_url, license_str, notes_md
-    )
-
-    new_body = body + "\n\n" + to_append
-    release_obj.update_release(release_obj.name, new_body)
+    return wrap_release_notes(route, textwrap.dedent(to_append))
 
 
 class QuestionaryOption(click.Option):
@@ -323,12 +233,18 @@ class QuestionaryOption(click.Option):
             raise Exception("ChoiceOption type arg must be click.Choice")
 
     def prompt_for_value(self, ctx):
+        if ctx.params.get("plan_file"):
+            return None
+        if ctx.params.get("dry_run"):
+            raise click.UsageError("--repo is required with --dry-run")
         val = questionary.select(self.prompt, choices=self.type.choices).unsafe_ask()
         return val
 
 
 class DynamicReleaseOption(click.Option):
     def prompt_for_value(self, ctx):
+        if ctx.params.get("plan_file"):
+            return None
         if ctx.params.get("dry_run"):
             raise click.UsageError("--release is required with --dry-run; no GitHub lookup is made")
         repo = ctx.params.get("repo")
@@ -339,6 +255,34 @@ class DynamicReleaseOption(click.Option):
 
 
 @click.command("make-release")
+@click.option(
+    "--plan",
+    "plan_file",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    is_eager=True,
+    help="Execute the exact saved dry-run JSON; cannot be combined with dataset options",
+)
+@click.option(
+    "--checkout",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=Path("."),
+    help="Local indianopenmaps checkout used for the route commit and push",
+)
+@click.option(
+    "--receipt",
+    type=click.Path(dir_okay=False, path_type=Path),
+    help="Publication receipt/checkpoint path; reuse it when retrying",
+)
+@click.option(
+    "--no-verify", is_flag=True, help="Skip deployment/live checks; GitHub assets, notes and route are still verified"
+)
+@click.option(
+    "--verify-timeout",
+    type=click.IntRange(min=1),
+    default=300,
+    show_default=True,
+    help="Seconds to wait for the deployment and live endpoints",
+)
 @click.option(
     "--dry-run",
     is_flag=True,
@@ -395,6 +339,11 @@ class DynamicReleaseOption(click.Option):
 @click.option("--notes-file", type=click.Path(exists=True), default=None, help="file containing notes text (markdown)")
 @click.option("--promoteid", type=str, help="override promoteid for vector tiles")
 def make_release(
+    plan_file,
+    checkout,
+    receipt,
+    no_verify,
+    verify_timeout,
     dry_run,
     owner,
     repo,
@@ -412,7 +361,43 @@ def make_release(
     notes_file,
     promoteid,
 ):
-    """Upload prepared assets and update release metadata."""
+    """Upload assets, update release notes, and commit/push routes through local Git."""
+
+    if plan_file:
+        ctx = click.get_current_context()
+        dataset_options = (
+            "owner",
+            "repo",
+            "release",
+            "base_file",
+            "description",
+            "source",
+            "source_url",
+            "route",
+            "category",
+            "no_uploads",
+            "license_str",
+            "license_file",
+            "notes_str",
+            "notes_file",
+            "promoteid",
+        )
+        for key in dataset_options:
+            if ctx.get_parameter_source(key) == click.core.ParameterSource.COMMANDLINE:
+                raise click.UsageError("--plan cannot be combined with dataset options; edit and review a new preview")
+        try:
+            plan = json.loads(plan_file.read_text())
+        except (OSError, ValueError) as exc:
+            raise click.ClickException(f"Cannot read publication plan: {exc}") from exc
+        validate_plan(plan)
+        if dry_run:
+            click.echo(json.dumps(plan, indent=2))
+            return
+        receipt = receipt or plan_file.with_suffix(".receipt.json")
+        if receipt.resolve() == plan_file.resolve():
+            raise click.UsageError("--receipt must not overwrite --plan")
+        publish_plan(plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout)
+        return
 
     if dry_run and not owner:
         raise click.UsageError("--owner is required with --dry-run; no GitHub lookup is made")
@@ -476,81 +461,46 @@ def make_release(
 
     owner = owner or get_github_api().get_user().login
     upload_files = [f for kind in ("7z", "pmtiles", "mosaic", "parquet", "parquet_meta") for f in related[kind]]
-    if dry_run:
-        entry = build_route_entry(
-            owner,
-            repo,
-            release,
-            route_file,
-            description,
-            category,
-            is_mosaic,
-            is_partitioned_parquet,
-            promoteid,
-            license_html,
-            notes_html,
-        )
-        plan = {
-            "dry_run": True,
-            "data_repository": f"{owner}/{repo}",
-            "release": release,
-            "release_url": f"https://github.com/{owner}/{repo}/releases/tag/{release}",
-            "uploads": [
-                {"name": f.name, "path": str(f), "bytes": f.stat().st_size} for f in upload_files if not no_uploads
-            ],
-            "route_repository": f"{owner}/indianopenmaps",
-            "route_branch": "main",
-            "route_file": "worker/src/routes/listing.json",
-            "route_commit_message": f"[ROUTE ADDITION] {route_file.name}",
-            "route_entry": {route: entry},
-            "release_license_markdown": license_md or DEFAULT_LICENSE,
-            "release_notes_markdown": build_release_notes(
-                owner, repo, release, description, related["7z"], route, source, source_url, license_md, notes_md
-            ),
-            "warnings": warnings,
-        }
-        click.echo(json.dumps(plan, indent=2))
-        return
-
-    print(f"Release: {owner}/{repo} / {release}")
-    print(f"Route: {route} (promoteid: {promoteid})")
-    for warning in warnings:
-        click.echo(f"Warning: {warning}", err=True)
-    if not no_uploads:
-        for f in upload_files:
-            print(f"uploading file {f}")
-            upload_file(repo, release, f, owner=owner)
-
-    # append to release doc (uses original markdown for GitHub rendering)
-    print("updating release notes")
-    update_release_doc(
-        repo,
-        release,
-        description,
-        related["7z"],
-        route,
-        source,
-        source_url,
-        license_str=license_md,
-        notes_md=notes_md,
-        owner=owner,
-    )
-    # update route (uses HTML-converted links for listing.json)
-    print("updating routes file")
-    update_routes_file(
+    entry = build_route_entry(
+        owner,
         repo,
         release,
         route_file,
-        route,
         description,
         category,
         is_mosaic,
         is_partitioned_parquet,
         promoteid,
-        license_str=license_html,
-        notes_html=notes_html,
-        owner=owner,
+        license_html,
+        notes_html,
     )
+    plan = {
+        "schema_version": PLAN_VERSION,
+        "dry_run": True,
+        "data_repository": f"{owner}/{repo}",
+        "release": release,
+        "release_url": f"https://github.com/{owner}/{repo}/releases/tag/{release}",
+        "uploads": [describe_asset(f) for f in upload_files],
+        "skip_uploads": no_uploads,
+        "route_repository": f"{owner}/indianopenmaps",
+        "route_branch": "main",
+        "route_file": "worker/src/routes/listing.json",
+        "route_commit_message": f"[ROUTE ADDITION] {route_file.name}",
+        "route_entry": {route: entry},
+        "release_license_markdown": license_md or DEFAULT_LICENSE,
+        "release_notes_markdown": build_release_notes(
+            owner, repo, release, description, related["7z"], route, source, source_url, license_md, notes_md
+        ),
+        "warnings": warnings,
+    }
+    validate_plan(plan)
+    if dry_run:
+        click.echo(json.dumps(plan, indent=2))
+        return
+    for warning in warnings:
+        click.echo(f"Warning: {warning}", err=True)
+    receipt = receipt or base_path.parent / "publication-receipt.json"
+    publish_plan(plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout)
 
 
 if __name__ == "__main__":

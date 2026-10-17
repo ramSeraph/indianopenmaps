@@ -1,4 +1,3 @@
-import base64
 import json
 from unittest.mock import Mock
 
@@ -54,27 +53,6 @@ def preview(args):
     return json.loads(result.output)
 
 
-def fake_github(monkeypatch):
-    existing_routes = {"/existing/": {"name": "Keep this", "handlertype": "pmtiles"}}
-    existing_notes = "Existing release notes\n"
-    release_obj = Mock()
-    release_obj.name = "Urban Land Use"
-    release_obj.raw_data = {"body": existing_notes}
-    data_repo = Mock()
-    data_repo.get_release.return_value = release_obj
-    code_repo = Mock()
-    code_repo.create_git_blob.return_value.sha = "preview-matched-blob"
-    code_repo.get_contents.return_value.content = base64.b64encode(json.dumps(existing_routes).encode())
-    api = Mock()
-    api.get_user.return_value.login = "ramSeraph"
-    api.get_repo.side_effect = {
-        "ramSeraph/indian_land_features": data_repo,
-        "ramSeraph/indianopenmaps": code_repo,
-    }.__getitem__
-    monkeypatch.setattr(release, "get_github_api", lambda: api)
-    return api, release_obj, code_repo, existing_routes, existing_notes
-
-
 def test_dry_run_is_offline_and_shows_exact_destinations(prepared):
     plan = preview(prepared)
     assert plan["dry_run"] is True
@@ -100,26 +78,26 @@ def test_dry_run_is_offline_and_shows_exact_destinations(prepared):
 
 
 @pytest.mark.parametrize("no_uploads", [False, True])
-def test_published_payloads_match_preview_and_preserve_existing_content(prepared, monkeypatch, no_uploads):
+def test_published_payloads_match_preview_and_preserve_existing_content(
+    prepared, monkeypatch, git_checkout, release_api, no_uploads
+):
     args = [*prepared, *(["--no-uploads"] if no_uploads else [])]
     plan = preview(args)
-    api, release_obj, code_repo, existing_routes, existing_notes = fake_github(monkeypatch)
-    result = CliRunner().invoke(release.make_release, args)
+    api, remote_release = release_api
+    monkeypatch.setattr(release, "get_github_api", lambda: api)
+    if no_uploads:
+        for asset in plan["uploads"]:
+            remote_release.upload_asset(path=asset["path"], name=asset["name"])
+        remote_release.upload_asset.reset_mock()
+    result = CliRunner().invoke(release.make_release, [*args, "--checkout", str(git_checkout), "--no-verify"])
     assert result.exit_code == 0, result.output
-    assert release_obj.upload_asset.call_count == (0 if no_uploads else 3)
-    assert [call.kwargs["name"] for call in release_obj.upload_asset.call_args_list] == [
-        asset["name"] for asset in plan["uploads"]
-    ]
-    release_obj.update_release.assert_called_once_with(
-        "Urban Land Use", existing_notes + "\n\n" + plan["release_notes_markdown"]
+    assert remote_release.upload_asset.call_count == (0 if no_uploads else 3)
+    remote_release.update_release.assert_called_once_with(
+        "Urban Land Use", "Existing release notes\n" + "\n\n" + plan["release_notes_markdown"]
     )
-    content, encoding = code_repo.create_git_blob.call_args.args
-    assert encoding == "utf-8"
-    assert json.loads(content) == {**existing_routes, **plan["route_entry"]}
-    assert code_repo.create_git_commit.call_args.args[0] == plan["route_commit_message"]
-    code_repo.get_git_ref.assert_called_once_with("heads/main")
-    code_repo.get_git_ref.return_value.edit.assert_called_once()
-    api.get_user.assert_not_called()  # Explicit --owner controls both destinations.
+    routes = json.loads((git_checkout / "worker/src/routes/listing.json").read_text())
+    assert routes == {"/existing/": {"name": "Keep this", "handlertype": "pmtiles"}, **plan["route_entry"]}
+    api.get_user.assert_not_called()
 
 
 def test_custom_license_and_notes_keep_markdown_in_release_and_html_in_route(prepared, tmp_path):
@@ -181,13 +159,14 @@ def test_split_assets_are_all_present_in_preview(prepared, tmp_path):
     assert "[Part 1]" in plan["release_notes_markdown"] and "[Part 2]" in plan["release_notes_markdown"]
 
 
-def test_publish_without_owner_keeps_authenticated_user_default(prepared, monkeypatch):
+def test_publish_without_owner_keeps_authenticated_user_default(prepared, monkeypatch, git_checkout, release_api):
     args = prepared[2:]
-    api, release_obj, *_ = fake_github(monkeypatch)
-    result = CliRunner().invoke(release.make_release, args)
+    api, remote_release = release_api
+    monkeypatch.setattr(release, "get_github_api", lambda: api)
+    result = CliRunner().invoke(release.make_release, [*args, "--checkout", str(git_checkout), "--no-verify"])
     assert result.exit_code == 0, result.output
     api.get_user.assert_called_once()
-    assert release_obj.upload_asset.call_count == 3
+    assert remote_release.upload_asset.call_count == 3
 
 
 @pytest.mark.parametrize("source", ["repository", "legacy", "environment"])

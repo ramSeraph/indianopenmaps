@@ -19,18 +19,21 @@ older `utils/prepare.py` and `utils/make_release.py` scripts. Setup and command
 examples are in [python/README.md](python/README.md#preparing-and-publishing-datasets).
 
 `prepare` creates the compressed original GeoJSONL, PMTiles, GeoParquet, and ID
-analysis. It also handles files that need splitting. `make-release` discovers the
-related assets, uploads them to an existing GitHub release, appends release notes,
-and commits the route to `indianopenmaps/main`. Let that command do all three jobs.
-It updates GitHub directly; it does not update the local checkout's listing.
+analysis. It also handles files that need splitting. `make-release` uploads assets,
+updates the dataset's release notes section, then commits and pushes the route
+through the local checkout. It verifies GitHub content, the Cloudflare build, and
+live endpoints, and saves a receipt. Let the command handle the whole publication.
+The implementation is split between `admin_release.py` (CLI and plans),
+`admin_publish.py` (Git and releases), and `admin_verify.py` (live checks).
 
 ## Sync before local work
 
 Fetch and compare the local branch with upstream before preparing the next dataset
-or making a local commit. `make-release` creates a route commit on GitHub's `main`
-through the API, bypassing this checkout. A successful publication can therefore
-leave both local `main` and the cached `origin/main` behind. Local history and the
-listing are not current until upstream has been fetched and integrated.
+or making a local commit. The old publisher committed routes through GitHub's API,
+bypassing the checkout and leaving both local `main` and cached `origin/main`
+behind. The current publisher uses local Git and checks upstream automatically,
+but other contributors can still advance the remote. Fetch before assuming the
+local history or listing is current.
 
 ```bash
 git status --short --branch
@@ -44,8 +47,10 @@ Inspect incoming changes and preserve existing work. A fast-forward can retain
 unrelated local edits, as it did when syncing the Delhi route. If histories have
 diverged or upstream overlaps local changes, resolve that deliberately without
 discarding edits. Sync first, then commit local tooling or documentation changes.
-Repeat this check after a publication before the next local commit; a release
-utility run does not perform a local `git pull`.
+Push authorized local commits before publishing a dataset. The publisher refuses
+unrelated unpushed commits or divergent history, rather than pushing them implicitly.
+It allows unrelated staged and unstaged edits, and commits only the listing.
+Existing edits to the listing must be resolved before publication.
 
 ## Workflow
 
@@ -61,22 +66,36 @@ utility run does not perform a local `git pull`.
 3. Run `prepare` with the source URL and source name. Validate feature counts,
    coordinates, properties, and the ID field; compare with the source service
    where possible. Review any fixes or dropped features reported by the tool.
-   Record source geometry problems rather than silently changing them.
+   Record source geometry problems rather than silently changing them. Check that
+   the chosen ID exists in the PMTiles too: GeoParquet conversion may introduce
+   `OGC_FID`, which is absent from the tiles. Use `--promoteid` for the source ID.
 4. Use `make-release --dry-run --owner <owner>` with all intended publication
    arguments. This is an offline JSON preview containing the exact filenames,
-   destinations, route entry, license Markdown, and release-note Markdown. Save
-   it under `scratch/` for review. Show the actual license text, not a paraphrase.
+   destinations, route entry, license Markdown, release-note Markdown, and asset
+   SHA-256 hashes. Save it under `scratch/` for review. Show the actual license
+   text, not a paraphrase. Old previews without a schema version/hash manifest
+   must be regenerated; they cannot be executed.
 5. When the user requests review, finish preparation and show the concrete preview
-   before publishing. Once publication is authorized, run the same command without
-   `--dry-run`; do not ask for the same approval again. Do not manually add the
-   listing entry or implement another upload/release/route workflow.
-6. Verify uploaded sizes/checksums, release notes, and the remote route. Check the
-   Cloudflare Workers build and live `/api/routes`, route `tiles.json`, and a tile
-   before claiming the dataset is live. Do not deploy unrelated local changes.
+   before publishing. Once publication is authorized, execute that exact preview:
+   `python/.venv/bin/iomaps admin make-release --plan scratch/<dataset>/release-preview.json`.
+   Do not ask for the same approval again. Dataset flags cannot override a saved
+   plan. Use `--checkout /path/to/indianopenmaps` if running outside the checkout.
+   Do not manually add the listing entry or implement another publishing workflow.
+6. Check the generated `release-preview.receipt.json`. The command verifies asset
+   hashes, notes, the remote route, the Cloudflare build, live `/api/routes`, route
+   `tiles.json`, and a sample tile against the local archive. `--verify-timeout`
+   controls the deployment wait. `--no-verify` explicitly skips live checks, so do
+   not call the dataset live based on that run. It still checks GitHub content.
 
-**`--no-uploads` is not a dry run.** It still updates release notes and commits
-routes. After an interrupted or failed publication, inspect remote state before
-retrying: the workflow is not atomic and notes can be appended twice.
+**`--no-uploads` is not a dry run.** It requires all planned assets to exist with
+matching hashes, then still updates notes and commits/pushes routes.
+
+Publication is not atomic. After interruption, rerun the same `--plan` with the
+same receipt path. Matching assets are verified and skipped, notes are replaced
+within stable dataset boundaries, and a recorded unpushed route commit can be
+retried. Differing assets are never overwritten. An incomplete remote asset or
+conflicting local work needs inspection. If intentionally changing a reviewed
+plan after an attempt, review it again and use a new `--receipt` path.
 
 ## Authentication
 
@@ -84,9 +103,10 @@ The release utility reads `GH_TOKEN`, then `GITHUB_TOKEN`, then
 `.secrets/gh_token.txt` or the legacy `utils/token.txt` in the working directory or
 enclosing checkout. The repo token and `gh` CLI login can differ. Never print or
 commit credentials. Use `--owner ramSeraph` explicitly for this project's releases.
-The token needs access to both the data repository and `ramSeraph/indianopenmaps`,
-with Contents read/write permissions. Successful authentication alone does not
-prove upload permissions. A sandbox DNS failure is not proof of an invalid token.
+The token needs Contents read/write on the data repository and read access to the
+route repository for verification. Route pushes use the checkout's existing Git
+credentials and need push access to `origin`. Successful authentication alone does
+not prove upload/push permissions. A sandbox DNS failure is not an invalid token.
 
 ## City land-use precedent
 

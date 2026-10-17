@@ -219,9 +219,9 @@ Check the existing installation before downloading another environment.
 
 ### Prepare a dataset
 
-Sync the checkout with upstream before the next dataset or local commit. The
-release utility commits routes directly through GitHub's API, so the local branch
-and cached `origin/main` can be behind even after a successful publication. Run
+Sync the checkout with upstream before the next dataset or local commit. Older
+versions committed routes directly through GitHub's API, leaving the checkout
+behind. Publication now uses local Git and checks upstream automatically. Run
 `git fetch origin`, inspect incoming changes, then use `git merge --ff-only
 origin/main` when possible. Preserve local edits and resolve any divergence before
 continuing; see [AGENTS.md](../AGENTS.md#sync-before-local-work).
@@ -243,6 +243,8 @@ The command writes the original `.geojsonl.7z`, `.pmtiles`, `.parquet`, and
 The `.mbtiles` file is an intermediate. The archive preserves the original input;
 tiles and GeoParquet use the preparation tool's cleaned data. Review the reported
 fixes/drops and validate feature counts and ID uniqueness before publishing.
+The chosen ID must also exist in the tiles; conversion can add an `OGC_FID` field
+only to GeoParquet. Use `--promoteid` to select a suitable source field when needed.
 
 ### Preview the exact publication
 
@@ -267,10 +269,12 @@ python/.venv/bin/iomaps admin make-release \
 
 `--dry-run` needs an explicit `--owner` and `--release`. It reads local assets and
 prints JSON without reading credentials or accessing GitHub. The JSON contains
-the upload list, both repository destinations, exact route entry, exact license
-Markdown, and exact release-note Markdown. Preview and publishing share the same
-payload builders. This offline preview does not check whether the remote release
-exists or the token has write permission.
+the asset paths, sizes and SHA-256 hashes, both repository destinations, exact
+route entry, license Markdown, and release-note Markdown. Invisible HTML comments
+bound the dataset's notes section so retries and updates preserve other datasets.
+This offline preview does not check whether the remote release exists or the
+token has write permission. Previews without `schema_version` and hashes must be
+regenerated before execution.
 
 Use `--notes`/`--notes-file` and `--license`/`--license-file` for optional Markdown.
 Links become HTML in the route entry and remain Markdown in release notes. Without
@@ -282,25 +286,60 @@ all related parts.
 
 ### Publish and verify
 
-After reviewing the preview and confirming publication is authorized, rerun the
-same command without `--dry-run` and without the preview-file redirection. The
-utility uploads the assets, appends to the existing release notes, and commits
-`worker/src/routes/listing.json` directly to `<owner>/indianopenmaps` on `main`.
-There is no need to upload each asset or edit the listing manually. The local
-checkout's listing is not changed by this command.
+After reviewing the preview and confirming publication is authorized, execute it:
+
+```bash
+python/.venv/bin/iomaps admin make-release \
+  --plan scratch/new-city/release-preview.json
+```
+
+The saved plan is the input: dataset flags cannot override it, and changed local
+assets fail their hash check before publication. The original argument-based
+invocation is still supported, but a saved plan avoids repeating metadata.
+
+Before uploading, the publisher checks the local `main` branch and `origin`'s
+fetch/push destinations, fetches upstream, and fast-forwards when possible. It
+rejects a dirty listing, divergent history, and unrelated unpushed commits. Push
+your authorized tooling commits first. Unrelated staged and unstaged edits are
+preserved; the publisher never stashes them. `--checkout /path/to/indianopenmaps`
+selects a checkout explicitly; the default is the current directory's checkout.
+
+It uploads assets to the existing release, updates this dataset's notes section,
+then writes `worker/src/routes/listing.json` locally, commits only that file, and
+pushes `main`. It never force-pushes. There is no need to upload each asset or edit
+the listing manually, or fetch an API-created route commit afterward.
+
+Verification checks GitHub asset hashes, notes, and the remote listing, waits for
+the Cloudflare Workers build, and compares live route metadata and a tile with
+the local PMTiles. `pmtiles` must be on `PATH`. The default deployment wait is 300
+seconds; change it with `--verify-timeout`. `--no-verify` skips deployment/live
+checks explicitly while retaining GitHub verification.
+
+The default receipt is `release-preview.receipt.json` beside the plan. Use
+`--receipt /path/to/receipt.json` to choose another location. It records progress,
+the route commit, verification results and any error. A timeout after publication
+returns a nonzero exit code with the published stage recorded in the receipt.
+
+### Resume an interrupted publication
+
+Rerun the same `--plan` command with the same receipt path. Publication is not
+atomic, but retries verify and skip matching assets, avoid duplicate notes, and
+reuse a recorded route commit if its push failed. An interrupted listing edit
+can be resumed only if it still exactly matches this plan. Conflicting assets or
+user edits are not overwritten. If intentionally changing the plan, review the
+new preview and choose a new receipt path.
 
 **`--no-uploads` still writes release notes and routes. It is not a preview.**
-Publication is not atomic: after a failed or interrupted run, inspect uploaded
-assets, release notes, and the route before retrying to avoid duplicates.
+The plan still lists all required assets, and publication requires every one to
+already exist with a matching hash. Prefer the ordinary retry path: it skips
+matching assets automatically and uploads only the missing ones.
 
 Authentication uses `GH_TOKEN`, then `GITHUB_TOKEN`, then `.secrets/gh_token.txt`
 or legacy `utils/token.txt` in the current directory or enclosing checkout.
-Never print or commit the token. Grant it access to both the selected data repo
-and `indianopenmaps`, with Contents read/write permissions. `--owner` defaults to
-the authenticated user when publishing; set it explicitly to match the preview.
+Never print or commit the token. Grant it Contents read/write on the data repo
+and read access to `indianopenmaps` for verification. Route pushes use your existing
+Git credentials, which need push access to `origin`. `--owner` defaults to the
+authenticated user for argument-based publication; a saved preview fixes the owner.
 
-Verify asset checksums, the release-note addition, and the remote listing entry.
-Check the Cloudflare Workers build and live `/api/routes`, `<route>tiles.json`, and
-a vector tile before reporting the dataset as live. Keep unrelated local changes
-out of deployment. Delhi has already been published; use only `--dry-run` when
-using its files to exercise the tooling.
+Keep unrelated local changes out of deployment. Delhi and IILB have already been
+published; use only `--dry-run` when using their files to exercise the tooling.
