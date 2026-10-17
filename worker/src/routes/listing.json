@@ -7438,5 +7438,16 @@
     "url": "https://github.com/ramSeraph/indian_land_features/releases/download/urban-land-use/DDA_Delhi_Master_Plan.pmtiles",
     "notes": "Source layer: MPD41_LANDUSE (layer 9). Land-use classification fields: luse2041 and use_zones. Eight source features have self-intersecting geometries; the GeoJSONL and GeoParquet downloads preserve the source geometries.",
     "promoteid": "fid"
+  },
+  "/not-so-open/industries/plots/iilb/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "industries",
+      "iilb"
+    ],
+    "name": "IILB Industrial Plots",
+    "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/IILB_Industrial_Plots.pmtiles",
+    "notes": "Downloaded on 17 October 2026 from the India Industrial Land Bank WMS service (<a href=\"https://indiaindustriallandbank.gov.in/wms\">https://indiaindustriallandbank.gov.in/wms</a>), layer plot_boundary_iis. Includes all plot categories returned by the layer, including ancillary land uses within industrial areas. The original GeoJSONL contains 1,823,565 records; the derived data excludes four records with null geometry. Sixteen repeated source IDs have identical properties and geometry and are retained. Fourteen source geometries have invalid topology; no topology repair was applied before conversion. Vector tiles are simplified for display.",
+    "promoteid": "id"
   }
 }
