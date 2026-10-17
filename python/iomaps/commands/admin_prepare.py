@@ -68,7 +68,12 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
                     dropped_count += 1
                     continue
 
-                coords = geometry.get("coordinates")
+                # Collections store their coordinates in member geometries.
+                coords = (
+                    list(_extract_coords(geometry))
+                    if geometry.get("type") == "GeometryCollection"
+                    else geometry.get("coordinates")
+                )
                 if coords is None:
                     dropped_count += 1
                     continue
