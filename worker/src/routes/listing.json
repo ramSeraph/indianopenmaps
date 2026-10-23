@@ -6289,15 +6289,6 @@
     "description": "Water Body data used in the DEM",
     "source": "Bhuvan - https://bhuvan-app3.nrsc.gov.in/data/download/index.php"
   },
-  "/dem/contours/cartodem-v3r1/bhuvan/": {
-    "handlertype": "mosaic",
-    "category": [
-      "digital elevation model",
-      "contours"
-    ],
-    "name": "Bhuvan CartoDEM 30m v3r1 Contours",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Contours.mosaic.json"
-  },
   "/not-so-open/coastal/2019/goa/landuse/regulation/ncess/": {
     "handlertype": "pmtiles",
     "type": "raster",
