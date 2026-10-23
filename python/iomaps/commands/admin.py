@@ -3,6 +3,7 @@ from importlib import import_module
 import click
 
 ADMIN_COMMANDS = {
+    "coverage": ("iomaps.commands.admin_coverage", "coverage"),
     "make-release": ("iomaps.commands.admin_release", "make_release"),
     "prepare": ("iomaps.commands.admin_prepare", "prepare"),
 }
@@ -21,7 +22,7 @@ class AdminGroup(click.Group):
         try:
             module = import_module(module_name)
         except ModuleNotFoundError as exc:
-            if exc.name in {"duckdb", "github", "questionary"}:
+            if exc.name in {"duckdb", "github", "questionary", "numpy", "pyarrow", "PIL"}:
                 raise click.ClickException("Admin dependencies are not installed; install iomaps[admin]") from exc
             raise
         return getattr(module, attribute_name)

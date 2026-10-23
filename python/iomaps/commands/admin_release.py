@@ -98,14 +98,17 @@ def get_releases_for_repo(repo_name, owner=None):
     return [r.tag_name for r in releases]
 
 
-def find_related_files(base_path: Path) -> dict:
+def find_related_files(base_path: Path, uploaded=()) -> dict:
     """Find all related files for a given base path.
 
-    Returns dict with keys: 7z, pmtiles, mosaic, parquet, parquet_meta
+    Returns dict with keys: 7z, pmtiles, mosaic, parquet, parquet_meta, coverage, analysis
     Each value is a list of Path objects.
     """
     base_name = base_path.stem
-    if base_name.endswith(".geojsonl"):
+    archive = re.fullmatch(r"(.+)\.geojsonl\.7z(?:\.\d+)?", base_path.name)
+    if archive:
+        base_name = archive[1]
+    elif base_name.endswith(".geojsonl"):
         base_name = base_name[:-9]
     elif base_name.endswith(".pmtiles"):
         base_name = base_name[:-8]
@@ -113,6 +116,14 @@ def find_related_files(base_path: Path) -> dict:
         base_name = base_name[:-8]
 
     parent_dir = base_path.parent
+    candidates = {p.name: p for p in parent_dir.iterdir() if p.is_file()}
+    for asset in uploaded:
+        candidates.setdefault(asset["name"], Path(asset["path"]))
+
+    def matching(pattern):
+        return sorted(p for name, p in candidates.items() if re.fullmatch(pattern, name))
+
+    escaped = re.escape(base_name)
 
     files = {
         "7z": [],
@@ -120,16 +131,17 @@ def find_related_files(base_path: Path) -> dict:
         "mosaic": [],
         "parquet": [],
         "parquet_meta": [],
+        "coverage": [],
         "analysis": [],
     }
 
     # Find 7z files (single or split)
     single_7z = parent_dir / f"{base_name}.geojsonl.7z"
-    if single_7z.exists():
-        files["7z"].append(single_7z)
+    if single_7z.name in candidates:
+        files["7z"].append(candidates[single_7z.name])
     else:
         # Look for split 7z files
-        files["7z"] = sorted(parent_dir.glob(f"{base_name}.geojsonl.7z.*"))
+        files["7z"] = matching(escaped + r"\.geojsonl\.7z\.\d+")
 
     # Find pmtiles files (single or split)
     single_pmtiles = parent_dir / f"{base_name}.pmtiles"
@@ -145,15 +157,19 @@ def find_related_files(base_path: Path) -> dict:
 
     # Find parquet files (single or split)
     single_parquet = parent_dir / f"{base_name}.parquet"
-    if single_parquet.exists():
-        files["parquet"].append(single_parquet)
+    if single_parquet.name in candidates:
+        files["parquet"].append(candidates[single_parquet.name])
     else:
         # Look for split parquet files
-        files["parquet"] = sorted(parent_dir.glob(f"{base_name}.*.parquet"))
+        files["parquet"] = matching(escaped + r"\..+\.parquet")
         # Look for parquet meta.json
         parquet_meta = parent_dir / f"{base_name}.parquet.meta.json"
-        if parquet_meta.exists():
-            files["parquet_meta"].append(parquet_meta)
+        if parquet_meta.name in candidates:
+            files["parquet_meta"].append(candidates[parquet_meta.name])
+
+    coverage_file = parent_dir / f"{base_name}.coverage.png"
+    if coverage_file.name in candidates:
+        files["coverage"].append(candidates[coverage_file.name])
 
     # Find analysis.json file
     analysis_file = parent_dir / f"{base_name}.analysis.json"
@@ -257,10 +273,23 @@ class DynamicReleaseOption(click.Option):
 @click.command("make-release")
 @click.option(
     "--phase",
-    type=click.Choice(["all", "assets", "routes"]),
+    type=click.Choice(["all", "assets", "routes", "uploads"]),
     default="all",
     show_default=True,
-    help="Publish everything, upload assets/notes on a server, or publish routes locally from its receipt",
+    help="Publish everything, assets/notes, local routes, or only a batch of ready uploads",
+)
+@click.option(
+    "--asset",
+    "assets",
+    multiple=True,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Ready file to upload with --phase uploads; repeat for each file",
+)
+@click.option(
+    "--uploaded-plan",
+    multiple=True,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Include an earlier uploads-only plan in the final preview; its files may have been removed locally",
 )
 @click.option(
     "--plan",
@@ -318,7 +347,9 @@ class DynamicReleaseOption(click.Option):
     show_choices=False,
     cls=DynamicReleaseOption,
 )
-@click.option("--base-file", type=str, help="GeoJSONL, .geojsonl.7z, or .pmtiles file to discover related assets from")
+@click.option(
+    "--base-file", type=str, help="GeoJSONL, .geojsonl.7z (including split volumes), or .pmtiles asset to discover from"
+)
 @click.option("--description", type=str, help="description")
 @click.option("--source", type=str, help="source")
 @click.option("--source-url", type=str, help="source url")
@@ -347,6 +378,8 @@ class DynamicReleaseOption(click.Option):
 @click.option("--promoteid", type=str, help="override promoteid for vector tiles")
 def make_release(
     phase,
+    assets,
+    uploaded_plan,
     plan_file,
     checkout,
     receipt,
@@ -389,6 +422,8 @@ def make_release(
             "notes_str",
             "notes_file",
             "promoteid",
+            "assets",
+            "uploaded_plan",
         )
         for key in dataset_options:
             if ctx.get_parameter_source(key) == click.core.ParameterSource.COMMANDLINE:
@@ -397,7 +432,11 @@ def make_release(
             plan = json.loads(plan_file.read_text())
         except (OSError, ValueError) as exc:
             raise click.ClickException(f"Cannot read publication plan: {exc}") from exc
-        validate_plan(plan, check_files=phase != "routes")
+        # Upload retries may already have reclaimed verified local files. The
+        # publisher checks GitHub first, then hashes every file still to upload.
+        validate_plan(plan, check_files=phase not in ("routes", "uploads"))
+        if (phase == "uploads") != (plan.get("kind") == "uploads"):
+            raise click.UsageError("An uploads-only plan requires --phase uploads, and vice versa")
         if dry_run:
             click.echo(json.dumps(plan, indent=2))
             return
@@ -413,6 +452,43 @@ def make_release(
         raise click.UsageError("--phase routes requires --plan and the receipt from --phase assets")
     if dry_run and not owner:
         raise click.UsageError("--owner is required with --dry-run; no GitHub lookup is made")
+    if phase == "uploads":
+        if not assets:
+            raise click.UsageError("--phase uploads requires at least one --asset")
+        if uploaded_plan or any(
+            (
+                base_file,
+                route,
+                description,
+                source,
+                source_url,
+                category,
+                license_str,
+                license_file,
+                notes_str,
+                notes_file,
+                promoteid,
+                no_uploads,
+            )
+        ):
+            raise click.UsageError("--phase uploads accepts only destination and --asset options")
+        owner = owner or get_github_api().get_user().login
+        plan = {
+            "schema_version": PLAN_VERSION,
+            "kind": "uploads",
+            "data_repository": f"{owner}/{repo}",
+            "release": release,
+            "uploads": [describe_asset(f) for f in assets],
+        }
+        validate_plan(plan)
+        if dry_run:
+            click.echo(json.dumps(plan, indent=2))
+            return
+        receipt = receipt or assets[0].resolve().parent / "upload-receipt.json"
+        publish_plan(plan, get_github_api(), checkout, receipt, phase="uploads")
+        return
+    if assets:
+        raise click.UsageError("--asset requires --phase uploads")
     if base_file is None:
         raise click.UsageError("--base-file is required")
     for option, value in (("description", description), ("source", source), ("source-url", source_url)):
@@ -435,8 +511,26 @@ def make_release(
     if not base_path.exists():
         raise click.UsageError(f"{base_file} does not exist")
 
-    # Find all related files
-    related = find_related_files(base_path)
+    owner = owner or get_github_api().get_user().login
+    uploaded = {}
+    for path in uploaded_plan:
+        try:
+            batch = json.loads(path.read_text())
+        except (OSError, ValueError) as exc:
+            raise click.ClickException(f"Cannot read uploaded plan: {exc}") from exc
+        validate_plan(batch, check_files=False)
+        if (
+            batch.get("kind") != "uploads"
+            or batch["data_repository"] != f"{owner}/{repo}"
+            or batch["release"] != release
+        ):
+            raise click.UsageError("--uploaded-plan must be an uploads-only plan for the same repository/release")
+        for asset in batch["uploads"]:
+            if asset["name"] in uploaded and uploaded[asset["name"]] != asset:
+                raise click.UsageError(f"Conflicting uploaded manifests: {asset['name']}")
+            uploaded[asset["name"]] = asset
+    # Missing archive/Parquet files can be represented by earlier upload manifests.
+    related = find_related_files(base_path, uploaded.values())
 
     # Validate we have the minimum required files
     if not related["7z"]:
@@ -471,8 +565,20 @@ def make_release(
         except (OSError, ValueError) as e:
             warnings.append(f"Failed to read analysis file: {e}")
 
-    owner = owner or get_github_api().get_user().login
-    upload_files = [f for kind in ("7z", "pmtiles", "mosaic", "parquet", "parquet_meta") for f in related[kind]]
+    upload_files = [
+        f for kind in ("7z", "pmtiles", "mosaic", "parquet", "parquet_meta", "coverage") for f in related[kind]
+    ]
+    if set(uploaded) - {f.name for f in upload_files}:
+        raise click.UsageError("--uploaded-plan contains files that do not belong to this dataset")
+    manifest = []
+    for f in upload_files:
+        if f.name in uploaded:
+            old = uploaded[f.name]
+            if f.exists() and (describe_asset(f)["sha256"] != old["sha256"] or f.stat().st_size != old["bytes"]):
+                raise click.UsageError(f"Local asset differs from uploaded plan: {f.name}")
+            manifest.append({**old, "remote_only": True})
+        else:
+            manifest.append(describe_asset(f))
     entry = build_route_entry(
         owner,
         repo,
@@ -492,7 +598,7 @@ def make_release(
         "data_repository": f"{owner}/{repo}",
         "release": release,
         "release_url": f"https://github.com/{owner}/{repo}/releases/tag/{release}",
-        "uploads": [describe_asset(f) for f in upload_files],
+        "uploads": manifest,
         "skip_uploads": no_uploads,
         "route_repository": f"{owner}/indianopenmaps",
         "route_branch": "main",

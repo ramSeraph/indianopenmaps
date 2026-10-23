@@ -17,7 +17,7 @@ Tools for splitting a big pmtiles into smaller ones is at [pmtiles_mosaic](https
 
 See the list of data available at https://indianopenmaps.com/
 
-A tool is available to filter the large .7z files in the repo based on another polygon shape or bounds and export them in other geospatial formats at [iomaps](https://github.com/ramSeraph/indianopenmaps/tree/main/python)
+Use [iomaps](https://github.com/ramSeraph/indianopenmaps/tree/main/python) to extract remote GeoParquet features by polygon or bounding box and export them in other geospatial formats.
 
 ## Architecture
 
@@ -62,13 +62,15 @@ To override the Protomaps browser key locally, set `PROTOMAPS_API_KEY` in
 
 A Python package ([available on PyPI](https://pypi.org/project/iomaps/)) providing CLI tools for working with the data.
 
+Agent usage guidance is in the [iomaps skill](.agents/skills/iomaps/SKILL.md).
+
 **Commands:**
-- `iomaps cli filter-7z` — filter/clip GeoJSONL features from .7z archives by bounding box or polygon, and export to various formats (GeoJSON, Shapefile, FlatGeobuf, GeoPackage, Parquet, etc.)
-- `iomaps cli extract` — extract data from remote geoparquet sources with server-side bbox filtering (partition-aware for large datasets)
-- `iomaps cli infer-schema` — infer geometry types and property schemas from .7z archives
+- `iomaps cli extract` — extract intersecting features from remote GeoParquet, pruning partitions and row groups by bounding box
 - `iomaps cli sources` — list available remote data sources (with category filtering and fuzzy matching)
-- `iomaps cli categories` — list available data categories
-- `iomaps ui` — launch a PyQt5 GUI for data filtering
+- `iomaps cli search --bounds "77.1,28.5,77.3,28.7"` — find candidate sources using cached coverage
+- `iomaps cli source-categories` — list available data categories
+- `iomaps ui` — launch a PyQt5 GUI for remote Parquet extraction
+- `iomaps admin coverage` — create a dataset's 1-bit coverage PNG from local GeoParquet
 
 **Example usage:**
 ```bash
@@ -76,7 +78,6 @@ pip install iomaps
 iomaps cli sources                    # list available sources
 iomaps cli sources -c cadastral       # filter by category
 iomaps cli extract -s buildings -o buildings.gpkg -b "77.5,12.9,77.7,13.1"
-iomaps cli filter-7z -i data.7z -o output.geojsonl -b "min_lon,min_lat,max_lon,max_lat"
 ```
 
 ### Utilities (`utils/`)

@@ -15,7 +15,7 @@ import time
 import click
 import duckdb
 import requests
-from geoparquet_io.core.common import write_parquet_with_metadata
+from geoparquet_io.core.common import write_geoparquet_table
 from geoparquet_io.core.duckdb_metadata import get_geo_metadata, get_schema_info
 from rich.console import Console
 from rich.live import Live
@@ -37,6 +37,7 @@ from iomaps.commands.sources import (
     resolve_source,
 )
 from iomaps.core.helpers import GEOPARQUET_VERSIONS
+from iomaps.core.source_assets import get_parquet_info_from_source as get_parquet_info_from_source
 from iomaps.core.spatial_filter import (
     get_shape_from_bounds,
     get_shape_from_filter_file,
@@ -58,56 +59,17 @@ def get_duckdb_connection():
     con = duckdb.connect()
     con.execute("INSTALL spatial; LOAD spatial;")
     con.execute("INSTALL httpfs; LOAD httpfs;")
+    settings = {row[0] for row in con.execute("SELECT name FROM duckdb_settings()").fetchall()}
+    if "geometry_always_xy" in settings:
+        # DuckDB 2.0 requires an explicit axis-order choice for GDAL export.
+        # GeoParquet and our filter geometries use longitude/easting first.
+        con.execute("SET geometry_always_xy = true")
+    con.execute("SET enable_server_cert_verification = true")
     # Limit memory usage for large operations
     con.execute("SET memory_limit = '2GB';")
     con.execute("SET preserve_insertion_order = false;")
     con.execute("SET arrow_large_buffer_size = true;")
     return con
-
-
-def get_parquet_info_from_source(source_config):
-    """
-    Extracts the geoparquet URL(s) from a source configuration.
-
-    Args:
-        source_config: Source configuration dict
-
-    Returns:
-        dict: Contains 'base_url' (str), 'is_partitioned' (bool), and 'meta_url' (str or None)
-              Returns None if source is raster or has no URL
-    """
-    # Skip raster sources - they don't have vector parquet files
-    source_type = source_config.get("type")
-    if source_type == "raster":
-        return None
-
-    # Get the URL from the source config
-    url = source_config.get("url")
-
-    if not url:
-        return None
-
-    is_partitioned = source_config.get("partitioned_parquet", False)
-
-    # Replace .pmtiles suffix with .parquet
-    if url.endswith(".pmtiles"):
-        base_url = url.replace(".pmtiles", ".parquet")
-    # Replace .mosaic.json suffix with .parquet
-    elif url.endswith(".mosaic.json"):
-        base_url = url.replace(".mosaic.json", ".parquet")
-    else:
-        return None
-
-    if is_partitioned:
-        meta_url = base_url + ".meta.json"
-    else:
-        meta_url = None
-
-    return {
-        "base_url": base_url,
-        "is_partitioned": is_partitioned,
-        "meta_url": meta_url,
-    }
 
 
 def fetch_partition_metadata(meta_url):
@@ -205,35 +167,69 @@ def get_schema_from_parquet(parquet_url):
         return None, None
 
 
-def build_source_query(parquet_urls, filter_shape=None):
+def get_covering_bbox(con, parquet_url):
+    """Read GeoParquet 1.1 covering paths from the footer, without scanning rows."""
+    rows = con.execute("SELECT value FROM parquet_kv_metadata(?) WHERE key = 'geo'", [parquet_url]).fetchall()
+    if not rows:
+        return None
+    try:
+        metadata = json.loads(rows[0][0])
+        column = metadata["columns"][metadata["primary_column"]]
+        bbox = column.get("covering", {}).get("bbox", {})
+        axes = ("xmin", "ymin", "xmax", "ymax")
+        if all(
+            isinstance(bbox.get(axis), list)
+            and bbox[axis]
+            and all(isinstance(name, str) and name for name in bbox[axis])
+            for axis in axes
+        ):
+            return {axis: bbox[axis] for axis in axes}
+    except (KeyError, TypeError, ValueError, AttributeError):
+        logging.warning("Invalid GeoParquet covering metadata in %s; using geometry filter only", parquet_url)
+    return None
+
+
+def build_source_query(parquet_urls, filter_shape=None, covering_bboxes=None):
     """
     Builds a DuckDB SQL query to read and filter parquet files.
 
     Args:
         parquet_urls: List of parquet URLs to read
         filter_shape: Optional shapely geometry for spatial filtering
+        covering_bboxes: Optional mapping of URL to GeoParquet covering column paths.
 
     Returns:
         str: SQL query string
     """
-    # Build parquet source expression
-    if len(parquet_urls) == 1:
-        source_expr = f"read_parquet('{parquet_urls[0]}')"
-    else:
-        urls_json = json.dumps(parquet_urls)
-        source_expr = f"read_parquet({urls_json})"
-
-    # Build WHERE clause for spatial filter
-    where_clause = ""
-    if filter_shape is not None:
-        wkt = filter_shape.wkt
-        minx, miny, maxx, maxy = filter_shape.bounds
-        # First filter by bbox (fast), then by actual intersection (slower but precise)
-        where_clause = f"""
-WHERE ST_Intersects(geometry, ST_MakeEnvelope({minx}, {miny}, {maxx}, {maxy}))
-  AND ST_Intersects(geometry, ST_GeomFromText('{wkt}'))"""
-
-    return f"SELECT * FROM {source_expr}{where_clause}"
+    if not parquet_urls:
+        raise ValueError("At least one Parquet source is required")
+    queries = []
+    for url in parquet_urls:
+        safe_url = url.replace("'", "''")
+        query = f"SELECT * FROM read_parquet('{safe_url}')"
+        if filter_shape is not None:
+            predicates = []
+            bbox = (covering_bboxes or {}).get(url)
+            if bbox:
+                minx, miny, maxx, maxy = filter_shape.bounds
+                for axis, operator, bound in (
+                    ("xmin", "<=", maxx),
+                    ("ymin", "<=", maxy),
+                    ("xmax", ">=", minx),
+                    ("ymax", ">=", miny),
+                ):
+                    # Coverings may use nested structs or separately named columns.
+                    path = ".".join('"' + name.replace('"', '""') + '"' for name in bbox[axis])
+                    # A decimal literal can promote integer coverings to DECIMAL
+                    # and prevent scan pushdown in DuckDB 2.0. Bounds are doubles.
+                    predicates.append(f"({path} {operator} {bound}::DOUBLE OR {path} IS NULL)")
+            wkt = filter_shape.wkt.replace("'", "''")
+            # Keep the exact predicate: a bbox match can lie in a polygon's hole.
+            predicates.append(f"ST_Intersects(geometry, ST_GeomFromText('{wkt}'))")
+            query += "\nWHERE " + "\n  AND ".join(predicates)
+        queries.append(query)
+    # Per-file predicates support partitions with different covering layouts.
+    return "\nUNION ALL BY NAME\n".join(queries)
 
 
 def execute_with_spinner(con, query, description="Processing"):
@@ -282,6 +278,23 @@ def write_gdal_output(con, query, output_path, driver, layer_name="features"):
     config = GDAL_FORMATS.get(driver)
     if not config:
         raise ValueError(f"Unsupported GDAL driver: {driver}")
+
+    # GeoParquet coverings are usually STRUCT columns. DuckDB's GDAL writer
+    # cannot export these (or maps/lists) directly. Preserve their values as
+    # JSON text instead of silently dropping source attributes.
+    columns = con.execute(f"DESCRIBE SELECT * FROM ({query})").fetchall()
+    expressions = []
+    nested_columns = []
+    for name, column_type, *_ in columns:
+        identifier = '"' + name.replace('"', '""') + '"'
+        if column_type.startswith(("STRUCT(", "MAP(", "UNION(")) or column_type.endswith("]"):
+            expressions.append(f"CAST(to_json({identifier}) AS VARCHAR) AS {identifier}")
+            nested_columns.append(name)
+        else:
+            expressions.append(identifier)
+    if nested_columns:
+        logging.info("Encoding nested columns as JSON text for %s: %s", driver, ", ".join(nested_columns))
+        query = f"SELECT {', '.join(expressions)} FROM ({query})"
 
     # Build layer creation options
     lco_parts = []
@@ -332,10 +345,13 @@ def write_parquet_output(con, query, output_path, geoparquet_version="1.1"):
     def run_write():
         nonlocal error
         try:
-            write_parquet_with_metadata(
-                con=con,
-                query=query,
+            # Own the DuckDB -> Arrow boundary: geoparquet-io 0.9's SQL writer
+            # calls fetch_arrow_table(), removed from DuckDB 2.0.
+            table = con.sql(f"SELECT * REPLACE (ST_AsWKB(geometry)::BLOB AS geometry) FROM ({query})").to_arrow_table()
+            write_geoparquet_table(
+                table=table,
                 output_file=output_path,
+                geometry_column="geometry",
                 compression="ZSTD",
                 compression_level=15,
                 row_group_rows=100000,
@@ -371,6 +387,13 @@ def write_parquet_output(con, query, output_path, geoparquet_version="1.1"):
     required=True,
     help="Source to extract from. Can be a name, route (starting with /), or number from 'iomaps cli sources'.",
 )
+@click.option(
+    "--http-client",
+    type=click.Choice(["default", "curl", "httplib"]),
+    default="default",
+    show_default=True,
+    help="DuckDB HTTP client override; default uses its native connection pooling and range reads.",
+)
 @add_output_options
 @add_routes_options
 @add_log_level_option(default="INFO")
@@ -387,6 +410,7 @@ def extract(
     pick_filter_feature_kv,
     routes_file,
     routes_url,
+    http_client,
 ):
     """
     Extract and filter data from a remote geoparquet source.
@@ -481,14 +505,29 @@ def extract(
     else:
         parquet_urls.append(parquet_info["base_url"])
 
-    # Build query with spatial filter
-    query = build_source_query(parquet_urls, filter_shape)
-    logging.debug(f"Query: {query}")
-
     # Create DuckDB connection and execute
     con = get_duckdb_connection()
 
     try:
+        if http_client != "default":
+            con.execute("SET httpfs_client_implementation = ?", [http_client])
+            if http_client == "curl":
+                con.execute("SET enable_curl_server_cert_verification = true")
+            logging.info("Using %s HTTP client with keep-alive connections", http_client)
+        # Scalar predicates on the declared covering let DuckDB prune Parquet row
+        # groups and remote byte ranges. ST_Intersects alone does not do this for
+        # these GeoParquet 1.1 files, even when given a rectangular geometry.
+        coverings = {}
+        if filter_shape is not None:
+            coverings = {url: get_covering_bbox(con, url) for url in parquet_urls}
+            logging.info(
+                "Using bbox filter pushdown for %d/%d files",
+                sum(bool(v) for v in coverings.values()),
+                len(parquet_urls),
+            )
+        query = build_source_query(parquet_urls, filter_shape, coverings)
+        logging.debug(f"Query: {query}")
+
         # Write output based on format
         logging.info(f"Writing to {output_file} (driver: {effective_driver})")
 

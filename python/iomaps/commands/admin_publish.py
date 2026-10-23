@@ -30,6 +30,31 @@ def wrap_release_notes(route, section):
     return f"\n<!-- iomaps:{key} -->\n{section.strip()}\n<!-- /iomaps:{key} -->\n"
 
 
+def validate_assets(plan, check_files=True):
+    """Validate an upload manifest, including files already staged on GitHub."""
+    if not isinstance(plan["uploads"], list) or not plan["uploads"]:
+        raise ValueError("the plan must list all required assets, including with --no-uploads")
+    names, paths = set(), set()
+    for asset in plan["uploads"]:
+        name, path = asset["name"], Path(asset["path"])
+        if name in names or path in paths or name != path.name or not path.is_absolute():
+            raise ValueError("asset names/paths must be unique absolute paths with matching filenames")
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", ".."):
+            raise ValueError(f"invalid asset name: {name}")
+        if not isinstance(asset["bytes"], int) or asset["bytes"] <= 0:
+            raise ValueError(f"invalid asset size: {name}")
+        if not re.fullmatch(r"[0-9a-f]{64}", asset["sha256"]):
+            raise ValueError(f"invalid SHA-256: {name}")
+        if not isinstance(asset.get("remote_only", False), bool):
+            raise ValueError(f"invalid remote_only flag: {name}")
+        if check_files and not asset.get("remote_only"):
+            if path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]:
+                raise ValueError(f"asset changed since preview: {name}; generate and review a new preview")
+        names.add(name)
+        paths.add(path)
+    return names
+
+
 def validate_plan(plan, check_files=True):
     """Reject incomplete/old plans and changed files before any remote operation."""
     try:
@@ -38,6 +63,13 @@ def validate_plan(plan, check_files=True):
         owner, repo = plan["data_repository"].split("/")
         if not all(re.fullmatch(r"[\w.-]+", part) for part in (owner, repo)):
             raise ValueError("invalid data repository")
+        if not isinstance(plan["release"], str) or not plan["release"].strip():
+            raise ValueError("missing release")
+        names = validate_assets(plan, check_files)
+        if plan.get("kind") == "uploads":
+            if any(key in plan for key in ("route_entry", "release_notes_markdown")):
+                raise ValueError("an uploads-only plan cannot contain routes or release notes")
+            return
         if plan["route_repository"] != f"{owner}/indianopenmaps":
             raise ValueError("route repository must be <owner>/indianopenmaps")
         if plan["route_branch"] != "main" or plan["route_file"] != ROUTE_FILE:
@@ -54,24 +86,6 @@ def validate_plan(plan, check_files=True):
             raise ValueError("invalid route path")
         if entry["handlertype"] not in ("pmtiles", "mosaic") or not entry["name"] or not entry["category"]:
             raise ValueError("invalid route entry")
-        if not isinstance(plan["uploads"], list) or not plan["uploads"]:
-            raise ValueError("the plan must list all required assets, including with --no-uploads")
-        names = set()
-        paths = set()
-        for asset in plan["uploads"]:
-            name, path = asset["name"], Path(asset["path"])
-            if name in names or path in paths or name != path.name or not path.is_absolute():
-                raise ValueError("asset names/paths must be unique absolute paths with matching filenames")
-            if not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in (".", ".."):
-                raise ValueError(f"invalid asset name: {name}")
-            if not isinstance(asset["bytes"], int) or asset["bytes"] <= 0:
-                raise ValueError(f"invalid asset size: {name}")
-            if not re.fullmatch(r"[0-9a-f]{64}", asset["sha256"]):
-                raise ValueError(f"invalid SHA-256: {name}")
-            if check_files and (path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]):
-                raise ValueError(f"asset changed since preview: {name}; generate and review a new preview")
-            names.add(name)
-            paths.add(path)
         prefix = f"https://github.com/{owner}/{repo}/releases/download/{plan['release']}/"
         if entry["url"] not in {prefix + name for name in names}:
             raise ValueError("route URL must reference one of the planned release assets")
@@ -259,8 +273,10 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
     """Run resumable publication; the caller validates the plan before authentication."""
     from .admin_verify import choose_sample_tile, sample_manifest, validate_sample_manifest, verify_live
 
-    if phase not in ("all", "assets", "routes"):
+    if phase not in ("all", "assets", "routes", "uploads"):
         raise click.ClickException(f"Unknown publication phase: {phase}")
+    if (phase == "uploads") != (plan.get("kind") == "uploads"):
+        raise click.ClickException("An uploads-only plan requires --phase uploads, and vice versa")
 
     fingerprint = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
     receipt_path = Path(receipt_path).resolve()
@@ -283,7 +299,7 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
 
     if phase == "routes" and not receipt.get("assets_verified"):
         raise click.ClickException("--phase routes requires the successful receipt from --phase assets")
-    routes = None if phase == "assets" else LocalRoutes(checkout, plan, receipt, save)
+    routes = None if phase in ("assets", "uploads") else LocalRoutes(checkout, plan, receipt, save)
     protected = {Path(a["path"]).resolve() for a in plan["uploads"]}
     if routes:
         protected.add(routes.root / ROUTE_FILE)
@@ -297,7 +313,7 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
             if verify:
                 sample = receipt.get("sample_tile")
                 validate_sample_manifest(sample)
-        elif verify:
+        elif verify and phase != "uploads":
             sample = sample_manifest(choose_sample_tile(plan))
             receipt["sample_tile"] = sample
         data_repo = api.get_repo(plan["data_repository"])
@@ -307,9 +323,14 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
         for asset in plan["uploads"]:
             if asset["name"] in existing:
                 verify_asset(existing[asset["name"]], asset)
-            elif plan["skip_uploads"] or phase == "routes":
+            elif plan.get("skip_uploads") or phase == "routes" or asset.get("remote_only"):
                 raise click.ClickException(f"This phase requires an already uploaded asset: {asset['name']}")
-        merge_release_notes(release.body or "", plan["release_notes_markdown"])
+            elif phase == "uploads":
+                path = Path(asset["path"])
+                if path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]:
+                    raise click.ClickException(f"Asset changed since preview: {asset['name']}")
+        if phase != "uploads":
+            merge_release_notes(release.body or "", plan["release_notes_markdown"])
         if phase != "routes":
             receipt.update(stage="assets", release_url=release.html_url)
             save()
@@ -319,11 +340,26 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
                 else:
                     click.echo(f"Uploading {asset['name']} ({asset['bytes']:,} bytes)...")
                     uploaded = release.upload_asset(
-                        path=asset["path"], name=asset["name"], content_type="application/octet-stream"
+                        path=asset["path"],
+                        name=asset["name"],
+                        content_type="image/png"
+                        if asset["name"].endswith(".coverage.png")
+                        else "application/octet-stream",
                     )
                     verify_asset(uploaded, asset)
                 receipt.setdefault("verified_assets", {})[asset["name"]] = asset["sha256"]
                 save()
+            if phase == "uploads":
+                # Verify every asset again from a fresh release response before allowing cleanup.
+                existing = release_assets(data_repo.get_release(plan["release"]))
+                for asset in plan["uploads"]:
+                    if asset["name"] not in existing:
+                        raise click.ClickException(f"Missing uploaded asset: {asset['name']}")
+                    verify_asset(existing[asset["name"]], asset)
+                receipt.update(status="uploads verified; publication pending", stage="uploads_complete")
+                save()
+                click.echo(f"{receipt['status']}. Receipt: {receipt_path}")
+                return receipt
             # Refresh so we preserve notes written by others while our uploads ran.
             release = data_repo.get_release(plan["release"])
             body = release.body or ""

@@ -77,6 +77,39 @@ def test_dry_run_is_offline_and_shows_exact_destinations(prepared):
     assert f"- License: {plan['release_license_markdown']}" in plan["release_notes_markdown"]
 
 
+def test_coverage_is_discovered_uploaded_and_verified(prepared, tmp_path, monkeypatch, git_checkout, release_api):
+    coverage = tmp_path / "DDA_Delhi_Master_Plan.coverage.png"
+    coverage.write_bytes(b"coverage asset")
+    plan = preview(prepared)
+    assert coverage.name in {a["name"] for a in plan["uploads"]}
+    api, remote_release = release_api
+    monkeypatch.setattr(release, "get_github_api", lambda: api)
+    result = CliRunner().invoke(release.make_release, [*prepared, "--checkout", str(git_checkout), "--no-verify"])
+    assert result.exit_code == 0, result.output
+    upload = next(c for c in remote_release.upload_asset.call_args_list if c.kwargs["name"] == coverage.name)
+    assert upload.kwargs["content_type"] == "image/png"
+
+
+def test_coverage_from_uploaded_manifest_is_in_final_preview(prepared, tmp_path):
+    from iomaps.commands.admin_publish import describe_asset
+
+    coverage = tmp_path / "DDA_Delhi_Master_Plan.coverage.png"
+    coverage.write_bytes(b"coverage asset")
+    manifest = describe_asset(coverage)
+    batch = {
+        "schema_version": 1,
+        "kind": "uploads",
+        "data_repository": "ramSeraph/indian_land_features",
+        "release": "urban-land-use",
+        "uploads": [manifest],
+    }
+    batch_path = tmp_path / "upload-plan.json"
+    batch_path.write_text(json.dumps(batch))
+    coverage.unlink()
+    plan = preview([*prepared, "--uploaded-plan", str(batch_path)])
+    assert next(a for a in plan["uploads"] if a["name"] == coverage.name) == {**manifest, "remote_only": True}
+
+
 @pytest.mark.parametrize("no_uploads", [False, True])
 def test_published_payloads_match_preview_and_preserve_existing_content(
     prepared, monkeypatch, git_checkout, release_api, no_uploads
@@ -131,7 +164,8 @@ def test_invalid_route_fails_before_any_github_call(prepared):
     assert "--route must start and end with /" in result.output
 
 
-def test_split_assets_are_all_present_in_preview(prepared, tmp_path):
+@pytest.mark.parametrize("archived_only", [False, True])
+def test_split_assets_are_all_present_in_preview(prepared, tmp_path, archived_only):
     for path in tmp_path.glob("DDA_Delhi_Master_Plan.*"):
         path.unlink()
     source = tmp_path / "DDA_Delhi_Master_Plan.geojsonl"
@@ -145,9 +179,13 @@ def test_split_assets_are_all_present_in_preview(prepared, tmp_path):
         ".0.parquet",
         ".1.parquet",
         ".parquet.meta.json",
+        ".coverage.png",
     ]
     for suffix in suffixes:
         (tmp_path / f"DDA_Delhi_Master_Plan{suffix}").write_bytes(b"prepared partition")
+    if archived_only:
+        source.unlink()
+        source = tmp_path / "DDA_Delhi_Master_Plan.geojsonl.7z.001"
     args = prepared.copy()
     args[args.index("--base-file") + 1] = str(source)
     plan = preview([*args, "--promoteid", "fid"])

@@ -64,6 +64,106 @@ def execute(path, checkout, **kwargs):
     )
 
 
+def test_upload_batch_then_publish_after_local_cleanup(saved_plan, git_checkout, authenticated, monkeypatch):
+    from iomaps.commands import admin_verify
+
+    api, release = authenticated
+    original = json.loads(saved_plan.read_text())
+    files = [a for a in original["uploads"] if not a["name"].endswith(".pmtiles")]
+    args = [
+        "--phase",
+        "uploads",
+        "--owner",
+        "ramSeraph",
+        "--repo",
+        "indian_land_features",
+        "--release",
+        "urban-land-use",
+    ]
+    for asset in files:
+        args += ["--asset", asset["path"]]
+    result = CliRunner().invoke(cli.make_release, [*args, "--dry-run"])
+    assert result.exit_code == 0, result.output
+    api.get_repo.assert_not_called()
+    batch = saved_plan.with_name("batch.json")
+    batch.write_text(result.output)
+    before = git(git_checkout, "rev-parse", "HEAD")
+    sample = Mock(side_effect=AssertionError("Uploads must not need tiles"))
+    monkeypatch.setattr(admin_verify, "choose_sample_tile", sample)
+    upload_args = ["--phase", "uploads", "--plan", str(batch)]
+    for _ in range(2):
+        result = CliRunner().invoke(cli.make_release, upload_args)
+        assert result.exit_code == 0, result.output
+    assert release.upload_asset.call_count == 2
+    release.update_release.assert_not_called()
+    assert git(git_checkout, "rev-parse", "HEAD") == before
+    receipt = json.loads(batch.with_suffix(".receipt.json").read_text())
+    assert receipt["stage"] == "uploads_complete"
+    assert "assets_verified" not in receipt  # cannot authorize route publication
+    for asset in files:
+        Path(asset["path"]).unlink()
+    result = CliRunner().invoke(cli.make_release, upload_args)
+    assert result.exit_code == 0, result.output
+    assert release.upload_asset.call_count == 2
+    preview_args = [
+        "--owner",
+        "ramSeraph",
+        "--repo",
+        "indian_land_features",
+        "--release",
+        "urban-land-use",
+        "--base-file",
+        str(saved_plan.parent / "Test_Plots.pmtiles"),
+        "--description",
+        "Test plots",
+        "--source",
+        "Test authority",
+        "--source-url",
+        "https://example.com/source",
+        "--route",
+        "/plots/test/",
+        "--category",
+        "plots",
+        "--promoteid",
+        "id",
+        "--uploaded-plan",
+        str(batch),
+        "--dry-run",
+    ]
+    result = CliRunner().invoke(cli.make_release, preview_args)
+    assert result.exit_code == 0, result.output
+    final = json.loads(result.output)
+    assert len(final["uploads"]) == 3
+    assert sum(a.get("remote_only", False) for a in final["uploads"]) == 2
+    saved_plan.write_text(result.output)
+    result = execute(saved_plan, git_checkout)
+    assert result.exit_code == 0, result.output
+    assert release.upload_asset.call_count == 3
+    assert release.update_release.call_count == 1
+
+
+@pytest.mark.parametrize("problem", ["missing", "changed"])
+def test_remote_only_asset_is_reverified_before_other_writes(saved_plan, git_checkout, authenticated, problem):
+    _, release = authenticated
+    plan = json.loads(saved_plan.read_text())
+    asset = plan["uploads"][0]
+    remote = release.upload_asset(path=asset["path"], name=asset["name"])
+    if problem == "missing":
+        release.get_assets.side_effect = lambda: []
+    else:
+        remote.raw_data["digest"] = "sha256:" + "0" * 64
+    asset["remote_only"] = True
+    Path(asset["path"]).unlink()
+    saved_plan.write_text(json.dumps(plan))
+    release.upload_asset.reset_mock()
+    before = git(git_checkout, "rev-parse", "HEAD")
+    result = execute(saved_plan, git_checkout)
+    assert result.exit_code != 0
+    release.upload_asset.assert_not_called()
+    release.update_release.assert_not_called()
+    assert git(git_checkout, "rev-parse", "HEAD") == before
+
+
 @pytest.fixture
 def authenticated(monkeypatch, release_api):
     api, release = release_api

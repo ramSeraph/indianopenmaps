@@ -14,9 +14,31 @@ from pathlib import Path
 import click
 import duckdb
 
+from iomaps.core.geometry_validation import (
+    CoordinateError,
+    validate_geojsonl,
+    validate_geometry_coordinates,
+    validate_parquet_coordinates,
+)
+
 TWO_GB = 2 * 1024 * 1024 * 1024
 
 GPIO_VERSION = "0.9.0"
+# GPIO 0.9.0 uses Arrow fetch methods removed in DuckDB 2. Keep this
+# dependency local to its uvx environment; iomaps itself uses DuckDB 2.
+GPIO_DUCKDB_VERSION = "1.5.6"
+
+
+def gpio_command(*args: str) -> list[str]:
+    return [
+        "uvx",
+        "--from",
+        f"geoparquet-io=={GPIO_VERSION}",
+        "--with",
+        f"duckdb=={GPIO_DUCKDB_VERSION}",
+        "gpio",
+        *args,
+    ]
 
 
 def run_cmd(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -34,10 +56,11 @@ def calculate_partition_count(file_size_bytes: int) -> int:
     return 2**power
 
 
-def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tuple[int, int]:
+def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tuple[int, int, Path]:
     """Filter out features with empty or null geometries from a geojsonl file.
     Also renames properties containing 'geom' to avoid DuckDB geometry detection issues.
-    Also attempts to fix bad coordinates (swapped lat/lon, misplaced decimals).
+    Valid WGS84 coordinates are retained anywhere in the world. If enabled,
+    India-based repairs are attempted only for out-of-range coordinate values.
     Writes a separate cleaned file; the original is left intact.
 
     Returns: (original_count, filtered_count, cleaned_file_path)
@@ -62,50 +85,27 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
 
             try:
                 feature = json.loads(line)
-                geometry = feature.get("geometry")
-
-                # Skip if geometry is null or empty
-                if geometry is None:
-                    dropped_count += 1
-                    continue
-
-                # Collections store their coordinates in member geometries.
-                coords = (
-                    list(_extract_coords(geometry))
-                    if geometry.get("type") == "GeometryCollection"
-                    else geometry.get("coordinates")
-                )
-                if coords is None:
-                    dropped_count += 1
-                    continue
-
-                # Check for empty coordinate arrays
-                if isinstance(coords, list) and len(coords) == 0:
-                    dropped_count += 1
-                    continue
-
-                # For nested coordinate arrays (Polygon, MultiLineString, etc.)
-                if isinstance(coords, list) and len(coords) > 0:
-                    if isinstance(coords[0], list) and len(coords[0]) == 0:
-                        dropped_count += 1
-                        continue
-
-                # Try to fix bad coordinates (India bbox check or basic validity)
-                if bbox and not _coords_in_bbox(geometry, bbox):
-                    fixed_geom, fix_info = _fix_geometry_coords(geometry, bbox)
-                    if fixed_geom is not None:
-                        feature["geometry"] = fixed_geom
-                        fixed_count += 1
-                        label = _feature_label(feature)
-                        for desc in fix_info:
-                            print(f"  fixed {label}: {desc}")
-                    else:
-                        dropped_count += 1
-                        label = _feature_label(feature)
-                        reasons = fix_info if fix_info else ["unfixable coordinates"]
-                        for r in reasons:
-                            print(f"  dropped {label}: {r}")
-                        continue
+                if not isinstance(feature, dict) or feature.get("type") != "Feature" or "geometry" not in feature:
+                    raise CoordinateError("expected a GeoJSON Feature with a geometry member")
+                geometry = feature["geometry"]
+                try:
+                    coordinate_count = validate_geometry_coordinates(geometry)
+                except CoordinateError as exc:
+                    if not bbox or not exc.repairable:
+                        raise
+                    try:
+                        fixed_geom, fix_info = _fix_geometry_coords(geometry, bbox)
+                        if fixed_geom is None:
+                            raise exc
+                        coordinate_count = validate_geometry_coordinates(fixed_geom)
+                    except (TypeError, ValueError, OverflowError, IndexError) as fix_exc:
+                        raise CoordinateError(f"unfixable coordinates: {fix_exc}") from fix_exc
+                    feature["geometry"] = fixed_geom
+                    fixed_count += 1
+                    for desc in fix_info:
+                        print(f"  fixed {_feature_label(feature)} at line {original_count}: {desc}")
+                if not coordinate_count:
+                    raise CoordinateError("empty or null geometry")
 
                 # Rename properties containing 'geom' to avoid GDAL confusion.
                 props = feature.get("properties", {})
@@ -125,9 +125,9 @@ def filter_empty_geometries(geojsonl_file: Path, check_india: bool = True) -> tu
                 outfile.write(json.dumps(feature) + "\n")
                 filtered_count += 1
 
-            except json.JSONDecodeError:
-                # Skip malformed lines
+            except (json.JSONDecodeError, CoordinateError, RecursionError) as exc:
                 dropped_count += 1
+                print(f"  dropped {geojsonl_file}, line {original_count}: {exc}")
                 continue
 
     print(f"  original features: {original_count}")
@@ -276,6 +276,15 @@ def _fix_geometry_coords(geometry, bb):
     failures = []
 
     def fix_pair(pair, idx):
+        try:
+            validate_geometry_coordinates({"type": "Point", "coordinates": pair})
+            # A valid position may be outside India even when another position
+            # in this feature needs repairing. Keep it exactly as supplied.
+            return list(pair)
+        except CoordinateError as exc:
+            if not exc.repairable:
+                failures.append(str(exc))
+                return None
         lon, lat = pair[0], pair[1]
         result = _try_fix_coord_pair(lon, lat, bb)
         if result is None:
@@ -360,7 +369,7 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
 
     try:
         result = run_cmd(
-            ["uvx", "--from", f"geoparquet-io=={GPIO_VERSION}", "gpio", "inspect", "meta", "--json", str(parquet_path)],
+            gpio_command("inspect", "meta", "--json", str(parquet_path)),
             capture_output=True,
             text=True,
             check=True,
@@ -371,17 +380,7 @@ def get_parquet_metadata(parquet_path: Path) -> tuple[dict | None, dict | None]:
 
     try:
         result = run_cmd(
-            [
-                "uvx",
-                "--from",
-                f"geoparquet-io=={GPIO_VERSION}",
-                "gpio",
-                "inspect",
-                "meta",
-                "--parquet",
-                "--json",
-                str(parquet_path),
-            ],
+            gpio_command("inspect", "meta", "--parquet", "--json", str(parquet_path)),
             capture_output=True,
             text=True,
             check=True,
@@ -468,7 +467,7 @@ def create_parquet_meta(lname: str, parquet_files: list[Path]) -> None:
     print(f"created: {meta_file.name}")
 
 
-def analyze_unique_fields(parquet_files: list[Path]) -> dict:
+def analyze_unique_fields(parquet_files: list[Path], memory_limit=None) -> dict:
     """
     Analyze parquet files to find which fields can uniquely identify features.
 
@@ -479,7 +478,15 @@ def analyze_unique_fields(parquet_files: list[Path]) -> dict:
 
     # Query Parquet directly: materializing all geometries/properties duplicates
     # the dataset and can exhaust RAM or spill space on large server-side runs.
-    conn = duckdb.connect()
+    config = {}
+    if memory_limit:
+        config = {
+            "memory_limit": memory_limit,
+            "threads": 1,
+            "temp_directory": tempfile.gettempdir(),
+            "preserve_insertion_order": False,
+        }
+    conn = duckdb.connect(config=config)
     file_list = [str(f) for f in parquet_files]
 
     try:
@@ -621,10 +628,10 @@ def pick_best_id(analysis: dict, threshold: float = 0.95) -> dict:
     return {"field": None, "reason": f"no unique or high-cardinality fields above {threshold}"}
 
 
-def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
+def create_field_analysis(lname: str, parquet_files: list[Path], memory_limit=None) -> None:
     """Analyze parquet files and create field analysis JSON with picked unique ID."""
     print("analyzing fields for unique ID...")
-    analysis = analyze_unique_fields(parquet_files)
+    analysis = analyze_unique_fields(parquet_files, memory_limit=memory_limit)
 
     if "error" in analysis:
         print(f"  error: {analysis['error']}")
@@ -665,15 +672,70 @@ def create_field_analysis(lname: str, parquet_files: list[Path]) -> None:
 @click.argument("src_url", required=False)
 @click.argument("src_name", required=False)
 @click.option("--points", is_flag=True, help="Use drop-densest-as-needed for point data")
+@click.option(
+    "--tile-reduction",
+    type=click.Choice(["coalesce-smallest", "drop-densest", "drop-smallest", "drop-fraction"]),
+    help="Override tile size reduction (default: coalesce-smallest, or drop-densest with --points)",
+)
+@click.option(
+    "--tippecanoe-option",
+    multiple=True,
+    help="Additional Tippecanoe option; repeat as --tippecanoe-option=--option=value",
+)
 @click.option("--no-zip", is_flag=True, help="Skip creating the 7z archive")
 @click.option("--no-pmtiles", is_flag=True, help="Skip creating mbtiles and pmtiles")
 @click.option("--no-parquet", is_flag=True, help="Skip creating geoparquet file")
-@click.option("--no-filter", is_flag=True, help="Skip coordinate fixing and empty geometry filtering")
-@click.option("--no-india", is_flag=True, help="Skip India bounding box checks during coordinate fixing")
-def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_filter, no_india):
+@click.option("--no-filter", is_flag=True, help="Skip input cleaning; GeoParquet coordinate validation still runs")
+@click.option(
+    "--coverage/--no-coverage",
+    default=True,
+    show_default=True,
+    help="Create a 1-bit coverage PNG from the final GeoParquet files",
+)
+@click.option(
+    "--coverage-grid-size",
+    type=click.IntRange(1, 10000),
+    default=1000,
+    show_default=True,
+    help="Coverage cells along each axis of the fixed India grid",
+)
+@click.option("--bounded-parquet", is_flag=True, help="Use disk-backed DuckDB conversion for large 2D WGS84 GeoJSONL")
+@click.option("--parquet-memory-limit", default="256MB", show_default=True, help="DuckDB limit with --bounded-parquet")
+@click.option(
+    "--parquet-resume-db",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Resume a completed bounded import from its checkpoint database",
+)
+@click.option(
+    "--no-india", is_flag=True, help="Disable India-based coordinate repairs; worldwide WGS84 validation still runs"
+)
+def prepare(
+    file,
+    src_url,
+    src_name,
+    points,
+    tile_reduction,
+    tippecanoe_option,
+    no_zip,
+    no_pmtiles,
+    no_parquet,
+    no_filter,
+    no_india,
+    bounded_parquet,
+    parquet_memory_limit,
+    parquet_resume_db,
+    coverage,
+    coverage_grid_size,
+):
     """Prepare a GeoJSONL file for distribution."""
     if file.suffix != ".geojsonl":
         raise click.UsageError(f"{file} is not a geojsonl file")
+    if coverage and no_parquet and click.get_current_context().get_parameter_source("coverage").name == "COMMANDLINE":
+        raise click.UsageError("--coverage requires Parquet creation; use 'admin coverage' for existing Parquet files")
+    if parquet_resume_db:
+        if not bounded_parquet or no_parquet or not no_filter or not no_zip or not no_pmtiles:
+            raise click.UsageError("--parquet-resume-db requires --bounded-parquet --no-filter --no-zip --no-pmtiles")
+        parquet_resume_db = parquet_resume_db.resolve()
 
     if not no_pmtiles and (not src_url or not src_name):
         raise click.UsageError("SRC_URL and SRC_NAME are required unless --no-pmtiles is set")
@@ -683,6 +745,15 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
     work_dir = file.parent
 
     os.chdir(work_dir)
+
+    # Disabling cleaning must not allow bad coordinates into GeoParquet. The
+    # bounded converter validates its imported table, including resumed imports,
+    # without another scan of the potentially very large source GeoJSONL.
+    if no_filter and not no_parquet and not bounded_parquet:
+        try:
+            validate_geojsonl(Path(fbase))
+        except CoordinateError as exc:
+            raise click.ClickException(str(exc)) from exc
 
     # Create archive from ORIGINAL data (before any cleaning)
     if not no_zip:
@@ -711,7 +782,12 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
         # Create mbtiles and pmtiles unless --no-pmtiles is set
         if not no_pmtiles:
             # Choose tippecanoe command based on points vs polygons
-            cmd = "drop-densest-as-needed" if points else "coalesce-smallest-as-needed"
+            reduction = tile_reduction or ("drop-densest" if points else "coalesce-smallest")
+            reduction_options = [f"--{reduction}-as-needed"]
+            # Adaptive gamma and adaptive dropping both reduce feature density.
+            # Preserve existing defaults; explicit dropping replaces gamma.
+            if tile_reduction is None or reduction == "coalesce-smallest":
+                reduction_options.append("--increase-gamma-as-needed")
 
             attribution = f'Source: <a href="{src_url}" target="_blank" rel="noopener noreferrer">{src_name}</a>'
 
@@ -724,12 +800,11 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
                     "-P",
                     "-S",
                     "10",
-                    "--increase-gamma-as-needed",
                     "-zg",
                     "-o",
                     f"{lname}.mbtiles",
                     "--simplify-only-low-zooms",
-                    f"--{cmd}",
+                    *reduction_options,
                     "--extend-zooms-if-still-dropping",
                     "-n",
                     lname,
@@ -737,6 +812,7 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
                     lname,
                     "-A",
                     attribution,
+                    *tippecanoe_option,
                     tile_input,
                 ],
                 check=True,
@@ -780,84 +856,119 @@ def prepare(file, src_url, src_name, points, no_zip, no_pmtiles, no_parquet, no_
         if not no_parquet:
             print("creating geoparquet file")
             parquet_file = Path(f"{lname}.parquet")
-            run_cmd(
-                [
-                    "uvx",
-                    "--from",
-                    f"geoparquet-io=={GPIO_VERSION}",
-                    "gpio",
-                    "convert",
-                    "--geoparquet-version",
-                    "1.1",
-                    "--compression",
-                    "zstd",
-                    "--compression-level",
-                    "22",
+            if bounded_parquet:
+                from .admin_parquet import bounded_parquet as convert_bounded
+
+                parquet_files = convert_bounded(
                     tile_input,
-                    str(parquet_file),
-                ],
-                check=True,
-            )
-
-            # Analyze fields for unique ID before potential partitioning
-            create_field_analysis(lname, [parquet_file])
-
-            if parquet_file.stat().st_size > TWO_GB:
-                print("parquet file > 2GB, splitting...")
-                partition_count = calculate_partition_count(parquet_file.stat().st_size)
-                split_dir = Path("split_parquet")
-
-                while True:
-                    split_dir.mkdir(exist_ok=True)
+                    parquet_file,
+                    memory_limit=parquet_memory_limit,
+                    max_bytes=TWO_GB,
+                    resume_db=parquet_resume_db,
+                )
+                create_field_analysis(lname, parquet_files, memory_limit=parquet_memory_limit)
+                if len(parquet_files) > 1:
+                    create_parquet_meta(lname, parquet_files)
+            else:
+                # Stage conversion so invalid output cannot become a release
+                # asset, and a failed rerun preserves the previous Parquet.
+                with tempfile.TemporaryDirectory(prefix=f".{lname}.parquet-", dir=".") as stage:
+                    staged_parquet = Path(stage) / parquet_file.name
                     run_cmd(
-                        [
-                            "uvx",
-                            "--from",
-                            f"geoparquet-io=={GPIO_VERSION}",
-                            "gpio",
-                            "partition",
-                            "kdtree",
-                            str(parquet_file),
-                            str(split_dir),
+                        gpio_command(
+                            "convert",
                             "--geoparquet-version",
                             "1.1",
                             "--compression",
                             "zstd",
                             "--compression-level",
                             "22",
-                            "--partitions",
-                            str(partition_count),
-                            "-v",
-                        ],
+                            tile_input,
+                            str(staged_parquet),
+                        ),
                         check=True,
                     )
-                    # Check if any split exceeds 2GB
-                    split_files = sorted(split_dir.glob("*.parquet"))
-                    oversized = [f for f in split_files if f.stat().st_size > TWO_GB]
-                    if not oversized:
-                        break
-                    # Clean up and retry with more partitions
-                    print(f"found {len(oversized)} split(s) > 2GB, retrying with {partition_count * 2} partitions...")
+                    try:
+                        validate_parquet_coordinates(staged_parquet, progress=print)
+                    except (ValueError, OSError) as exc:
+                        raise click.ClickException(f"GeoParquet coordinate validation failed: {exc}") from exc
+                    staged_parquet.replace(parquet_file)
+
+                # Analyze fields for unique ID before potential partitioning
+                create_field_analysis(lname, [parquet_file])
+
+                if parquet_file.stat().st_size > TWO_GB:
+                    print("parquet file > 2GB, splitting...")
+                    partition_count = calculate_partition_count(parquet_file.stat().st_size)
+                    split_dir = Path("split_parquet")
+
+                    while True:
+                        split_dir.mkdir(exist_ok=True)
+                        run_cmd(
+                            gpio_command(
+                                "partition",
+                                "kdtree",
+                                str(parquet_file),
+                                str(split_dir),
+                                "--geoparquet-version",
+                                "1.1",
+                                "--compression",
+                                "zstd",
+                                "--compression-level",
+                                "22",
+                                "--partitions",
+                                str(partition_count),
+                                "-v",
+                            ),
+                            check=True,
+                        )
+                        # Check if any split exceeds 2GB
+                        split_files = sorted(split_dir.glob("*.parquet"))
+                        oversized = [f for f in split_files if f.stat().st_size > TWO_GB]
+                        if not oversized:
+                            break
+                        # Clean up and retry with more partitions
+                        print(
+                            f"found {len(oversized)} split(s) > 2GB, retrying with {partition_count * 2} partitions..."
+                        )
+                        for f in split_files:
+                            f.unlink()
+                        split_dir.rmdir()
+                        partition_count *= 2
+
+                    # Move split files to current directory, prefixing with original name
+                    for part in split_files:
+                        try:
+                            validate_parquet_coordinates(part, progress=print)
+                        except (ValueError, OSError) as exc:
+                            raise click.ClickException(f"GeoParquet coordinate validation failed: {exc}") from exc
+                    renamed_files = []
                     for f in split_files:
-                        f.unlink()
+                        new_name = f"{lname}.{f.name}"
+                        shutil.move(str(f), new_name)
+                        print(f"created: {new_name}")
+                        renamed_files.append(Path(new_name))
                     split_dir.rmdir()
-                    partition_count *= 2
+                    parquet_file.unlink()
 
-                # Move split files to current directory, prefixing with original name
-                renamed_files = []
-                for f in split_files:
-                    new_name = f"{lname}.{f.name}"
-                    shutil.move(str(f), new_name)
-                    print(f"created: {new_name}")
-                    renamed_files.append(Path(new_name))
-                split_dir.rmdir()
-                parquet_file.unlink()
+                    # Create meta.json for partitioned files
+                    print("creating parquet meta.json")
+                    create_parquet_meta(lname, renamed_files)
+                    parquet_files = renamed_files
+                else:
+                    print(f"created: {parquet_file.name}")
+                    parquet_files = [parquet_file]
+            if coverage:
+                from iomaps.core.coverage import CoverageError, create_coverage
 
-                # Create meta.json for partitioned files
-                print("creating parquet meta.json")
-                create_parquet_meta(lname, renamed_files)
-            else:
-                print(f"created: {parquet_file.name}")
+                coverage_file = Path(f"{lname}.coverage.png")
+                try:
+                    create_coverage(
+                        parquet_files, coverage_file, grid_size=coverage_grid_size, overwrite=True, progress=print
+                    )
+                except (CoverageError, OSError) as exc:
+                    raise click.ClickException(f"Coverage creation failed: {exc}") from exc
+                print(f"created: {coverage_file.name}")
     finally:
         # Clean up the temporary cleaned file
         if cleaned_file and cleaned_file.exists():

@@ -1,6 +1,6 @@
 # Indianopenmaps [![PyPI - Latest Version](https://img.shields.io/pypi/v/iomaps)](https://pypi.org/project/iomaps/)
 
-This project provides command-line tools and a PyQt UI for processing geographical data from Indianopenmaps. It supports extracting data from remote geoparquet files as well as filtering local 7z archives containing geojsonl files.
+This project provides command-line tools and a PyQt UI for extracting geographical data from Indianopenmaps remote GeoParquet sources, plus admin tools for dataset preparation, coverage, and publication.
 
 Maintainers adding a dataset should use the existing
 [preparation and publication commands](#preparing-and-publishing-datasets).
@@ -73,6 +73,21 @@ These commands allow you to extract and filter data directly from remote geoparq
 
 ### 1. `iomaps cli extract`
 
+The checkout uses DuckDB 2.0 or newer for asynchronous remote Parquet reads and
+connection pooling. HTTPS certificate verification is enabled. The default
+uses DuckDB's selected transport; `--http-client curl` and `--http-client httplib`
+are available for comparison. Spatial filtering uses the GeoParquet covering
+columns to prune row groups, followed by the exact geometry intersection.
+Intersecting features from every matching partition are retained in full.
+GDAL exports explicitly use longitude/easting before latitude/northing.
+
+On two SOI sheets, DuckDB 2.0 returned the same features and coordinates as the
+earlier extraction. It needs no community HTTP extension. At the time of testing,
+the community `cache_httpfs` and `curl_httpfs` builds were not yet available for
+DuckDB 2.0 on macOS ARM64. The complete source Parquet files are not downloaded
+as a preprocessing step; the query reads remote ranges and can still transfer
+large row groups when the source layout requires it.
+
 Extract and filter data from a remote geoparquet source.
 
 Sources are resolved by fetching the list from the indianopenmaps API. The command fetches geoparquet files and applies spatial filters.
@@ -95,6 +110,7 @@ Sources can be specified by:
 *   `--pick-filter-feature-kv <key=value>`: Select a specific polygon feature by a key-value pair (e.g., 'key=value') from its properties.
 *   `--routes-file <path>`: Path to local JSON file with routes. Cannot be used with --routes-url.
 *   `--routes-url <url>`: URL to fetch routes from. Cannot be used with --routes-file. Default: https://indianopenmaps.com/api/routes
+*   `--http-client <default|curl|httplib>`: Override DuckDB's HTTP client (default: `default`).
 
 **Example:**
 
@@ -126,6 +142,54 @@ uvx iomaps cli sources -s districts         # Search for "districts"
 uvx iomaps cli sources -c states -s soi     # Combine filters
 ```
 
+### Bbox source discovery: `iomaps cli search`
+
+```bash
+python/.venv/bin/iomaps cli search --bounds '77.1,28.5,77.3,28.7' --json
+python/.venv/bin/iomaps cli search --bounds '77.1,28.5,77.3,28.7' --category landuse
+python/.venv/bin/iomaps cli search --bounds '77.1,28.5,77.3,28.7' --force-update
+```
+
+Search returns sources occupying any grid cell touched by the bbox. These are
+approximate candidates; use each returned `route` with `cli extract --source` to
+retrieve actual features. No exact geometry check runs during discovery.
+`--category` can be repeated, and `--search` filters names/routes with fuzzy matching.
+Numeric catalog IDs are not returned because they can change between catalogs.
+
+First use caches the catalog and downloads coverage PNGs with eight workers
+(`--workers 1..32`), reusing completed downloads after interruption. Later searches
+read only a local bitmask index and its embedded source registry: **no network
+requests, update checks, or SQLite access**. Refresh explicitly with
+`--force-update` (alias `--refresh`); this fetches the catalog and PNGs using
+`If-None-Match` where ETags are available. A 304 reuses the original bytes.
+Transient errors or invalid PNGs leave the previous index intact.
+
+The platform cache directory contains a separate cache for each catalog. Override
+it with `--cache-dir` or `IOMAPS_CACHE_DIR`. `--routes-file` selects a local catalog;
+`--routes-url` selects another endpoint. A warm local-catalog search also works
+without the original catalog file. Only cache creation/refresh opens SQLite,
+which stores original compressed PNG bytes and ETags, not spatial cells. The
+combined index uses packed source bits and memory-mapped reads; 556 sources at
+1,000 × 1,000 cells take about 70 MB plus their source registry.
+
+Coverage names use the common Parquet basename: `Plots.parquet` or
+`Plots.parquet.meta.json` maps to `Plots.coverage.png`. For the normal catalog,
+the basename is derived from the corresponding `Plots.pmtiles` or
+`Plots.mosaic.json` URL, beside the same release assets. A custom catalog can set
+`coverage_url`, including a relative local filename. All PNGs in one catalog
+must have the same dimensions and use the fixed India bounds. No remote coverage
+manifest is required.
+
+JSON stdout is an object with `matches`, `unknown`, `bounds`, `effective_bounds`,
+`grid`, `cached_at`, and `coverage`. Status messages go to stderr. The `coverage`
+counts describe the whole cached catalog; category/text filters apply to both
+result lists. Missing PNGs (HTTP 404/410) are **unknown coverage**, not empty
+coverage, and remain visible until an explicit refresh. Existing datasets need
+their PNGs backfilled before they can participate in spatial matching.
+Queries partly outside **67,5,98,38** search their overlap and report that scope;
+queries wholly outside fail. An empty result does not establish absence in sources
+with unknown coverage.
+
 ### 3. `iomaps cli source-categories`
 
 List available source categories.
@@ -147,60 +211,18 @@ uvx iomaps cli source-categories
 
 ---
 
-## Filtering/Extracting from Local geojsonl.7z Files
+## Remote extraction UI
 
-These commands work with 7z archives containing geojsonl files that have been downloaded to your local machine.
-
-> **Note:** These commands require the 7z files to be fully downloaded to the local machine first. For multi-part 7z files (e.g., `data.7z.001`, `data.7z.002`, etc.), all parts must be downloaded locally. When running the command, provide the path to the first part (e.g., `data.7z.001`) and the remaining parts will be located automatically if they are present in the same directory.
-
-### 1. `iomaps cli filter-7z`
-
-Processes a 7z archive containing a single geojsonl file by streaming.
-
-**Options:**
-
-*   `-i, --input-7z <path>` (Required): Path to the input 7z archive file.
-*   `-o, --output-file <path>` (Required): Path for the output file where processed data will be saved.
-*   `-d, --output-driver <driver>`: Specify output driver (choices: `csv`, `esri shapefile`, `flatgeobuf`, `geojson`, `geojsonseq`, `gpkg`). If not specified, it will be inferred from the output file extension.
-*   `-s, --schema <path>`: Path to a schema file (JSON format). If not provided, the schema will be inferred from the input archive. This requires an extra pass over the data. So, if required you can use the `infer-schema` command first to generate the schema file and then provide it here.
-*   `-l, --log-level <level>`: Set the logging level (choices: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`; default: `INFO`).
-*   `-f, --filter-file <path>`: Path to an input filter file (e.g., a shapefile) for spatial filtering.
-*   `--filter-file-driver <driver>`: Specify the OGR driver for the filter file. If not specified, it will be inferred from the filter file extension.
-*   `-b, --bounds <min_lon,min_lat,max_lon,max_lat>`: Rectangular bounds for spatial filtering. You can get bounding box coordinates from [http://bboxfinder.com/](http://bboxfinder.com/).
-*   `--pick-filter-feature-id <id>`: Select a specific polygon feature by its 0-based index.
-*   `--pick-filter-feature-kv <key=value>`: Select a specific polygon feature by a key-value pair (e.g., 'key=value') from its properties.
-
-**Example:**
-
-```bash
-uvx iomaps cli filter-7z -i data.7z -o filtered_data.geojsonl -b "70,10,90,30"
-```
-
-### 2. `iomaps cli infer-schema`
-
-Infers the schema from a 7z archive containing a single geojsonl file and saves it to a JSON file.
-
-**Options:**
-
-*   `-i, --input-7z <path>` (Required): Path to the input 7z archive file.
-*   `-o, --output-file <path>`: Path for the output file where the inferred schema will be saved.
-*   `-l, --log-level <level>`: Set the logging level (choices: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`; default: `INFO`).
-
-**Example:**
-
-```bash
-uvx iomaps cli infer-schema -i data.7z -o data_schema.json
-```
-
-### 3. `iomaps ui`
-
-Launches a PyQt-based graphical user interface for processing local 7z archives.
-
-**Example:**
+`iomaps ui` opens a PyQt interface to select a remote source, optionally filter by
+bounding box, and export the matching features.
 
 ```bash
 uvx iomaps ui
 ```
+
+The legacy `filter-7z` and `infer-schema` commands and their UI views have been
+removed. Dataset preparation and publication still support original GeoJSONL
+archives, including split `.7z` volumes.
 
 ## Preparing and publishing datasets
 
@@ -216,15 +238,20 @@ uv sync --project python --extra admin
 
 Preparation also needs `7z`, `tippecanoe`, `pmtiles`, and `uvx` on `PATH`.
 Check the existing installation before downloading another environment.
+The regular converter runs `geoparquet-io==0.9.0` with `duckdb==1.5.6` in an
+isolated `uvx` environment: this GPIO version uses Arrow APIs removed in DuckDB 2.
+The checkout keeps its own DuckDB version. Output remains GeoParquet 1.1; the
+converter package version and output format version are independent.
 
 ### Prepare a dataset
 
-Sync the checkout with upstream before the next dataset or local commit. Older
-versions committed routes directly through GitHub's API, leaving the checkout
-behind. Publication now uses local Git and checks upstream automatically. Run
-`git fetch origin`, inspect incoming changes, then use `git merge --ff-only
-origin/main` when possible. Preserve local edits and resolve any divergence before
-continuing; see [AGENTS.md](../AGENTS.md#sync-before-local-work).
+Route publication synchronizes the checkout automatically: the publisher fetches
+upstream, checks history, and fast-forwards when possible. A separate manual
+`git fetch origin` is not needed for route publication. For separate tooling
+commits or work that needs the latest listing before publication, fetch and inspect
+incoming changes first, preserving local edits and resolving divergence. Older
+versions committed routes directly through GitHub's API and left the checkout
+behind; see [AGENTS.md](../AGENTS.md#sync-before-local-work).
 
 Find a similar existing listing and GitHub release first. Choose the final basename
 and rename a working copy of the input GeoJSONL before processing. For example,
@@ -243,8 +270,93 @@ The command writes the original `.geojsonl.7z`, `.pmtiles`, `.parquet`, and
 The `.mbtiles` file is an intermediate. The archive preserves the original input;
 tiles and GeoParquet use the preparation tool's cleaned data. Review the reported
 fixes/drops and validate feature counts and ID uniqueness before publishing.
+
+Preparation validates coordinates against worldwide WGS84 limits: longitude
+`[-180, 180]`, latitude `[-90, 90]`. Valid features outside India are retained
+unchanged. Cleaning reports and drops malformed or non-finite coordinates;
+India-based decimal/swap repairs are attempted only for out-of-range values.
+`--no-india` disables those repairs, not coordinate validation.
+
+`--no-filter` skips cleaning but still validates coordinates before accepting
+GeoParquet. The regular path checks the source and stages/validates converter
+output before replacing the final file. The bounded path validates every XY
+vertex in batches from its imported table, including resumed imports, without
+rescanning the source GeoJSONL. A failed validation preserves the source and any
+previous final Parquet. These checks also run with `--no-coverage`.
+
+For a tile-size failure, first test the offending tile with Tippecanoe's
+`--one-tile=z/x/y`. `prepare --tile-reduction drop-densest` (or `drop-smallest`)
+replaces the default polygon coalescing strategy. Explicit dropping also removes
+adaptive gamma; existing defaults are preserved when this option is omitted.
+Use repeated `--tippecanoe-option=--option=value` arguments for advanced settings,
+for example `--tippecanoe-option=--extend-zooms-if-still-dropping-maximum=3`.
+Dropping affects displayed tile features, so retain the complete downloadable
+formats and document the chosen settings. Bound zoom extensions deliberately.
+
+Check IDs in decoded tiles, not just Parquet analysis. Tippecanoe's
+`--use-attribute-for-id` consumes the property. To retain a property for the route's
+`promoteid` as well as a native tile ID, provide both GeoJSON `id` and the property
+in the input instead. Generated GDAL `OGC_FID` values can be reproduced by streaming
+the same unchanged input through the same GDAL reader used for Parquet; verify
+sample IDs, properties and geometries against the published Parquet first.
 The chosen ID must also exist in the tiles; conversion can add an `OGC_FID` field
 only to GeoParquet. Use `--promoteid` to select a suitable source field when needed.
+
+### Create source coverage
+
+Create a dataset's coverage image from its final local GeoParquet files:
+
+```bash
+python/.venv/bin/iomaps admin coverage \
+  scratch/dataset/Dataset.parquet \
+  --output scratch/dataset/Dataset.coverage.png
+```
+
+For a split dataset, pass every Parquet partition, or its existing
+`Dataset.parquet.meta.json`; the command resolves all listed partitions beside
+that metadata file and combines their coverage. A missing partition fails the
+command. `admin prepare` writes `<basename>.coverage.png` by default after Parquet
+creation and partitioning. Use `--no-coverage` to skip it. `--no-parquet` also skips
+coverage; explicitly requesting both `--coverage` and `--no-parquet` is an error.
+
+The output is a standalone **1-bit PNG**, with white for occupied cells and black
+for empty cells. It contains no manifest, provenance, or embedded metadata.
+`iomaps` defines the bounds as **67,5,98,38** in longitude/latitude. Image columns
+run west to east, and row zero is north. The default image is 1,000 by 1,000 pixels,
+roughly 3.2 by 3.7 km per cell near central India. `--grid-size N` changes the image
+to N by N pixels with the same bounds; preparation uses `--coverage-grid-size N`.
+
+Coverage uses actual feature geometry, including polygon interiors, narrow lines,
+and cells touched at shared edges or corners. It is approximate at cell resolution:
+a source touching a query's cells may have no features inside the exact query bbox.
+`make-release` automatically includes `<basename>.coverage.png` when present,
+including one common image for all partitions. The PNG appears in the saved plan,
+is uploaded beside the Parquet, and receives the same hash verification as other
+assets. Earlier datasets without PNGs remain publishable and appear as unknown in
+`cli search` until coverage is uploaded.
+
+Inputs must be GeoParquet 1.0 or 1.1 with WKB and planar WGS84 coordinates
+(`OGC:CRS84` or `EPSG:4326`, with longitude first). Omitted CRS metadata defaults
+to CRS84 per GeoParquet; explicitly unknown CRS, projected data and spherical edges
+are unsupported. Malformed WKB, unusable coordinates and geometry-engine failures
+produce warnings and skip only the affected features. Warnings identify the source
+file, count and first affected row; `skipped_geometries` records their total.
+Invalid shapes with usable coordinates mark their own bounding-box cells and
+produce a warning with the source file and first affected row in each batch.
+This can add false positives; it does not modify or repair the Parquet geometry.
+Reproject other inputs before use. Null/empty geometries occupy no cells. Features
+entirely outside the India bounds contribute nothing; crossing features contribute
+only within the bounds. This is the bounding rectangle, not India's country boundary.
+Z/M values do not affect the 2D coverage.
+
+Only the geometry column is read, in batches of 8,192 rows. Use `--batch-size` to
+adjust this for existing Parquet; a batch limit does not bound the size of an
+individual geometry or Parquet decoder buffers. The grid uses approximately one
+byte per cell while building. PNG packing uses one bit per pixel, with each row
+padded to a byte and then compressed losslessly. Existing output is preserved on
+failure; `admin coverage --overwrite` replaces it only after successful creation.
+The standalone command can also run headlessly as
+`python -m iomaps.commands.admin_coverage`.
 
 ### Preview the exact publication
 
@@ -281,8 +393,9 @@ Links become HTML in the route entry and remain Markdown in release notes. Witho
 a license override, the release uses the existing default:
 [CC0 1.0 but attribute datameet and the original government source where possible](https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md).
 Without `--promoteid`, the command reads the field chosen in `.analysis.json`.
-For split datasets, the original `.geojsonl` can be used as `--base-file` to discover
-all related parts.
+For split datasets, use the original `.geojsonl` or a `.geojsonl.7z.001` volume
+as `--base-file` to discover all related parts. The original need not remain
+uncompressed after the archive has been verified.
 
 ### Publish and verify
 
@@ -329,6 +442,24 @@ large runs should have a durable background process and a log. Check whether a
 scraper is still writing the input. An incomplete snapshot needs an explicit
 coverage note and a stable input before preparation.
 
+For large 2D WGS84 GeoJSONL on a small-memory server, use
+`admin prepare ... --bounded-parquet --parquet-memory-limit 256MB`. This optional
+path stages data in DuckDB on `TMPDIR`, sorts spatially with disk spill, and writes
+GeoParquet 1.1 with bounding-box covering directly, without fetching the entire
+dataset into Arrow. Oversized output is split along contiguous spatially sorted
+row ranges and checked for size and total feature count. Keep enough space for
+the source, disk-backed table, sort spill, and output simultaneously. The default
+pinned GPIO converter remains available for smaller inputs; version 0.9.0's
+whole-table Arrow allocation can exhaust RAM on large datasets.
+
+DuckDB's buffer limit does not cover all process allocations. The bounded writer
+uses ZSTD 9 and 8,192-row groups to reduce compression/writer memory. If a killed
+process leaves a completed `features.duckdb` import, preserve it and resume with
+`--parquet-resume-db /path/to/features.duckdb --bounded-parquet --no-filter
+--no-zip --no-pmtiles`. The import checkpoint checks the input path, size, mtime
+and table count before reuse. Keep the resumed database until output has been
+verified; resuming does not remove it automatically.
+
 On the asset server, use the existing publisher's asset phase:
 
 ```bash
@@ -357,6 +488,29 @@ and notes, and uses local Git for the listing commit/push. It then checks the
 deployment against the server's recorded tile checksum. It never uploads assets
 or changes release notes. Both phases can be retried with their respective
 receipts. The default `--phase all` retains single-machine publication.
+
+If formats finish at different times or disk space is limited, stage ready assets
+without waiting for PMTiles:
+
+```bash
+python/.venv/bin/iomaps admin make-release --phase uploads \
+  --owner ramSeraph --repo indian_cadastrals --release rajasthan \
+  --asset Rajdharaa_RJ_Cadastrals.geojsonl.7z.001 \
+  --asset Rajdharaa_RJ_Cadastrals.geojsonl.7z.002 \
+  --dry-run > archive-upload.json
+python/.venv/bin/iomaps admin make-release --phase uploads --plan archive-upload.json
+```
+
+This phase verifies GitHub sizes/hashes and saves an `uploads_complete` receipt.
+It needs neither PMTiles nor Git and leaves notes/routes untouched. Once verified,
+local copies of those assets can be removed; retain the batch plan and receipt,
+plus any input needed for unfinished formats. Use a separate batch plan for
+GeoParquet when it finishes. Add `--uploaded-plan archive-upload.json` and
+`--uploaded-plan parquet-upload.json` to the final ordinary dry-run command, using
+the finished PMTiles as `--base-file`. Its manifest includes the earlier assets
+as `remote_only`; final publication rechecks every remote hash before any writes
+and refuses missing or changed uploads. Keep PMTiles locally until the final
+`--phase assets` run captures the sample used by local route verification.
 
 ### Resume an interrupted publication
 

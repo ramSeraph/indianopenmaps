@@ -1,0 +1,4 @@
+interface:
+  display_name: "Indianopenmaps CLI"
+  short_description: "Find, extract, and prepare Indianopenmaps data"
+  default_prompt: "Use $iomaps to find the right source and extract data for my area."
