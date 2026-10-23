@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+from functools import partial
 from pathlib import Path
 
 import click
@@ -18,7 +19,9 @@ from iomaps.core.coverage_index import CoverageIndex, CoverageIndexError, query_
 @click.option("-c", "--category", multiple=True, help="Filter by category; repeat to match any category.")
 @click.option("-s", "--search", "text_filter", help="Fuzzy filter on source name or route.")
 @click.option("--json", "output_json", is_flag=True, help="Print matches, unknown coverage and cache status as JSON.")
-@click.option("--force-update", "--refresh", is_flag=True, help="Refresh catalog and PNGs, using ETags when available.")
+@click.option(
+    "--force-update", "--refresh", is_flag=True, help="Refresh catalog and matching PNGs, using ETags when available."
+)
 @click.option("--workers", type=click.IntRange(1, 32), default=8, show_default=True, help="Concurrent PNG downloads.")
 @click.option(
     "--cache-dir",
@@ -29,23 +32,30 @@ from iomaps.core.coverage_index import CoverageIndex, CoverageIndexError, query_
 @click.option("--routes-file", type=click.Path(dir_okay=False, path_type=Path), help="Local source catalog JSON.")
 @click.option("--routes-url", help="Alternative source catalog URL.")
 def search(bounds, category, text_filter, output_json, force_update, workers, cache_dir, routes_file, routes_url):
-    """Find sources whose coverage cells overlap a bbox; warm searches work offline.
+    """Find sources whose coverage cells overlap a bbox; cached searches work offline.
 
+    Name/category filters limit coverage downloads. Broader searches extend the cache.
     Cell matches are approximate. Missing coverage is reported as unknown.
     Use returned routes with 'cli extract --source' for actual features.
     """
     if routes_file and routes_url:
         raise click.UsageError("Only one of --routes-file or --routes-url can be used")
+    source_filter = partial(filter_sources, categories=category, search=text_filter)
     try:
         requested, _ = query_bounds(bounds.split(","))
         catalog = routes_file.absolute().as_uri() if routes_file else (routes_url or DEFAULT_ROUTES_URL)
         index = CoverageIndex(catalog, cache_dir)
-        index.ensure(force_update=force_update, workers=workers, progress=lambda message: click.echo(message, err=True))
+        index.ensure(
+            force_update=force_update,
+            workers=workers,
+            progress=lambda message: click.echo(message, err=True),
+            source_filter=source_filter,
+        )
         result = index.lookup(requested)
     except (CoverageIndexError, OSError, sqlite3.Error) as exc:
         raise click.ClickException(str(exc)) from exc
-    result["matches"] = filter_sources(result["matches"], category, text_filter)
-    result["unknown"] = filter_sources(result["unknown"], category, text_filter)
+    result["matches"] = source_filter(result["matches"])
+    result["unknown"] = source_filter(result["unknown"])
     if result["bounds"] != result["effective_bounds"]:
         click.echo("Bbox clipped to the supported India bounds (67,5,98,38).", err=True)
     if result["unknown"]:

@@ -156,13 +156,23 @@ retrieve actual features. No exact geometry check runs during discovery.
 `--category` can be repeated, and `--search` filters names/routes with fuzzy matching.
 Numeric catalog IDs are not returned because they can change between catalogs.
 
-First use caches the catalog and downloads coverage PNGs with eight workers
-(`--workers 1..32`), reusing completed downloads after interruption. Later searches
-read only a local bitmask index and its embedded source registry: **no network
-requests, update checks, or SQLite access**. Refresh explicitly with
-`--force-update` (alias `--refresh`); this fetches the catalog and PNGs using
-`If-None-Match` where ETags are available. A 304 reuses the original bytes.
-Transient errors or invalid PNGs leave the previous index intact.
+First use caches the catalog and downloads coverage PNGs **only for sources
+matching the category/text filters**, with eight workers (`--workers 1..32`).
+For example, `--search 'SOI Water Channel Polygons'` fetches only coverage for
+matching names/routes. A filter matching no sources downloads no PNGs. Later
+searches extend the same cache when they select sources whose coverage has not
+been fetched; an unfiltered search loads all remaining sources. Completed
+downloads are reused after interruption.
+
+When all selected sources have already been checked, searches read only a local
+bitmask index and its embedded source registry: **no network requests, update
+checks, or SQLite access**, even when other catalog sources remain unfetched.
+Refresh explicitly with `--force-update` (alias `--refresh`); this fetches the
+catalog and matching PNGs using `If-None-Match` where ETags are available. A 304
+reuses the original bytes. Cached coverage outside the filters is preserved if
+its URL is unchanged; new or changed URLs remain pending until selected. An
+unfiltered refresh checks all coverage. Transient errors or invalid PNGs leave
+the previous index intact. Existing full-catalog caches remain usable offline.
 
 The platform cache directory contains a separate cache for each catalog. Override
 it with `--cache-dir` or `IOMAPS_CACHE_DIR`. `--routes-file` selects a local catalog;
@@ -183,9 +193,13 @@ manifest is required.
 JSON stdout is an object with `matches`, `unknown`, `bounds`, `effective_bounds`,
 `grid`, `cached_at`, and `coverage`. Status messages go to stderr. The `coverage`
 counts describe the whole cached catalog; category/text filters apply to both
-result lists. Missing PNGs (HTTP 404/410) are **unknown coverage**, not empty
-coverage, and remain visible until an explicit refresh. Existing datasets need
-their PNGs backfilled before they can participate in spatial matching.
+result lists. `pending_sources` counts coverage not yet fetched and is included
+in `unknown_sources`. A filtered search can therefore have pending sources in
+the catalog while all its selected sources have been checked. Missing PNGs
+(HTTP 404/410) are **unknown coverage**, not empty coverage, and are only retried
+on explicit refresh. Pending coverage is fetched automatically when selected.
+Existing datasets need their PNGs backfilled before they can participate in
+spatial matching.
 Queries partly outside **67,5,98,38** search their overlap and report that scope;
 queries wholly outside fail. An empty result does not establish absence in sources
 with unknown coverage.

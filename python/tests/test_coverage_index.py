@@ -1,7 +1,9 @@
 import io
 import json
+import struct
 import threading
 import time
+from functools import partial
 
 import numpy as np
 import pytest
@@ -11,6 +13,7 @@ from filelock import FileLock
 from PIL import Image
 
 from iomaps.commands.search import search
+from iomaps.commands.sources import filter_sources
 from iomaps.core import coverage_index as ci
 from iomaps.core.coverage import INDIA_BOUNDS
 from iomaps.core.source_assets import coverage_url, get_parquet_info_from_source
@@ -102,6 +105,10 @@ class Server:
 
 def routes(result, key="matches"):
     return [s["route"] for s in result[key]]
+
+
+def select_routes(*selected):
+    return lambda sources: [s for s in sources if s["route"] in selected]
 
 
 @pytest.mark.parametrize("suffix", [".parquet", ".pmtiles", ".mosaic.json", ".parquet.meta.json"])
@@ -226,7 +233,13 @@ def test_missing_coverage_is_unknown_but_empty_coverage_is_known(tmp_path, monke
     result = index.lookup(INDIA_BOUNDS)
     assert result["matches"] == []
     assert routes(result, "unknown") == ["/s1/", "/s2/"]
-    assert result["coverage"] == {"total_sources": 3, "indexed_sources": 1, "unknown_sources": 2, "complete": False}
+    assert result["coverage"] == {
+        "total_sources": 3,
+        "indexed_sources": 1,
+        "unknown_sources": 2,
+        "pending_sources": 0,
+        "complete": False,
+    }
 
 
 def test_all_unknown_and_empty_catalog(tmp_path, monkeypatch):
@@ -258,7 +271,8 @@ def test_bad_dimensions_depth_and_truncated_cache_require_explicit_repair(tmp_pa
     server.etags[url] = "fixed"
     index.path.write_bytes(before[:-1])
     count = len(server.calls)
-    index.ensure()
+    with pytest.raises(ci.CoverageIndexError, match="force-update"):
+        index.ensure()
     with pytest.raises(ci.CoverageIndexError, match="force-update"):
         index.lookup(INDIA_BOUNDS)
     assert len(server.calls) == count
@@ -344,3 +358,237 @@ def test_cli_bad_bounds_fail_before_download(tmp_path, monkeypatch, bounds):
     result = CliRunner().invoke(search, ["--bounds", bounds, "--cache-dir", str(tmp_path)])
     assert result.exit_code == 1
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(
+    ("filters", "expected"),
+    [
+        (["--search", "SOI Water Channel Polygons"], [0]),
+        (["--search", "polygoms"], [0, 1]),
+        (["--search", "/water/soi/channels/"], [0]),
+        (["--category", "WATER"], [0]),
+        (["--category", "water", "--category", "forests"], [0, 1]),
+        (["--category", "water", "--search", "Polygons"], [0]),
+        (["--search", "does-not-exist"], []),
+    ],
+)
+def test_cli_filters_limit_downloads_before_spatial_lookup(tmp_path, monkeypatch, filters, expected):
+    server = Server(monkeypatch, count=3)
+    for i, (name, category) in enumerate(
+        [("SOI Water Channel Polygons", "water"), ("Forest Polygons", "forests"), ("Buildings", "buildings")]
+    ):
+        server.routes[f"/s{i}/"].update(name=name, category=[category])
+    server.routes = {
+        "/water/soi/channels/": server.routes["/s0/"],
+        "/s1/": server.routes["/s1/"],
+        "/s2/": server.routes["/s2/"],
+    }
+    server.bodies[server.url] = json.dumps(server.routes).encode()
+    args = ["--bounds", "75.08,12.10,75.24,12.28", "--routes-url", server.url, "--cache-dir", str(tmp_path), "--json"]
+    result = CliRunner().invoke(search, [*args, *filters])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.stdout)
+    assert {url for url, _ in server.calls} == {server.url, *(f"https://data.test/S{i}.coverage.png" for i in expected)}
+    assert data["coverage"]["indexed_sources"] == len(expected)
+    assert data["coverage"]["pending_sources"] == 3 - len(expected)
+    assert data["unknown"] == []
+
+    # Even a partial or empty selection remains offline in a fresh CLI instance.
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Cached filtered search touched network or SQLite")
+
+    with monkeypatch.context() as offline:
+        offline.setattr(ci.requests, "Session", forbidden)
+        offline.setattr(ci.sqlite3, "connect", forbidden)
+        again = CliRunner().invoke(search, [*args, *filters])
+        assert again.exit_code == 0, again.output
+        assert json.loads(again.stdout) == data
+
+    server.calls.clear()
+    args[1] = "67,5,98,38"
+    broader = CliRunner().invoke(search, args)
+    assert broader.exit_code == 0, broader.output
+    data = json.loads(broader.stdout)
+    assert routes(data) == [*server.routes]
+    assert data["coverage"]["complete"]
+    assert data["coverage"]["pending_sources"] == 0
+    assert {url for url, _ in server.calls} == {
+        f"https://data.test/S{i}.coverage.png" for i in range(3) if i not in expected
+    }
+
+
+def test_incremental_source_bits_and_aliases_reuse_existing_coverage(tmp_path, monkeypatch):
+    server = Server(monkeypatch, count=10)
+    server.routes["/alias/"] = {**server.routes["/s9/"], "category": ["alias"]}
+    server.bodies[server.url] = json.dumps(server.routes).encode()
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure(source_filter=partial(filter_sources, categories=["alias"]))
+    assert routes(index.lookup(INDIA_BOUNDS)) == ["/s9/", "/alias/"]
+    assert index.lookup(INDIA_BOUNDS)["coverage"]["pending_sources"] == 9
+    assert all(s["pending"] and s["reason"] == "Coverage not fetched" for s in index.lookup(INDIA_BOUNDS)["unknown"])
+    server.calls.clear()
+    index.ensure()
+    assert len(server.calls) == 9
+    assert "https://data.test/S9.coverage.png" not in dict(server.calls)
+    assert routes(index.lookup(INDIA_BOUNDS)) == [*server.routes]
+    # Existing bits move across byte boundaries as earlier catalog sources load.
+    assert routes(index.lookup((75, 29, 76, 30))) == ["/s1/", "/s5/", "/s9/", "/alias/"]
+
+
+def test_known_missing_png_is_not_retried_when_extending(tmp_path, monkeypatch):
+    server = Server(monkeypatch)
+    missing = "https://data.test/S0.coverage.png"
+    del server.bodies[missing]
+    index = ci.CoverageIndex(server.url, tmp_path)
+    select = select_routes("/s0/")
+    index.ensure(source_filter=select)
+    assert index.lookup(INDIA_BOUNDS)["coverage"]["pending_sources"] == 1
+    server.calls.clear()
+    index.ensure(source_filter=select)
+    assert not server.calls
+    index.ensure()
+    assert [url for url, _ in server.calls] == ["https://data.test/S1.coverage.png"]
+    assert routes(index.lookup(INDIA_BOUNDS), "unknown") == ["/s0/"]
+    server.bodies[missing] = png([(0, 0)])
+    index.ensure(force_update=True, source_filter=select)
+    assert index.lookup(INDIA_BOUNDS)["coverage"]["complete"]
+
+
+def test_filtered_refresh_tracks_new_removed_and_changed_sources(tmp_path, monkeypatch):
+    server = Server(monkeypatch, count=3)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure()
+    server.calls.clear()
+    del server.routes["/s1/"]
+    server.routes["/s2/"]["coverage_url"] = "https://data.test/replacement.png"
+    server.bodies["https://data.test/replacement.png"] = png([(3, 3)])
+    server.routes["/new/"] = {"coverage_url": "https://data.test/new.png"}
+    server.bodies["https://data.test/new.png"] = png([(3, 3)])
+    server.routes["/alias/"] = server.routes["/s0/"]
+    server.bodies[server.url] = json.dumps(server.routes).encode()
+    server.etags[server.url] = "catalog-v2"
+    index.ensure(force_update=True, source_filter=select_routes("/s0/"))
+    assert set(dict(server.calls)) == {server.url, "https://data.test/S0.coverage.png"}
+    assert dict(server.calls)["https://data.test/S0.coverage.png"] == {"If-None-Match": '"png-0-v1"'}
+    result = index.lookup(INDIA_BOUNDS)
+    assert routes(result) == ["/s0/", "/alias/"]
+    assert routes(result, "unknown") == ["/s2/", "/new/"]
+    assert result["coverage"]["pending_sources"] == 2
+    server.calls.clear()
+    index.ensure()
+    assert set(dict(server.calls)) == {"https://data.test/replacement.png", "https://data.test/new.png"}
+    assert routes(index.lookup(INDIA_BOUNDS)) == [*server.routes]
+
+
+def test_filtered_refresh_preserves_unselected_bits_and_missing_checks(tmp_path, monkeypatch):
+    server = Server(monkeypatch, count=3)
+    del server.bodies["https://data.test/S2.coverage.png"]
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure()
+    server.bodies["https://data.test/S0.coverage.png"] = png([(3, 3)])
+    server.etags["https://data.test/S0.coverage.png"] = "new-png"
+    server.calls.clear()
+    index.ensure(force_update=True, source_filter=select_routes("/s0/"))
+    assert set(dict(server.calls)) == {server.url, "https://data.test/S0.coverage.png"}
+    assert routes(index.lookup((97, 5, 98, 6))) == ["/s0/"]
+    assert routes(index.lookup((75, 29, 76, 30))) == ["/s1/"]
+    assert routes(index.lookup(INDIA_BOUNDS), "unknown") == ["/s2/"]
+
+
+@pytest.mark.parametrize("bad_body", [b"invalid PNG", png(size=5)])
+def test_failed_extension_preserves_partial_index_and_resumes(tmp_path, monkeypatch, bad_body):
+    server = Server(monkeypatch, count=3)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    select = select_routes("/s0/")
+    index.ensure(source_filter=select)
+    original = index.path.read_bytes()
+    bad = "https://data.test/S2.coverage.png"
+    server.bodies[bad] = bad_body
+    with pytest.raises(ci.CoverageIndexError):
+        index.ensure()
+    assert index.path.read_bytes() == original
+    server.calls.clear()
+    index.ensure(source_filter=select)
+    assert not server.calls
+    if bad_body.startswith(b"invalid"):
+        # Successful downloads from a failed extension are reused on retry.
+        server.bodies[bad] = png([(2, 2)])
+        index.ensure()
+        assert [url for url, _ in server.calls] == [bad]
+        assert index.lookup(INDIA_BOUNDS)["coverage"]["complete"]
+
+
+def test_extension_after_failed_refresh_uses_active_catalog_and_bits(tmp_path, monkeypatch):
+    server = Server(monkeypatch, count=3)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure(source_filter=lambda sources: sources[:2])
+    original = index.path.read_bytes()
+    server.routes = {"/s0/": server.routes["/s0/"], "/new/": {"coverage_url": "https://data.test/invalid.png"}}
+    server.bodies[server.url] = json.dumps(server.routes).encode()
+    server.etags[server.url] = "new-catalog"
+    server.bodies["https://data.test/invalid.png"] = b"invalid PNG"
+    server.bodies["https://data.test/S0.coverage.png"] = png([(3, 3)])
+    server.etags["https://data.test/S0.coverage.png"] = "new-png"
+    with pytest.raises(ci.CoverageIndexError):
+        index.ensure(force_update=True)
+    assert index.path.read_bytes() == original
+    server.calls.clear()
+    index.ensure()
+    assert [url for url, _ in server.calls] == ["https://data.test/S2.coverage.png"]
+    assert routes(index.lookup(INDIA_BOUNDS)) == ["/s0/", "/s1/", "/s2/"]
+    assert routes(index.lookup((67, 37, 68, 38))) == ["/s0/"]
+    assert routes(index.lookup((97, 5, 98, 6))) == []
+
+
+def test_failed_index_write_preserves_cache_and_reuses_downloads(tmp_path, monkeypatch):
+    server = Server(monkeypatch)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure(source_filter=select_routes("/s0/"))
+    original = index.path.read_bytes()
+
+    def fail_write(*args):
+        raise OSError("Disk write failed")
+
+    with monkeypatch.context() as failure:
+        failure.setattr(ci.os, "fsync", fail_write)
+        with pytest.raises(OSError, match="Disk write failed"):
+            index.ensure()
+    assert index.path.read_bytes() == original
+    assert not list(index.directory.glob(".index-*"))
+    server.calls.clear()
+    index.ensure()
+    assert not server.calls
+    assert index.lookup(INDIA_BOUNDS)["coverage"]["complete"]
+
+
+def test_partial_cache_readers_work_during_update_lock(tmp_path, monkeypatch):
+    server = Server(monkeypatch)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    select = select_routes("/s0/")
+    index.ensure(source_filter=select)
+    with FileLock(index.directory / "update.lock", timeout=0):
+        index.ensure(source_filter=select)
+        assert routes(index.lookup(INDIA_BOUNDS)) == ["/s0/"]
+        with pytest.raises(ci.CoverageIndexError, match="Another process"):
+            index.ensure()
+
+
+def test_legacy_full_index_remains_usable_offline(tmp_path, monkeypatch):
+    server = Server(monkeypatch)
+    index = ci.CoverageIndex(server.url, tmp_path)
+    index.ensure()
+    blob = index.path.read_bytes()
+    length = struct.unpack("<I", blob[8:12])[0]
+    header = json.loads(blob[12 : 12 + length])
+    header["version"] = 1
+    metadata = json.dumps(header).encode()
+    index.path.write_bytes(ci.MAGIC + struct.pack("<I", len(metadata)) + metadata + blob[12 + length :])
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Legacy index touched network or SQLite")
+
+    monkeypatch.setattr(ci.requests, "Session", forbidden)
+    monkeypatch.setattr(ci.sqlite3, "connect", forbidden)
+    index.ensure(source_filter=select_routes("/s0/"))
+    index.ensure()
+    assert routes(index.lookup(INDIA_BOUNDS)) == ["/s0/", "/s1/"]
