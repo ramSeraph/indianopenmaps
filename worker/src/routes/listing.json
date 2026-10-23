@@ -6289,15 +6289,6 @@
     "description": "Water Body data used in the DEM",
     "source": "Bhuvan - https://bhuvan-app3.nrsc.gov.in/data/download/index.php"
   },
-  "/dem/contours/cartodem-v3r1/bhuvan/": {
-    "handlertype": "mosaic",
-    "category": [
-      "digital elevation model",
-      "contours"
-    ],
-    "name": "Bhuvan CartoDEM 30m v3r1 Contours",
-    "url": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_Contours.mosaic.json"
-  },
   "/not-so-open/coastal/2019/goa/landuse/regulation/ncess/": {
     "handlertype": "pmtiles",
     "type": "raster",
@@ -7449,5 +7440,18 @@
     "url": "https://github.com/ramSeraph/indian_industries/releases/download/general/IILB_Industrial_Plots.pmtiles",
     "notes": "Downloaded on 17 October 2026 from the India Industrial Land Bank WMS service (<a href=\"https://indiaindustriallandbank.gov.in/wms\">https://indiaindustriallandbank.gov.in/wms</a>), layer plot_boundary_iis. Includes all plot categories returned by the layer, including ancillary land uses within industrial areas. The original GeoJSONL contains 1,823,565 records; the derived data excludes four records with null geometry. Sixteen repeated source IDs have identical properties and geometry and are retained. Fourteen source geometries have invalid topology; no topology repair was applied before conversion. Vector tiles are simplified for display.",
     "promoteid": "id"
+  },
+  "/not-so-open/cadastrals/rajasthan/rajdharaa/": {
+    "handlertype": "mosaic",
+    "category": [
+      "cadastrals",
+      "rajasthan",
+      "rajdharaa"
+    ],
+    "name": "Rajdharaa Rajasthan Cadastrals",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/rajasthan/Rajdharaa_RJ_Cadastrals.mosaic.json",
+    "partitioned_parquet": true,
+    "notes": "Incomplete snapshot containing 30,290,413 source records; the source service reported 42,682,593 records at the saved download checkpoint. The input file was last modified on 10 April 2026. Derived formats contain 30,290,331 features after filtering 82 empty/null or malformed records. Some source coordinates are outside Rajasthan, including latitudes near zero; coordinate guessing is disabled and those source locations are retained. The split 7z archive preserves the original GeoJSONL. Vector tiles cover zooms 0\u201315; features are simplified and dropped at lower zooms to fit tile size limits. GeoParquet retains all filtered records. The derived formats share OGC_FID as their unique feature identifier.",
+    "promoteid": "OGC_FID"
   }
 }
