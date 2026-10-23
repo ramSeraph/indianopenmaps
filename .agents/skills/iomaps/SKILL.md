@@ -23,6 +23,27 @@ If the checkout environment is missing, its setup is
 the published package may lag this checkout. Use the checkout for its admin
 workflow. Consult `python/README.md` for maintained usage details.
 
+## Choose the evidence for the question
+
+| Question | Command | What the result establishes |
+| --- | --- | --- |
+| What datasets are listed? | `cli sources --search ... --json` | Catalog names, routes and categories; no spatial coverage check. |
+| Which datasets cover this area? | `cli search --bounds ... --category ... --json` | Approximate candidates and sources with unknown coverage. |
+| Does this source contain features here? | `cli extract --source /exact/route/ --bounds ...` | Actual intersecting features; inspect the output count. |
+
+For area-based discovery, start with `search` rather than downloading candidate
+layers to find their coverage. If the source is already known, direct extraction
+can answer the exact geometry question without building the whole coverage cache.
+Do not repeat it merely to obtain a weaker coverage check. If a published CLI
+lacks `search`, check the checkout runtime before declaring it unavailable.
+
+Keep absence claims scoped: no catalog entry, unknown coverage, no indexed
+coverage in a bbox, and zero extracted features are different results. Confirm
+the intended route exists before interpreting an empty filtered search; fuzzy
+name/category filters can also exclude it. A listed source need not cover the
+whole country. The live catalog also does not inventory unpublished local files
+or every release asset; distinguish those when the user asks what data they have.
+
 ## Find a source
 
 ```bash
@@ -68,6 +89,11 @@ approximate at cell resolution; no exact geometry check runs during discovery.
 Search is limited to `(67,5,98,38)`. Partially outside bboxes report clipped bounds;
 wholly outside bboxes fail.
 
+The default 1000×1000 coverage grid has cells of 0.031° longitude by 0.033°
+latitude, roughly **3.5 × 3.5 km** (east-west ground width varies with latitude).
+A matching cell can contain a feature outside the requested bbox. Use extraction
+to resolve exact presence; search does not measure shoreline position or gaps.
+
 The PNG uses the common Parquet basename: `Plots.parquet` or all partitions in
 `Plots.parquet.meta.json` map to one `Plots.coverage.png`. Its URL is derived from
 the corresponding PMTiles/mosaic URL unless the catalog sets `coverage_url`.
@@ -103,6 +129,23 @@ Choose the output by extension (`.gpkg`, `.geojson`, `.geojsonl`, `.fgb`, `.csv`
 sidecars together. Confirm that output was created and inspect its feature count,
 CRS, and representative geometry/properties before reporting success. Some empty
 or unresolved-source paths log a message and return without writing a file.
+
+## Before using extracted polygons as a mask
+
+A source name describes a dataset, not necessarily every feature in it. Before
+rasterizing or unioning polygons, inspect geometry types, classification-field
+values, and polygon holes. A river layer can include separate island or other
+non-water polygons which fill holes when all features are unioned. Likewise,
+coastal regulation lines can mix high/low tide lines with hazard lines and setback
+boundaries. Select the relevant feature classes instead of treating the whole
+layer as water or coastline.
+
+Verify code meanings from source metadata when available. If a code dictionary
+is absent, keep classes separate and label interpretations as provisional; shape
+or overlap alone does not establish a general code mapping. Preserve interior
+rings in any diagnostic rasterization. Report selected classes, feature counts,
+area, bounds and input identity so an apparent geometry problem can be traced
+back to the selection. This is needed for mask analysis, not ordinary extraction.
 
 For interactive use, `iomaps ui` provides remote source selection and extraction.
 The legacy `filter-7z`, `infer-schema`, and their UI views are removed.
