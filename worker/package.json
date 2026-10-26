@@ -12,11 +12,11 @@
     "@cogeotiff/core": "^9.1.2",
     "@cogeotiff/source-url": "^4.4.0",
     "@mapbox/tilebelt": "^2.0.2",
-    "flatbush": "^4.4.1",
+    "@ramseraph/pmtiles-mosaic": "^0.1.0",
     "hono": "^4.6.16",
     "hyparquet": "^1.20.2",
     "pako": "^2.1.0",
-    "pmtiles": "^2.10.0"
+    "pmtiles": "^4.5.0"
   },
   "devDependencies": {
     "wrangler": "^4.65.0"

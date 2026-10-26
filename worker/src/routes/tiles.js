@@ -35,17 +35,19 @@ function createHandlers(logger) {
 
 function getTileParams(c) {
   const params = c.req.param();
-  const z = parseInt(params.z);
-  const x = parseInt(params.x);
+  const z = Number(params.z);
+  const x = Number(params.x);
   const [yStr, ext] = (params.tile || '').split('.');
-  const y = parseInt(yStr);
+  const y = Number(yStr);
   return { z, x, y, ext };
 }
 
 async function getTile(handler, c) {
   const { z, x, y, ext } = getTileParams(c);
-  if (isNaN(z) || isNaN(x) || isNaN(y)) {
-    return c.text('non integer values in tile url', 400, corsHeaders);
+  if (!Number.isInteger(z) || z < 0 || z > 26 ||
+      !Number.isInteger(x) || !Number.isInteger(y) ||
+      x < 0 || y < 0 || x >= 2 ** z || y >= 2 ** z) {
+    return c.text('invalid XYZ tile coordinates', 400, corsHeaders);
   }
 
   const tileSuffix = handler.tileSuffix;

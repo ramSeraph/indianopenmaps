@@ -1,205 +1,31 @@
-import { PMTiles, ResolvedValueCache } from 'pmtiles';
-import * as tilebelt from '@mapbox/tilebelt';
-import Flatbush from 'flatbush';
-import { getMimeType, extendAttribution } from './common.js';
+import { ResolvedValueCache } from 'pmtiles';
+import { PMTilesMosaic } from '@ramseraph/pmtiles-mosaic';
+import { createPartitionAwareIndex } from '@ramseraph/pmtiles-mosaic/partition-aware';
+import { extendAttribution } from './common.js';
 
 // Cache resolved data only: pending I/O belongs to the request that started it.
 const sharedCache = new ResolvedValueCache(100, true);
 
-const COORD_SCALER = 10000000;
-// TODO: measure performance and adjust this threshold
-const FLATBUSH_THRESHOLD = 10;
-
-function _isInSource(header, bounds) {
-
-  // tilebelt.tileToBBOX returns [w, s, e, n]
-  const w = bounds[0];
-  const s = bounds[1];
-  const e = bounds[2];
-  const n = bounds[3];
-  
-  // TODO: Not happy with this check..
-  // this checks if the tile is perfectly inside the source bounds.
-  // should that be the check?
-  if (s > header['max_lat_e7'] ||
-      e > header['max_lon_e7'] ||
-      n < header['min_lat_e7'] ||
-      w < header['min_lon_e7']) {
-      return false;
-  }
-  return true;
-}
-
-// from https://nodejs.org/api/url.html#class-url
-function resolve(from, to) {
-  const resolvedUrl = new URL(to, new URL(from, 'resolve://'));
-  if (resolvedUrl.protocol === 'resolve:') {
-    // `from` is a relative URL.
-    const { pathname, search, hash } = resolvedUrl;
-    return pathname + search + hash;
-  }
-  return resolvedUrl.toString();
-}
-
-class MosaicHandler {
+export default class MosaicHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution) {
-    this.url = url;
-    this.tileSuffix = tileSuffix;
     this.type = type;
-    this.logger = logger;
-    this.mimeType = null;
-    this.pmtilesDict = {};
-    this.mimeTypes = null;
+    this.tileSuffix = tileSuffix;
     this.datameetAttribution = datameetAttribution;
-    this.title = null;
-    this.inited = false;
-    this.mosaicVersion = null;
-    this.index_map = {};
-    this.keys_map = {};
-  }
-
-  _resolveKey(key) {
-    const resolvedUrl = resolve(this.url, key);
-    return resolvedUrl;
-  }
-
-  async _populateMosaic() {
-    const res = await fetch(this.url);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch mosaic: ${res.status}`);
-    }
-    const data = await res.json();
-
-    if (!data || data.version !== 1) {
-      throw new Error('Unsupported mosaic format: version must be 1');
-    }
-
-    const pmtilesDict = {};
-    const keys_map = {};
-
-    for (const [key, entry] of Object.entries(data.slices)) {
-      const header = { ...entry.header };
-      const resolvedUrl = this._resolveKey(key);
-      const archive = new PMTiles(resolvedUrl, sharedCache);
-      pmtilesDict[key] = { 'pmtiles': archive, 'header': header };
-
-      for (let z = header.min_zoom; z <= header.max_zoom; z++) {
-        if (!keys_map.hasOwnProperty(z)) {
-          keys_map[z] = [];
-        }
-        keys_map[z].push(key);
-      }
-    }
-
-    return {
-      mosaicVersion: data.version,
-      pmtilesDict,
-      keys_map,
-      mosaicConfig: { header: data.header, metadata: data.metadata },
-      mimeType: getMimeType(data.header.tile_type),
-    };
-  }
-
-  _populateIndices(pmtilesDict, keys_map) {
-    const index_map = {};
-    for (const [z, keys] of Object.entries(keys_map)) {
-      if (keys.length < FLATBUSH_THRESHOLD) {
-        index_map[z] = null;
-        continue;
-      }
-
-      const index = new Flatbush(keys.length, 16, Int32Array);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const entry = pmtilesDict[key];
-        const header = entry.header;
-        index.add(header.min_lon_e7, header.min_lat_e7, header.max_lon_e7, header.max_lat_e7);
-      }
-      index.finish();
-      index_map[z] = index;
-    }
-    return index_map;
-  }
-
-  async init() {
-    const state = await this._populateMosaic();
-    const index_map = this._populateIndices(state.pmtilesDict, state.keys_map);
-    // Each request builds its own maps so concurrent initialization cannot append
-    // duplicate shards or expose partially initialized state to other requests.
-    Object.assign(this, state, { index_map, inited: true });
-  }
-
-  async initIfNeeded() {
-    if (this.inited) {
-      return;
-    }
-    await this.init();
-  }
-
-  _getSource(key) {
-    return this.pmtilesDict[key].pmtiles;
-  }
-
-  _getSourceKey(z, x, y) {
-    if (!this.index_map.hasOwnProperty(z)) {
-      return null;
-    }
-
-    const bounds = tilebelt.tileToBBOX([x, y, z]).map((v) => Math.round(v * COORD_SCALER));
-
-    const zKeys = this.keys_map[z];
-    const index = this.index_map[z];
-
-    var foundKeys = zKeys;
-    if (index !== null ) {
-      foundKeys = index.search(bounds[0], bounds[1], bounds[2], bounds[3]).map((i) => zKeys[i]);
-    }
-
-    for (const key of foundKeys) {
-      const entry = this.pmtilesDict[key];
-      if (_isInSource(entry.header, bounds)) {
-        return key;
-      }
-    }
-    return null;
+    this.mosaic = new PMTilesMosaic(url, { cache: sharedCache, createIndex: createPartitionAwareIndex });
   }
 
   async getTile(z, x, y) {
-    await this.initIfNeeded();
-
-    const k = this._getSourceKey(z, x, y);
-    if (k === null) {
-      return [null, null];
-    }
-
-    let source = this.pmtilesDict[k].pmtiles;
-    let arr = await source.getZxy(z,x,y);
-    return [arr, this.mimeType]
+    const tile = await this.mosaic.getTile(z, x, y);
+    if (tile === undefined) return [null, null];
+    return [tile, await this.mosaic.getMimeType()];
   }
 
   async getConfig() {
-    await this.initIfNeeded();
-
-    const header = this.mosaicConfig.header;
-    const metadata = this.mosaicConfig.metadata;
-
-    var out = {
-      tilejson: "3.0.0",
-      scheme: "xyz",
-      attribution: extendAttribution(metadata.attribution, this.datameetAttribution),
-      description: metadata.description,
-      name: metadata.name,
-      version: metadata.version,
-      bounds: [header.min_lon_e7, header.min_lat_e7, header.max_lon_e7, header.max_lat_e7].map((v) => v / COORD_SCALER),
-      center: [...[header.center_lon_e7, header.center_lat_e7].map((v) => v / COORD_SCALER), header.center_zoom ],
-      minzoom: header.min_zoom,
-      maxzoom: header.max_zoom,
+    // routes/tiles.js supplies the public URL template after this call.
+    const config = await this.mosaic.getTileJson([]);
+    return {
+      ...config,
+      attribution: extendAttribution(config.attribution, this.datameetAttribution),
     };
-    if (metadata.hasOwnProperty('vector_layers')) {
-      out['vector_layers'] = metadata.vector_layers;
-    }
-    return out;
   }
 }
-
-export default MosaicHandler;
