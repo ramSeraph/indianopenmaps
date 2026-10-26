@@ -30,7 +30,7 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 **Tile serving:**
 - Serves vector tiles (protobuf) and raster tiles (webp/png) from PMTiles archives
 - Supports "mosaic" mode for large PMTiles files that have been split into multiple shards
-- Dynamically generates tiles from COGs with mask support, using [@cf-wasm/photon](https://github.com/nickreese/cf-wasm) for WebAssembly-based image processing
+- Dynamically generates tiles from COGs using [@developmentseed/geotiff](https://github.com/developmentseed/deck.gl-raster) for reading, decoding, and pairing overview masks, and [@cf-wasm/photon](https://github.com/nickreese/cf-wasm) for WebAssembly-based image processing
 - Provides TileJSON metadata endpoints for each source
 - Currently serves ~498 tile sources
 
@@ -57,6 +57,14 @@ npm run dev  # http://localhost:8787
 
 To override the Protomaps browser key locally, set `PROTOMAPS_API_KEY` in
 `worker/.dev.vars`. This local configuration file is ignored by Git.
+
+The COG and STAC viewers use the Worker's `/cog-info` and `/cog-tiles/{z}/{x}/{y}`
+APIs. COG tiling supports north-up EPSG:3857 byte imagery. The reader uses a shared
+32 MiB compressed-range cache containing only completed reads; readers and fetch
+queues belong to individual requests. It uses Photon for JPEG/WebP decoding and
+xmldom for GDAL XML metadata, with no browser canvas or decoder threads in the Worker.
+Run `npm test` from `worker/` for offline workerd tests covering masks, overviews,
+PNG/WebP output, edge crops, caching, concurrent/cancelled zoom requests, and error responses.
 
 ### Python CLI — `iomaps` (`python/`)
 

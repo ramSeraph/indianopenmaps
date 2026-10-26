@@ -1,5 +1,5 @@
 // Vector source and layer management
-import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
+import * as maplibregl from './maplibre.js';
 
 export class VectorSourceHandler {
   #selectedSources = new Map();

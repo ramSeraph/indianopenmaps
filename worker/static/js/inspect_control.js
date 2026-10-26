@@ -1,5 +1,5 @@
 // Extracted InspectButton control and PopupHandler
-import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
+import * as maplibregl from './maplibre.js';
 
 function displayValue(value, propName) {
   if (propName === '@timestamp') {

@@ -168,7 +168,6 @@
         const COGTileLayer = L.TileLayer.extend({
             getTileUrl: function(coords) {
                 const url = this.options.cogUrl;
-                console.log('Fetching tile for coords:', coords);
                 const z = coords.z;
                 const x = coords.x;
                 const y = coords.y;
@@ -255,7 +254,6 @@
                 }
                 
                 const cogInfo = await infoResponse.json();
-                console.log('COG Info:', cogInfo);
 
                 // Create new COG layer
                 const opacitySlider = document.getElementById('opacity');
@@ -370,11 +368,6 @@
                 // Load default URL if present
                 loadCOG();
             }
-        });
-
-        // Add map click handler to show coordinates
-        map.on('click', (e) => {
-            console.log('Clicked:', e.latlng);
         });
     </script>
 </body>

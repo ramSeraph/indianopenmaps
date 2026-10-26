@@ -70,8 +70,11 @@ export class TileMakerPhoton {
       return null;
     }
 
-    // Decode the tile bytes into a PhotonImage
-    let img = PhotonImage.new_from_byteslice(new Uint8Array(tile.bytes));
+    // The COG reader supplies decoded RGBA, with the matching overview mask
+    // already applied. Encoded image tiles remain supported for other callers.
+    let img = tile.pixels
+      ? new PhotonImage(tile.pixels, tile.width, tile.height)
+      : PhotonImage.new_from_byteslice(new Uint8Array(tile.bytes));
 
     const { extract, resize: resizeOp, crop: cropOp } = comp;
 
@@ -186,49 +189,4 @@ export class TileMakerPhoton {
     canvas.free();
     return buffer;
   }
-}
-
-/**
- * Helper to extract alpha channel from RGBA pixels
- */
-export function extractAlphaChannel(pixels, width, height) {
-  const alpha = new Uint8Array(width * height);
-  for (let i = 0; i < alpha.length; i++) {
-    alpha[i] = pixels[i * 4 + 3];
-  }
-  return alpha;
-}
-
-/**
- * Helper to join RGB pixels with separate alpha channel
- */
-export function joinRgbWithAlpha(rgbPixels, alphaPixels, width, height) {
-  const rgba = new Uint8Array(width * height * 4);
-  const pixelCount = width * height;
-
-  // rgbPixels might be RGB (3 channels) or RGBA (4 channels)
-  const rgbChannels = rgbPixels.length / pixelCount;
-
-  for (let i = 0; i < pixelCount; i++) {
-    const srcIdx = i * rgbChannels;
-    const dstIdx = i * 4;
-    rgba[dstIdx] = rgbPixels[srcIdx];
-    rgba[dstIdx + 1] = rgbPixels[srcIdx + 1];
-    rgba[dstIdx + 2] = rgbPixels[srcIdx + 2];
-    rgba[dstIdx + 3] = alphaPixels[i];
-  }
-
-  return rgba;
-}
-
-/**
- * Convert raw RGBA pixels to PNG or WebP
- */
-export function rawToImage(pixels, width, height, format) {
-  const img = new PhotonImage(pixels, width, height);
-  const buffer = format === 'webp'
-    ? img.get_bytes_webp()
-    : img.get_bytes();
-  img.free();
-  return buffer;
 }

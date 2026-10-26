@@ -1,4 +1,4 @@
-import * as maplibregl from 'https://esm.sh/maplibre-gl@5.6.2';
+import * as maplibregl from './maplibre.js';
 import { Protocol } from 'https://esm.sh/pmtiles@4.3.0';
 import MaplibreGeocoder from 'https://esm.sh/@maplibre/maplibre-gl-geocoder@1.9.1';
 

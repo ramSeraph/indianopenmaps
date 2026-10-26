@@ -1,287 +1,38 @@
-import { Tiff, TiffTag, SubFileType, Compression } from '@cogeotiff/core';
-import { SourceUrl } from '@cogeotiff/source-url';
 import { Tiler } from '@basemaps/tiler';
 import { GoogleTms } from '@basemaps/geo';
-import { inflate } from 'pako';
-import { PhotonImage } from '@cf-wasm/photon';
 import { ForbiddenError, ResourceUnavailableError, UnknownError } from './errors.js';
-import { TileMakerPhoton, extractAlphaChannel, joinRgbWithAlpha, rawToImage } from './tile_maker_photon.js';
-
-/**
- * IMPORTANT: This COG handler with mask support assumes that ALL source TIFFs
- * either have internal masks or none of them do. Mixing TIFFs with and without
- * masks will produce incorrect results - tiles from mask-less TIFFs will appear
- * fully transparent when composited with tiles from masked TIFFs.
- * 
- * If you need to support mixed sources, you'll need to modify the alpha channel
- * handling to default to fully opaque (255) for TIFFs without masks.
- */
+import { TileMakerPhoton } from './tile_maker_photon.js';
+import { COGReader } from './cog_reader.js';
+import { COGRangeCache } from './cog_range_cache.js';
 
 const URL_WHITELIST = [
   'https://github.com/ramSeraph/',
   'http://127.0.0.1:8080/',
 ];
+const tiler = new Tiler(GoogleTms);
 
-const TIFF_CACHE_SIZE = 100;
-
-// Utility function for mask image detection
-function isMaskImage(img) {
-  const subfileType = img.value(TiffTag.SubFileType);
-  return !!(subfileType & SubFileType.Mask);
-}
-
-// Convert Web Mercator (EPSG:3857) to lat/lng (EPSG:4326)
 function webMercatorToLatLng(x, y) {
-  const lng = (x / 6378137) * (180 / Math.PI);
-  const lat = (Math.atan(Math.exp(y / 6378137)) * 2 - Math.PI / 2) * (180 / Math.PI);
-  return { lat, lng };
+  return {
+    lng: (x / 6378137) * (180 / Math.PI),
+    lat: (Math.atan(Math.exp(y / 6378137)) * 2 - Math.PI / 2) * (180 / Math.PI),
+  };
 }
-
-function isUrlAllowed(url) {
-  return URL_WHITELIST.some(prefix => url.startsWith(prefix));
-}
-
-/**
- * Create RGBA PNG bytes from RGB (black) + alpha channel
- * Using Photon instead of Sharp
- */
-function createMaskPng(alphaChannel, width, height) {
-  // Create RGBA with black RGB + alpha
-  const rgba = new Uint8Array(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    rgba[i * 4] = 0;     // R
-    rgba[i * 4 + 1] = 0; // G
-    rgba[i * 4 + 2] = 0; // B
-    rgba[i * 4 + 3] = alphaChannel[i]; // A
-  }
-  
-  const img = new PhotonImage(rgba, width, height);
-  const pngBytes = img.get_bytes();
-  img.free();
-  return pngBytes;
-}
-
-class FilteredTiff extends Tiff {
-  constructor(tiff, filterFn) {
-    // Call parent constructor with the same source
-    super(tiff.source);
-    this._originalTiff = tiff;
-    this.filterFn = filterFn;
-    this._filteredImages = null;
-    
-    // Copy over initialized state from original tiff
-    this.isLittleEndian = tiff.isLittleEndian;
-    this.version = tiff.version;
-    this.options = tiff.options;
-    this.ifdConfig = tiff.ifdConfig;
-    this.isInitialized = tiff.isInitialized;
-    
-    // Delete parent's images property so our getter is used
-    delete this.images;
-  }
-
-  _applyImageModifications() {
-    // Get the first non-mask image for geo transformation reference
-    const refImage = this._originalTiff.images.find(img => !isMaskImage(img));
-    
-    for (const img of this._filteredImages) {
-      if (img._modified) continue;
-      img._modified = true;
-
-      const originalGetTile = img.getTile;
-      
-      // Fix isSubImage to use bitwise check for proper overview detection
-      Object.defineProperty(img, 'isSubImage', {
-        get: function() {
-          const subfileType = this.value(TiffTag.SubFileType);
-          return !!(subfileType & SubFileType.ReducedImage);
-        },
-        configurable: true
-      });
-      
-      // For mask images, use origin and resolution from corresponding RGB image
-      if (isMaskImage(img) && refImage) {
-        Object.defineProperty(img, 'origin', {
-          get: function() {
-            return refImage.origin;
-          },
-          configurable: true
-        });
-        
-        Object.defineProperty(img, 'resolution', {
-          get: function() {
-            const [resX, resY, resZ] = refImage.resolution;
-            const refSize = refImage.size;
-            const imgSize = this.size;
-            return [
-              (resX * refSize.width) / imgSize.width,
-              (resY * refSize.height) / imgSize.height,
-              resZ
-            ];
-          },
-          configurable: true
-        });
-      }
-      
-      img.getTile = async function(tx, ty) {
-        const tile = await originalGetTile.call(this, tx, ty);
-        
-        if (!isMaskImage(this)) {
-          return tile;
-        }
-
-        // Validate single channel for mask
-        const bitsPerSampleArr = this.value(TiffTag.BitsPerSample);
-        if (bitsPerSampleArr.length !== 1) {
-          throw new UnknownError('Mask image must have exactly 1 channel');
-        }
-
-        // Decompress if needed using pako (pure JS)
-        let maskData;
-        if (tile.compression === Compression.Deflate || tile.compression === Compression.DeflateOther) {
-          maskData = inflate(new Uint8Array(tile.bytes));
-        } else if (tile.compression === Compression.None) {
-          maskData = new Uint8Array(tile.bytes);
-        } else {
-          throw new UnknownError(`Unsupported mask compression: ${tile.compression}`);
-        }
-
-        const bitsPerSample = bitsPerSampleArr[0];
-        const tileWidth = this.tileSize.width;
-        const tileHeight = this.tileSize.height;
-
-        // Expand to 8-bit alpha
-        let alphaChannel;
-        if (bitsPerSample === 1) {
-          // 1-bit packed: manual expansion
-          alphaChannel = new Uint8Array(tileWidth * tileHeight);
-          for (let i = 0; i < tileWidth * tileHeight; i++) {
-            const byteIdx = Math.floor(i / 8);
-            const bitIdx = 7 - (i % 8);
-            const bit = (maskData[byteIdx] >> bitIdx) & 1;
-            alphaChannel[i] = bit * 255;
-          }
-        } else if (bitsPerSample === 8) {
-          alphaChannel = maskData;
-        } else {
-          throw new UnknownError(`Unsupported mask bitsPerSample: ${bitsPerSample}`);
-        }
-
-        // Create RGBA PNG with black RGB + alpha using Photon
-        const pngBuffer = createMaskPng(alphaChannel, tileWidth, tileHeight);
-
-        return {
-          mimeType: 'image/png',
-          bytes: pngBuffer,
-          compression: Compression.None
-        };
-      };
-    }
-  }
-
-  get images() {
-    if (this._filteredImages === null) {
-      this._filteredImages = this._originalTiff.images.filter(this.filterFn);
-      this._applyImageModifications();
-    }
-    return this._filteredImages;
-  }
-}
-
-class MaskAwareTiler extends Tiler {
-  tile(sources, x, y, z) {
-    const result = {
-      rgbComps: [],
-      maskComps: []
-    };
-    
-    for (const source of sources) {
-      // Always create both RGB and mask filtered views
-      const rgbTiff = new FilteredTiff(source, img => !isMaskImage(img));
-      const maskTiff = new FilteredTiff(source, img => isMaskImage(img));
-      
-      // Only call super.tile if there are images to process
-      if (rgbTiff.images.length > 0) {
-        const rgbComps = super.tile([rgbTiff], x, y, z);
-        if (rgbComps) result.rgbComps.push(...rgbComps);
-      }
-      
-      if (maskTiff.images.length > 0) {
-        const maskComps = super.tile([maskTiff], x, y, z);
-        if (maskComps) result.maskComps.push(...maskComps);
-      }
-    }
-    
-    return result;
-  }
-}
-
-const tiler = new MaskAwareTiler(GoogleTms);
 
 class COGHandler {
   constructor(logger) {
     this.logger = logger;
-    this.tiffCache = new Map();
-  }
-
-  calculateGeotransform(image) {
-    // ModelPixelScale tag: [ScaleX, ScaleY, ScaleZ]
-    const pixelScale = image.value(TiffTag.ModelPixelScale);
-    // ModelTiepoint tag: [I, J, K, X, Y, Z]
-    const tiepoint = image.value(TiffTag.ModelTiePoint);
-    
-    if (!pixelScale || !tiepoint) {
-      return null;
-    }
-    
-    // Extract values
-    const scaleX = pixelScale[0];
-    const scaleY = -Math.abs(pixelScale[1]); // Usually negative for north-up images
-    const originX = tiepoint[3]; // X coordinate at I,J = 0,0
-    const originY = tiepoint[4]; // Y coordinate at I,J = 0,0
-    
-    // Geotransform: [originX, pixelWidth, 0, originY, 0, pixelHeight]
-    return [originX, scaleX, 0, originY, 0, scaleY];
+    this.rangeCache = new COGRangeCache();
   }
 
   async getTiff(url) {
-    if (!isUrlAllowed(url)) {
+    if (!URL_WHITELIST.some(prefix => url.startsWith(prefix))) {
       throw new ForbiddenError('URL not in whitelist');
     }
-
-    if (this.tiffCache.has(url)) {
-      return this.tiffCache.get(url);
-    }
-
     try {
-      const source = new SourceUrl(url);
-      // @basemaps/tiler expects source.url to be a URL object
-      source.url = new URL(url);
-      
-      source.fetch = async function(offset, length) {
-        await this.loadBytes(offset, length);
-        return this.bytes(offset, length).buffer;
-      };
-      
-      const tiff = new Tiff(source);
-      await tiff.init();
-      
-      this.tiffCache.set(url, tiff);
-      
-      if (this.tiffCache.size > TIFF_CACHE_SIZE) {
-        const firstKey = this.tiffCache.keys().next().value;
-        this.tiffCache.delete(firstKey);
-      }
-
-      return tiff;
+      return await COGReader.open(url, this.rangeCache);
     } catch (err) {
-      // Convert network/fetch errors to ResourceUnavailableError
-      if (err.message.includes('fetch') || 
-          err.message.includes('404') ||
-          err.message.includes('Not Found') ||
-          err.message.includes('ENOTFOUND') ||
-          err.code === 'ENOTFOUND' ||
-          err.statusCode === 404) {
+      if (err.statusCode) throw err;
+      if (/fetch|404|Not Found|ENOTFOUND/.test(err.message) || err.code === 'ENOTFOUND' || err.status === 404) {
         this.logger.error({ err }, `COG not found at URL: ${url}`);
         throw new ResourceUnavailableError(`COG not found at URL: ${url}`);
       }
@@ -292,68 +43,18 @@ class COGHandler {
 
   async getTile(url, z, x, y, format = 'png') {
     try {
-      const tiff = await this.getTiff(url);
-      
-      const { rgbComps, maskComps } = tiler.tile([tiff], x, y, z);
-      
-      if (!rgbComps || rgbComps.length === 0) {
-        return null;
-      }
-
-      const outputFormat = (format === 'webp') ? 'webp' : 'png';
-      const tileMaker = new TileMakerPhoton(256);
-
-      // If no mask layers, just render RGB
-      if (!maskComps || maskComps.length === 0) {
-        const rgbResult = await tileMaker.compose({
-          layers: rgbComps,
-          format: outputFormat,
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
-        });
-        return { tile: rgbResult.buffer, mimeType: `image/${outputFormat}` };
-      }
-
-      // Compose RGB and mask tiles in parallel
-      const [rgbResult, maskResult] = await Promise.all([
-        tileMaker.compose({
-          layers: rgbComps,
-          format: 'png',
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
-        }),
-        tileMaker.compose({
-          layers: maskComps,
-          format: 'png',
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-          resizeKernel: { in: 'lanczos3', out: 'lanczos3' }
-        })
-      ]);
-
-      // Decode PNG results to get raw pixels
-      const rgbImg = PhotonImage.new_from_byteslice(rgbResult.buffer);
-      const maskImg = PhotonImage.new_from_byteslice(maskResult.buffer);
-      
-      const rgbPixels = rgbImg.get_raw_pixels();
-      const maskPixels = maskImg.get_raw_pixels();
-      const width = rgbImg.get_width();
-      const height = rgbImg.get_height();
-      
-      rgbImg.free();
-      maskImg.free();
-
-      // Extract alpha from mask and apply to RGB
-      const alphaChannel = extractAlphaChannel(maskPixels, width, height);
-      const finalPixels = joinRgbWithAlpha(rgbPixels, alphaChannel, width, height);
-      
-      // Convert to output format
-      const result = rawToImage(finalPixels, width, height, outputFormat);
-      
-      return { tile: result, mimeType: `image/${outputFormat}` };
+      const reader = await this.getTiff(url);
+      const layers = tiler.tile([reader], x, y, z);
+      if (!layers?.length) return null;
+      const outputFormat = format === 'webp' ? 'webp' : 'png';
+      const result = await new TileMakerPhoton(256).compose({
+        layers,
+        format: outputFormat,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      });
+      return { tile: result.buffer, mimeType: `image/${outputFormat}` };
     } catch (err) {
-      if (err.statusCode) {
-        throw err;
-      }
+      if (err.statusCode) throw err;
       this.logger.error({ err }, 'Error getting COG tile');
       throw new UnknownError(`Error processing tile: ${err.message}`);
     }
@@ -361,77 +62,24 @@ class COGHandler {
 
   async getInfo(url) {
     try {
-      const tiff = await this.getTiff(url);
-      const image = tiff.images[0];
-      
-      // Get geotransform
-      const geotransform = this.calculateGeotransform(image);
-      if (!geotransform) {
-        throw new UnknownError('No geotransform available in COG');
-      }
-      
-      // Calculate bbox
-      let bbox;
-      try {
-        bbox = image.bbox;
-      } catch (err) {
-        // Compute bbox manually from geotransform
-        const [originX, pixelWidth, _, originY, __, pixelHeight] = geotransform;
-        const width = image.size.width;
-        const height = image.size.height;
-        
-        const minX = originX;
-        const maxY = originY;
-        const maxX = originX + (width * pixelWidth);
-        const minY = originY + (height * pixelHeight);
-        
-        bbox = [minX, minY, maxX, maxY];
-      }
-      
+      const { geotiff } = await this.getTiff(url);
+      const image = geotiff.image;
+      const bbox = geotiff.bbox;
       const sw = webMercatorToLatLng(bbox[0], bbox[1]);
       const ne = webMercatorToLatLng(bbox[2], bbox[3]);
-      let bboxLatLng = [sw.lng, sw.lat, ne.lng, ne.lat];
-      
-      // Get resolution
-      let resolution;
-      try {
-        resolution = image.resolution;
-      } catch (err) {
-        resolution = [Math.abs(geotransform[1]), Math.abs(geotransform[5])];
-      }
-      
-      // Calculate center
-      const center = [
-        (bboxLatLng[0] + bboxLatLng[2]) / 2,
-        (bboxLatLng[1] + bboxLatLng[3]) / 2
-      ];
-      
       return {
-        bbox: bboxLatLng,
-        center: center,
-        bounds: {
-          west: bboxLatLng[0],
-          south: bboxLatLng[1],
-          east: bboxLatLng[2],
-          north: bboxLatLng[3]
-        },
-        size: {
-          width: image.size.width,
-          height: image.size.height
-        },
-        tileSize: {
-          width: image.tileSize.width,
-          height: image.tileSize.height
-        },
-        resolution: resolution,
-        imageCount: tiff.images.length,
+        bbox: [sw.lng, sw.lat, ne.lng, ne.lat],
+        center: [(sw.lng + ne.lng) / 2, (sw.lat + ne.lat) / 2],
+        bounds: { west: sw.lng, south: sw.lat, east: ne.lng, north: ne.lat },
+        size: { width: geotiff.width, height: geotiff.height },
+        tileSize: { width: geotiff.tileWidth, height: geotiff.tileHeight },
+        resolution: image.resolution,
+        imageCount: geotiff.tiff.images.length,
         compression: image.compression,
-        photometric: image.photometric
+        photometric: image.photometric,
       };
     } catch (err) {
-      if (err.statusCode) {
-        throw err;
-      }
+      if (err.statusCode) throw err;
       this.logger.error({ err }, 'Error getting COG info');
       throw new UnknownError(`Error getting COG info: ${err.message}`);
     }
