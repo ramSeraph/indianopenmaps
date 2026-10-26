@@ -105,6 +105,49 @@ async function getTileJson(handler, c, serverUrl) {
   });
 }
 
+function getTileErrorResponse(err) {
+  // PMTiles and pmtiles-mosaic expose upstream HTTP status only in these messages.
+  const match = /^(?:Bad response code: |Failed to fetch mosaic .+: HTTP )([3-5]\d{2})$/.exec(err?.message ?? '');
+  if (!match) return { status: 500, message: 'Internal Server Error' };
+
+  const upstreamStatus = Number(match[1]);
+  if (upstreamStatus === 429 || upstreamStatus === 503) {
+    return { status: 503, message: 'Service Unavailable', upstreamStatus };
+  }
+  if (upstreamStatus === 408 || upstreamStatus === 504) {
+    return { status: 504, message: 'Gateway Timeout', upstreamStatus };
+  }
+  // An unavailable/forbidden archive is a gateway failure, not a missing tile
+  // or a permissions problem for the client of this Worker.
+  return { status: 502, message: 'Bad Gateway', upstreamStatus };
+}
+
+function withTileErrorHandling(serve, sourceUrl, logger) {
+  return async (c) => {
+    try {
+      return await serve(c);
+    } catch (err) {
+      const response = getTileErrorResponse(err);
+      // Workers Logs can retain only stack frames when passed a native Error.
+      // Serialize explicitly so the upstream status and context survive together.
+      logger.error(JSON.stringify({
+        message: `Tile source request failed: ${err?.message ?? String(err)}`,
+        name: err?.name,
+        stack: err?.stack,
+        method: c.req.method,
+        path: c.req.path,
+        sourceUrl,
+        upstreamStatus: response.upstreamStatus,
+        responseStatus: response.status,
+      }));
+      return c.text(response.message, response.status, {
+        ...corsHeaders,
+        'Cache-Control': 'no-store',
+      });
+    }
+  };
+}
+
 export function registerTileRoutes(app, getServerUrl, logger) {
   createHandlers(logger);
 
@@ -115,9 +158,12 @@ export function registerTileRoutes(app, getServerUrl, logger) {
 
   Object.keys(handlerMap).forEach((rPrefix) => {
     const handler = handlerMap[rPrefix];
+    const sourceUrl = routes[rPrefix].url;
 
-    app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`, (c) => getTile(handler, c));
-    app.get(`${rPrefix}tiles.json`, (c) => getTileJson(handler, c, getServerUrl(c)));
+    app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`,
+      withTileErrorHandling((c) => getTile(handler, c), sourceUrl, logger));
+    app.get(`${rPrefix}tiles.json`,
+      withTileErrorHandling((c) => getTileJson(handler, c, getServerUrl(c)), sourceUrl, logger));
 
     if (handler.type == 'raster') {
       app.get(`${rPrefix}rasterview`, (c) => {
