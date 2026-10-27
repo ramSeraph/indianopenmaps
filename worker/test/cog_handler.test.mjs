@@ -33,6 +33,7 @@ before(async () => {
       resolveDir: root,
     },
     bundle: true, format: 'esm', platform: 'browser', conditions: ['workerd'], target: 'es2022', write: false,
+    external: ['node:async_hooks'],
     plugins: [{ name: 'wasm', setup(b) {
       b.onResolve({ filter: /^@cf-wasm\/photon$/ }, () => ({ path: root + 'node_modules/@cf-wasm/photon/dist/workerd.js' }));
       b.onResolve({ filter: /\.wasm$/ }, () => ({ path: './photon.wasm', external: true }));

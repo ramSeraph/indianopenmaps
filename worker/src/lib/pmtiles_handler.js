@@ -1,6 +1,7 @@
 import { PMTiles, ResolvedValueCache } from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
 import { PMTilesSource } from './pmtiles_source.js';
+import { withRetries } from './request.js';
 
 // Cache resolved data only: pending I/O belongs to the request that started it.
 const sharedCache = new ResolvedValueCache(100, true);
@@ -38,13 +39,16 @@ class PMTilesHandler {
     if (this.inited) {
       return;
     }
-    await this.init();
+    await withRetries(async () => {
+      // Another request may have initialized both header and metadata meanwhile.
+      if (!this.inited) await this.init();
+    });
   }
 
   async getTile(z, x, y) {
     await this.initIfNeeded();
 
-    let arr = await this.source.getZxy(z, x, y);
+    const arr = await withRetries(() => this.source.getZxy(z, x, y));
     return [ arr, this.mimeType ];
   }
 

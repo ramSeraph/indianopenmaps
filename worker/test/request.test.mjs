@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { setImmediate as flush } from 'node:timers/promises';
-import { fetchWithRetry, parseRetryAfter } from '../src/lib/request.js';
+import { fetchUpstream, fetchWithRetry, parseRetryAfter, withRetries } from '../src/lib/request.js';
+import { UpstreamHttpError } from '../src/lib/errors.js';
 
 const url = 'https://github.com/owner/repo/releases/download/data/archive.pmtiles';
 
@@ -173,4 +174,31 @@ test('network errors and aborts from fetch propagate without retries', async t =
   const fetch = t.mock.method(globalThis, 'fetch', async () => { throw error; });
   await assert.rejects(fetchWithRetry(url), e => e === error);
   assert.equal(fetch.mock.callCount(), 1);
+});
+
+test('an asynchronous cache probe cannot block another request or send an early retry', { timeout: 2000 }, async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const probeStarted = Promise.withResolvers();
+  const releaseProbe = Promise.withResolvers();
+  let reads = 0;
+  const fetch = t.mock.method(globalThis, 'fetch', async () => fetch.mock.callCount() === 0
+    ? new Response('', { status: 429, headers: { 'Retry-After': '1' } })
+    : new Response('ok'));
+  const first = withRetries(async () => {
+    if (++reads === 2) {
+      probeStarted.resolve();
+      await releaseProbe.promise;
+    }
+    const response = await fetchUpstream(url);
+    if (!response.ok) throw new UpstreamHttpError(response);
+    return response;
+  });
+  await probeStarted.promise;
+  assert.equal(await (await fetchWithRetry(url)).text(), 'ok', 'other requests can still fetch during the probe');
+  releaseProbe.resolve();
+  await flush();
+  assert.equal(fetch.mock.callCount(), 2, 'the cache probe must not reach fetch, even after an await');
+  t.mock.timers.tick(1000);
+  assert.equal(await (await first).text(), 'ok');
+  assert.equal(fetch.mock.callCount(), 3);
 });

@@ -1,9 +1,9 @@
 import { EtagMismatch } from 'pmtiles';
 import { UpstreamHttpError } from './errors.js';
-import { fetchWithRetry } from './request.js';
+import { fetchUpstream } from './request.js';
 
-// PMTiles' FetchSource has no injectable fetch. Implement its Source contract
-// with the shared request policy, preserving range and ETag handling.
+// Preserve PMTiles' range/ETag contract and expose HTTP failures to the caller.
+// Retries wrap operations so they recheck the caches before fetching again.
 export class PMTilesSource {
   #mustReload = false;
 
@@ -16,7 +16,7 @@ export class PMTilesSource {
   async getBytes(offset, length, signal, etag) {
     const headers = new Headers({ Range: `bytes=${offset}-${offset + length - 1}` });
     const options = { headers, signal, cache: this.#mustReload ? 'reload' : undefined };
-    let response = await fetchWithRetry(this.url, options);
+    let response = await fetchUpstream(this.url, options);
 
     // Some servers reject the initial 16 KiB read for very small archives.
     if (offset === 0 && response.status === 416) {
@@ -24,7 +24,7 @@ export class PMTilesSource {
       await response.body?.cancel();
       if (!match || Number(match[1]) <= 0) throw new Error('Missing content-length on 416 response');
       headers.set('Range', `bytes=0-${Number(match[1]) - 1}`);
-      response = await fetchWithRetry(this.url, { ...options, cache: 'reload' });
+      response = await fetchUpstream(this.url, { ...options, cache: 'reload' });
     }
 
     if (response.status >= 300 && response.status !== 416) {

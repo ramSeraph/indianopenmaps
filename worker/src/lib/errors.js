@@ -51,7 +51,11 @@ export class UpstreamHttpError extends HttpError {
     if (upstreamStatus === 429 || upstreamStatus === 503) statusCode = 503;
     if (upstreamStatus === 408 || upstreamStatus === 504) statusCode = 504;
     super(`Bad response code: ${upstreamStatus}`, statusCode);
+    this.response = response;
     this.upstreamStatus = upstreamStatus;
     this.retryAfter = response.headers.get('Retry-After');
   }
 }
+
+// Internal control flow for a cache-only read that would need upstream I/O.
+export class CacheMissError extends Error {}
