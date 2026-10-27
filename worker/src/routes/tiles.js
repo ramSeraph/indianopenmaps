@@ -1,6 +1,7 @@
 import { PhotonImage } from '@cf-wasm/photon';
 import MosaicHandler from '../lib/mosaic_handler.js';
 import PMTilesHandler from '../lib/pmtiles_handler.js';
+import { UpstreamHttpError } from '../lib/errors.js';
 
 import routes from './listing.json' with { type: 'json' };
 
@@ -106,20 +107,9 @@ async function getTileJson(handler, c, serverUrl) {
 }
 
 function getTileErrorResponse(err) {
-  // PMTiles and pmtiles-mosaic expose upstream HTTP status only in these messages.
-  const match = /^(?:Bad response code: |Failed to fetch mosaic .+: HTTP )([3-5]\d{2})$/.exec(err?.message ?? '');
-  if (!match) return { status: 500, message: 'Internal Server Error' };
-
-  const upstreamStatus = Number(match[1]);
-  if (upstreamStatus === 429 || upstreamStatus === 503) {
-    return { status: 503, message: 'Service Unavailable', upstreamStatus };
-  }
-  if (upstreamStatus === 408 || upstreamStatus === 504) {
-    return { status: 504, message: 'Gateway Timeout', upstreamStatus };
-  }
-  // An unavailable/forbidden archive is a gateway failure, not a missing tile
-  // or a permissions problem for the client of this Worker.
-  return { status: 502, message: 'Bad Gateway', upstreamStatus };
+  if (!(err instanceof UpstreamHttpError)) return { status: 500, message: 'Internal Server Error' };
+  const messages = { 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout' };
+  return { status: err.statusCode, message: messages[err.statusCode], upstreamStatus: err.upstreamStatus };
 }
 
 function withTileErrorHandling(serve, sourceUrl, logger) {
@@ -138,11 +128,13 @@ function withTileErrorHandling(serve, sourceUrl, logger) {
         path: c.req.path,
         sourceUrl,
         upstreamStatus: response.upstreamStatus,
+        retryAfter: err?.retryAfter,
         responseStatus: response.status,
       }));
       return c.text(response.message, response.status, {
         ...corsHeaders,
         'Cache-Control': 'no-store',
+        ...(err?.retryAfter ? { 'Retry-After': err.retryAfter, 'Access-Control-Expose-Headers': 'Retry-After' } : {}),
       });
     }
   };

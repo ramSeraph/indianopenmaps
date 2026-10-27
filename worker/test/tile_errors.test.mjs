@@ -34,13 +34,13 @@ for (const resource of ['tiles.json', '0/0/0.pbf']) {
       const { app, logs } = createApp();
       const fetch = t.mock.method(globalThis, 'fetch', async url => {
         assert.equal(url, sourceUrl);
-        return new Response('Unavailable', { status });
+        return new Response('Unavailable', { status, headers: { 'Retry-After': '0' } });
       });
 
       const response = await app.request(prefix + resource);
       assert.equal(response.status, clientStatus);
       assert.equal(await response.text(), clientMessage);
-      assert.equal(fetch.mock.callCount(), 1, 'upstream failures must not trigger retries');
+      assert.equal(fetch.mock.callCount(), [429, 503].includes(status) ? 3 : 1);
       assert.equal(response.headers.get('access-control-allow-origin'), '*');
       assert.equal(response.headers.get('cache-control'), 'no-store');
       assert.equal(logs.length, 1);
@@ -49,8 +49,8 @@ for (const resource of ['tiles.json', '0/0/0.pbf']) {
       assert.ok(!logs[0][0].includes('\n'), 'stack newlines must be escaped inside the log record');
       const record = JSON.parse(logs[0][0]);
       assert.equal(record.message, `Tile source request failed: Bad response code: ${status}`);
-      assert.equal(record.name, 'Error');
-      assert.ok(record.stack.includes('FetchSource'));
+      assert.equal(record.name, 'UpstreamHttpError');
+      assert.ok(record.stack.includes('PMTilesSource'));
       assert.equal(record.method, 'GET');
       assert.equal(record.path, prefix + resource);
       assert.equal(record.sourceUrl, sourceUrl);
@@ -65,7 +65,7 @@ test('mosaic manifest HTTP errors receive the same translation and logging', asy
   let status;
   const fetch = t.mock.method(globalThis, 'fetch', async url => {
     assert.equal(url, mosaic.url);
-    return new Response('Unavailable', { status });
+    return new Response('Unavailable', { status, headers: { 'Retry-After': '0' } });
   });
 
   for (const [upstreamStatus, clientStatus, clientMessage] of statusCases) {
@@ -75,7 +75,7 @@ test('mosaic manifest HTTP errors receive the same translation and logging', asy
     const response = await app.request(mosaicPrefix + 'tiles.json');
     assert.equal(response.status, clientStatus);
     assert.equal(await response.text(), clientMessage);
-    assert.equal(fetch.mock.callCount(), callsBefore + 1, 'mosaic failures must not trigger retries');
+    assert.equal(fetch.mock.callCount(), callsBefore + ([429, 503].includes(status) ? 3 : 1));
     assert.equal(logs.length, 1);
     const record = JSON.parse(logs[0][0]);
     assert.equal(record.upstreamStatus, upstreamStatus);
@@ -83,6 +83,34 @@ test('mosaic manifest HTTP errors receive the same translation and logging', asy
     assert.equal(record.sourceUrl, mosaic.url);
     assert.equal(record.path, mosaicPrefix + 'tiles.json');
   }
+});
+
+for (const resource of ['tiles.json', '0/0/0.pbf']) {
+  test(`${resource}: long rate limits reach clients as an uncached 503 with Retry-After`, async t => {
+    const { app, logs } = createApp();
+    const fetch = t.mock.method(globalThis, 'fetch', async () => new Response('limited', {
+      status: 429, headers: { 'Retry-After': '60' },
+    }));
+    const response = await app.request(prefix + resource);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get('Retry-After'), '60');
+    assert.equal(response.headers.get('Access-Control-Expose-Headers'), 'Retry-After');
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    assert.equal(fetch.mock.callCount(), 1, 'do not retry earlier than GitHub permits');
+    assert.equal(JSON.parse(logs[0][0]).retryAfter, '60');
+  });
+}
+
+test('mosaic manifest preserves Retry-After through error translation', async t => {
+  const [mosaicPrefix] = Object.entries(routes).find(([, route]) => route.handlertype === 'mosaic');
+  const { app } = createApp();
+  const fetch = t.mock.method(globalThis, 'fetch', async () => new Response('limited', {
+    status: 429, headers: { 'Retry-After': '60' },
+  }));
+  const response = await app.request(mosaicPrefix + 'tiles.json');
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get('Retry-After'), '60');
+  assert.equal(fetch.mock.callCount(), 1);
 });
 
 test('preserve a network error message even when its stack only contains frames', async t => {

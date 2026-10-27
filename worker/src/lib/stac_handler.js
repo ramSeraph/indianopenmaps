@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './request.js';
+
 class STACHandler {
   constructor(catalog, logger) {
     this.catalog = catalog;
@@ -322,7 +324,7 @@ class STACHandler {
   async readGeoparquet(url) {
     try {
       this.logger.info(`Fetching geoparquet from ${url}`);
-      const response = await fetch(url);
+      const response = await fetchWithRetry(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
       }

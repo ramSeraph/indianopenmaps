@@ -21,6 +21,7 @@ const files = new Map([
 let worker;
 let requests = [];
 let failNext = false;
+let rateLimitNext = false;
 
 before(async () => {
   const bundle = await build({
@@ -49,7 +50,11 @@ before(async () => {
       const name = new URL(request.url).pathname.split('/').at(-1);
       const bytes = files.get(name);
       requests.push({ name, range: request.headers.get('range') });
-      if (failNext) { failNext = false; return new Response('', { status: 503 }); }
+      if (failNext) { failNext = false; return new Response('', { status: 502 }); }
+      if (rateLimitNext) {
+        rateLimitNext = false;
+        return new Response('', { status: 429, headers: { 'Retry-After': '1' } });
+      }
       if (!bytes) return new Response('', { status: 404 });
       const match = /^bytes=(\d+)-(\d+)$/.exec(request.headers.get('range'));
       assert.ok(match, 'COGs must be read with Range requests');
@@ -128,6 +133,16 @@ test('failed header reads can retry and completed headers are reused', async () 
   requests = [];
   assert.equal((await get('/cog-info', 'retry.tif')).status, 200);
   assert.equal(requests.length, 0);
+});
+
+test('COG range reads recover from a rate limit through the shared request helper', async () => {
+  files.set('rate-limit.tif', files.get('plain.tif'));
+  requests = [];
+  rateLimitNext = true;
+  const response = await get('/cog-info', 'rate-limit.tif');
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).size.width, 512);
+  assert.deepEqual(requests[0], requests[1], 'retry the same byte range');
 });
 
 test('overlapping zoom requests survive cancellation and reuse completed ranges', { timeout: 15000 }, async () => {

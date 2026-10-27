@@ -6,6 +6,10 @@ import { SourceChunk } from '@chunkd/middleware';
 import { SourceView } from '@chunkd/source';
 import { SourceHttp } from '@chunkd/source-http';
 import { BadRequestError } from './errors.js';
+import { fetchWithRetry } from './request.js';
+
+// Use SourceHttp's supported fetch hook for both HEAD and range requests.
+SourceHttp.fetch = fetchWithRetry;
 
 // geotiff 0.9 parses GDAL's XML with DOMParser and querySelectorAll('Item').
 // Workers has neither DOM API; supply only the selector used by this pinned

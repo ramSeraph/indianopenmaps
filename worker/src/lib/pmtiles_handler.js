@@ -1,5 +1,6 @@
 import { PMTiles, ResolvedValueCache } from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
+import { PMTilesSource } from './pmtiles_source.js';
 
 // Cache resolved data only: pending I/O belongs to the request that started it.
 const sharedCache = new ResolvedValueCache(100, true);
@@ -20,7 +21,7 @@ class PMTilesHandler {
   }
 
   async init() {
-    const source = new PMTiles(this.url, sharedCache);
+    const source = new PMTiles(new PMTilesSource(this.url), sharedCache);
     const header = await source.getHeader();
     const metadata = await source.getMetadata();
     const mimeType = getMimeType(header.tileType);

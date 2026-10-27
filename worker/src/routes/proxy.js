@@ -1,4 +1,5 @@
 import proxyWhitelist from './proxy_whitelist.json' with { type: 'json' };
+import { fetchWithRetry } from '../lib/request.js';
 
 // Options to bypass Cloudflare cache for HEAD and Range requests
 const noCacheOptions = { cf: { cacheTtl: -1, cacheEverything: false } };
@@ -26,10 +27,16 @@ export function registerProxyRoutes(app, logger) {
       const rangeHeader = c.req.header('Range');
       const fetchOptions = rangeHeader ? { headers: { Range: rangeHeader }, ...noCacheOptions } : {};
       
-      const response = await fetch(url, fetchOptions);
+      const response = await fetchWithRetry(url, { ...fetchOptions, signal: c.req.raw.signal });
       
       if (!response.ok && response.status !== 206) {
-        return c.json({ error: `Upstream server returned ${response.status}` }, response.status);
+        const retryAfter = response.headers.get('Retry-After');
+        await response.body?.cancel();
+        return c.json({ error: `Upstream server returned ${response.status}` }, response.status, {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store',
+          ...(retryAfter ? { 'Retry-After': retryAfter, 'Access-Control-Expose-Headers': 'Retry-After' } : {}),
+        });
       }
 
       const responseHeaders = {
@@ -65,10 +72,15 @@ export function registerProxyRoutes(app, logger) {
     }
 
     try {
-      const response = await fetch(url, { method: 'HEAD', ...noCacheOptions });
+      const response = await fetchWithRetry(url, { method: 'HEAD', ...noCacheOptions, signal: c.req.raw.signal });
       
       if (!response.ok) {
-        return new Response(null, { status: response.status });
+        const retryAfter = response.headers.get('Retry-After');
+        return new Response(null, { status: response.status, headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store',
+          ...(retryAfter ? { 'Retry-After': retryAfter, 'Access-Control-Expose-Headers': 'Retry-After' } : {}),
+        } });
       }
 
       const headers = { 'Cache-Control': 'max-age=3600' };

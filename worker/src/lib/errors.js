@@ -42,3 +42,16 @@ export class ResourceUnavailableError extends HttpError {
     super(message, 424); // 424 Failed Dependency
   }
 }
+
+export class UpstreamHttpError extends HttpError {
+  constructor(response) {
+    const upstreamStatus = response.status;
+    // Upstream archive failures become gateway errors for Worker clients.
+    let statusCode = 502;
+    if (upstreamStatus === 429 || upstreamStatus === 503) statusCode = 503;
+    if (upstreamStatus === 408 || upstreamStatus === 504) statusCode = 504;
+    super(`Bad response code: ${upstreamStatus}`, statusCode);
+    this.upstreamStatus = upstreamStatus;
+    this.retryAfter = response.headers.get('Retry-After');
+  }
+}
