@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from click.testing import CliRunner
 
 from iomaps.cli import main_cli
@@ -27,6 +28,7 @@ def test_source_discovery_works_without_archive_commands(tmp_path):
 
 
 def test_remote_extraction_ui_still_selects_sources_and_closes(monkeypatch):
+    pytest.importorskip("PyQt5.QtWidgets", reason="Install iomaps[ui] to run UI tests")
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     from iomaps.commands.pyqt_ui import PyQtApp, QApplication
 

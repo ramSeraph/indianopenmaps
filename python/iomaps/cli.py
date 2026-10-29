@@ -2,7 +2,6 @@ import click
 
 from iomaps.commands.admin import admin
 from iomaps.commands.extract import extract
-from iomaps.commands.pyqt_ui import ui
 from iomaps.commands.search import search
 from iomaps.commands.sources import categories, sources
 
@@ -17,6 +16,21 @@ def main_cli():
 def cli():
     """CLI subcommands for Indianopenmaps"""
     pass
+
+
+@click.command("ui")
+def ui():
+    """Launch the optional PyQt UI (requires iomaps[ui])."""
+    try:
+        from iomaps.commands.pyqt_ui import main
+    except ModuleNotFoundError as exc:
+        if exc.name == "PyQt5" or (exc.name and exc.name.startswith("PyQt5.")):
+            raise click.ClickException(
+                'The UI requires PyQt5. Install it with pip install "iomaps[ui]", '
+                'or run uvx --from "iomaps[ui]" iomaps ui.'
+            ) from exc
+        raise
+    main()
 
 
 cli.add_command(extract)

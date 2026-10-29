@@ -26,6 +26,18 @@ The `iomaps` package is available on PyPI. You can install it using `pip` or `uv
         ```
         *Note: This step is not needed if you are using `uvx` to run commands, as `uvx` handles dependency management automatically.*
 
+The default installation includes the CLI and does not install or import Qt.
+For the graphical interface, install the `ui` extra:
+
+```bash
+pip install "iomaps[ui]"
+# From this checkout's python/ directory:
+uv sync --extra ui
+```
+
+Plain `uv sync` installs the headless CLI. To run the graphical tests, use
+`uv run --extra ui pytest`; CLI tests also run without the UI extra.
+
 ## Usage
 
 The `iomaps` package provides a command-line interface (CLI) with several subcommands.
@@ -80,6 +92,10 @@ are available for comparison. Spatial filtering uses the GeoParquet covering
 columns to prune row groups, followed by the exact geometry intersection.
 Intersecting features from every matching partition are retained in full.
 GDAL exports explicitly use longitude/easting before latitude/northing.
+
+Extraction uses two DuckDB threads and a 2 GB memory limit (about 1.8 GiB).
+Limiting concurrent Parquet readers avoids exhausting memory on large geometry
+row groups; disk spilling cannot replace all active decoding buffers.
 
 On two SOI sheets, DuckDB 2.0 returned the same features and coordinates as the
 earlier extraction. It needs no community HTTP extension. At the time of testing,
@@ -228,10 +244,12 @@ uvx iomaps cli source-categories
 ## Remote extraction UI
 
 `iomaps ui` opens a PyQt interface to select a remote source, optionally filter by
-bounding box, and export the matching features.
+bounding box, and export the matching features. Install the `ui` extra first.
+Qt is loaded only when this command launches; CLI and admin commands, including
+`iomaps ui --help`, work without it.
 
 ```bash
-uvx iomaps ui
+uvx --from "iomaps[ui]" iomaps ui
 ```
 
 The legacy `filter-7z` and `infer-schema` commands and their UI views have been
@@ -549,3 +567,13 @@ authenticated user for argument-based publication; a saved preview fixes the own
 
 Keep unrelated local changes out of deployment. Delhi and IILB have already been
 published; use only `--dry-run` when using their files to exercise the tooling.
+
+### Extract from downloaded Parquets
+
+Use `iomaps cli extract --parquet /path/data.parquet.meta.json -f index.geojson
+--pick-filter-feature-kv id=56M_9 -o contours.geojsonl` for a downloaded multipart
+dataset. Repeat `--parquet` for individual Parquets. This bypasses the remote
+catalog, retains bbox pruning and exact geometry intersections, and preserves
+complete matching geometries. The DuckDB spatial extension must be installed;
+HTTP extensions are not loaded for local inputs. Local inputs cannot be combined
+with `--source`, catalog options, or an HTTP client override.

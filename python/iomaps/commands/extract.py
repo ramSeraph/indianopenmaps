@@ -37,6 +37,7 @@ from iomaps.commands.sources import (
     resolve_source,
 )
 from iomaps.core.helpers import GEOPARQUET_VERSIONS
+from iomaps.core.local_parquet import local_parquet_paths
 from iomaps.core.source_assets import get_parquet_info_from_source as get_parquet_info_from_source
 from iomaps.core.spatial_filter import (
     get_shape_from_bounds,
@@ -54,19 +55,27 @@ GDAL_FORMATS = {
 }
 
 
-def get_duckdb_connection():
-    """Create a DuckDB connection with spatial and httpfs extensions."""
+def get_duckdb_connection(local_only=False):
+    """Create a connection; local inputs need only the spatial extension."""
     con = duckdb.connect()
-    con.execute("INSTALL spatial; LOAD spatial;")
-    con.execute("INSTALL httpfs; LOAD httpfs;")
+    try:
+        con.execute("LOAD spatial")
+    except duckdb.IOException:
+        con.execute("INSTALL spatial; LOAD spatial;")
+    if not local_only:
+        con.execute("INSTALL httpfs; LOAD httpfs;")
     settings = {row[0] for row in con.execute("SELECT name FROM duckdb_settings()").fetchall()}
     if "geometry_always_xy" in settings:
         # DuckDB 2.0 requires an explicit axis-order choice for GDAL export.
         # GeoParquet and our filter geometries use longitude/easting first.
         con.execute("SET geometry_always_xy = true")
-    con.execute("SET enable_server_cert_verification = true")
+    if not local_only:
+        con.execute("SET enable_server_cert_verification = true")
     # Limit memory usage for large operations
     con.execute("SET memory_limit = '2GB';")
+    # Concurrent Parquet readers need resident decode buffers; those cannot
+    # always spill. Two threads keep large geometry row groups within this cap.
+    con.execute("SET threads = 2;")
     con.execute("SET preserve_insertion_order = false;")
     con.execute("SET arrow_large_buffer_size = true;")
     return con
@@ -384,8 +393,14 @@ def write_parquet_output(con, query, output_path, geoparquet_version="1.1"):
 @click.option(
     "-s",
     "--source",
-    required=True,
-    help="Source to extract from. Can be a name, route (starting with /), or number from 'iomaps cli sources'.",
+    help="Remote source name, route or number. Mutually exclusive with --parquet.",
+)
+@click.option(
+    "--parquet",
+    "parquets",
+    multiple=True,
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    help="Local GeoParquet or .parquet.meta.json; repeat for multiple inputs. Skips the remote catalog.",
 )
 @click.option(
     "--http-client",
@@ -400,6 +415,7 @@ def write_parquet_output(con, query, output_path, geoparquet_version="1.1"):
 @add_filter_options
 def extract(
     source,
+    parquets,
     output_file,
     log_level,
     filter_file,
@@ -432,6 +448,11 @@ def extract(
     # Early check: validate output file format before doing any network calls
     effective_driver = validate_output_driver(output_file, output_driver)
 
+    if bool(source) == bool(parquets):
+        raise click.UsageError("Specify exactly one of --source or --parquet")
+    if parquets and (routes_file or routes_url or http_client != "default"):
+        raise click.UsageError("Local --parquet input cannot use catalog or HTTP options")
+
     # Validate mutually exclusive options
     if not validate_routes_options(routes_file, routes_url):
         logging.error("--routes-file and --routes-url are mutually exclusive.")
@@ -440,34 +461,35 @@ def extract(
     # Validate filter options
     validate_filter_options(filter_file, bounds)
 
-    # Fetch available vector sources
-    logging.info("Fetching available sources...")
-    vector_sources = get_vector_sources(routes_url=routes_url, routes_file=routes_file)
+    if not parquets:
+        # Fetch available vector sources
+        logging.info("Fetching available sources...")
+        vector_sources = get_vector_sources(routes_url=routes_url, routes_file=routes_file)
 
-    if vector_sources is None:
-        logging.error("Failed to fetch sources. Aborting.")
-        return
+        if vector_sources is None:
+            logging.error("Failed to fetch sources. Aborting.")
+            return
 
-    logging.info(f"Found {len(vector_sources)} available sources")
+        logging.info(f"Found {len(vector_sources)} available sources")
 
-    # Resolve requested source and get parquet info
-    source_config = resolve_source(source, vector_sources)
+        # Resolve requested source and get parquet info
+        source_config = resolve_source(source, vector_sources)
 
-    if source_config is None:
-        logging.info("Run 'iomaps cli sources' to see available sources.")
-        return
+        if source_config is None:
+            logging.info("Run 'iomaps cli sources' to see available sources.")
+            return
 
-    parquet_info = get_parquet_info_from_source(source_config)
+        parquet_info = get_parquet_info_from_source(source_config)
 
-    if parquet_info is None:
+        if parquet_info is None:
+            source_name = source_config.get("name", source)
+            logging.error(f"Could not determine parquet URL for source '{source_name}'")
+            return
+
         source_name = source_config.get("name", source)
-        logging.error(f"Could not determine parquet URL for source '{source_name}'")
-        return
-
-    source_name = source_config.get("name", source)
-    logging.info(f"Resolved source '{source}' ({source_name}) to {parquet_info['base_url']}")
-    if parquet_info["is_partitioned"]:
-        logging.info(f"  Source is partitioned, meta: {parquet_info['meta_url']}")
+        logging.info(f"Resolved source '{source}' ({source_name}) to {parquet_info['base_url']}")
+        if parquet_info["is_partitioned"]:
+            logging.info(f"  Source is partitioned, meta: {parquet_info['meta_url']}")
 
     # Get filter shape (needed for partition filtering and spatial query)
     filter_shape = None
@@ -488,7 +510,15 @@ def extract(
     # Collect parquet URLs
     parquet_urls = []
 
-    if parquet_info["is_partitioned"]:
+    if parquets:
+        try:
+            parquet_urls = local_parquet_paths(parquets, filter_shape)
+        except (ValueError, OSError) as exc:
+            raise click.ClickException(str(exc)) from exc
+        if not parquet_urls:
+            raise click.ClickException("No local partitions intersect the filter")
+        logging.info("Reading %d local Parquet files", len(parquet_urls))
+    elif parquet_info["is_partitioned"]:
         # Fetch metadata for partitions
         partition_metadata = fetch_partition_metadata(parquet_info["meta_url"])
         if partition_metadata is None:
@@ -506,7 +536,7 @@ def extract(
         parquet_urls.append(parquet_info["base_url"])
 
     # Create DuckDB connection and execute
-    con = get_duckdb_connection()
+    con = get_duckdb_connection(local_only=True) if parquets else get_duckdb_connection()
 
     try:
         if http_client != "default":

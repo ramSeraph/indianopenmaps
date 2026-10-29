@@ -704,7 +704,6 @@ dependencies = [
     { name = "numpy" },
     { name = "pillow" },
     { name = "platformdirs" },
-    { name = "pyqt5" },
     { name = "requests" },
     { name = "rich" },
     { name = "shapely" },
@@ -716,6 +715,9 @@ admin = [
     { name = "pygithub" },
     { name = "pyproj" },
     { name = "questionary" },
+]
+ui = [
+    { name = "pyqt5" },
 ]
 
 [package.dev-dependencies]
@@ -737,13 +739,13 @@ requires-dist = [
     { name = "pyarrow", marker = "extra == 'admin'", specifier = ">=18.0.0" },
     { name = "pygithub", marker = "extra == 'admin'", specifier = ">=2.8.0" },
     { name = "pyproj", marker = "extra == 'admin'", specifier = ">=3.7.0" },
-    { name = "pyqt5", specifier = ">=5.15.0" },
+    { name = "pyqt5", marker = "extra == 'ui'", specifier = ">=5.15.0" },
     { name = "questionary", marker = "extra == 'admin'", specifier = ">=2.1.0" },
     { name = "requests", specifier = ">=2.31.0" },
     { name = "rich", specifier = ">=13.0.0" },
     { name = "shapely", specifier = ">=2.1.2" },
 ]
-provides-extras = ["admin"]
+provides-extras = ["admin", "ui"]
 
 [package.metadata.requires-dev]
 dev = [
