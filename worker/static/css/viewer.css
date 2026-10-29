@@ -828,6 +828,20 @@ body { margin:0; padding:0; }
   background: #f5f5f5;
   color: #999;
 }
+.partial-memory-control {
+  margin-bottom: 10px;
+}
+.partial-memory-control > summary {
+  cursor: pointer;
+  font: 11px 'Open Sans', sans-serif;
+  color: #666;
+}
+.partial-memory-control[open] > summary {
+  margin-bottom: 8px;
+}
+.partial-memory-control .partial-format-row {
+  margin-bottom: 0;
+}
 .partial-memory-slider {
   flex: 1;
   cursor: pointer;

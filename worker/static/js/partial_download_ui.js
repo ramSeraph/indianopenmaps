@@ -3,7 +3,10 @@ import {
   GeoParquetExtractor,
   formatSize, getStorageEstimate,
 } from 'geoparquet-extractor';
-import { bootstrapDuckDB } from './utils.js';
+import {
+  bootstrapDuckDB,
+  chooseDuckDBMemoryLimitMB,
+} from './utils.js';
 import { sourceResolver } from './iom_metadata_provider.js';
 
 const FORMAT_OPTIONS = [
@@ -12,6 +15,7 @@ const FORMAT_OPTIONS = [
   { value: 'geojsonseq', label: 'GeoJSONSeq (.geojsonl)' },
   { value: 'geoparquet', label: 'GeoParquet (v1.1)' },
   { value: 'geoparquet2', label: 'GeoParquet (v2.0)' },
+  { value: 'flatgeobuf', label: 'FlatGeobuf (.fgb)' },
   { value: 'csv', label: 'CSV (WKT geometry)' },
   { value: 'shapefile', label: 'Shapefile (.shp)' },
   { value: 'kml', label: 'KML (.kml)' },
@@ -20,17 +24,12 @@ const FORMAT_OPTIONS = [
 
 // Memory slider constants
 const MEMORY_STEP = 128;
-const MEMORY_MIN_MB = 512;
+const MEMORY_SLIDER_MIN_MB = MEMORY_STEP;
 
-function getDeviceMaxMemoryMB() {
-  const deviceMemGB = navigator.deviceMemory || 4;
-  return Math.max(MEMORY_MIN_MB, Math.floor(deviceMemGB * 1024 * 0.75 / MEMORY_STEP) * MEMORY_STEP);
-}
-
-function getDefaultMemoryLimitMB() {
-  const deviceMemGB = navigator.deviceMemory || 4;
-  const halfMB = Math.floor(deviceMemGB * 1024 * 0.5 / MEMORY_STEP) * MEMORY_STEP;
-  return Math.max(MEMORY_MIN_MB, Math.min(halfMB, getDeviceMaxMemoryMB()));
+function getMemorySliderMaxMB() {
+  const ramGB = navigator.deviceMemory ?? 4;
+  const roundedMB = Math.floor(ramGB * 1024 / MEMORY_STEP) * MEMORY_STEP;
+  return Math.max(chooseDuckDBMemoryLimitMB(), roundedMB);
 }
 
 // Derive gpkg worker URL from the library's import map entry.
@@ -328,20 +327,23 @@ export class PartialDownloadUI {
   }
 
   _createMemoryRow() {
+    const details = document.createElement('details');
+    details.className = 'partial-memory-control';
+
+    const summary = document.createElement('summary');
+    summary.append('Memory limit: ');
+
     const memRow = document.createElement('div');
     memRow.className = 'partial-format-row';
-
-    const memLabel = document.createElement('label');
-    memLabel.className = 'partial-format-label';
-    memLabel.textContent = 'Memory:';
 
     this.memorySlider = document.createElement('input');
     this.memorySlider.type = 'range';
     this.memorySlider.className = 'partial-memory-slider';
-    this.memorySlider.min = String(MEMORY_MIN_MB);
+    this.memorySlider.setAttribute('aria-label', 'Memory limit');
+    this.memorySlider.min = String(MEMORY_SLIDER_MIN_MB);
     this.memorySlider.step = String(MEMORY_STEP);
-    this.memorySlider.max = String(getDeviceMaxMemoryMB());
-    this.memorySlider.value = String(getDefaultMemoryLimitMB());
+    this.memorySlider.max = String(getMemorySliderMaxMB());
+    this.memorySlider.value = String(chooseDuckDBMemoryLimitMB());
 
     this.memoryValue = document.createElement('span');
     this.memoryValue.className = 'partial-memory-value';
@@ -351,10 +353,11 @@ export class PartialDownloadUI {
       this.memoryValue.textContent = formatMemory(parseInt(this.memorySlider.value));
     });
 
-    memRow.appendChild(memLabel);
+    summary.appendChild(this.memoryValue);
     memRow.appendChild(this.memorySlider);
-    memRow.appendChild(this.memoryValue);
-    return memRow;
+    details.appendChild(summary);
+    details.appendChild(memRow);
+    return details;
   }
 
   _createButtonsRow() {
