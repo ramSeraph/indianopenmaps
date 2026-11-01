@@ -46,7 +46,7 @@ for (const retryAfter of ['2', 'Wed, 28 Oct 2026 10:00:02 GMT']) {
   });
 }
 
-for (const status of [429, 503]) {
+for (const status of [429, 503, 522]) {
   test(`${status} without a usable Retry-After uses bounded exponential backoff`, async t => {
     t.mock.timers.enable({ apis: ['setTimeout'] });
     const responses = [];
@@ -110,13 +110,13 @@ test('the waiting budget covers all retries combined', async t => {
 
 test('only GET and HEAD retry, and unrelated HTTP errors pass through', async t => {
   for (const method of ['GET', 'HEAD', 'POST', 'PUT', 'DELETE']) {
-    for (const status of [206, 401, 403, 404, 416, 429, 500, 503]) {
+    for (const status of [206, 401, 403, 404, 416, 429, 500, 503, 522]) {
       const fetch = t.mock.method(globalThis, 'fetch', async () => new Response(null, {
         status, headers: { 'Retry-After': '0' },
       }));
       const response = await fetchWithRetry(url, { method });
       assert.equal(response.status, status);
-      const retry = ['GET', 'HEAD'].includes(method) && [429, 503].includes(status);
+      const retry = ['GET', 'HEAD'].includes(method) && [429, 503, 522].includes(status);
       assert.equal(fetch.mock.callCount(), retry ? 3 : 1, `${method} ${status}`);
       fetch.mock.restore();
     }

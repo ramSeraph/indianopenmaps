@@ -4,7 +4,7 @@ import { CacheMissError, UpstreamHttpError } from './errors.js';
 const MAX_RETRIES = 2;
 const MAX_RETRY_WAIT_MS = 10_000;
 const INITIAL_RETRY_WAIT_MS = 1_000;
-const RETRYABLE_STATUSES = new Set([429, 503]);
+const RETRYABLE_STATUSES = new Set([429, 503, 522]);
 // Scope cache probes to one async operation; concurrent requests can still fetch.
 const cacheOnly = new AsyncLocalStorage();
 

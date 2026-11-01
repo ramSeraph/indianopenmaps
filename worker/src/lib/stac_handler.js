@@ -182,9 +182,23 @@ class STACHandler {
 
   async readGeoparquet(url) {
     try {
-      const response = await fetchWithRetry(url);
+      // Keep validated index bytes at the edge after the small decoded-item cache
+      // evicts a collection. Cache final bytes, never GitHub's expiring redirects.
+      // Open per request: pending Cache API operations cannot cross requests.
+      let cache, response;
+      try {
+        cache = await globalThis.caches?.open('stac-index-v1');
+        response = await cache?.match(url);
+      } catch (error) {
+        this.logger.error(`STAC index cache read failed: ${error.message}`);
+      }
+      const cached = Boolean(response);
+      response ||= await fetchWithRetry(url);
       if (!response.ok) throw new Error(`Index fetch returned HTTP ${response.status}`);
-      if (Number(response.headers.get('content-length')) > DOWNLOAD_BYTES) throw new Error('STAC index exceeds 16 MiB');
+      if (Number(response.headers.get('content-length')) > DOWNLOAD_BYTES) {
+        await response.body?.cancel();
+        throw new Error('STAC index exceeds 16 MiB');
+      }
       const chunks = []; let length = 0;
       for await (const chunk of response.body) {
         length += chunk.length;
@@ -196,6 +210,16 @@ class STACHandler {
       let items;
       await this.parquetRead({ file: file.buffer, rowFormat: 'object', utf8: false, onComplete: rows => { items = rows.map(rowToItem); } });
       if (!items || new Set(items.map(i => i.id)).size !== items.length) throw new Error('Invalid or duplicate STAC item IDs');
+      if (cache && !cached) {
+        try {
+          // Published indexes use a new URL when content changes.
+          await cache.put(url, new Response(file, { headers: {
+            'Content-Type': 'application/vnd.apache.parquet', 'Cache-Control': 'public, max-age=86400',
+          } }));
+        } catch (error) {
+          this.logger.error(`STAC index cache write failed: ${error.message}`);
+        }
+      }
       return items;
     } catch (error) {
       this.logger.error(`Cannot read STAC index ${url}: ${error.message}`);
