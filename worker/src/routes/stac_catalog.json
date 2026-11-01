@@ -67,6 +67,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./india-topo-25k-nhp",
+      "title": "SOI Flood Risk Area Maps 25k",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-nhp-georef/SOI_NHP_25k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "india-topo-25k-nhp",
+        "stac_version": "1.1.0",
+        "description": "Survey of India 1:25,000 Flood Risk Area Maps for the National Hydrology Project. Georeferenced map sheets with original scans. Item datetime is the publication date of the georeferenced collection; survey and imagery dates are unknown.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://onlinemaps.surveyofindia.gov.in/Digital_Product_Show.aspx",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced collection, not survey or imagery acquisition.",
+        "item_count": 4582,
+        "title": "SOI Flood Risk Area Maps 25k",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                72.125,
+                14.375,
+                97.25,
+                35.25
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-09-14T09:10:07Z",
+                "2025-09-14T09:10:07Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "SOI_NHP_25k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
