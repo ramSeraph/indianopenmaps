@@ -862,6 +862,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-soviet-500k",
+      "title": "Soviet Genshtab 500k Topographic Maps",
+      "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/500k-gs-georef/Soviet_GS_500k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-soviet-500k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Soviet General Staff topographic maps at the 500k scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date. The index is reconciled against the current GitHub release assets.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/russian_world_topo_maps/releases/tag/500k-gs-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 2274,
+        "title": "Soviet Genshtab 500k Topographic Maps",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -179.9969,
+                -55.9994409,
+                180,
+                82.0011964
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-10-15T09:30:56Z",
+                "2025-10-15T09:30:56Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Soviet_GS_500k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
