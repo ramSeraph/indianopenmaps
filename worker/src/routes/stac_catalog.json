@@ -502,8 +502,9 @@
       "rel": "child",
       "type": "application/json",
       "href": "./world-topo-american-tpc",
-      "title": "Tactical Pilotage Charts",
+      "title": "Tactical Pilotage Charts 500k",
       "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/tpc-georef/TPC.stac.parquet",
+      "geoparquet_sha256": "b4ef885cf61ff7707f144a10d3a1db5a8e46b43422bf57650fbb79815612d776",
       "collection": {
         "type": "Collection",
         "id": "world-topo-american-tpc",
@@ -518,7 +519,7 @@
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
         "item_count": 665,
-        "title": "Tactical Pilotage Charts",
+        "title": "Tactical Pilotage Charts 500k",
         "extent": {
           "spatial": {
             "bbox": [
