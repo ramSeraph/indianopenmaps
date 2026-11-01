@@ -102,7 +102,11 @@ matching hashes, then still updates notes and commits/pushes routes.
 Publication is not atomic. After interruption, rerun the same `--plan` with the
 same receipt path. Matching assets are verified and skipped, notes are replaced
 within stable dataset boundaries, and a recorded unpushed route commit can be
-retried. Differing assets are never overwritten. An incomplete remote asset or
+retried. Differing assets are not overwritten by default. For an authorized STAC
+index update, retain its existing filename and use `--replace-asset NAME OLD_SHA256`
+in the saved preview for the index and sidecar. The publisher checks the old hash,
+replaces the file, verifies the new hash, and updates the catalog cache revision.
+Do not accumulate versioned STAC assets for routine index updates. An incomplete remote asset or
 conflicting local work needs inspection. If intentionally changing a reviewed
 plan after an attempt, review it again and use a new `--receipt` path.
 

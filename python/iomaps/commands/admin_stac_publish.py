@@ -44,6 +44,15 @@ def validate_entry(plan, names, prefix):
         raise ValueError("incomplete STAC collection metadata")
     if entry["rel"] != "child" or entry["geoparquet"] not in {prefix + n for n in names if n.endswith(".parquet")}:
         raise ValueError("STAC index must reference a planned Parquet asset")
+    index = next(a for a in plan["uploads"] if prefix + a["name"] == entry["geoparquet"])
+    if "geoparquet_sha256" in entry and entry["geoparquet_sha256"] != index["sha256"]:
+        raise ValueError("STAC cache revision must match the index SHA-256")
+    for asset in plan["uploads"]:
+        if "replaces_sha256" in asset and asset["name"] not in (
+            index["name"],
+            Path(index["name"]).with_suffix(".collection.json").name,
+        ):
+            raise ValueError("only the STAC index and collection sidecar can be replaced")
     sample = plan["stac_sample"]
     if not isinstance(sample["count"], int) or sample["count"] <= 0 or not sample["ids"] or len(sample["bbox"]) != 4:
         raise ValueError("invalid STAC verification sample")
@@ -51,7 +60,9 @@ def validate_entry(plan, names, prefix):
         raise ValueError("STAC count differs from the verification sample")
 
 
-def build_stac_plan(*, owner, repo, release, index, collection_path, license_md, notes_md=None, skip_uploads=False):
+def build_stac_plan(
+    *, owner, repo, release, index, collection_path, license_md, notes_md=None, skip_uploads=False, replacements=()
+):
     from .admin_publish import PLAN_VERSION, describe_asset, validate_plan, wrap_release_notes
 
     index, collection_path = Path(index).resolve(), Path(collection_path).resolve()
@@ -68,12 +79,23 @@ def build_stac_plan(*, owner, repo, release, index, collection_path, license_md,
     collection_id = collection["id"]
     route = f"/stac/collections/{collection_id}/"
     prefix = f"https://github.com/{owner}/{repo}/releases/download/{release}/"
+    uploads = [describe_asset(index), describe_asset(collection_path)]
+    replacements = list(replacements)
+    if len(dict(replacements)) != len(replacements):
+        raise click.UsageError("duplicate --replace-asset name")
+    replacement_hashes = dict(replacements)
+    if replacement_hashes.keys() - {a["name"] for a in uploads}:
+        raise click.UsageError("--replace-asset must name the planned STAC index or collection sidecar")
+    for asset in uploads:
+        if asset["name"] in replacement_hashes:
+            asset["replaces_sha256"] = replacement_hashes[asset["name"]]
     entry = {
         "rel": "child",
         "type": "application/json",
         "href": f"./{collection_id}",
         "title": collection["title"],
         "geoparquet": prefix + index.name,
+        "geoparquet_sha256": uploads[0]["sha256"],
         "collection": collection,
     }
     bbox = rows[0]["bbox"]
@@ -96,7 +118,7 @@ def build_stac_plan(*, owner, repo, release, index, collection_path, license_md,
         "dry_run": True,
         "data_repository": f"{owner}/{repo}",
         "release": release,
-        "uploads": [describe_asset(index), describe_asset(collection_path)],
+        "uploads": uploads,
         "skip_uploads": skip_uploads,
         "route_repository": f"{owner}/indianopenmaps",
         "route_branch": "main",

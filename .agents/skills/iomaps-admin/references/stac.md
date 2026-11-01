@@ -85,9 +85,8 @@ metadata is also embedded in the Parquet. Item geometry is WGS84 while projectio
 fields describe the actual raster. COGs and ordinary GeoTIFFs are labelled from
 their headers. Dates and source properties retain their stated meanings.
 The current generator writes Snappy-compressed row groups of at most 512 items
-and Parquet page indexes to support bounded remote reads. Do not rewrite an
-already-published index in place to change its layout: use a new basename and
-regenerate the saved publication plan and hashes.
+and Parquet page indexes to support bounded remote reads. Keep the published index and sidecar filenames when updating a collection.
+Regenerate the saved publication plan with the replacement hashes as described below.
 
 ## Publish the saved preview
 
@@ -112,9 +111,14 @@ reconciliation, missing originals or footprint substitutions. Once publication
 is authorized, execute that plan without another confirmation. The publisher
 uploads index/sidecar, updates its release-note section, commits and pushes only
 `worker/src/routes/stac_catalog.json`, and verifies GitHub plus deployment.
-Publish catalog mutations sequentially in a shared checkout. Existing differing
-release assets are not overwritten; choose a new index basename when replacing
-published content. Phase/resume rules are the same as other dataset releases.
+Publish catalog mutations sequentially in a shared checkout. For an authorized in-place update, pass
+`--replace-asset NAME OLD_SHA256` for each index/sidecar in the dry-run command.
+Use the verified current hash from the previous receipt or GitHub asset digest.
+The saved plan records old and new hashes; the publisher refuses unexpected
+contents, deletes/uploads the named asset and verifies the replacement. There
+can be a brief unavailable interval. Retry the same plan/receipt after an
+interruption. Do not create versioned assets for routine index updates. The
+catalog carries a new hash for Worker cache isolation; public URLs stay stable. Phase/resume rules are the same as other dataset releases.
 
 Check the receipt for `published and verified live`, including counts, sample
 and late item IDs, bbox search and release asset URLs. Preparation alone is not

@@ -56,6 +56,7 @@ def release_api(git_checkout):
         assert name not in assets, "Attempted duplicate upload"
         data = Path(path).read_bytes()
         asset = SimpleNamespace(
+            id=name,
             name=name,
             state="uploaded",
             size=len(data),
@@ -63,12 +64,14 @@ def release_api(git_checkout):
             browser_download_url=f"https://github.com/example/{name}",
         )
         assets[name] = asset
+        asset.delete_asset = Mock(side_effect=lambda: assets.pop(name))
         return asset
 
     release.upload_asset.side_effect = upload
     release.update_release.side_effect = lambda name, body: setattr(release, "body", body)
     data_repo = Mock()
     data_repo.get_release.return_value = release
+    data_repo.get_release_asset.side_effect = lambda asset_id: assets[asset_id]
     code_repo = Mock()
     remote = git(git_checkout, "remote", "get-url", "origin")
     code_repo.get_contents.side_effect = lambda path, ref: SimpleNamespace(

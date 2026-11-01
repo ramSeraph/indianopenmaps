@@ -360,6 +360,13 @@ class DynamicReleaseOption(click.Option):
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Prepared STAC collection JSON; --base-file is its GeoParquet index",
 )
+@click.option(
+    "--replace-asset",
+    multiple=True,
+    nargs=2,
+    metavar="NAME OLD_SHA256",
+    help="Replace a STAC index/sidecar in place only if its current SHA-256 matches; repeat for each asset",
+)
 @click.option("--description", type=str, help="description")
 @click.option("--source", type=str, help="source")
 @click.option("--source-url", type=str, help="source url")
@@ -401,6 +408,7 @@ def make_release(
     release,
     base_file,
     stac_collection,
+    replace_asset,
     description,
     source,
     source_url,
@@ -423,6 +431,7 @@ def make_release(
             "release",
             "base_file",
             "stac_collection",
+            "replace_asset",
             "description",
             "source",
             "source_url",
@@ -471,6 +480,7 @@ def make_release(
             (
                 base_file,
                 stac_collection,
+                replace_asset,
                 route,
                 description,
                 source,
@@ -522,6 +532,7 @@ def make_release(
             license_md=license_md,
             notes_md=resolve_text_option(notes_str, notes_file),
             skip_uploads=no_uploads,
+            replacements=replace_asset,
         )
         if dry_run:
             click.echo(json.dumps(plan, indent=2))
@@ -531,6 +542,8 @@ def make_release(
             plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout, phase=phase
         )
         return
+    if replace_asset:
+        raise click.UsageError("--replace-asset requires --stac-collection")
     if base_file is None:
         raise click.UsageError("--base-file is required")
     for option, value in (("description", description), ("source", source), ("source-url", source_url)):

@@ -1,6 +1,7 @@
 import { parquetMetadataAsync, parquetRead, parquetSchema } from 'hyparquet';
 import { fetchWithRetry } from './request.js';
 import { sharedRangeCache } from './range_cache.js';
+import { etagMismatch, strongEtag } from './http_etag.js';
 
 const SEARCH_COLUMNS = ['id', 'bbox', 'geometry', 'datetime', 'start_datetime', 'end_datetime', 'properties'];
 const MAX_INDEX_BYTES = 256 * 1024 * 1024;
@@ -31,15 +32,18 @@ export class STACParquet {
   }
 
   async open(url, state) {
-    let cached = this.metadataCache.get(url);
+    const cacheUrl = state.cacheUrl;
+    let cached = this.metadataCache.get(cacheUrl);
     if (cached && Date.now() - cached.created >= 300_000) {
-      this.metadataCache.delete(url); cached = undefined;
+      this.metadataCache.delete(cacheUrl); cached = undefined;
     }
     let byteLength = cached?.byteLength;
+    let etag = cached?.etag;
     if (byteLength === undefined) {
       const response = await fetchWithRetry(url, { method: 'HEAD' });
       if (!response.ok) throw new Error(`Index HEAD returned HTTP ${response.status}`);
       byteLength = Number(response.headers.get('content-length'));
+      etag = strongEtag(response.headers);
       if (!Number.isSafeInteger(byteLength) || byteLength < 8 || byteLength > MAX_INDEX_BYTES) throw new Error('Invalid index length');
     }
     let edge;
@@ -47,13 +51,16 @@ export class STACParquet {
     catch (error) { this.logger.error(`STAC range cache unavailable: ${error.message}`); }
     state.edge = edge;
     const reader = this.rangeCache.forRequest();
-    const source = { url: new URL(url) };
+    // Public URLs stay stable; the catalog content hash separates cached revisions.
+    const source = { url: new URL(cacheUrl) };
+    if (etag) source.url.searchParams.set('iomaps-stac-etag', etag);
+    state.rangeUrl = source.url.href;
     const file = { byteLength, slice: async (start, end = byteLength) => {
       if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end <= start || end > byteLength || end - start > MAX_RANGE_BYTES) {
         throw new Error('Invalid or oversized index byte range');
       }
       const bytes = await reader.fetch({ source, offset: start, length: end - start }, async () => {
-        const key = new URL(url);
+        const key = new URL(source.url);
         key.searchParams.set('iomaps-stac-range', `${start}-${end}`);
         state.keys.add(key.href);
         let hit;
@@ -65,6 +72,10 @@ export class STACParquet {
         if (response.status !== 206 || contentRange !== `bytes ${start}-${end - 1}/${byteLength}`) {
           await response.body?.cancel();
           throw new Error(`Invalid index range response: HTTP ${response.status}, ${contentRange}`);
+        }
+        if (etagMismatch(etag, strongEtag(response.headers), { requireReceived: true })) {
+          await response.body?.cancel();
+          throw new Error('Index changed during range read');
         }
         const result = await readBytes(response, end - start);
         // Write to the edge cache only after Parquet decoding succeeds.
@@ -83,17 +94,19 @@ export class STACParquet {
           const oldest = this.metadataCache.keys().next().value;
           total -= this.metadataCache.get(oldest).bytes; this.metadataCache.delete(oldest);
         }
-        this.metadataCache.set(url, { metadata, byteLength, bytes, created: Date.now() });
+        this.metadataCache.set(cacheUrl, { metadata, byteLength, etag, bytes, created: Date.now() });
       }
     } else {
-      this.metadataCache.delete(url); this.metadataCache.set(url, cached);
+      this.metadataCache.delete(cacheUrl); this.metadataCache.set(cacheUrl, cached);
     }
     return { file, metadata };
   }
 
-  async read(url, { searchOnly = false, rowStart, rowEnd, positions } = {}) {
+  async read(url, { searchOnly = false, rowStart, rowEnd, positions, revision } = {}) {
     if (positions?.length === 0) return [];
-    const state = { keys: new Set(), downloads: new Map() };
+    const cacheUrl = new URL(url);
+    if (revision) cacheUrl.searchParams.set('iomaps-stac-revision', revision);
+    const state = { keys: new Set(), downloads: new Map(), cacheUrl: cacheUrl.href };
     try {
       const { file, metadata } = await this.open(url, state);
       const names = parquetSchema(metadata).children.map(c => c.element.name);
@@ -122,8 +135,8 @@ export class STACParquet {
       }
       return rows;
     } catch (error) {
-      this.metadataCache.delete(url);
-      this.rangeCache.invalidate(url);
+      this.metadataCache.delete(state.cacheUrl);
+      this.rangeCache.invalidate(state.rangeUrl || state.cacheUrl);
       for (const key of state.keys) {
         try { await state.edge?.delete(key); }
         catch (cacheError) { this.logger.error(`STAC range cache invalidation failed: ${cacheError.message}`); }

@@ -40,6 +40,9 @@ search records and 2 MiB of footer metadata. STAC and COG reads share a 32 MiB
 cache of completed byte ranges; validated STAC ranges also use the edge cache.
 Pending network operations remain request-local. Failed, truncated or ignored
 range responses are rejected and invalidated so later requests can retry.
+STAC updates retain their release filenames and public URLs. The catalog's index
+SHA-256 separates cached revisions, and range ETags must match the header read
+when provided, preventing a replacement from mixing different file contents.
 
 New `iomaps admin stac` indexes use at most 512 records per row group and include
 page indexes. Hyparquet 1.25 has a dictionary-decoding problem in its optional

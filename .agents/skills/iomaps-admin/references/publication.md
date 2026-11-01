@@ -75,8 +75,10 @@ this workflow. Existing authorization persists; do not ask for it again.
 live checks, so that run alone does not establish that the dataset is live.
 
 Inspect the generated receipt. After interruption, retry the same plan and receipt:
-matching assets are verified and skipped, while differing assets are never
-overwritten. Inspect conflicts rather than deleting/replacing remote assets.
+matching assets are verified and skipped. Differing assets are not overwritten
+by default. Authorized STAC index/sidecar updates retain their filenames using
+`--replace-asset NAME OLD_SHA256` in the saved preview; see [stac.md](stac.md).
+Other conflicts require inspection rather than deleting/replacing remote assets.
 For server-side assets and local route commits, use the existing `--phase assets`
 and `--phase routes`; only the exact plan and receipt need to travel between hosts.
 Ready-file batches use the existing `--phase uploads` workflow in the README.

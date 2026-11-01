@@ -55,6 +55,13 @@ def validate_assets(plan, check_files=True):
             raise ValueError(f"invalid SHA-256: {name}")
         if not isinstance(asset.get("remote_only", False), bool):
             raise ValueError(f"invalid remote_only flag: {name}")
+        if "replaces_sha256" in asset:
+            if plan.get("kind") != "stac" or asset.get("remote_only") or plan.get("skip_uploads"):
+                raise ValueError("asset replacement requires a local STAC index/sidecar and enabled uploads")
+            if not isinstance(asset["replaces_sha256"], str) or not re.fullmatch(
+                r"[0-9a-f]{64}", asset["replaces_sha256"]
+            ):
+                raise ValueError(f"invalid replacement SHA-256: {name}")
         if check_files and not asset.get("remote_only"):
             if path.stat().st_size != asset["bytes"] or file_digest(path) != asset["sha256"]:
                 raise ValueError(f"asset changed since preview: {name}; generate and review a new preview")
@@ -342,10 +349,18 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
         data_repo = api.get_repo(plan["data_repository"])
         release = data_repo.get_release(plan["release"])
         existing = release_assets(release)
+        replacements = set()
         # Inspect every existing asset and notes section before the first write.
         for asset in plan["uploads"]:
             if asset["name"] in existing:
-                verify_asset(existing[asset["name"]], asset)
+                remote = existing[asset["name"]]
+                try:
+                    verify_asset(remote, asset)
+                except click.ClickException:
+                    if "replaces_sha256" not in asset or phase == "routes":
+                        raise
+                    verify_asset(remote, {**asset, "bytes": remote.size, "sha256": asset["replaces_sha256"]})
+                    replacements.add(asset["name"])
             elif plan.get("skip_uploads") or phase == "routes" or asset.get("remote_only"):
                 raise click.ClickException(f"This phase requires an already uploaded asset: {asset['name']}")
             elif phase == "uploads":
@@ -358,6 +373,15 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
             receipt.update(stage="assets", release_url=release.html_url)
             save()
             for asset in plan["uploads"]:
+                if asset["name"] in replacements:
+                    # Recheck immediately before deletion; a changed asset needs a new plan.
+                    remote = data_repo.get_release_asset(existing[asset["name"]].id)
+                    verify_asset(remote, {**asset, "bytes": remote.size, "sha256": asset["replaces_sha256"]})
+                    receipt.setdefault("replaced_assets", {})[asset["name"]] = asset["replaces_sha256"]
+                    save()
+                    click.echo(f"Replacing verified asset in place: {asset['name']}")
+                    remote.delete_asset()
+                    del existing[asset["name"]]
                 if asset["name"] in existing:
                     click.echo(f"Verified existing asset: {asset['name']}")
                 else:

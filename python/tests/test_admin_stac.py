@@ -146,7 +146,7 @@ def test_reuse_requires_the_same_asset_url_and_can_be_bypassed(prepared_index, m
     reader.assert_called_once()
 
 
-def make_plan(options):
+def make_plan(options, **kwargs):
     return build_stac_plan(
         owner="ramSeraph",
         repo="indian_land_features",
@@ -154,6 +154,7 @@ def make_plan(options):
         index=options["output"],
         collection_path=options["output"].with_suffix(".collection.json"),
         license_md="License not specified by source.",
+        **kwargs,
     )
 
 
@@ -197,3 +198,84 @@ def test_stac_plan_rejects_changed_assets_and_invalid_notes(prepared_index):
     prepared_index["output"].write_bytes(b"changed")
     with pytest.raises(click.ClickException, match="changed since preview"):
         admin_publish.validate_plan(plan)
+
+
+@pytest.mark.parametrize("interrupt", [False, True])
+def test_stac_replacement_checks_old_hash_and_resumes_after_delete(prepared_index, release_api, tmp_path, interrupt):
+    api, release = release_api
+    old = make_plan(prepared_index)
+    admin_publish.publish_plan(old, api, tmp_path, tmp_path / "old.json", phase="assets")
+    originals = {a.name: a for a in release.get_assets()}
+    options = {**prepared_index, "title": "Corrected title"}
+    admin_stac.prepare_stac(**options)
+    plan = make_plan(options, replacements=[(a["name"], a["sha256"]) for a in old["uploads"]])
+    entry = next(iter(plan["route_entry"].values()))
+    assert entry["geoparquet"] == next(iter(old["route_entry"].values()))["geoparquet"]
+    assert entry["geoparquet_sha256"] == plan["uploads"][0]["sha256"]
+    receipt = tmp_path / "replacement.json"
+    uploader = release.upload_asset.side_effect
+    if interrupt:
+        release.upload_asset.side_effect = RuntimeError("upload interrupted")
+        with pytest.raises(click.ClickException, match="upload interrupted"):
+            admin_publish.publish_plan(plan, api, tmp_path, receipt, phase="assets")
+        assert len(release.get_assets()) == 1
+        release.upload_asset.side_effect = uploader
+    admin_publish.publish_plan(plan, api, tmp_path, receipt, phase="assets")
+    for asset in plan["uploads"]:
+        originals[asset["name"]].delete_asset.assert_called_once()
+    assert {a.name for a in release.get_assets()} == {a["name"] for a in old["uploads"]}
+    admin_publish.verify_release(plan, api.get_repo(plan["data_repository"]))
+    calls = release.upload_asset.call_count
+    admin_publish.publish_plan(plan, api, tmp_path, receipt, phase="assets")
+    assert release.upload_asset.call_count == calls
+
+
+def test_stac_replacement_rejects_unreviewed_remote_contents_before_any_write(prepared_index, release_api, tmp_path):
+    api, release = release_api
+    old = make_plan(prepared_index)
+    admin_publish.publish_plan(old, api, tmp_path, tmp_path / "old.json", phase="assets")
+    admin_stac.prepare_stac(**{**prepared_index, "title": "Corrected title"})
+    plan = make_plan(prepared_index, replacements=[(a["name"], "f" * 64) for a in old["uploads"]])
+    calls = release.upload_asset.call_count
+    with pytest.raises(click.ClickException, match="different content"):
+        admin_publish.publish_plan(plan, api, tmp_path, tmp_path / "replacement.json", phase="assets")
+    assert release.upload_asset.call_count == calls
+    for asset in release.get_assets():
+        asset.delete_asset.assert_not_called()
+
+
+def test_replacement_cli_is_offline_and_records_expected_hashes(prepared_index):
+    from click.testing import CliRunner
+
+    from iomaps.commands.admin_release import make_release
+
+    output = prepared_index["output"]
+    result = CliRunner().invoke(
+        make_release,
+        [
+            "--dry-run",
+            "--owner",
+            "ramSeraph",
+            "--repo",
+            "indian_land_features",
+            "--release",
+            "urban-land-use",
+            "--base-file",
+            str(output),
+            "--stac-collection",
+            str(output.with_suffix(".collection.json")),
+            "--license",
+            "Source terms",
+            "--replace-asset",
+            output.name,
+            "a" * 64,
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    plan = json.loads(result.output)
+    assert plan["uploads"][0]["replaces_sha256"] == "a" * 64
+    plan["uploads"][0]["replaces_sha256"] = "invalid"
+    with pytest.raises(click.ClickException, match="replacement SHA-256"):
+        admin_publish.validate_plan(plan)
+    with pytest.raises(click.UsageError, match="must name"):
+        make_plan(prepared_index, replacements=[("unrelated.tif", "a" * 64)])

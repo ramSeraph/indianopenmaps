@@ -1,6 +1,7 @@
 import { EtagMismatch } from 'pmtiles';
 import { UpstreamHttpError } from './errors.js';
 import { fetchUpstream } from './request.js';
+import { etagMismatch, strongEtag } from './http_etag.js';
 
 // Preserve PMTiles' range/ETag contract and expose HTTP failures to the caller.
 // Retries wrap operations so they recheck the caches before fetching again.
@@ -33,9 +34,8 @@ export class PMTilesSource {
       throw error;
     }
 
-    let newEtag = response.headers.get('ETag');
-    if (newEtag?.startsWith('W/')) newEtag = null;
-    if (response.status === 416 || (etag && newEtag && newEtag !== etag)) {
+    const newEtag = strongEtag(response.headers);
+    if (response.status === 416 || etagMismatch(etag, newEtag)) {
       this.#mustReload = true;
       await response.body?.cancel();
       throw new EtagMismatch(`Server returned non-matching ETag ${etag}`);

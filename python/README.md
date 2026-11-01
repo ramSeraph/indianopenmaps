@@ -428,8 +428,18 @@ python/.venv/bin/iomaps admin make-release --plan scratch/stac/nhp/release-previ
 The publisher uploads/verifies the index and collection sidecar, updates a bounded
 release-notes section, commits only `worker/src/routes/stac_catalog.json`, and checks
 the Cloudflare deployment, collection count, late item IDs, bbox search and asset
-URLs. Existing release assets are never overwritten. Use a new index basename for
-a replacement whose contents differ. `--phase assets` / `--phase routes` and receipt
+URLs. Keep the existing index and sidecar filenames when updating a collection.
+In the dry-run command, pass `--replace-asset NAME OLD_SHA256` for each file being
+replaced, using its verified published SHA-256 (from the previous receipt or
+GitHub's asset digest). The plan records both old and new hashes. The publisher
+refuses unexpected remote contents, replaces only the named index/sidecar, and
+verifies the new hashes. GitHub replacement requires deletion followed by upload,
+so there can be a brief unavailable interval; retry the same plan/receipt after
+an interruption. No versioned release assets are created.
+
+The catalog records the new index hash to separate Worker caches while preserving
+public URLs. Cached Python clients fetch the replacement with `--refresh`; no
+client release is required. `--phase assets` / `--phase routes` and receipt
 resumption work as for vector releases. License text must be supplied explicitly;
 STAC `other` does not imply permission to reuse the source maps.
 

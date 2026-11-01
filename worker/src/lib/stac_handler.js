@@ -47,6 +47,7 @@ class STACHandler {
     this.logger = logger;
     this.collections = new Map();
     this.itemsCache = new Map();
+    this.indexRevisions = new Map();
     this.parquet = new STACParquet(logger);
   }
 
@@ -54,6 +55,7 @@ class STACHandler {
     for (const entry of this.catalog.links || []) if (entry.rel === 'child' && entry.geoparquet) {
       const id = entry.collection?.id || entry.href.replace(/^\.\//, '').replace(/\/$/, '');
       this.collections.set(id, { id, title: entry.title || id, geoparquetUrl: entry.geoparquet, metadata: entry.collection });
+      this.indexRevisions.set(entry.geoparquet, entry.geoparquet_sha256);
     }
   }
 
@@ -207,7 +209,7 @@ class STACHandler {
 
   async readGeoparquet(url, options) {
     try {
-      const items = (await this.parquet.read(url, options)).map(rowToItem);
+      const items = (await this.parquet.read(url, { ...options, revision: this.indexRevisions.get(url) })).map(rowToItem);
       if (new Set(items.map(i => i.id)).size !== items.length) throw new Error('Duplicate STAC item IDs');
       return items;
     } catch (error) {
