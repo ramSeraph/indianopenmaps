@@ -106,8 +106,8 @@ export function predicate(query) {
   const time = query.datetime && timeRange(query.datetime);
   const ids = query.ids && new Set(query.ids);
   return item => {
-    // STAC IDs take precedence over spatial/temporal parameters.
-    if (ids) return ids.has(item.id);
+    // Item Search parameters are combined; an ID must still match other filters.
+    if (ids && !ids.has(item.id)) return false;
     // Reject distant sheets before the more expensive exact polygon test.
     if (query.bbox && item.bbox && !bboxIntersects(query.bbox, item.bbox)) return false;
     if (geometry && (!item.geometry || !booleanIntersects(item.geometry, geometry))) return false;

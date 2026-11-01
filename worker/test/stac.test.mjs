@@ -98,6 +98,32 @@ test('metadata count shortcut does not apply to filtered queries', async t => {
   assert.equal(read.mock.callCount(), 3, 'read both search indexes, then only the matching item');
 });
 
+test('GET and POST combine IDs with collection, spatial and datetime filters', async () => {
+  const { app } = await fixture();
+  const cases = [
+    [{}, 1],
+    [{ bbox: [77.1, 28.1, 77.2, 28.2] }, 1],
+    [{ bbox: [0, 0, 1, 1] }, 0],
+    [{ intersects: { type: 'Point', coordinates: [0, 0] } }, 0],
+    [{ datetime: '2025-01-01T00:00:00Z' }, 1],
+    [{ datetime: '2024-01-01T00:00:00Z' }, 0],
+    [{ collections: ['one'] }, 0],
+    [{ ids: ['missing'] }, 0],
+  ];
+  for (const method of ['GET', 'POST']) for (const [filters, expected] of cases) {
+    const params = { ids: ['b-0'], collections: ['two'], ...filters };
+    const query = new URLSearchParams(Object.entries(params).map(([key, value]) => [key,
+      key === 'intersects' ? JSON.stringify(value) : Array.isArray(value) ? value.join(',') : value]));
+    const response = await app.request(`${base}/search${method === 'GET' ? '?' + query : ''}`, {
+      method, ...(method === 'POST' ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) } : {}),
+    });
+    assert.equal(response.status, 200);
+    const page = await response.json();
+    assert.equal(page.numberMatched, expected, `${method}: ${query}`);
+    assert.deepEqual(page.features.map(row => row.id), expected ? ['b-0'] : []);
+  }
+});
+
 test('spatial search uses real polygons, holes, touching edges and dateline bboxes', async () => {
   const { app, handler } = await fixture();
   const triangle = item('triangle', [0, 0, 10, 10]);

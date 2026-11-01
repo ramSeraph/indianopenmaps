@@ -70,6 +70,60 @@ Its datetime explicitly represents catalog indexing, not map acquisition.
 
 ## Deployment verification
 
+The expanded catalog contains **17 collections and 53,983 raster items**. The
+15 additions contain 44,884 items:
+
+| Added collection | Items |
+| --- | ---: |
+| Nepal Survey | 619 |
+| Nepal JICA | 81 |
+| Nepal–China border 1979 | 57 |
+| Myanmar 50k | 1,001 |
+| American ONC | 281 |
+| American TPC | 665 |
+| American AMS 250k | 1,130 |
+| Soviet 25k | 3,050 |
+| Soviet 50k | 9,865 |
+| Soviet 100k | 12,972 |
+| Soviet 200k | 11,791 |
+| Soviet 500k | 2,274 |
+| Soviet 1m | 301 |
+| Goa CZMP 2019 4k | 254 |
+| CartoDEM v3r1 EGM2008 | 543 |
+
+Rustac 0.9.19 paginated the complete final catalog through local workerd and
+returned **53,983 unique collection/item pairs**. PySTAC Client 0.9.1 passed
+complete GET/POST pagination, late item lookup, bbox/date filters and schema
+validation across all 17 collections. These checks use the actual final release
+indexes in workerd, separately from the deployed service. STAC API Validator
+0.6.8 passed Core, Collections, Features, Item Search and pagination with zero
+errors for both Soviet 200k and CartoDEM after correcting combined ID/spatial/date
+filters. The optional recommendations about summaries, link titles and source
+identifier spelling remain. Rustac also searched
+the four final Soviet release indexes directly over GitHub HTTPS, returning the
+expected sheets `D47-081` (100k), `A32-06` (200k), `G42-111-1` (50k) and `A17-2`
+(500k). The direct `iomaps` client extracted a 23 × 24 pixel EPSG:3857 RGBA COG
+from `D47-081`, using the published index and imagery URLs.
+
+The live service still intermittently returns Cloudflare HTTP 503 / Error 1102.
+The active version and dashboard both report `cpu_ms: 30000`, while an error
+trace reports `exceededCpu` after 19 ms. A matched request succeeded through MAA
+over IPv4 and failed through BLR over IPv6, but later IPv4 pagination also failed;
+neither IP family is a verified workaround. The root cause is unconfirmed.
+Publication of the final collections was authorized with live runtime checks
+deferred. Release assets, notes and catalog commits are verified separately;
+the publication receipts preserve the skipped/failed live checks. Do not treat
+local compatibility results as proof that these deployed runtime failures are
+resolved. Rerun the saved plans with verification enabled after investigation.
+
+Release notes record the source audit: stale/missing listing entries, unavailable
+original scans, nine missing supplied footprints derived from TIFF extents, and
+one invalid Nepal Survey footprint replaced with its TIFF extent.
+Goa CZMP and AMS assets are ordinary GeoTIFFs where their headers do not identify
+COG layout. Their metadata and download assets remain available; they do not
+advertise COG-only viewer links. PMTiles/archive-only datasets and an empty JOG
+georeferenced release were excluded from the raster index inventory.
+
 The deployed API was checked again after publication:
 
 - [OSM 50k](https://indianopenmaps.com/stac/collections/india-topo-50k): 4,517 items.

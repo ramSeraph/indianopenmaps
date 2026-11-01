@@ -72,8 +72,10 @@ simultaneous collections to available memory and upstream capacity.
 from an existing index only for identical asset URLs; use it only when those
 assets are unchanged. Refresh bypasses both reuse and cached headers.
 
-Review the `.report.json`: expected/prepared counts, failures, and missing
-originals. Any failed sheet prevents writing a new index; an old output can
+Review the `.report.json`: expected/prepared counts, failures, missing
+originals and `metadata_warnings`. Legacy TIFF comments can contain non-UTF-8
+bytes; the generator preserves georeferencing, replaces undecodable descriptive
+bytes and records the affected sheet IDs in the report/header cache. Any failed sheet prevents writing a new index; an old output can
 remain, but the publisher rejects a failed latest report. Retry transient
 failures, investigate persistent failures, and do not publish an unexplained
 partial collection. Missing original scans do not prevent retaining valid COGs.
@@ -82,6 +84,10 @@ Outputs are the Parquet index, `.collection.json` sidecar and report. Collection
 metadata is also embedded in the Parquet. Item geometry is WGS84 while projection
 fields describe the actual raster. COGs and ordinary GeoTIFFs are labelled from
 their headers. Dates and source properties retain their stated meanings.
+The current generator writes Snappy-compressed row groups of at most 512 items
+and Parquet page indexes to support bounded remote reads. Do not rewrite an
+already-published index in place to change its layout: use a new basename and
+regenerate the saved publication plan and hashes.
 
 ## Publish the saved preview
 
