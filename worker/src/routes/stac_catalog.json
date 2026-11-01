@@ -226,6 +226,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./goa-czmp-2019-4k",
+      "title": "Goa CZMP 2019 Maps 4k",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/4k-goa-2019-czmp-georef/CZMP_2019_Goa_4k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "goa-czmp-2019-4k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced 1:4,000 Goa Coastal Zone Management Plan 2019 map sheets, prepared by NCESS. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/india_topo_maps/releases/tag/4k-goa-2019-czmp-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 254,
+        "title": "Goa CZMP 2019 Maps 4k",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                73.6755252,
+                14.899788,
+                74.1292219,
+                15.8139046
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-02-23T17:06:59Z",
+                "2026-02-23T17:06:59Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "CZMP_2019_Goa_4k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
