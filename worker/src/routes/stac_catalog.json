@@ -120,6 +120,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./nepal-topo-jica",
+      "title": "Nepal JICA Topographic Maps",
+      "geoparquet": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/jica-georef/Nepal_JICA.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "nepal-topo-jica",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced JICA and Nepal Survey Department maps sourced through The Maze and Pahar. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://www.maze.com.np/Maps/Topo-Nepal",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 81,
+        "title": "Nepal JICA Topographic Maps",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                82.6025808,
+                27.3260287,
+                84.5052219,
+                28.3556148
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-06-22T20:38:27Z",
+                "2025-06-22T20:38:27Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Nepal_JICA.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
