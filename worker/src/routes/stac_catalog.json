@@ -544,6 +544,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-soviet-1m",
+      "title": "Soviet Genshtab 1m Topographic Maps",
+      "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/1m-gs-georef/Soviet_GS_1m.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-soviet-1m",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Soviet General Staff topographic maps at the 1m scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/russian_world_topo_maps/releases/tag/1m-gs-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 301,
+        "title": "Soviet Genshtab 1m Topographic Maps",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -179.9972546,
+                -48.0008543,
+                180,
+                84.0012244
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-10-15T18:41:37Z",
+                "2025-10-15T18:41:37Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Soviet_GS_1m.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
