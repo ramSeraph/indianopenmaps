@@ -19,8 +19,9 @@
       "rel": "child",
       "type": "application/json",
       "href": "./india-topo-50k",
-      "title": "India Topographic Maps 50k",
+      "title": "SOI Open series maps 50k",
       "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/SOI_OSM_50k.stac.parquet",
+      "geoparquet_sha256": "a2083149ca0d531899187639d936993249b1f626dbf9c6c6a2b2a47cb373cd09",
       "collection": {
         "type": "Collection",
         "id": "india-topo-50k",
@@ -35,14 +36,14 @@
         ],
         "iomaps:datetime_description": "Catalog indexing date, not survey or imagery acquisition.",
         "item_count": 4517,
-        "title": "India Topographic Maps 50k",
+        "title": "SOI Open series maps 50k",
         "extent": {
           "spatial": {
             "bbox": [
               [
                 68.25,
                 6.75,
-                97.0,
+                97,
                 35.5
               ]
             ]
