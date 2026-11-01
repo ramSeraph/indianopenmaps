@@ -1,4 +1,4 @@
 interface:
   display_name: "Indianopenmaps Admin"
-  short_description: "Prepare and publish Indianopenmaps datasets"
-  default_prompt: "Use $iomaps-admin to prepare my dataset and create a publication preview."
+  short_description: "Prepare and publish datasets and STAC collections"
+  default_prompt: "Use $iomaps-admin to prepare my dataset or raster STAC collection and create a publication preview."

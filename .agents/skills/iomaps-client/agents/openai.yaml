@@ -1,4 +1,4 @@
 interface:
   display_name: "Indianopenmaps Client"
-  short_description: "Discover and extract Indianopenmaps data"
-  default_prompt: "Use $iomaps-client to find the right source and extract data for my area."
+  short_description: "Discover and extract vector data, imagery and DEMs"
+  default_prompt: "Use $iomaps-client to find vector data or raster collections and extract data for my area."

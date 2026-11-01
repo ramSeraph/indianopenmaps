@@ -1,6 +1,6 @@
 ---
 name: iomaps-client
-description: Use the Indianopenmaps iomaps client to discover published vector datasets, find sources covering an area, and extract features for local analysis through the CLI or optional GUI. Excludes coverage generation, dataset preparation, publication, and repository implementation.
+description: Use the Indianopenmaps iomaps client to discover vector datasets or raster STAC collections and extract features or imagery by area through the Python API or CLI. Includes metadata caching and the optional vector GUI. Excludes dataset preparation, publication, and repository implementation.
 ---
 
 # Indianopenmaps client
@@ -22,6 +22,10 @@ use `uv sync --project python`. Client commands do not need the `admin` extra.
 Consult `python/README.md` for maintained usage details. Repository implementation
 work follows the checkout's instructions.
 
+Raster commands and `iomaps.stac.RasterCatalog` are available in `iomaps>=0.6.0`.
+Adding a published STAC collection does not require a new client release; refresh
+the cached catalog to discover it.
+
 ## Choose the evidence for the question
 
 | Question | Command | What the result establishes |
@@ -29,6 +33,14 @@ work follows the checkout's instructions.
 | What datasets are listed? | `cli sources --search ... --json` | Catalog names, routes and categories; no spatial coverage check. |
 | Which datasets cover this area? | `cli search --bounds ... --category ... --json` | Approximate candidates and sources with unknown coverage. |
 | Does this source contain features here? | `cli extract --source /exact/route/ --bounds ...` | Actual intersecting features; inspect the output count. |
+| What raster collections are published? | `cli stac collections --json` | Collection IDs, metadata and release-index URLs. |
+| Which raster sheets intersect this area? | `cli stac search -c COLLECTION -b ... --json` | Intersecting indexed footprints; pixels inside them may still be nodata. |
+| Extract imagery or elevation for this area | `cli stac extract -c COLLECTION -b ... -o crop.tif` | A cropped COG mosaic; inspect its CRS, values and mask. |
+
+For raster discovery, metadata caching, the Python API or bbox extraction, read
+[references/rasters.md](references/rasters.md). Raster commands use collection IDs
+and GitHub release indexes. The vector workflows below use source routes and
+GeoParquet feature data; their coverage grid and refresh options are different.
 
 For area-based discovery, start with `search` rather than downloading candidate
 layers to find their coverage. If the source is already known, direct extraction
@@ -43,7 +55,7 @@ name/category filters can also exclude it. A listed source need not cover the
 whole country. The live catalog also does not inventory unpublished local files
 or every release asset; distinguish those when the user asks what data they have.
 
-## Find a source
+## Find a vector source
 
 ```bash
 iomaps cli source-categories --json
@@ -65,7 +77,7 @@ For a local catalog in the checkout, pass `--routes-file worker/src/routes/listi
 reads the source's remote Parquet URLs. `--routes-url` selects another catalog
 endpoint and cannot be combined with `--routes-file`.
 
-## Find sources covering an area
+## Find vector sources covering an area
 
 ```bash
 iomaps cli search --bounds '77.1,28.5,77.3,28.7' --json
@@ -98,7 +110,7 @@ The PNG uses the common Parquet basename: `Plots.parquet` or all partitions in
 the corresponding PMTiles/mosaic URL unless the catalog sets `coverage_url`.
 Existing sources need their coverage uploaded before they can match spatially.
 
-## Extract an area
+## Extract vector features in an area
 
 ```bash
 iomaps cli extract \

@@ -1,6 +1,6 @@
 ---
 name: iomaps-admin
-description: Use the Indianopenmaps iomaps admin commands to generate coverage PNGs from local GeoParquet, prepare dataset assets, and publish or resume releases through saved plans and receipts. Excludes client discovery and extraction, and repository implementation.
+description: Use Indianopenmaps iomaps admin commands to prepare dataset assets, generate coverage PNGs or raster STAC indexes, and publish or resume collections and routes through saved plans and receipts. Excludes client discovery and extraction, and repository implementation.
 ---
 
 # Indianopenmaps administration
@@ -58,9 +58,20 @@ common `<basename>.coverage.png` when present, with normal asset hash verificati
 
 ## Prepare or publish
 
-For dataset preparation or publication, read
+For vector dataset preparation or publication, read
 [references/publication.md](references/publication.md), plus the checkout's
 `AGENTS.md` and `python/README.md`. Use the existing preparation and release
 commands, including their saved-plan, receipt, and resume workflows. Archive
 generation remains part of this admin workflow even though the old
 archive-consumer tools have been removed.
+
+## Prepare or publish raster STAC collections
+
+Read [references/stac.md](references/stac.md) for `iomaps admin stac` and the
+`make-release --stac-collection` workflow, available in `iomaps>=0.6.0`. The
+generator belongs here; the old `release_tools` STAC commands are removed.
+
+Use the existing GeoTIFF/COG releases, often named `*-georef`, and reconcile their
+metadata before indexing. Publication adds a GitHub release index and catalog
+entry through the same saved-plan publisher. A new collection needs no Python
+client release; cached clients discover it with `iomaps cli stac --refresh collections`.
