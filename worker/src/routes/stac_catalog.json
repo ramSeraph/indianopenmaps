@@ -342,6 +342,7 @@
       "href": "./nepal-topo-survey",
       "title": "Nepal Survey Department Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/survey-georef/Nepal_Survey.stac.parquet",
+      "geoparquet_sha256": "1428127673620e01db34108f67300d932f018c125825ac124c189b49401d5a59",
       "collection": {
         "type": "Collection",
         "id": "nepal-topo-survey",
