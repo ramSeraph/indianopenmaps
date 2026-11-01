@@ -173,6 +173,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./nepal-china-border-1979",
+      "title": "Nepal\u2013China Border Alignment Maps 1979",
+      "geoparquet": "https://github.com/ramSeraph/nepal_survey_maps/releases/download/border-georef/Nepal_Border_1979.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "nepal-china-border-1979",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced maps of the 1979 Nepal\u2013China border alignment, sourced from Pahar. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://pahar.in",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 57,
+        "title": "Nepal\u2013China Border Alignment Maps 1979",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                80.9666667,
+                27.7,
+                88.25,
+                30.4916667
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-08-13T14:28:01Z",
+                "2025-08-13T14:28:01Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Nepal_Border_1979.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
