@@ -438,6 +438,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-american-onc",
+      "title": "Operational Navigation Charts",
+      "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/onc-georef/ONC.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-american-onc",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Operational Navigation Charts from the Perry-Casta\u00f1eda Library Map Collection and Mapstor Archive. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/american_world_topo_maps/releases/tag/onc-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 281,
+        "title": "Operational Navigation Charts",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -180,
+                -64,
+                180,
+                84
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-08-22T22:12:22Z",
+                "2025-08-22T22:12:22Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "ONC.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
