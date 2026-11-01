@@ -279,6 +279,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./myanmar-topo-50k",
+      "title": "Myanmar Topographic Maps 50k",
+      "geoparquet": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-georef/Myanmar_50k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "myanmar-topo-50k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced 1:50,000 maps of Myanmar from the Old Survey of India Maps Collection and the Internet Archive UTM maps of Burma / Myanmar collection. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/myanmar_survey_maps/releases/tag/50k-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 1001,
+        "title": "Myanmar Topographic Maps 50k",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                91.9973569,
+                9.5018978,
+                101.2461943,
+                28.7503558
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-06-25T21:03:18Z",
+                "2025-06-25T21:03:18Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Myanmar_50k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
