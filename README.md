@@ -35,7 +35,7 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 - Currently serves ~498 tile sources
 
 **STAC API:**
-- Implements a [STAC](https://stacspec.org/) API for browsing COG collections (e.g. India Topographic Maps 50k)
+- Implements a [STAC](https://stacspec.org/) API for browsing raster collections (e.g. SOI Open series maps 50k)
 - Item indexes are stored in STAC GeoParquet files in GitHub releases; searches preserve source footprints and support bbox, intersects, datetime, IDs and complete GET/POST pagination.
 - The HTTP API is optional for clients that read STAC GeoParquet: `iomaps` and Rustac can search the same release indexes directly on GitHub. See [direct-index examples and API differences](python/README.md#search-release-indexes-with-other-stac-clients).
 - EPSG:3857 COG items expose standard Web Map Links `xyz` links for generic viewers. See [compatibility checks](worker/test/STAC_COMPATIBILITY.md).

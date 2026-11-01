@@ -463,6 +463,10 @@ The `iomaps` package provides CLI and PyQt tools for remote GeoParquet extractio
 plus a hidden admin group for preparation, coverage creation, and publication.
 Python 3.12 or newer is required; Hatchling and hatch-vcs provide packaging.
 
+Ask the user before publishing another `iomaps` Python/PyPI package release.
+Authorization to publish datasets or STAC indexes does not authorize a package
+release. Prepare and test any package changes before requesting that approval.
+
 ### CLI structure
 
 ```text

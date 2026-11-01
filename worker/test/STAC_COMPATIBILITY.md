@@ -47,8 +47,20 @@ when provided, preventing a replacement from mixing different file contents.
 New `iomaps admin stac` indexes use at most 512 records per row group and include
 page indexes. Hyparquet 1.25 has a dictionary-decoding problem in its optional
 offset-index path, so the Worker currently uses column and row-group pruning.
-Other clients can use the page indexes. Older one-row-group files remain readable,
-but selecting one item can require decoding that group's columns.
+Other clients can use the page indexes. The existing oversized indexes were
+backfilled in place on 2026-11-02. All 17 active collections now have at most 512
+items per row group; the four small legacy indexes already met that bound.
+
+The backfill replaced nine indexes, including ONC for its title correction,
+without changing their filenames or public URLs. All 16,388 affected items were
+compared field-for-field with the old indexes and matched. The catalog still
+contains 53,983 items. PySTAC Client 0.9.1 passed complete GET/POST pagination,
+late item lookup, bbox/date filters and schema validation for all nine rebuilt
+collections in local workerd. Rustac 0.9.19 and `iomaps` also searched the updated
+50k index directly on GitHub: bbox `77.6,13.0,77.61,13.01` returned `57G_12` and
+`57H_9` with identical asset URLs. The downloaded index matched its published
+SHA-256. Existing Python clients should use `--refresh` on their next search or
+extraction to replace an index cached under its stable URL.
 
 The deployed configuration explicitly uses the Workers Paid 30-second CPU budget.
 This does not increase the isolate's 128 MiB memory limit.

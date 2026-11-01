@@ -5,17 +5,14 @@ compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]
 workers_dev = true
 
-# Use the Workers Paid CPU budget explicitly, including on migrated accounts.
-[limits]
-cpu_ms = 30_000
-
-[vars]
-TILE_ROUNDING_BIAS = "0.1"
-
 routes = [
   { pattern = "indianopenmaps.com", custom_domain = true },
   { pattern = "www.indianopenmaps.com", custom_domain = true }
 ]
+
+# Use the Workers Paid CPU budget explicitly, including on migrated accounts.
+[limits]
+cpu_ms = 30_000
 
 [assets]
 directory = "./static"
