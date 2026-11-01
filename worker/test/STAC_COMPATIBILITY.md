@@ -22,6 +22,25 @@ The rebuilt 50k index contains 4,517 items, including the 68 previously missing
 sheets, and uses supplied footprints rather than replacing them with rectangles.
 Its datetime explicitly represents catalog indexing, not map acquisition.
 
+## Deployment verification
+
+The deployed API was checked again after publication:
+
+- [OSM 50k](https://indianopenmaps.com/stac/collections/india-topo-50k): 4,517 items.
+- [NHP 25k](https://indianopenmaps.com/stac/collections/india-topo-25k-nhp): 4,582 items.
+- PySTAC Client passed GET/POST pagination, late item lookup, bbox/datetime search
+  and schema checks for both collections. Rustac retrieved all 9,099 unique
+  collection/item pairs in one paginated search.
+- The independent validator completed all four conformance groups and pagination
+  with zero errors for each collection; the recommendations above remain.
+- GDAL STACIT opened the deployed 50k search as a 6,144 × 6,656 raster. Direct-release
+  `iomaps` extraction produced a 466 × 566 pixel NHP COG from a small WGS84 bbox.
+
+Publication receipts verified release hashes, collection counts, sample IDs, bbox
+search and the deployed asset URLs. Catalog commits:
+[50k](https://github.com/ramSeraph/indianopenmaps/commit/69c3de79e7ababf054afc2c297e1a7d6ab8ec768),
+[NHP](https://github.com/ramSeraph/indianopenmaps/commit/d28a16fc54a5eefd0c0c4f7dac031421cefbd1de).
+
 ## Repeat the checks
 
 Run a local workerd server against downloaded indexes (from `worker/`):
