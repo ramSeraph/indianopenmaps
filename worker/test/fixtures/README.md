@@ -7,3 +7,8 @@ STAC Parquet regression fixtures:
   `iomaps admin stac`, including GeoParquet metadata and projection extension v2.
 
 Tests decode the actual bytes through hyparquet. They do not fetch imagery.
+
+`stac-ranges.parquet` expands the synthetic modern fixture into 192 items with
+six row groups, page indexes and deterministic payloads. It checks that remote
+search and pagination skip unrelated columns and row groups. Regenerate with
+`python/.venv/bin/python worker/test/helpers/stac_range_fixture.py` from the root.

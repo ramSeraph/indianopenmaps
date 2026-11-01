@@ -33,6 +33,23 @@ distinction between metadata, rendered tiles and raw raster bytes.
 
 ## HTTP API checks
 
+The Worker uses Hyparquet HTTP range reads. Unfiltered pages read only the
+necessary row groups; filtered searches load IDs, geometry, bounds and dates,
+then fetch complete records for the selected page. It keeps at most 8 MiB of
+search records and 2 MiB of footer metadata. STAC and COG reads share a 32 MiB
+cache of completed byte ranges; validated STAC ranges also use the edge cache.
+Pending network operations remain request-local. Failed, truncated or ignored
+range responses are rejected and invalidated so later requests can retry.
+
+New `iomaps admin stac` indexes use at most 512 records per row group and include
+page indexes. Hyparquet 1.25 has a dictionary-decoding problem in its optional
+offset-index path, so the Worker currently uses column and row-group pruning.
+Other clients can use the page indexes. Older one-row-group files remain readable,
+but selecting one item can require decoding that group's columns.
+
+The deployed configuration explicitly uses the Workers Paid 30-second CPU budget.
+This does not increase the isolate's 128 MiB memory limit.
+
 Checks on 2026-11-02 used the real 50k release index in workerd:
 
 | Client | Version | Checked |

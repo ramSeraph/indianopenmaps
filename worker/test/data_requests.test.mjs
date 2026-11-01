@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFile } from 'node:fs/promises';
 import { Hono } from 'hono';
 import { registerProxyRoutes } from '../src/routes/proxy.js';
 import STACHandler from '../src/lib/stac_handler.js';
@@ -40,19 +41,18 @@ test('proxy passes long Retry-After values and upstream status to its client', a
   assert.equal(fetch.mock.callCount(), 1);
 });
 
-test('STAC retries its download before passing the successful bytes to the Parquet reader', async t => {
+test('STAC retries its range download before decoding the successful Parquet bytes', async t => {
   const handler = new STACHandler({}, logger);
+  const bytes = await readFile(new URL('./fixtures/stac-modern.parquet', import.meta.url));
   let calls = 0;
-  t.mock.method(globalThis, 'fetch', async input => {
+  t.mock.method(globalThis, 'fetch', async (input, options) => {
     assert.equal(input, url);
+    if (options.method === 'HEAD') return new Response(null, { headers: { 'Content-Length': String(bytes.length) } });
     if (++calls === 1) return new Response('', { status: 429, headers: { 'Retry-After': '0' } });
-    return new Response('parquet fixture');
+    const [, start, end] = options.headers.Range.match(/^bytes=(\d+)-(\d+)$/).map(Number);
+    return new Response(bytes.subarray(start, end + 1), { status: 206, headers: { 'Content-Range': `bytes ${start}-${end}/${bytes.length}` } });
   });
-  handler.parquetRead = async ({ file, onComplete }) => {
-    assert.equal(new TextDecoder().decode(file), 'parquet fixture');
-    onComplete([{ id: 'fixture-item', bbox: [0, 0, 1, 1], datetime: '2025-01-01T00:00:00Z' }]);
-  };
   const items = await handler.readGeoparquet(url);
-  assert.equal(items[0].id, 'fixture-item');
-  assert.equal(calls, 2);
+  assert.ok(items[0].id);
+  assert.ok(calls >= 2);
 });

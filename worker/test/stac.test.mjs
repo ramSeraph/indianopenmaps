@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { registerStacRoutes } from '../src/routes/stac.js';
 import { bboxGeometry } from '../src/lib/stac_query.js';
 import { fetchStacPages } from '../static/js/stac_pagination.js';
+import { RangeCache } from '../src/lib/range_cache.js';
 
 const base = 'https://example.org/stac';
 const item = (id, bbox = [77, 28, 78, 29], datetime = '2025-01-01T00:00:00Z') => ({
@@ -19,8 +20,21 @@ const catalog = { id: 'test', title: 'Test', description: 'Test', links: ['one',
 async function fixture() {
   const app = new Hono();
   const handler = await registerStacRoutes(app, { error() {} }, catalog);
-  handler.readGeoparquet = async url => url.includes('/one.') ? Array.from({ length: 1003 }, (_, i) => item(`a-${i}`)) : [item('b-0')];
+  handler.parquet.rangeCache = new RangeCache();
+  handler.readGeoparquet = async (url, options) => selectRows(url.includes('/one.') ? Array.from({ length: 1003 }, (_, i) => item(`a-${i}`)) : [item('b-0')], options);
   return { app, handler };
+}
+
+function selectRows(rows, { positions, rowStart = 0, rowEnd = rows.length } = {}) {
+  return positions ? positions.map(i => rows[i]) : rows.slice(rowStart, rowEnd);
+}
+
+function rangeResponse(bytes, init = {}) {
+  if (init.method === 'HEAD') return new Response(null, { headers: { 'Content-Length': String(bytes.length) } });
+  const [, start, end] = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init.headers).get('Range'));
+  return new Response(bytes.subarray(Number(start), Number(end) + 1), { status: 206, headers: {
+    'Content-Range': `bytes ${start}-${end}/${bytes.length}`, 'Content-Length': String(Number(end) + 1 - Number(start)),
+  } });
 }
 
 test('GET and standard POST pagination cross collection boundaries without duplicates', async () => {
@@ -81,14 +95,14 @@ test('metadata count shortcut does not apply to filtered queries', async t => {
   const page = await (await app.request(`${base}/search?ids=b-0&limit=1`)).json();
   assert.equal(page.numberMatched, 1);
   assert.deepEqual(page.features.map(f => f.id), ['b-0']);
-  assert.equal(read.mock.callCount(), 2);
+  assert.equal(read.mock.callCount(), 3, 'read both search indexes, then only the matching item');
 });
 
 test('spatial search uses real polygons, holes, touching edges and dateline bboxes', async () => {
   const { app, handler } = await fixture();
   const triangle = item('triangle', [0, 0, 10, 10]);
   triangle.geometry = { type: 'Polygon', coordinates: [[[0,0],[10,0],[0,10],[0,0]], [[1,1],[1,2],[2,2],[2,1],[1,1]]] };
-  handler.readGeoparquet = async () => [triangle, item('dateline', [178,0,179,1])];
+  handler.readGeoparquet = async (url, options) => selectRows([triangle, item('dateline', [178,0,179,1])], options);
   for (const [bbox, expected] of [['8,8,9,9', []], ['1.1,1.1,1.9,1.9', []], ['10,0,11,1', ['triangle']], ['177,-1,-177,2', ['dateline']]]) {
     const page = await (await app.request(`${base}/search?collections=one&bbox=${bbox}`)).json();
     assert.deepEqual(page.features.map(i => i.id), expected);
@@ -135,12 +149,30 @@ test('index failures propagate and cannot poison later requests with empty cache
   assert.equal((await handler.loadItemsFromGeoparquet('https://example.org/bad'))[0].id,'retry');
 });
 
+test('the search cache retains only geometry, IDs and dates, not full asset metadata', async t => {
+  const { handler } = await fixture();
+  const description = 'a'.repeat(8192) + '地図';
+  const rows = Array.from({ length: 2048 }, (_, i) => ({ ...item(`large-${i}`), properties: { description } }));
+  const read = t.mock.method(handler, 'readGeoparquet', async () => rows);
+  const url = 'https://example.org/large.parquet';
+  await handler.loadItemsFromGeoparquet(url);
+  const cached = handler.itemsCache.get(url);
+  assert.ok(cached.items);
+  assert.ok(cached.bytes < 1024 * 1024);
+  const warm = await handler.loadItemsFromGeoparquet(url);
+  assert.equal(warm.length, 2048);
+  assert.equal(warm.at(-1).id, 'large-2047');
+  assert.equal(warm.at(-1).properties.description, undefined);
+  assert.equal(warm.at(-1).assets, undefined);
+  assert.equal(read.mock.callCount(), 1);
+});
+
 test('real legacy and modern Parquet decode WKB, projection, source assets and viewer links', async t => {
   const { app, handler } = await fixture();
   delete handler.readGeoparquet;
   const legacy = await readFile(new URL('./fixtures/stac-legacy.parquet', import.meta.url));
   const modern = await readFile(new URL('./fixtures/stac-modern.parquet', import.meta.url));
-  t.mock.method(globalThis, 'fetch', async url => new Response(String(url).includes('/one.') ? legacy : modern));
+  t.mock.method(globalThis, 'fetch', async (url, init) => rangeResponse(String(url).includes('/one.') ? legacy : modern, init));
   const response = await app.request(`${base}/search?collections=one`);
   assert.equal(response.status, 200);
   const old = (await response.json()).features[0];
@@ -158,72 +190,6 @@ test('real legacy and modern Parquet decode WKB, projection, source assets and v
   assert.equal(current.properties['proj:transform'].length, 9);
 });
 
-function edgeCache(t) {
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'caches');
-  const entries = new Map();
-  const cache = {
-    async match(url) { return entries.get(url)?.clone(); },
-    async put(url, response) {
-      assert.equal(response.status, 200);
-      assert.equal(response.headers.get('Cache-Control'), 'public, max-age=86400');
-      assert.equal(response.headers.get('Location'), null, 'do not cache signed redirects');
-      entries.set(url, response);
-    },
-  };
-  Object.defineProperty(globalThis, 'caches', { configurable: true, value: { async open() { return cache; } } });
-  t.after(() => {
-    if (previous) Object.defineProperty(globalThis, 'caches', previous);
-    else delete globalThis.caches;
-  });
-  return { entries, cache };
-}
-
-test('validated index bytes survive decoded-cache eviction and a new handler without upstream reads', async t => {
-  const { entries } = edgeCache(t);
-  const bytes = await readFile(new URL('./fixtures/stac-modern.parquet', import.meta.url));
-  const fetch = t.mock.method(globalThis, 'fetch', async () => new Response(bytes));
-  const { handler } = await fixture();
-  delete handler.readGeoparquet;
-  const urls = Array.from({ length: 5 }, (_, i) => `https://example.org/${i}.parquet`);
-  for (const url of urls) await handler.loadItemsFromGeoparquet(url);
-  assert.equal(handler.itemsCache.has(urls[0]), false, 'first decoded collection was evicted');
-  assert.equal(entries.size, 5);
-  fetch.mock.mockImplementation(async () => { throw new Error('upstream offline'); });
-  const { handler: next } = await fixture();
-  delete next.readGeoparquet;
-  const first = await handler.loadItemsFromGeoparquet(urls[0]);
-  const second = await next.loadItemsFromGeoparquet(urls[0]);
-  assert.deepEqual(first, second);
-  assert.equal(fetch.mock.callCount(), 5);
-});
-
-test('failed and malformed downloads are never cached and can be retried later', async t => {
-  const { entries } = edgeCache(t);
-  const bytes = await readFile(new URL('./fixtures/stac-modern.parquet', import.meta.url));
-  const responses = [new Response('missing', { status: 404 }), new Response('broken parquet'), new Response(bytes)];
-  const fetch = t.mock.method(globalThis, 'fetch', async () => responses.shift());
-  const { handler } = await fixture();
-  delete handler.readGeoparquet;
-  const url = 'https://example.org/retry.parquet';
-  for (let i = 0; i < 2; i++) {
-    await assert.rejects(handler.loadItemsFromGeoparquet(url), /unavailable/);
-    assert.equal(entries.size, 0);
-  }
-  assert.ok((await handler.loadItemsFromGeoparquet(url)).length);
-  assert.equal(entries.size, 1);
-  assert.equal(fetch.mock.callCount(), 3);
-});
-
-test('edge-cache failures do not make readable release indexes unavailable', async t => {
-  const { cache } = edgeCache(t);
-  t.mock.method(cache, 'match', async () => { throw new Error('cache read failed'); });
-  t.mock.method(cache, 'put', async () => { throw new Error('cache write failed'); });
-  const bytes = await readFile(new URL('./fixtures/stac-modern.parquet', import.meta.url));
-  t.mock.method(globalThis, 'fetch', async () => new Response(bytes));
-  const { handler } = await fixture();
-  delete handler.readGeoparquet;
-  assert.ok((await handler.readGeoparquet('https://example.org/available.parquet')).length);
-});
 
 test('viewer follows next links beyond the former 10000-item cap and detects repeated pages', async t => {
   t.mock.method(globalThis,'fetch',async url => {

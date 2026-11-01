@@ -1,6 +1,5 @@
-import { parquetRead } from 'hyparquet';
 import { wkbToGeojson } from 'hyparquet/src/wkb.js';
-import { fetchWithRetry } from './request.js';
+import { STACParquet } from './stac_parquet.js';
 import { ResourceUnavailableError } from './errors.js';
 import { bboxGeometry, normalizeQuery, predicate, queryUrl } from './stac_query.js';
 
@@ -15,8 +14,7 @@ export const CONFORMANCE = [
 const VERSION = '1.1.0';
 const JSON_TYPE = 'application/json';
 const GEOJSON_TYPE = 'application/geo+json';
-const CACHE_BYTES = 32 * 1024 * 1024;
-const DOWNLOAD_BYTES = 16 * 1024 * 1024;
+const CACHE_BYTES = 8 * 1024 * 1024;
 const link = (rel, href, type = JSON_TYPE, extra = {}) => ({ rel, href, type, ...extra });
 const cleanJSON = value => JSON.parse(JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v));
 const reserved = new Set(['id', 'assets', 'bbox', 'geometry', 'links', 'stac_extensions', 'stac_version', 'type', 'collection', 'properties']);
@@ -49,7 +47,7 @@ class STACHandler {
     this.logger = logger;
     this.collections = new Map();
     this.itemsCache = new Map();
-    this.parquetRead = parquetRead;
+    this.parquet = new STACParquet(logger);
   }
 
   async init() {
@@ -126,8 +124,10 @@ class STACHandler {
   async getItem(id, itemId, base) {
     const info = this.collections.get(id);
     if (!info) return null;
-    const item = (await this.loadItemsFromGeoparquet(info.geoparquetUrl)).find(i => i.id === itemId);
-    return item ? this.itemResponse(item, id, base) : null;
+    const position = (await this.loadItemsFromGeoparquet(info.geoparquetUrl)).findIndex(i => i.id === itemId);
+    if (position < 0) return null;
+    const [item] = await this.readGeoparquet(info.geoparquetUrl, { rowStart: position, rowEnd: position + 1 });
+    return this.itemResponse(item, id, base);
   }
 
   async getItems(id, params, base) {
@@ -150,18 +150,22 @@ class STACHandler {
         // The publisher verifies these counts against immutable index URLs.
         // Pagination need not decode collections outside the requested page.
         if (query.offset < numberMatched + count && features.length < query.limit) {
-          const items = await this.loadItemsFromGeoparquet(info.geoparquetUrl);
-          if (items.length !== count) throw new ResourceUnavailableError('STAC collection count does not match its index');
           const start = Math.max(0, query.offset - numberMatched);
-          for (const item of items.slice(start, start + query.limit - features.length)) features.push(this.itemResponse(item, id, base));
+          const end = Math.min(count, start + query.limit - features.length);
+          const items = await this.readGeoparquet(info.geoparquetUrl, { rowStart: start, rowEnd: end });
+          if (items.length !== end - start) throw new ResourceUnavailableError('STAC collection count does not match its index');
+          for (const item of items) features.push(this.itemResponse(item, id, base));
         }
         numberMatched += count;
         continue;
       }
-      for (const item of await this.loadItemsFromGeoparquet(info.geoparquetUrl)) if (matches(item)) {
-        if (numberMatched >= query.offset && features.length < query.limit) features.push(this.itemResponse(item, id, base));
+      const index = await this.loadItemsFromGeoparquet(info.geoparquetUrl);
+      const positions = [];
+      for (let position = 0; position < index.length; position++) if (matches(index[position])) {
+        if (numberMatched >= query.offset && features.length + positions.length < query.limit) positions.push(position);
         numberMatched++;
       }
+      if (positions.length) for (const item of await this.readGeoparquet(info.geoparquetUrl, { positions })) features.push(this.itemResponse(item, id, base));
     }
     const pageLink = (rel, body) => method === 'POST'
       ? link(rel, endpoint, GEOJSON_TYPE, { method: 'POST', body, merge: false })
@@ -180,12 +184,19 @@ class STACHandler {
       return cached.items;
     }
     this.itemsCache.delete(url);
-    // Cache completed data only: pending fetch promises cannot cross Worker requests.
-    const items = await this.readGeoparquet(url);
+    // Only IDs, geometry and dates belong in the search cache. Full assets and
+    // source properties are read for the selected page, not for the whole index.
+    const items = (await this.readGeoparquet(url, { searchOnly: true })).map(item => ({
+      id: item.id, bbox: item.bbox, geometry: item.geometry, properties: {
+        datetime: item.properties.datetime,
+        start_datetime: item.properties.start_datetime,
+        end_datetime: item.properties.end_datetime,
+      },
+    }));
     const bytes = JSON.stringify(items).length * 2;
     if (bytes <= CACHE_BYTES) {
       let total = [...this.itemsCache.values()].reduce((n, c) => n + c.bytes, 0);
-      while (this.itemsCache.size && (total + bytes > CACHE_BYTES || this.itemsCache.size >= 4)) {
+      while (this.itemsCache.size && total + bytes > CACHE_BYTES) {
         const oldest = this.itemsCache.keys().next().value;
         total -= this.itemsCache.get(oldest).bytes; this.itemsCache.delete(oldest);
       }
@@ -194,46 +205,10 @@ class STACHandler {
     return items;
   }
 
-  async readGeoparquet(url) {
+  async readGeoparquet(url, options) {
     try {
-      // Keep validated index bytes at the edge after the small decoded-item cache
-      // evicts a collection. Cache final bytes, never GitHub's expiring redirects.
-      // Open per request: pending Cache API operations cannot cross requests.
-      let cache, response;
-      try {
-        cache = await globalThis.caches?.open('stac-index-v1');
-        response = await cache?.match(url);
-      } catch (error) {
-        this.logger.error(`STAC index cache read failed: ${error.message}`);
-      }
-      const cached = Boolean(response);
-      response ||= await fetchWithRetry(url);
-      if (!response.ok) throw new Error(`Index fetch returned HTTP ${response.status}`);
-      if (Number(response.headers.get('content-length')) > DOWNLOAD_BYTES) {
-        await response.body?.cancel();
-        throw new Error('STAC index exceeds 16 MiB');
-      }
-      const chunks = []; let length = 0;
-      for await (const chunk of response.body) {
-        length += chunk.length;
-        if (length > DOWNLOAD_BYTES) throw new Error('STAC index exceeds 16 MiB');
-        chunks.push(chunk);
-      }
-      const file = new Uint8Array(length); let offset = 0;
-      for (const chunk of chunks) { file.set(chunk, offset); offset += chunk.length; }
-      let items;
-      await this.parquetRead({ file: file.buffer, rowFormat: 'object', utf8: false, onComplete: rows => { items = rows.map(rowToItem); } });
-      if (!items || new Set(items.map(i => i.id)).size !== items.length) throw new Error('Invalid or duplicate STAC item IDs');
-      if (cache && !cached) {
-        try {
-          // Published indexes use a new URL when content changes.
-          await cache.put(url, new Response(file, { headers: {
-            'Content-Type': 'application/vnd.apache.parquet', 'Cache-Control': 'public, max-age=86400',
-          } }));
-        } catch (error) {
-          this.logger.error(`STAC index cache write failed: ${error.message}`);
-        }
-      }
+      const items = (await this.parquet.read(url, options)).map(rowToItem);
+      if (new Set(items.map(i => i.id)).size !== items.length) throw new Error('Duplicate STAC item IDs');
       return items;
     } catch (error) {
       this.logger.error(`Cannot read STAC index ${url}: ${error.message}`);

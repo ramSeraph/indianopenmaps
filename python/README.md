@@ -388,7 +388,9 @@ the external release_tools generator. It reads the release's consolidated
 `listing_files.csv`, inspects GeoTIFF headers, preserves supplied WGS84 footprints
 and matches original scans by basename. It writes a STAC GeoParquet index, embedded
 collection metadata, a `.collection.json` sidecar and a `.report.json` report.
-Nothing is uploaded by preparation.
+Indexes use Snappy compression, at most 512 items per row group and Parquet page
+indexes so remote clients can read selected columns/groups without decoding the
+whole collection. Nothing is uploaded by preparation.
 
 ```bash
 python/.venv/bin/iomaps admin stac \

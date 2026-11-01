@@ -26,15 +26,24 @@ const bundle = await build({
     import { registerStacRoutes } from './src/routes/stac.js';
     const app = new Hono(); await registerStacRoutes(app, console, ${JSON.stringify(catalog)}); export default app;` },
   bundle: true, format: 'esm', platform: 'browser', conditions: ['workerd'], target: 'es2022', write: false,
-  external: ['node:async_hooks'],
+  external: ['node:*'],
+  alias: { module: 'node:module' },
 });
 const worker = new Miniflare({
   port: Number(process.env.STAC_TEST_PORT || 8791),
   compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution'],
   modules: true, script: bundle.outputFiles[0].text,
-  outboundService: request => files.has(request.url)
-    ? new Response(files.get(request.url), { headers: { 'Content-Type': 'application/vnd.apache.parquet' } })
-    : new Response('Fixture not found', { status: 404 }),
+  outboundService: request => {
+    const bytes = files.get(request.url);
+    if (!bytes) return new Response('Fixture not found', { status: 404 });
+    if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Length': String(bytes.length) } });
+    const range = request.headers.get('range')?.match(/^bytes=(\d+)-(\d+)$/);
+    if (!range) return new Response('Range required', { status: 400 });
+    const [, start, end] = range.map(Number);
+    return new Response(bytes.subarray(start, end + 1), { status: 206, headers: {
+      'Content-Type': 'application/vnd.apache.parquet', 'Content-Range': `bytes ${start}-${end}/${bytes.length}`,
+    } });
+  },
 });
 console.log(`STAC ready: ${await worker.ready}stac`);
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, async () => { await worker.dispose(); process.exit(0); });

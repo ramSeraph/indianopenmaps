@@ -103,6 +103,17 @@ def test_generator_preserves_footprint_projection_originals_and_real_geoparquet(
     assert collection["extent"]["temporal"]["interval"] == [["2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z"]]
 
 
+def test_large_index_supports_bounded_remote_page_reads(prepared_index):
+    options = {**prepared_index, "footprints": None}
+    options["rows"] = [{"name": f"sheet-{i:04}.tif", "url": f"https://example.com/{i}.tif"} for i in range(1300)]
+    admin_stac.prepare_stac(**options)
+    parquet = pq.ParquetFile(options["output"])
+    assert [parquet.metadata.row_group(i).num_rows for i in range(parquet.num_row_groups)] == [512, 512, 276]
+    assert parquet.metadata.row_group(0).column(0).has_offset_index
+    assert parquet.read_row_group(1, columns=["id"])["id"].to_pylist() == [f"sheet-{i:04}" for i in range(512, 1024)]
+    assert json.loads(parquet.schema_arrow.metadata[b"stac-geoparquet"])["collections"]["maps"]["item_count"] == 1300
+
+
 def test_failed_header_read_does_not_publish_partial_index(prepared_index, monkeypatch):
     original = prepared_index["output"].read_bytes()
     monkeypatch.setattr(admin_stac, "raster_metadata", Mock(side_effect=RuntimeError("source unavailable")))

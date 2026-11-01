@@ -242,11 +242,18 @@ def prepare_stac(
     )
     collection_dict = collection.to_dict()
     temporary = output.with_suffix(".tmp.parquet")
+    import pyarrow as pa
+
+    # Keep remote page reads bounded: a single giant row group makes even a
+    # one-item request decode every asset in the collection.
+    reader = parse_stac_items_to_arrow(ordered, drop_invalid_properties=False)
+    batches = (batch.slice(start, 512) for batch in reader for start in range(0, batch.num_rows, 512))
     to_parquet(
-        parse_stac_items_to_arrow(ordered, drop_invalid_properties=False),
+        pa.RecordBatchReader.from_batches(reader.schema, batches),
         temporary,
         collections={collection_id: collection_dict},
         compression="snappy",
+        write_page_index=True,
     )
     temporary.replace(output)
     collection_path = output.with_suffix(".collection.json")

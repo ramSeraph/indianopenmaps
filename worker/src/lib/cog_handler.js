@@ -3,7 +3,7 @@ import { GoogleTms } from '@basemaps/geo';
 import { ForbiddenError, ResourceUnavailableError, UnknownError } from './errors.js';
 import { TileMakerPhoton } from './tile_maker_photon.js';
 import { COGReader } from './cog_reader.js';
-import { COGRangeCache } from './cog_range_cache.js';
+import { sharedRangeCache } from './range_cache.js';
 
 const URL_WHITELIST = [
   'https://github.com/ramSeraph/',
@@ -21,7 +21,7 @@ function webMercatorToLatLng(x, y) {
 class COGHandler {
   constructor(logger) {
     this.logger = logger;
-    this.rangeCache = new COGRangeCache();
+    this.rangeCache = sharedRangeCache;
   }
 
   async getTiff(url) {

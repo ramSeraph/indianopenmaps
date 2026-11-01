@@ -19,6 +19,7 @@ def test_pystac_discovery_complete_pagination_and_spatial_temporal_filters(metho
     collections = list(client.get_collections())
     assert collections
     for collection in collections:
+        print(f"Checking {method}: {collection.id}", flush=True)
         items = list(client.search(collections=[collection.id], method=method, limit=317).items())
         assert len(items) == collection.extra_fields["item_count"]
         assert len({item.id for item in items}) == len(items)
