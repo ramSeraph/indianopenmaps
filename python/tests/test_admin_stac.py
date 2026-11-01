@@ -1,0 +1,148 @@
+import json
+from datetime import UTC, datetime
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+import click
+import pyarrow.parquet as pq
+import pytest
+from conftest import git
+from shapely.geometry import Polygon, box, mapping
+
+from iomaps.commands import admin_publish, admin_stac
+from iomaps.commands.admin_stac_publish import STAC_FILE, build_stac_plan, merge_catalog
+
+
+@pytest.fixture
+def prepared_index(tmp_path, monkeypatch):
+    metadata = {
+        "size": [100, 200],
+        "geoTransform": [0, 0.04, 0, 4, 0, -0.02],
+        "wgs84Extent": mapping(box(0, 0, 4, 4)),
+        "stac": {"proj:epsg": 4326},
+        "metadata": {"IMAGE_STRUCTURE": {"LAYOUT": "COG"}},
+    }
+    monkeypatch.setattr(admin_stac, "raster_metadata", lambda *args: metadata)
+    output = tmp_path / "maps.stac.parquet"
+    options = {
+        "rows": [{"name": "one.tif", "url": "https://github.com/example/releases/download/maps/one.tif"}],
+        "originals": {"one": {"name": "one.jpg", "url": "https://github.com/example/releases/download/scans/one.jpg"}},
+        "footprints": {
+            "one": {"geometry": mapping(Polygon([(0, 0), (4, 0), (0, 4)])), "properties": {"edition": 1956}}
+        },
+        "output": output,
+        "collection_id": "maps",
+        "title": "Maps",
+        "description": "Test maps",
+        "license_id": "other",
+        "timestamp": datetime(2025, 1, 1, tzinfo=UTC),
+        "datetime_description": "Derivative publication",
+        "source_url": "https://example.com",
+        "cache": tmp_path / "cache",
+    }
+    admin_stac.prepare_stac(**options)
+    return options
+
+
+def test_generator_preserves_footprint_projection_originals_and_real_geoparquet(prepared_index):
+    output = prepared_index["output"]
+    table = pq.read_table(output)
+    assert json.loads(table.schema.metadata[b"geo"])["primary_column"] == "geometry"
+    row = table.to_pylist()[0]
+    assert row["proj:code"] == "EPSG:4326"
+    assert row["proj:shape"] == [200, 100]
+    assert row["proj:transform"] == [0.04, 0, 0, 0, -0.02, 4, 0, 0, 1]
+    assert row["iomaps:source_properties"] == {"edition": 1956}
+    assert row["assets"]["original"]["href"].endswith("/one.jpg")
+    from shapely import from_wkb
+
+    assert from_wkb(row["geometry"]).area == 8
+    collection = json.loads(output.with_suffix(".collection.json").read_text())
+    assert collection["license"] == "other"
+    assert collection["item_count"] == 1
+    assert collection["extent"]["temporal"]["interval"] == [["2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z"]]
+
+
+def test_failed_header_read_does_not_publish_partial_index(prepared_index, monkeypatch):
+    original = prepared_index["output"].read_bytes()
+    monkeypatch.setattr(admin_stac, "raster_metadata", Mock(side_effect=RuntimeError("source unavailable")))
+    with pytest.raises(ValueError, match="no index written"):
+        admin_stac.prepare_stac(**prepared_index)
+    assert prepared_index["output"].read_bytes() == original
+    report = json.loads(prepared_index["output"].with_suffix(".report.json").read_text())
+    assert report["expected"] == 1 and report["prepared"] == 0
+    assert report["failures"][0]["id"] == "one"
+    with pytest.raises(click.UsageError, match="latest preparation failed"):
+        make_plan(prepared_index)
+
+
+def test_reuse_requires_the_same_asset_url_and_can_be_bypassed(prepared_index, monkeypatch):
+    from iomaps.core.stac_client import RasterCatalog
+
+    items = list(RasterCatalog(indexes={"maps": prepared_index["output"]}).search())
+    options = {**prepared_index, "reuse_items": {item["id"]: item for item in items}}
+    reader = Mock(side_effect=RuntimeError("new header required"))
+    monkeypatch.setattr(admin_stac, "raster_metadata", reader)
+    assert admin_stac.prepare_stac(**options)["reused_headers"] == 1
+    reader.assert_not_called()
+    with pytest.raises(ValueError, match="no index written"):
+        admin_stac.prepare_stac(**options, refresh=True)
+    reader.assert_called_once()
+    reader.reset_mock()
+    options["rows"] = [{**options["rows"][0], "url": "https://example.com/changed.tif"}]
+    with pytest.raises(ValueError, match="no index written"):
+        admin_stac.prepare_stac(**options)
+    reader.assert_called_once()
+
+
+def make_plan(options):
+    return build_stac_plan(
+        owner="ramSeraph",
+        repo="indian_land_features",
+        release="urban-land-use",
+        index=options["output"],
+        collection_path=options["output"].with_suffix(".collection.json"),
+        license_md="License not specified by source.",
+    )
+
+
+def test_stac_publication_uses_shared_receipts_and_only_commits_catalog(
+    prepared_index,
+    git_checkout,
+    release_api,
+    tmp_path,
+):
+    api, release = release_api
+    path = git_checkout / STAC_FILE
+    existing = {"id": "root", "links": [{"rel": "child", "href": "./keep", "geoparquet": "https://example.com/keep"}]}
+    path.write_text(json.dumps(existing))
+    git(git_checkout, "add", STAC_FILE)
+    git(git_checkout, "commit", "-m", "Existing STAC catalog")
+    git(git_checkout, "push", "origin", "main")
+    remote = git(git_checkout, "remote", "get-url", "origin")
+    api.get_repo("ramSeraph/indianopenmaps").get_contents.side_effect = lambda path, ref: SimpleNamespace(
+        decoded_content=git(remote, "show", f"{ref}:{path}").encode()
+    )
+    (git_checkout / "unrelated.txt").write_text("uncommitted edit\n")
+    plan = make_plan(prepared_index)
+    receipt = tmp_path / "receipt.json"
+    admin_publish.publish_plan(plan, api, git_checkout, receipt, verify=False)
+    assert json.loads(path.read_text()) == merge_catalog(existing, plan)
+    assert git(git_checkout, "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD") == STAC_FILE
+    assert (git_checkout / "unrelated.txt").read_text() == "uncommitted edit\n"
+    assert release.upload_asset.call_count == 2
+    admin_publish.publish_plan(plan, api, git_checkout, receipt, verify=False)
+    assert release.upload_asset.call_count == 2, "resume verifies existing assets"
+    assert len(json.loads(path.read_text())["links"]) == 2
+    assert release.body.count("### STAC: Maps") == 1
+
+
+def test_stac_plan_rejects_changed_assets_and_invalid_notes(prepared_index):
+    plan = make_plan(prepared_index)
+    plan["release_notes_markdown"] = "no heading"
+    with pytest.raises(click.ClickException, match="heading"):
+        admin_publish.validate_plan(plan)
+    plan = make_plan(prepared_index)
+    prepared_index["output"].write_bytes(b"changed")
+    with pytest.raises(click.ClickException, match="changed since preview"):
+        admin_publish.validate_plan(plan)

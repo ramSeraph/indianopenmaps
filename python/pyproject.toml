@@ -16,15 +16,17 @@ dependencies = [
     "pillow>=11.0.0",
     "platformdirs>=4.0.0",
     "filelock>=3.16.0",
+    "pyarrow>=18.0.0",
 ]
 
 [project.optional-dependencies]
 ui = ["PyQt5>=5.15.0"]
 admin = [
-    "pyarrow>=18.0.0",
     "pyproj>=3.7.0",
     "pygithub>=2.8.0",
     "questionary>=2.1.0",
+    "pystac>=1.14.0,<2",
+    "stac-geoparquet>=0.5.1,<1",
 ]
 
 [project.scripts]
@@ -66,6 +68,7 @@ include = [
 dev = [
     "pytest>=8.4.2",
     "ruff>=0.14.14",
+    "pystac-client>=0.9.0,<1",
 ]
 
 [tool.ruff]

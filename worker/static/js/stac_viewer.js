@@ -1,4 +1,5 @@
 // STAC Viewer JavaScript
+import { fetchStacPages } from './stac_pagination.js';
 const STAC_API_BASE = window.location.origin + '/stac';
 const COG_TILER_BASE = window.location.origin + '/cog-tiles';
 
@@ -7,6 +8,7 @@ let currentLayers = [];
 let cogTileLayers = {}; // Track COG tile layers by item ID
 let collections = [];
 let selectedCollection = null;
+let collectionRequest = null;
 
 // Initialize the map
 function initMap() {
@@ -22,13 +24,7 @@ function initMap() {
 // Load collections from STAC API
 async function loadCollections() {
     try {
-        const response = await fetch(`${STAC_API_BASE}/collections`);
-        if (!response.ok) {
-            throw new Error(`Failed to load collections: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        collections = data.collections || [];
+        collections = await fetchStacPages(`${STAC_API_BASE}/collections`, 'collections');
         
         renderCollections();
     } catch (error) {
@@ -74,6 +70,9 @@ function renderCollections() {
 
 // Load a specific collection and its items
 async function loadCollection(collectionId) {
+    collectionRequest?.abort();
+    const controller = new AbortController();
+    collectionRequest = controller;
     // Update UI
     document.querySelectorAll('.collection-item').forEach(item => {
         item.classList.toggle('active', item.dataset.id === collectionId);
@@ -88,25 +87,29 @@ async function loadCollection(collectionId) {
         clearLayers();
         
         // Load collection details
-        const collectionResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}`);
+        const collectionResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}`, { signal: controller.signal });
+        if (!collectionResponse.ok) throw new Error(`HTTP ${collectionResponse.status}`);
         const collection = await collectionResponse.json();
         
         // Load all items
-        const itemsResponse = await fetch(`${STAC_API_BASE}/collections/${collectionId}/items?limit=10000`);
-        const itemsData = await itemsResponse.json();
+        const features = await fetchStacPages(`${STAC_API_BASE}/collections/${collectionId}/items?limit=1000`, 'features', {
+            signal: controller.signal,
+            onProgress: (count, total) => showLoading(`Loading items: ${count}${total === undefined ? '' : ` / ${total}`}...`),
+        });
         
-        if (itemsData.features && itemsData.features.length > 0) {
-            renderItems(itemsData.features, collection);
-            showInfo(collection, itemsData.features.length);
+        if (features.length > 0) {
+            renderItems(features, collection);
+            showInfo(collection, features.length);
         } else {
             alert('No items found in this collection');
         }
         
     } catch (error) {
+        if (error.name === 'AbortError') return;
         console.error('Error loading collection:', error);
         alert(`Failed to load collection: ${error.message}`);
     } finally {
-        hideLoading();
+        if (collectionRequest === controller) hideLoading();
     }
 }
 
@@ -281,6 +284,7 @@ function toggleCogTiles(encodedUrl, itemId) {
 }
 
 // Initialize the application
+window.toggleCogTiles = toggleCogTiles;
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadCollections();

@@ -36,7 +36,8 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 
 **STAC API:**
 - Implements a [STAC](https://stacspec.org/) API for browsing COG collections (e.g. India Topographic Maps 50k)
-- Item indices are stored in geoparquet files and spatially indexed with [flatbush](https://github.com/mourner/flatbush)
+- Item indexes are stored in STAC GeoParquet files in GitHub releases; searches preserve source footprints and support bbox, intersects, datetime, IDs and complete GET/POST pagination.
+- EPSG:3857 COG items expose standard Web Map Links `xyz` links for generic viewers. See [compatibility checks](worker/test/STAC_COMPATIBILITY.md).
 
 **Web viewers (in `worker/static/`):**
 - Vector tile viewer using [MapLibre GL JS](https://maplibre.org/) — layer selection, feature inspection, styling, 3D terrain, geocoding, and partial data download from remote parquet sources in multiple formats using [geoparquet-extractor](https://github.com/ramSeraph/geoparquet-extractor)
@@ -76,6 +77,7 @@ Agent usage guidance is split into two skills:
 - [iomaps-admin](.agents/skills/iomaps-admin/SKILL.md) — create coverage, prepare datasets, and publish releases.
 
 **Commands:**
+- `iomaps cli stac` — cached raster discovery and bbox imagery extraction directly from GitHub releases, without calling the Indian Open Maps API ([Python API and CLI examples](python/README.md#raster-discovery-and-bbox-extraction))
 - `iomaps cli extract` — extract intersecting features from remote GeoParquet, pruning partitions and row groups by bounding box
 - `iomaps cli sources` — list available remote data sources (with category filtering and fuzzy matching)
 - `iomaps cli search --bounds "77.1,28.5,77.3,28.7"` — find candidate sources using cached coverage

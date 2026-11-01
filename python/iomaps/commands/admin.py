@@ -6,6 +6,7 @@ ADMIN_COMMANDS = {
     "coverage": ("iomaps.commands.admin_coverage", "coverage"),
     "make-release": ("iomaps.commands.admin_release", "make_release"),
     "prepare": ("iomaps.commands.admin_prepare", "prepare"),
+    "stac": ("iomaps.commands.admin_stac", "stac"),
 }
 
 

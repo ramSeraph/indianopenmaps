@@ -1,4 +1,47 @@
+import { parquetRead } from 'hyparquet';
+import { wkbToGeojson } from 'hyparquet/src/wkb.js';
 import { fetchWithRetry } from './request.js';
+import { ResourceUnavailableError } from './errors.js';
+import { bboxGeometry, normalizeQuery, predicate, queryUrl } from './stac_query.js';
+
+export const CONFORMANCE = [
+  'https://api.stacspec.org/v1.0.0/core',
+  'https://api.stacspec.org/v1.0.0/collections',
+  'https://api.stacspec.org/v1.0.0/ogcapi-features',
+  'https://api.stacspec.org/v1.0.0/item-search',
+  'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
+  'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson',
+];
+const VERSION = '1.1.0';
+const JSON_TYPE = 'application/json';
+const GEOJSON_TYPE = 'application/geo+json';
+const CACHE_BYTES = 32 * 1024 * 1024;
+const DOWNLOAD_BYTES = 16 * 1024 * 1024;
+const link = (rel, href, type = JSON_TYPE, extra = {}) => ({ rel, href, type, ...extra });
+const cleanJSON = value => JSON.parse(JSON.stringify(value, (_, v) => typeof v === 'bigint' ? Number(v) : v));
+const reserved = new Set(['id', 'assets', 'bbox', 'geometry', 'links', 'stac_extensions', 'stac_version', 'type', 'collection', 'properties']);
+
+export function rowToItem(row) {
+  const properties = { ...(row.properties || {}) };
+  for (const [key, value] of Object.entries(row)) if (!reserved.has(key)) properties[key] = value;
+  let geometry = row.geometry;
+  if (geometry instanceof Uint8Array) {
+    geometry = wkbToGeojson({ view: new DataView(geometry.buffer, geometry.byteOffset, geometry.byteLength), offset: 0 });
+  } else if (typeof geometry === 'string') geometry = JSON.parse(geometry);
+  const bbox = Array.isArray(row.bbox) ? row.bbox : row.bbox && [row.bbox.xmin, row.bbox.ymin, row.bbox.xmax, row.bbox.ymax];
+  // Legacy indexes without WKB remain readable; never replace an existing footprint.
+  if (!geometry && bbox) geometry = bboxGeometry(bbox);
+  if (typeof row.id !== 'string' || !row.id || !geometry || !bbox) throw new Error('Index item lacks an ID or geometry');
+  const extensions = [...(row.stac_extensions || [])];
+  // The original 50k index stored projection fields without declaring their extension.
+  if (properties['proj:epsg'] && !extensions.some(url => url.includes('/projection/'))) {
+    extensions.push('https://stac-extensions.github.io/projection/v1.1.0/schema.json');
+  }
+  return cleanJSON({
+    type: 'Feature', stac_version: row.stac_version || VERSION, id: row.id, geometry, bbox,
+    properties, assets: row.assets || {}, stac_extensions: extensions, links: row.links || [],
+  });
+}
 
 class STACHandler {
   constructor(catalog, logger) {
@@ -6,397 +49,157 @@ class STACHandler {
     this.logger = logger;
     this.collections = new Map();
     this.itemsCache = new Map();
-    this.parquetRead = null;
+    this.parquetRead = parquetRead;
   }
 
   async init() {
-    try {
-      const { parquetRead } = await import('hyparquet');
-      this.parquetRead = parquetRead;
-      
-      this.logger.info(`Loaded STAC catalog from ${this.catalog.id || 'config'}`);
-      
-      if (this.catalog.links) {
-        for (const link of this.catalog.links) {
-          if (link.rel === 'child' && link.geoparquet) {
-            const collectionId = link.href.replace(/^\.\//, '').replace(/\/$/, '');
-            this.collections.set(collectionId, {
-              id: collectionId,
-              geoparquetUrl: link.geoparquet,
-              title: link.title || collectionId
-            });
-          }
-        }
-      }
-      this.logger.info(`Loaded ${this.collections.size} collections`);
-    } catch (err) {
-      this.logger.error(`Error loading STAC catalog: ${err.message}`);
-      throw err;
+    for (const entry of this.catalog.links || []) if (entry.rel === 'child' && entry.geoparquet) {
+      const id = entry.collection?.id || entry.href.replace(/^\.\//, '').replace(/\/$/, '');
+      this.collections.set(id, { id, title: entry.title || id, geoparquetUrl: entry.geoparquet, metadata: entry.collection });
     }
   }
 
-  async getLandingPage() {
-    const landing = {
-      stac_version: '1.0.0',
-      type: 'Catalog',
-      id: this.catalog.id || 'stac-api',
-      title: this.catalog.title || 'STAC API',
-      description: this.catalog.description || 'A STAC API serving collections from geoparquet files',
-      conformsTo: [
-        'https://api.stacspec.org/v1.0.0/core',
-        'https://api.stacspec.org/v1.0.0/collections',
-        'https://api.stacspec.org/v1.0.0/item-search',
-        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
-        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson'
-      ],
-      links: [
-        {
-          rel: 'self',
-          type: 'application/json',
-          href: '/stac'
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        },
-        {
-          rel: 'data',
-          type: 'application/json',
-          href: '/stac/collections'
-        },
-        {
-          rel: 'conformance',
-          type: 'application/json',
-          href: '/stac/conformance'
-        },
-        {
-          rel: 'search',
-          type: 'application/json',
-          href: '/stac/search',
-          method: 'GET'
-        },
-        {
-          rel: 'search',
-          type: 'application/json',
-          href: '/stac/search',
-          method: 'POST'
-        }
-      ]
-    };
-
-    for (const [collectionId, collection] of this.collections) {
-      landing.links.push({
-        rel: 'child',
-        type: 'application/json',
-        href: `/stac/collections/${collectionId}`
-      });
-    }
-
-    return landing;
-  }
-
-  getConformance() {
+  getLandingPage(base) {
     return {
-      conformsTo: [
-        'https://api.stacspec.org/v1.0.0/core',
-        'https://api.stacspec.org/v1.0.0/collections',
-        'https://api.stacspec.org/v1.0.0/item-search',
-        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
-        'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson'
-      ]
+      stac_version: VERSION, type: 'Catalog', id: this.catalog.id, title: this.catalog.title,
+      description: this.catalog.description, conformsTo: CONFORMANCE,
+      links: [link('self', base), link('root', base), link('data', `${base}/collections`),
+        link('conformance', `${base}/conformance`), link('service-desc', `${base}/api.json`, 'application/vnd.oai.openapi+json;version=3.0'),
+        link('service-doc', `${base}/api.html`, 'text/html'),
+        ...['GET', 'POST'].map(method => link('search', `${base}/search`, GEOJSON_TYPE, { method })),
+        ...Array.from(this.collections.values(), col => link('child', `${base}/collections/${encodeURIComponent(col.id)}`, JSON_TYPE, { title: col.title }))],
     };
   }
 
-  async getCollections(limit = 100, offset = 0) {
-    const collectionsArray = Array.from(this.collections.values()).slice(offset, offset + limit);
-    
-    const collections = await Promise.all(
-      collectionsArray.map(async (col) => {
-        return await this.getCollection(col.id);
-      })
-    );
+  getConformance() { return { conformsTo: CONFORMANCE }; }
 
-    return {
-      collections: collections.filter(c => c !== null),
-      links: [
-        {
-          rel: 'self',
-          type: 'application/json',
-          href: '/stac/collections'
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        }
-      ]
-    };
+  async getCollections(params, base) {
+    const query = normalizeQuery(params);
+    const ids = [...this.collections.keys()];
+    const collections = [];
+    for (const id of ids.slice(query.offset, query.offset + query.limit)) collections.push(await this.getCollection(id, base));
+    const links = [link('self', queryUrl(`${base}/collections`, params)), link('root', base)];
+    if (query.offset + collections.length < ids.length) links.push(link('next', queryUrl(`${base}/collections`, { ...query, offset: query.offset + collections.length })));
+    return { collections, links, numberMatched: ids.length, numberReturned: collections.length };
   }
 
-  async getCollection(collectionId) {
-    const collectionInfo = this.collections.get(collectionId);
-    if (!collectionInfo) {
-      return null;
+  async getCollection(id, base) {
+    const info = this.collections.get(id);
+    if (!info) return null;
+    let metadata = info.metadata;
+    if (!metadata) {
+      const items = await this.loadItemsFromGeoparquet(info.geoparquetUrl);
+      const bounds = items.reduce((b, item) => [Math.min(b[0], item.bbox[0]), Math.min(b[1], item.bbox[1]),
+        Math.max(b[2], item.bbox[item.bbox.length / 2]), Math.max(b[3], item.bbox[item.bbox.length / 2 + 1])], [180, 90, -180, -90]);
+      const times = items.flatMap(i => [i.properties.datetime || i.properties.start_datetime, i.properties.datetime || i.properties.end_datetime]).filter(Boolean).sort();
+      metadata = { description: info.title, license: 'other', extent: {
+        spatial: { bbox: items.length ? [bounds] : [[-180, -90, 180, 90]] }, temporal: { interval: [[times[0] || null, times.at(-1) || null]] },
+      }, item_count: items.length };
     }
-
-    return {
-      stac_version: '1.0.0',
-      type: 'Collection',
-      id: collectionId,
-      title: collectionInfo.title,
-      description: `Collection ${collectionId}`,
-      license: 'various',
-      extent: {
-        spatial: {
-          bbox: [[-180, -90, 180, 90]]
-        },
-        temporal: {
-          interval: [[null, null]]
-        }
-      },
-      links: [
-        {
-          rel: 'self',
-          type: 'application/json',
-          href: `/stac/collections/${collectionId}`
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        },
-        {
-          rel: 'items',
-          type: 'application/geo+json',
-          href: `/stac/collections/${collectionId}/items`
-        }
-      ]
-    };
+    const url = `${base}/collections/${encodeURIComponent(id)}`;
+    return { ...metadata, stac_version: VERSION, type: 'Collection', id, title: info.title,
+      assets: { ...metadata.assets, index: { href: info.geoparquetUrl, type: 'application/vnd.apache.parquet', roles: ['metadata'] } },
+      links: [link('self', url), link('root', base), link('parent', base), link('items', `${url}/items`, GEOJSON_TYPE),
+        ...(metadata.links || []).filter(l => !['self', 'root', 'parent', 'items', 'item'].includes(l.rel))] };
   }
 
-  async getItems(collectionId, limit = 10, offset = 0, bbox = null) {
-    const collectionInfo = this.collections.get(collectionId);
-    if (!collectionInfo) {
-      return null;
+  itemResponse(item, id, base) {
+    const collection = `${base}/collections/${encodeURIComponent(id)}`;
+    const extensions = [...(item.stac_extensions || [])];
+    const maps = [];
+    const cog = item.assets.cog;
+    const code = item.properties['proj:code'] || `EPSG:${item.properties['proj:epsg']}`;
+    if (cog && code === 'EPSG:3857') {
+      const extension = 'https://stac-extensions.github.io/web-map-links/v1.3.0/schema.json';
+      if (!extensions.includes(extension)) extensions.push(extension);
+      maps.push(link('xyz', `${new URL(base).origin}/cog-tiles/{z}/{x}/{y}?url=${encodeURIComponent(cog.href)}&format=png`,
+        'image/png', { title: 'Map sheet tiles' }));
     }
-
-    const items = await this.loadItemsFromGeoparquet(collectionInfo.geoparquetUrl, limit, offset, bbox);
-
-    return {
-      type: 'FeatureCollection',
-      features: items,
-      links: [
-        {
-          rel: 'self',
-          type: 'application/geo+json',
-          href: `/stac/collections/${collectionId}/items`
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        },
-        {
-          rel: 'collection',
-          type: 'application/json',
-          href: `/stac/collections/${collectionId}`
-        }
-      ],
-      context: {
-        returned: items.length,
-        limit: limit
-      }
-    };
+    return { ...item, collection: id, stac_extensions: extensions, links: [
+      link('self', `${collection}/items/${encodeURIComponent(item.id)}`, GEOJSON_TYPE),
+      link('root', base), link('parent', collection), link('collection', collection),
+      ...item.links.filter(l => !['self', 'root', 'parent', 'collection'].includes(l.rel)),
+      ...maps,
+    ] };
   }
 
-  async getItem(collectionId, itemId) {
-    const collectionInfo = this.collections.get(collectionId);
-    if (!collectionInfo) {
-      return null;
-    }
-
-    const items = await this.loadItemsFromGeoparquet(collectionInfo.geoparquetUrl, 1000, 0);
-    const item = items.find(i => i.id === itemId);
-    
-    if (item) {
-      item.links = [
-        {
-          rel: 'self',
-          type: 'application/geo+json',
-          href: `/stac/collections/${collectionId}/items/${itemId}`
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        },
-        {
-          rel: 'collection',
-          type: 'application/json',
-          href: `/stac/collections/${collectionId}`
-        },
-        {
-          rel: 'parent',
-          type: 'application/json',
-          href: `/stac/collections/${collectionId}`
-        }
-      ];
-    }
-
-    return item;
+  async getItem(id, itemId, base) {
+    const info = this.collections.get(id);
+    if (!info) return null;
+    const item = (await this.loadItemsFromGeoparquet(info.geoparquetUrl)).find(i => i.id === itemId);
+    return item ? this.itemResponse(item, id, base) : null;
   }
 
-  async search(params) {
-    const { collections, limit = 10, bbox, datetime } = params;
-    let allItems = [];
+  async getItems(id, params, base) {
+    if (!this.collections.has(id)) return null;
+    const endpoint = `${base}/collections/${encodeURIComponent(id)}/items`;
+    return this.search({ ...params, collections: [id] }, base, 'GET', endpoint, queryUrl(endpoint, params));
+  }
 
-    const collectionsToSearch = collections 
-      ? collections.split(',').filter(c => this.collections.has(c))
-      : Array.from(this.collections.keys());
-
-    for (const collectionId of collectionsToSearch) {
-      const collectionInfo = this.collections.get(collectionId);
-      if (collectionInfo) {
-        const items = await this.loadItemsFromGeoparquet(
-          collectionInfo.geoparquetUrl, 
-          limit, 
-          0, 
-          bbox
-        );
-        allItems = allItems.concat(items);
-        if (allItems.length >= limit) {
-          allItems = allItems.slice(0, limit);
-          break;
-        }
+  async search(params, base, method = 'GET', endpoint = `${base}/search`, selfUrl) {
+    const query = normalizeQuery(params);
+    const matches = predicate(query);
+    const features = [];
+    let numberMatched = 0;
+    for (const id of query.collections || this.collections.keys()) {
+      const info = this.collections.get(id);
+      if (!info) continue;
+      for (const item of await this.loadItemsFromGeoparquet(info.geoparquetUrl)) if (matches(item)) {
+        if (numberMatched >= query.offset && features.length < query.limit) features.push(this.itemResponse(item, id, base));
+        numberMatched++;
       }
     }
-
-    return {
-      type: 'FeatureCollection',
-      features: allItems,
-      links: [
-        {
-          rel: 'self',
-          type: 'application/geo+json',
-          href: '/stac/search'
-        },
-        {
-          rel: 'root',
-          type: 'application/json',
-          href: '/stac'
-        }
-      ],
-      context: {
-        returned: allItems.length,
-        limit: limit
-      }
-    };
+    const pageLink = (rel, body) => method === 'POST'
+      ? link(rel, endpoint, GEOJSON_TYPE, { method: 'POST', body, merge: false })
+      : link(rel, queryUrl(endpoint, body), GEOJSON_TYPE);
+    const self = method === 'POST' ? pageLink('self', query) : link('self', selfUrl || queryUrl(endpoint, params), GEOJSON_TYPE);
+    const links = [self, link('root', base)];
+    if (query.offset + features.length < numberMatched) links.push(pageLink('next', { ...query, offset: query.offset + features.length }));
+    return { type: 'FeatureCollection', features, links, numberMatched, numberReturned: features.length,
+      context: { returned: features.length, matched: numberMatched, limit: query.limit } };
   }
 
-  async loadItemsFromGeoparquet(url, limit = 10, offset = 0, bbox = null) {
-    const cacheKey = `${url}`;
-    
-    if (!this.itemsCache.has(cacheKey)) {
-      try {
-        const items = await this.readGeoparquet(url);
-        this.itemsCache.set(cacheKey, items);
-      } catch (err) {
-        this.logger.error(`Error reading geoparquet from ${url}: ${err.message}`);
-        return [];
+  async loadItemsFromGeoparquet(url) {
+    const cached = this.itemsCache.get(url);
+    if (cached && Date.now() - cached.created < 300_000) {
+      this.itemsCache.delete(url); this.itemsCache.set(url, cached);
+      return cached.items;
+    }
+    this.itemsCache.delete(url);
+    // Cache completed data only: pending fetch promises cannot cross Worker requests.
+    const items = await this.readGeoparquet(url);
+    const bytes = JSON.stringify(items).length * 2;
+    if (bytes <= CACHE_BYTES) {
+      let total = [...this.itemsCache.values()].reduce((n, c) => n + c.bytes, 0);
+      while (this.itemsCache.size && (total + bytes > CACHE_BYTES || this.itemsCache.size >= 4)) {
+        const oldest = this.itemsCache.keys().next().value;
+        total -= this.itemsCache.get(oldest).bytes; this.itemsCache.delete(oldest);
       }
+      this.itemsCache.set(url, { items, bytes, created: Date.now() });
     }
-
-    let items = this.itemsCache.get(cacheKey) || [];
-
-    if (bbox) {
-      const [minLon, minLat, maxLon, maxLat] = bbox.split(',').map(parseFloat);
-      items = items.filter(item => {
-        if (!item.geometry || !item.geometry.coordinates) return false;
-        const [lon, lat] = item.geometry.coordinates;
-        return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
-      });
-    }
-
-    return items.slice(offset, offset + limit);
+    return items;
   }
 
   async readGeoparquet(url) {
     try {
-      this.logger.info(`Fetching geoparquet from ${url}`);
       const response = await fetchWithRetry(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+      if (!response.ok) throw new Error(`Index fetch returned HTTP ${response.status}`);
+      if (Number(response.headers.get('content-length')) > DOWNLOAD_BYTES) throw new Error('STAC index exceeds 16 MiB');
+      const chunks = []; let length = 0;
+      for await (const chunk of response.body) {
+        length += chunk.length;
+        if (length > DOWNLOAD_BYTES) throw new Error('STAC index exceeds 16 MiB');
+        chunks.push(chunk);
       }
-
-      const buffer = await response.arrayBuffer();
-      this.logger.info(`Downloaded ${buffer.byteLength} bytes`);
-
-      const items = [];
-      
-      await this.parquetRead({
-        file: buffer,
-        onComplete: (data) => {
-          const rowKeys = Object.keys(data);
-          this.logger.info(`Parquet read complete, processing ${rowKeys.length} rows`);
-          
-          for (const rowKey of rowKeys) {
-            const row = data[rowKey];
-            if (!Array.isArray(row)) continue;
-            
-            const [id, assets, bbox, geometryWkb, links, stacExtensions, stacVersion, type, datetime, projEpsg, projShape, projTransform] = row;
-            
-            let bboxArray = null;
-            let geometry = null;
-            if (bbox && typeof bbox === 'object') {
-              bboxArray = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax];
-              geometry = {
-                type: 'Polygon',
-                coordinates: [[
-                  [bbox.xmin, bbox.ymin],
-                  [bbox.xmax, bbox.ymin],
-                  [bbox.xmax, bbox.ymax],
-                  [bbox.xmin, bbox.ymax],
-                  [bbox.xmin, bbox.ymin]
-                ]]
-              };
-            }
-            
-            const properties = {};
-            if (datetime) {
-              properties.datetime = datetime instanceof Date ? datetime.toISOString() : datetime;
-            }
-            if (projEpsg) properties['proj:epsg'] = Number(projEpsg);
-            if (projShape) properties['proj:shape'] = Array.isArray(projShape) ? projShape.map(Number) : projShape;
-            if (projTransform) properties['proj:transform'] = projTransform;
-
-            const item = {
-              type: 'Feature',
-              stac_version: stacVersion || '1.0.0',
-              id: id || `item-${rowKey}`,
-              geometry: geometry,
-              bbox: bboxArray,
-              properties: properties,
-              assets: assets || {},
-              collection: null,
-              links: []
-            };
-
-            if (stacExtensions && Array.isArray(stacExtensions) && stacExtensions.length > 0) {
-              item.stac_extensions = stacExtensions;
-            }
-
-            items.push(item);
-          }
-        }
-      });
-
-      this.logger.info(`Loaded ${items.length} items from ${url}`);
+      const file = new Uint8Array(length); let offset = 0;
+      for (const chunk of chunks) { file.set(chunk, offset); offset += chunk.length; }
+      let items;
+      await this.parquetRead({ file: file.buffer, rowFormat: 'object', utf8: false, onComplete: rows => { items = rows.map(rowToItem); } });
+      if (!items || new Set(items.map(i => i.id)).size !== items.length) throw new Error('Invalid or duplicate STAC item IDs');
       return items;
-    } catch (err) {
-      this.logger.error(`Error reading geoparquet: ${err.message}`);
-      this.logger.error(err.stack);
-      return [];
+    } catch (error) {
+      this.logger.error(`Cannot read STAC index ${url}: ${error.message}`);
+      throw new ResourceUnavailableError('STAC index is temporarily unavailable');
     }
   }
 }

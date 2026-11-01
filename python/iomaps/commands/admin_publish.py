@@ -14,6 +14,14 @@ ROUTE_FILE = "worker/src/routes/listing.json"
 PLAN_VERSION = 1
 
 
+def merge_route_document(plan, document):
+    if plan.get("kind") == "stac":
+        from .admin_stac_publish import merge_catalog
+
+        return merge_catalog(document, plan)
+    return {**document, **plan["route_entry"]}
+
+
 def file_digest(path):
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -60,6 +68,8 @@ def validate_plan(plan, check_files=True):
     try:
         if plan.get("schema_version") != PLAN_VERSION:
             raise ValueError("generate a new --dry-run preview; this plan has no supported schema version")
+        if plan.get("kind") not in (None, "uploads", "stac"):
+            raise ValueError("unsupported publication kind")
         owner, repo = plan["data_repository"].split("/")
         if not all(re.fullmatch(r"[\w.-]+", part) for part in (owner, repo)):
             raise ValueError("invalid data repository")
@@ -72,8 +82,11 @@ def validate_plan(plan, check_files=True):
             return
         if plan["route_repository"] != f"{owner}/indianopenmaps":
             raise ValueError("route repository must be <owner>/indianopenmaps")
-        if plan["route_branch"] != "main" or plan["route_file"] != ROUTE_FILE:
-            raise ValueError("only main and worker/src/routes/listing.json are supported")
+        from .admin_stac_publish import STAC_FILE, validate_entry
+
+        expected_file = STAC_FILE if plan.get("kind") == "stac" else ROUTE_FILE
+        if plan["route_branch"] != "main" or plan["route_file"] != expected_file:
+            raise ValueError(f"only main and {expected_file} are supported")
         for key in ("release", "route_commit_message", "release_notes_markdown", "release_license_markdown"):
             if not isinstance(plan[key], str) or not plan[key].strip():
                 raise ValueError(f"missing {key}")
@@ -84,6 +97,12 @@ def validate_plan(plan, check_files=True):
         route, entry = next(iter(plan["route_entry"].items()))
         if not re.fullmatch(r"/(?:[\w.-]+/)+", route):
             raise ValueError("invalid route path")
+        prefix = f"https://github.com/{owner}/{repo}/releases/download/{plan['release']}/"
+        if not re.search(r"(?m)^### ", plan["release_notes_markdown"]):
+            raise ValueError("release notes must start with a dataset heading")
+        if plan.get("kind") == "stac":
+            validate_entry(plan, names, prefix)
+            return
         if entry["handlertype"] not in ("pmtiles", "mosaic") or not entry["name"] or not entry["category"]:
             raise ValueError("invalid route entry")
         prefix = f"https://github.com/{owner}/{repo}/releases/download/{plan['release']}/"
@@ -91,8 +110,6 @@ def validate_plan(plan, check_files=True):
             raise ValueError("route URL must reference one of the planned release assets")
         if not any(name.endswith(".pmtiles") for name in names):
             raise ValueError("no PMTiles assets in the plan")
-        if not re.search(r"(?m)^### ", plan["release_notes_markdown"]):
-            raise ValueError("release notes must start with a dataset heading")
     except (KeyError, TypeError, ValueError, OSError, AttributeError) as exc:
         raise click.ClickException(f"Invalid publication plan: {exc}") from exc
 
@@ -138,6 +155,7 @@ class LocalRoutes:
     def __init__(self, checkout, plan, receipt, save):
         self.root = Path(checkout).resolve()
         self.plan, self.receipt, self.save = plan, receipt, save
+        self.route_file = plan["route_file"]
         self.root = Path(self.git("rev-parse", "--show-toplevel"))
 
     def git(self, *args):
@@ -147,18 +165,21 @@ class LocalRoutes:
         return result.stdout.strip()
 
     def check_clean_listing(self):
-        if self.git("status", "--porcelain", "--", ROUTE_FILE):
+        if self.git("status", "--porcelain", "--", self.route_file):
             # An interrupted attempt may have written this exact plan but not committed it.
             if self.receipt.get("route_worktree_base") == self.git("rev-parse", "HEAD"):
-                committed = json.loads(self.git("show", f"HEAD:{ROUTE_FILE}"))
-                expected = {**committed, **self.plan["route_entry"]}
+                committed = json.loads(self.git("show", f"HEAD:{self.route_file}"))
+                expected = merge_route_document(self.plan, committed)
                 try:
-                    staged = json.loads(self.git("show", f":{ROUTE_FILE}"))
-                    if json.loads((self.root / ROUTE_FILE).read_text()) == expected and staged in (committed, expected):
+                    staged = json.loads(self.git("show", f":{self.route_file}"))
+                    if json.loads((self.root / self.route_file).read_text()) == expected and staged in (
+                        committed,
+                        expected,
+                    ):
                         return
                 except (ValueError, OSError):
                     pass
-            raise click.ClickException(f"{ROUTE_FILE} has local edits; resolve them before publishing")
+            raise click.ClickException(f"{self.route_file} has local edits; resolve them before publishing")
 
     def is_pending_publication(self):
         """Only resume the single, exact route commit recorded by this plan's receipt."""
@@ -167,13 +188,13 @@ class LocalRoutes:
         interrupted_commit = self.receipt.get("route_worktree_base") == self.git("rev-parse", "HEAD^")
         if not recorded_commit and not interrupted_commit:
             return False
-        if self.git("diff-tree", "--no-commit-id", "--name-only", "-r", head) != ROUTE_FILE:
+        if self.git("diff-tree", "--no-commit-id", "--name-only", "-r", head) != self.route_file:
             return False
         if self.git("log", "-1", "--format=%B") != self.plan["route_commit_message"]:
             return False
-        before = json.loads(self.git("show", f"HEAD^:{ROUTE_FILE}"))
-        after = json.loads(self.git("show", f"HEAD:{ROUTE_FILE}"))
-        return after == {**before, **self.plan["route_entry"]}
+        before = json.loads(self.git("show", f"HEAD^:{self.route_file}"))
+        after = json.loads(self.git("show", f"HEAD:{self.route_file}"))
+        return after == merge_route_document(self.plan, before)
 
     def preflight(self):
         if self.git("symbolic-ref", "--short", "HEAD") != "main":
@@ -202,29 +223,29 @@ class LocalRoutes:
             self.git("merge", "--ff-only", "origin/main")
         self.check_clean_listing()
         # Fail before uploads if the listing or Git author configuration is unusable.
-        json.loads((self.root / ROUTE_FILE).read_text())
+        json.loads((self.root / self.route_file).read_text())
         self.git("var", "GIT_AUTHOR_IDENT")
         self.git("var", "GIT_COMMITTER_IDENT")
 
     def publish(self):
         # Recheck after uploads: another publisher may have advanced main in the meantime.
         self.preflight()
-        path = self.root / ROUTE_FILE
+        path = self.root / self.route_file
         original = path.read_text()
         routes = json.loads(original)
-        updated = {**routes, **self.plan["route_entry"]}
-        head_routes = json.loads(self.git("show", f"HEAD:{ROUTE_FILE}"))
+        updated = merge_route_document(self.plan, routes)
+        head_routes = json.loads(self.git("show", f"HEAD:{self.route_file}"))
         if updated != head_routes:
             self.receipt.update(route_worktree_base=self.git("rev-parse", "HEAD"), stage="route_prepared")
             self.save()
             if updated != routes:
                 path.write_text(json.dumps(updated, indent=2) + ("\n" if original.endswith("\n") else ""))
             click.echo("Committing only the route listing...")
-            self.git("commit", "--only", "-m", self.plan["route_commit_message"], "--", ROUTE_FILE)
+            self.git("commit", "--only", "-m", self.plan["route_commit_message"], "--", self.route_file)
             # Check hooks did not change the intended content or commit other paths.
             if (
-                json.loads(self.git("show", f"HEAD:{ROUTE_FILE}")) != updated
-                or self.git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD") != ROUTE_FILE
+                json.loads(self.git("show", f"HEAD:{self.route_file}")) != updated
+                or self.git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD") != self.route_file
             ):
                 raise click.ClickException("Route commit differs from the plan; inspect it before pushing")
         sha = self.git("rev-parse", "HEAD")
@@ -302,14 +323,16 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
     routes = None if phase in ("assets", "uploads") else LocalRoutes(checkout, plan, receipt, save)
     protected = {Path(a["path"]).resolve() for a in plan["uploads"]}
     if routes:
-        protected.add(routes.root / ROUTE_FILE)
+        protected.add(routes.root / routes.route_file)
     if receipt_path in protected or (routes and receipt_path.is_relative_to(routes.root / ".git")):
         raise click.ClickException("Receipt path must not overwrite an asset, the route listing, or Git metadata")
     try:
         if routes:
             routes.preflight()
         sample = None
-        if phase == "routes":
+        if plan.get("kind") == "stac":
+            sample = plan["stac_sample"]
+        elif phase == "routes":
             if verify:
                 sample = receipt.get("sample_tile")
                 validate_sample_manifest(sample)
@@ -386,10 +409,9 @@ def publish_plan(plan, api, checkout, receipt_path, verify=True, timeout=300, ph
         save()
         # Verify actual remote state even when deployment polling was explicitly skipped.
         verify_release(plan, data_repo)
-        remote = api.get_repo(plan["route_repository"]).get_contents(ROUTE_FILE, ref="main")
+        remote = api.get_repo(plan["route_repository"]).get_contents(plan["route_file"], ref="main")
         remote_routes = json.loads(remote.decoded_content)
-        route, entry = next(iter(plan["route_entry"].items()))
-        if remote_routes.get(route) != entry:
+        if merge_route_document(plan, remote_routes) != remote_routes:
             raise click.ClickException("Remote route differs from the plan")
         receipt["github_verified"] = True
         save()

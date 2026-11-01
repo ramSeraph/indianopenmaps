@@ -50,7 +50,7 @@ test('STAC retries its download before passing the successful bytes to the Parqu
   });
   handler.parquetRead = async ({ file, onComplete }) => {
     assert.equal(new TextDecoder().decode(file), 'parquet fixture');
-    onComplete([['fixture-item']]);
+    onComplete([{ id: 'fixture-item', bbox: [0, 0, 1, 1], datetime: '2025-01-01T00:00:00Z' }]);
   };
   const items = await handler.readGeoparquet(url);
   assert.equal(items[0].id, 'fixture-item');

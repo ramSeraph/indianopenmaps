@@ -80,9 +80,11 @@ def choose_sample_tile(plan):
 
 
 def verify_live(plan, sha, sample, timeout):
-    if "data" in sample:
-        sample = sample_manifest(sample)
-    validate_sample_manifest(sample)
+    is_stac = plan.get("kind") == "stac"
+    if not is_stac:
+        if "data" in sample:
+            sample = sample_manifest(sample)
+        validate_sample_manifest(sample)
     route, entry = next(iter(plan["route_entry"].items()))
     base = "https://indianopenmaps.com"
     deadline = time.monotonic() + timeout
@@ -107,6 +109,10 @@ def verify_live(plan, sha, sample, timeout):
                 raise click.ClickException(f"Cloudflare build {build['conclusion']}: {build.get('details_url', '')}")
             if not build or build["status"] != "completed":
                 last_error = "waiting for Cloudflare's build"
+            elif is_stac:
+                from .admin_stac_publish import verify_stac_live
+
+                return {**verify_stac_live(plan, get), "build_url": build.get("details_url")}
             elif get(f"{base}/api/routes").json().get(route) != entry:
                 last_error = "live route has not matched the plan yet"
             else:

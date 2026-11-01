@@ -4,6 +4,7 @@ from iomaps.commands.admin import admin
 from iomaps.commands.extract import extract
 from iomaps.commands.search import search
 from iomaps.commands.sources import categories, sources
+from iomaps.commands.stac import stac
 
 
 @click.group()
@@ -37,6 +38,7 @@ cli.add_command(extract)
 cli.add_command(sources)
 cli.add_command(categories)
 cli.add_command(search)
+cli.add_command(stac)
 main_cli.add_command(cli)
 main_cli.add_command(admin)
 main_cli.add_command(ui)

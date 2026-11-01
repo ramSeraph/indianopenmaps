@@ -11,6 +11,11 @@ from github import Auth, Github
 from .admin_publish import PLAN_VERSION, describe_asset, publish_plan, validate_plan, wrap_release_notes
 
 known_repos = [
+    "india_topo_maps",
+    "nepal_survey_maps",
+    "myanmar_survey_maps",
+    "american_world_topo_maps",
+    "russian_world_topo_maps",
     "indian_admin_boundaries",
     "indian_water_features",
     "indian_transport",
@@ -350,6 +355,11 @@ class DynamicReleaseOption(click.Option):
 @click.option(
     "--base-file", type=str, help="GeoJSONL, .geojsonl.7z (including split volumes), or .pmtiles asset to discover from"
 )
+@click.option(
+    "--stac-collection",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Prepared STAC collection JSON; --base-file is its GeoParquet index",
+)
 @click.option("--description", type=str, help="description")
 @click.option("--source", type=str, help="source")
 @click.option("--source-url", type=str, help="source url")
@@ -390,6 +400,7 @@ def make_release(
     repo,
     release,
     base_file,
+    stac_collection,
     description,
     source,
     source_url,
@@ -411,6 +422,7 @@ def make_release(
             "repo",
             "release",
             "base_file",
+            "stac_collection",
             "description",
             "source",
             "source_url",
@@ -458,6 +470,7 @@ def make_release(
         if uploaded_plan or any(
             (
                 base_file,
+                stac_collection,
                 route,
                 description,
                 source,
@@ -489,6 +502,35 @@ def make_release(
         return
     if assets:
         raise click.UsageError("--asset requires --phase uploads")
+    if stac_collection:
+        from .admin_stac_publish import build_stac_plan
+
+        if not base_file:
+            raise click.UsageError("--base-file must name the prepared STAC Parquet index")
+        if route or category or promoteid or uploaded_plan or description or source or source_url:
+            raise click.UsageError("STAC metadata comes from --stac-collection; tile dataset options are not accepted")
+        license_md = resolve_text_option(license_str, license_file)
+        if not license_md:
+            raise click.UsageError("STAC publication requires explicit --license or --license-file")
+        owner = owner or get_github_api().get_user().login
+        plan = build_stac_plan(
+            owner=owner,
+            repo=repo,
+            release=release,
+            index=base_file,
+            collection_path=stac_collection,
+            license_md=license_md,
+            notes_md=resolve_text_option(notes_str, notes_file),
+            skip_uploads=no_uploads,
+        )
+        if dry_run:
+            click.echo(json.dumps(plan, indent=2))
+            return
+        receipt = receipt or Path(base_file).resolve().parent / "publication-receipt.json"
+        publish_plan(
+            plan, get_github_api(), checkout, receipt, verify=not no_verify, timeout=verify_timeout, phase=phase
+        )
+        return
     if base_file is None:
         raise click.UsageError("--base-file is required")
     for option, value in (("description", description), ("source", source), ("source-url", source_url)):

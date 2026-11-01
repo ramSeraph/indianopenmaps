@@ -1,93 +1,54 @@
+import { cors } from 'hono/cors';
 import STACHandler from '../lib/stac_handler.js';
+import { stacOpenAPI } from '../lib/stac_openapi.js';
+import { BadRequestError, NotFoundError } from '../lib/errors.js';
 import stacCatalog from './stac_catalog.json' with { type: 'json' };
 
-const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
-
-let stacHandler = null;
-
-export async function registerStacRoutes(app, logger) {
-  stacHandler = new STACHandler(stacCatalog, logger);
-  await stacHandler.init();
-  logger.info('STAC handler initialized');
-
-  app.get('/stac', async (c) => {
-    const landing = await stacHandler.getLandingPage();
-    return c.json(landing, { headers: corsHeaders });
-  });
-
-  app.get('/stac/conformance', (c) => {
-    const conformance = stacHandler.getConformance();
-    return c.json(conformance, { headers: corsHeaders });
-  });
-
-  app.get('/stac/collections', async (c) => {
-    const limit = parseInt(c.req.query('limit') || '100');
-    const offset = parseInt(c.req.query('offset') || '0');
-    const collections = await stacHandler.getCollections(limit, offset);
-    return c.json(collections, { headers: corsHeaders });
-  });
-
-  app.get('/stac/collections/:collectionId', async (c) => {
-    const collectionId = c.req.param('collectionId');
-    const collection = await stacHandler.getCollection(collectionId);
-    if (!collection) {
-      return c.json({ error: 'Collection not found' }, 404, corsHeaders);
+export async function registerStacRoutes(app, logger, catalog = stacCatalog) {
+  const handler = new STACHandler(catalog, logger);
+  await handler.init();
+  const corsMiddleware = cors({ origin: '*', allowMethods: ['GET', 'POST', 'OPTIONS'], allowHeaders: ['Content-Type'] });
+  app.use('/stac', corsMiddleware);
+  app.use('/stac/*', corsMiddleware);
+  const base = c => `${new URL(c.req.url).origin}/stac`;
+  const respond = (action, geojson = false) => async c => {
+    try {
+      const data = await action(c);
+      if (data === null) throw new NotFoundError('Collection or item not found');
+      c.header('Content-Type', geojson ? 'application/geo+json' : 'application/json');
+      return c.body(JSON.stringify(data));
+    } catch (error) {
+      if (!error.statusCode) logger.error(error);
+      c.header('Cache-Control', 'no-store');
+      return c.json({ code: error.name || 'Error', description: error.statusCode ? error.message : 'STAC request failed' }, error.statusCode || 500);
     }
-    return c.json(collection, { headers: corsHeaders });
-  });
-
-  app.get('/stac/collections/:collectionId/items', async (c) => {
-    const collectionId = c.req.param('collectionId');
-    const limit = parseInt(c.req.query('limit') || '10');
-    const offset = parseInt(c.req.query('offset') || '0');
-    const bbox = c.req.query('bbox');
-    const items = await stacHandler.getItems(collectionId, limit, offset, bbox);
-    if (!items) {
-      return c.json({ error: 'Collection not found' }, 404, corsHeaders);
+  };
+  app.get('/stac', respond(c => handler.getLandingPage(base(c))));
+  app.get('/stac/', respond(c => handler.getLandingPage(base(c))));
+  app.get('/stac/conformance', respond(() => handler.getConformance()));
+  app.get('/stac/api.json', c => c.body(JSON.stringify(stacOpenAPI(base(c))), 200,
+    { 'Content-Type': 'application/vnd.oai.openapi+json;version=3.0' }));
+  app.get('/stac/api.html', c => c.html(`<!doctype html><html lang="en"><meta charset="utf-8"><title>Indian Open Maps STAC API</title>
+    <h1>Indian Open Maps STAC API</h1><p>Discover raster collections and download individual map sheets.</p>
+    <p><a href="/stac/api.json">OpenAPI document</a> · <a href="/stac/collections">Collections</a> · <a href="/stac-viewer">Map viewer</a></p>
+    <p>Search with GET or POST /stac/search. Supported parameters: collections, ids, bbox, intersects, datetime and limit.
+    GET uses comma-separated arrays; POST uses JSON arrays. Follow the next link for further pages.</p></html>`));
+  app.get('/stac/collections', respond(c => handler.getCollections(c.req.query(), base(c))));
+  app.get('/stac/collections/:collectionId', respond(c => handler.getCollection(c.req.param('collectionId'), base(c))));
+  app.get('/stac/collections/:collectionId/items', respond(c => handler.getItems(c.req.param('collectionId'), c.req.query(), base(c)), true));
+  app.get('/stac/collections/:collectionId/items/:itemId', respond(c => handler.getItem(c.req.param('collectionId'), c.req.param('itemId'), base(c)), true));
+  app.get('/stac/search', respond(c => handler.search(c.req.query(), base(c)), true));
+  app.post('/stac/search', respond(async c => {
+    let body;
+    try { body = await c.req.json(); } catch { throw new BadRequestError('Expected a JSON search object'); }
+    for (const key of ['collections', 'ids', 'bbox']) {
+      if (body?.[key] !== undefined && !Array.isArray(body[key])) throw new BadRequestError(`${key} must be a JSON array`);
     }
-    return c.json(items, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
-  });
-
-  app.get('/stac/collections/:collectionId/items/:itemId', async (c) => {
-    const collectionId = c.req.param('collectionId');
-    const itemId = c.req.param('itemId');
-    const item = await stacHandler.getItem(collectionId, itemId);
-    if (!item) {
-      return c.json({ error: 'Item not found' }, 404, corsHeaders);
+    for (const key of ['limit', 'offset']) {
+      if (body?.[key] !== undefined && typeof body[key] !== 'number') throw new BadRequestError(`${key} must be a JSON number`);
     }
-    return c.json(item, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
-  });
-
-  app.get('/stac/search', async (c) => {
-    const results = await stacHandler.search(Object.fromEntries(new URLSearchParams(c.req.url.split('?')[1] || '')));
-    return c.json(results, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
-  });
-
-  app.post('/stac/search', async (c) => {
-    const body = await c.req.json();
-    const results = await stacHandler.search(body);
-    return c.json(results, {
-      headers: {
-        'Content-Type': 'application/geo+json',
-        ...corsHeaders
-      }
-    });
-  });
-
-  logger.info('STAC API routes added');
+    if (typeof body?.intersects === 'string') throw new BadRequestError('intersects must be a GeoJSON object');
+    return handler.search(body, base(c), 'POST');
+  }, true));
+  return handler;
 }

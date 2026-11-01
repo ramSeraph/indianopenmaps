@@ -79,6 +79,70 @@ If you prefer to use `pip` and manage your virtual environments manually, follow
 
 ---
 
+## Raster discovery and bbox extraction
+
+The raster client reads STAC GeoParquet indexes and imagery directly from GitHub
+releases. It does not call the Indian Open Maps API. `listing_files.csv` is an
+admin input, not a client dependency. The default catalog is the repository's
+`stac_catalog.json` on raw GitHub; `--index` bypasses that discovery file too.
+
+```bash
+iomaps cli stac collections
+iomaps cli stac search -c india-topo-50k -b "77.6,13.1,77.61,13.11"
+iomaps cli stac item india-topo-50k 57G_12
+iomaps cli stac extract -c india-topo-50k \
+  -b "77.6,13.1,77.61,13.11" -o bengaluru.tif
+
+# Explicit release index; no catalog request:
+iomaps cli stac \
+  --index https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/SOI_OSM_50k.stac.parquet \
+  --collection-id india-topo-50k search -b "77.6,13.1,77.61,13.11" --json
+```
+
+Catalog/collection metadata and indexes are cached in the platform's `iomaps/stac`
+cache directory. Warm searches require no HTTP requests. Use `--cache-dir PATH`
+to choose another location, `--refresh` to replace cached metadata, and `--offline`
+to require cached/local metadata. These group options precede the subcommand:
+
+```bash
+iomaps cli stac --cache-dir ./map-cache search -c india-topo-50k -b "77.6,13.1,77.61,13.11"
+iomaps cli stac --cache-dir ./map-cache --offline search -c india-topo-50k -b "77.6,13.1,77.61,13.11"
+iomaps cli stac --cache-dir ./map-cache --refresh collections
+```
+
+Refresh applies to metadata/indexes touched by that command. A failed refresh
+preserves the previous valid cache. Discovery can run offline; extraction requires
+network access to the COGs and is rejected in offline mode. Caches do not expire
+automatically, so refresh after a dataset is updated.
+
+The Python API uses the same cache and extraction code:
+
+```python
+from iomaps.stac import RasterCatalog
+
+catalog = RasterCatalog()  # optional cache_dir=..., refresh=True, offline=True
+# Or RasterCatalog(indexes={"maps": "https://github.com/.../collection.parquet"})
+sheets = list(catalog.search(collections=["india-topo-50k"], bounds=[77.6, 13.1, 77.61, 13.11]))
+result = catalog.extract(
+    collection="india-topo-50k", bounds=[77.6, 13.1, 77.61, 13.11], output="bengaluru.tif",
+)
+```
+
+Discovery needs only the Python package. Extraction additionally needs `gdalwarp`
+on PATH (GDAL with the COG driver). It reads COG windows using HTTP ranges, mosaics
+intersecting sheets and writes a Cloud-Optimized GeoTIFF. Bounds are WGS84
+`west,south,east,north`; split areas crossing the dateline. Exact source footprints,
+including holes, determine which sheets intersect. The output defaults to native
+CRS/resolution; use `--crs`, `--resolution` and `--resampling` to change them.
+Elevation data keeps its numeric type. An alpha/mask records uncovered pixels;
+source nodata is respected. Overlaps use ascending sheet-ID order, with later
+valid pixels winning. Existing output is preserved unless `--overwrite` is given
+and the new file completes. `--max-sheets` guards accidentally huge requests.
+
+`--datetime` filters the recorded catalog date; consult each collection's
+`iomaps:datetime_description`. A derivative publication or indexing date does
+not establish the map's survey/acquisition date.
+
 ## Extracting from Remote Geoparquet Files
 
 These commands allow you to extract and filter data directly from remote geoparquet sources hosted on the indianopenmaps server without downloading the entire files.
@@ -257,6 +321,58 @@ removed. Dataset preparation and publication still support original GeoJSONL
 archives, including split `.7z` volumes.
 
 ## Preparing and publishing datasets
+
+### Raster STAC indexes
+
+Install the `admin` extra and GDAL (`gdalinfo` on PATH). `iomaps admin stac` replaces
+the external release_tools generator. It reads the release's consolidated
+`listing_files.csv`, inspects GeoTIFF headers, preserves supplied WGS84 footprints
+and matches original scans by basename. It writes a STAC GeoParquet index, embedded
+collection metadata, a `.collection.json` sidecar and a `.report.json` report.
+Nothing is uploaded by preparation.
+
+```bash
+python/.venv/bin/iomaps admin stac \
+  --repo ramSeraph/india_topo_maps --release 25k-nhp-georef \
+  --original-release 25k-nhp-orig \
+  --collection-id india-topo-25k-nhp --title "SOI Flood Risk Area Maps 25k" \
+  --description "Georeferenced NHP map sheets; item datetime is derivative publication, not acquisition." \
+  --license other --datetime 2025-09-14T09:10:07Z \
+  --datetime-description "Publication of the georeferenced collection, not survey or imagery acquisition." \
+  --source-url https://onlinemaps.surveyofindia.gov.in/Digital_Product_Show.aspx \
+  --output scratch/stac/nhp/SOI_NHP_25k.stac.parquet
+```
+
+Use `--listing`, `--original-listing` and `--bounds` for explicit local/HTTP inputs.
+Without `--repo`, omitted bounds are derived from TIFF georeferencing. Supplied
+footprints must cover every TIFF and have unique IDs. Invalid geometry and failed
+header reads are reported; the command never publishes a partial index. Successful
+header reads are cached under `stac-cache/`; rerun the same command after an
+interruption. `--workers` controls concurrency and `--refresh` bypasses cached
+headers. `--reuse-index PATH` explicitly trusts existing projection metadata for
+matching asset URLs; use this only when those release assets are unchanged.
+
+Publish through the same saved-plan/receipt workflow used for vector datasets:
+
+```bash
+python/.venv/bin/iomaps admin make-release --dry-run --owner ramSeraph \
+  --repo india_topo_maps --release 25k-nhp-georef \
+  --base-file scratch/stac/nhp/SOI_NHP_25k.stac.parquet \
+  --stac-collection scratch/stac/nhp/SOI_NHP_25k.stac.collection.json \
+  --license 'License not specified by source. © Survey of India; see [copyright policy](https://www.surveyofindia.gov.in/pages/copyright-policy).' \
+  > scratch/stac/nhp/release-preview.json
+python/.venv/bin/iomaps admin make-release --plan scratch/stac/nhp/release-preview.json
+```
+
+The publisher uploads/verifies the index and collection sidecar, updates a bounded
+release-notes section, commits only `worker/src/routes/stac_catalog.json`, and checks
+the Cloudflare deployment, collection count, late item IDs, bbox search and asset
+URLs. Existing release assets are never overwritten. Use a new index basename for
+a replacement whose contents differ. `--phase assets` / `--phase routes` and receipt
+resumption work as for vector releases. License text must be supplied explicitly;
+STAC `other` does not imply permission to reuse the source maps.
+
+### Vector assets
 
 Use the checkout's hidden `admin` command group to prepare data and publish it.
 These commands replace the older `utils/prepare.py` and `utils/make_release.py`
