@@ -597,6 +597,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-american-ams",
+      "title": "Army Map Service Topographic Maps 250k",
+      "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/ams-georef/AMS_250k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-american-ams",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Army Map Service 1:250,000 sheets from multiple series. Source scans were collected through the Perry-Casta\u00f1eda Library and Christopher Thiry\u2019s indexes. Footprints are derived from the GeoTIFF extents. Item datetime is publication of the georeferenced release, not survey or imagery acquisition.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/american_world_topo_maps/releases/tag/ams-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 1130,
+        "title": "Army Map Service Topographic Maps 250k",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                31.50012,
+                -12,
+                154.3808649,
+                54.00012
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-06-28T20:07:02Z",
+                "2025-06-28T20:07:02Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "AMS_250k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
