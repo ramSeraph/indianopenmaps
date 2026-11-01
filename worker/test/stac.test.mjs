@@ -58,6 +58,32 @@ test('late item lookup and filter pagination use complete records', async () => 
   assert.equal(next.searchParams.get('collections'), 'one'); assert.equal(next.searchParams.get('offset'), '1002');
 });
 
+test('unfiltered pages use published counts without reading unrelated collection indexes', async t => {
+  for (const [offset, expected, reads] of [[0, ['a-0', 'a-1'], 1], [1002, ['a-1002', 'b-0'], 2], [1004, [], 0]]) {
+    const { app, handler } = await fixture();
+    for (const [id, count] of [['one', 1003], ['two', 1]]) {
+      handler.collections.get(id).metadata = { ...handler.collections.get(id).metadata, item_count: count };
+    }
+    const read = t.mock.method(handler, 'readGeoparquet');
+    const page = await (await app.request(`${base}/search?limit=2&offset=${offset}`)).json();
+    assert.equal(page.numberMatched, 1004);
+    assert.deepEqual(page.features.map(f => f.id), expected);
+    assert.equal(read.mock.callCount(), reads);
+  }
+});
+
+test('metadata count shortcut does not apply to filtered queries', async t => {
+  const { app, handler } = await fixture();
+  for (const [id, count] of [['one', 1003], ['two', 1]]) {
+    handler.collections.get(id).metadata = { ...handler.collections.get(id).metadata, item_count: count };
+  }
+  const read = t.mock.method(handler, 'readGeoparquet');
+  const page = await (await app.request(`${base}/search?ids=b-0&limit=1`)).json();
+  assert.equal(page.numberMatched, 1);
+  assert.deepEqual(page.features.map(f => f.id), ['b-0']);
+  assert.equal(read.mock.callCount(), 2);
+});
+
 test('spatial search uses real polygons, holes, touching edges and dateline bboxes', async () => {
   const { app, handler } = await fixture();
   const triangle = item('triangle', [0, 0, 10, 10]);

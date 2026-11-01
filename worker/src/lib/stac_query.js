@@ -94,6 +94,13 @@ export function normalizeQuery(params = {}) {
   return query;
 }
 
+function bboxIntersects(a, b) {
+  const ae = a.length / 2, be = b.length / 2;
+  if (a[1] > b[be + 1] || a[ae + 1] < b[1]) return false;
+  const longitudeRanges = (box, end) => box[0] <= box[end] ? [[box[0], box[end]]] : [[box[0], 180], [-180, box[end]]];
+  return longitudeRanges(a, ae).some(([w, e]) => longitudeRanges(b, be).some(([bw, be]) => w <= be && e >= bw));
+}
+
 export function predicate(query) {
   const geometry = query.intersects || (query.bbox && bboxGeometry(query.bbox));
   const time = query.datetime && timeRange(query.datetime);
@@ -101,6 +108,8 @@ export function predicate(query) {
   return item => {
     // STAC IDs take precedence over spatial/temporal parameters.
     if (ids) return ids.has(item.id);
+    // Reject distant sheets before the more expensive exact polygon test.
+    if (query.bbox && item.bbox && !bboxIntersects(query.bbox, item.bbox)) return false;
     if (geometry && (!item.geometry || !booleanIntersects(item.geometry, geometry))) return false;
     if (query.bbox?.length === 6 && item.bbox?.length === 6 &&
         (item.bbox[5] < query.bbox[2] || item.bbox[2] > query.bbox[5])) return false;

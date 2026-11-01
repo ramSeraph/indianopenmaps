@@ -139,11 +139,25 @@ class STACHandler {
   async search(params, base, method = 'GET', endpoint = `${base}/search`, selfUrl) {
     const query = normalizeQuery(params);
     const matches = predicate(query);
+    const unfiltered = !query.bbox && !query.intersects && !query.datetime && !query.ids;
     const features = [];
     let numberMatched = 0;
     for (const id of query.collections || this.collections.keys()) {
       const info = this.collections.get(id);
       if (!info) continue;
+      const count = info.metadata?.item_count;
+      if (unfiltered && Number.isSafeInteger(count) && count >= 0) {
+        // The publisher verifies these counts against immutable index URLs.
+        // Pagination need not decode collections outside the requested page.
+        if (query.offset < numberMatched + count && features.length < query.limit) {
+          const items = await this.loadItemsFromGeoparquet(info.geoparquetUrl);
+          if (items.length !== count) throw new ResourceUnavailableError('STAC collection count does not match its index');
+          const start = Math.max(0, query.offset - numberMatched);
+          for (const item of items.slice(start, start + query.limit - features.length)) features.push(this.itemResponse(item, id, base));
+        }
+        numberMatched += count;
+        continue;
+      }
       for (const item of await this.loadItemsFromGeoparquet(info.geoparquetUrl)) if (matches(item)) {
         if (numberMatched >= query.offset && features.length < query.limit) features.push(this.itemResponse(item, id, base));
         numberMatched++;
