@@ -64,20 +64,6 @@ stay the same. Other clients holding old responses need a forced reload or their
 own cache-busting query parameter once. Already displayed tiles are not pushed
 updates; reload the page or map source to request them again.
 
-A November 2026 public GitHub client review found ordinary browser tile loaders
-in [Amche Atlas](https://github.com/publicmap/amche-atlas/blob/0ef70e319560f0008d53ced1923358956133c6d9/js/map-utils.js#L677),
-[Bhoonaksha](https://github.com/saurabh4269/bhoonaksha/blob/4ba34ddf3ecdb4b5f18c9a8d4baee9d9318d40ce/js/app.js#L7),
-[AeroForge](https://github.com/sharmapalak09082006-stack/AeroForge/blob/4bc67d41c7fa0c5fc3623848e2b99b3d591c9f35/client/src/components/MapViewer.tsx#L90),
-[FSS Survey Calculator](https://github.com/moorthimms/FSS-survey-calculator/blob/01b3ff2d5c0878e63fc4adabbe14f041f79ffee3/map_assets/app.js#L1140),
-[Goa AQI Logger](https://github.com/publicmap/goa-aqi-logger/blob/9930dfeb0f4f86a2085b7b17a609b4d4e4b5b981/index.html#L1035),
-and [amnmalik's hiking map](https://github.com/amnmalik/mysite/blob/c8ba53b20446a1a5e4c3ea42038f258e32c48d43/static/hikes/index.html#L373).
-No incompatible custom conditional-request handling was found in the reviewed
-code. Cross-origin Chrome checks cover JSON fetch, binary fetch/XHR, and image
-loading: automatic HTTP revalidation exposes the cached body as a successful
-response to application code. This is a source and transport compatibility check,
-not an end-to-end test of every external application or an inventory of private
-and unindexed clients. Direct GitHub release downloads are unaffected.
-
 **STAC API:**
 - Implements a [STAC](https://stacspec.org/) API for browsing raster collections (e.g. SOI Open series maps 50k)
 - Item indexes are stored in STAC GeoParquet files in GitHub releases; searches preserve source footprints and support bbox, intersects, datetime, IDs and complete GET/POST pagination.
