@@ -396,6 +396,7 @@
       "href": "./cartodem-v3r1-egm2008",
       "title": "CartoDEM v3r1 30m EGM2008 Elevation",
       "geoparquet": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet",
+      "geoparquet_sha256": "88d0ca55ff13e132f2c695a2a100ffce36b812c34a2734e334d93a9fbf8fb4c2",
       "collection": {
         "type": "Collection",
         "id": "cartodem-v3r1-egm2008",
