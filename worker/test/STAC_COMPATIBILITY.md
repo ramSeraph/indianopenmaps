@@ -4,6 +4,35 @@ The API implements STAC API 1.0 Core, Collections, OGC API Features and Item Sea
 Items/collections use STAC 1.1. Fields, Sort, Query and Filter extensions are not
 advertised. Unsupported search parameters return 400 rather than being ignored.
 
+## Direct GitHub access without the HTTP API
+
+The release indexes are STAC GeoParquet, not a proprietary index format. Clients
+that support it can query the same published metadata locally and follow its
+GitHub GeoTIFF asset URLs. The Indian Open Maps HTTP API is optional for this path.
+See the [tested Rustac command, index discovery and client comparison](../../python/README.md#search-release-indexes-with-other-stac-clients).
+
+On 2026-11-02, Rustac **0.9.19** queried the published
+[CartoDEM index](https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet)
+directly over HTTPS using its DuckDB implementation. The WGS84 bbox
+`77.6,13.0,77.61,13.01` returned `cdnd43r` and `cdnd43x`, with collection IDs and
+their GitHub COG URLs intact. This independently verifies direct-index search;
+it does not exercise the HTTP API or raster pixel extraction.
+
+Clients expecting STAC API `/search` still need the HTTP service. A Parquet URL
+cannot replace an API root in PySTAC Client. A browsable static STAC JSON catalog
+would require linked item JSON files in addition to the current Parquet indexes
+and collection sidecars.
+
+On the same date, deployed requests with `Origin: https://example.org` and a
+matching external Referer confirmed `Access-Control-Allow-Origin: *` on `/stac`
+and a successful `/cog-info` response. A 16-byte `/proxy` request returned HTTP 206
+and `Content-Range`, but no CORS permission on the successful response. The COG
+tile routes also set wildcard CORS in the implementation. See
+[browser access and CORS](../../python/README.md#browser-access-and-cors) for the
+distinction between metadata, rendered tiles and raw raster bytes.
+
+## HTTP API checks
+
 Checks on 2026-11-02 used the real 50k release index in workerd:
 
 | Client | Version | Checked |

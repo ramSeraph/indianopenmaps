@@ -143,6 +143,65 @@ and the new file completes. `--max-sheets` guards accidentally huge requests.
 `iomaps:datetime_description`. A derivative publication or indexing date does
 not establish the map's survey/acquisition date.
 
+### Search release indexes with other STAC clients
+
+The published `*.stac.parquet` files are **STAC GeoParquet**, generated with
+`stac-geoparquet`. They contain STAC items: footprints, dates, projection metadata
+and links to the raster assets. Both `iomaps` and the HTTP STAC API use these
+indexes; imagery remains in the separate GeoTIFF assets.
+
+Clients supporting STAC GeoParquet can search the indexes directly, without the
+Indian Open Maps server. For example, Rustac 0.9.19 was tested against this release:
+
+```bash
+uvx --from rustac==0.9.19 rustac search \
+  https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet \
+  matches.json --bbox 77.6,13.0,77.61,13.01
+```
+
+Rustac selects its DuckDB search implementation for a `.parquet` URL. This bbox
+returns `cdnd43r` and `cdnd43x`, with their GitHub raster URLs, in a GeoJSON FeatureCollection.
+It searches metadata; it does not download or crop the imagery. Use `iomaps cli stac
+extract` or GDAL for pixel extraction. A downloaded index can replace the URL for
+local metadata queries. This does not make the remote raster assets available offline.
+
+Find other indexes through `iomaps cli stac collections --json`, the
+[`geoparquet` links in the raw GitHub catalog](https://raw.githubusercontent.com/ramSeraph/indianopenmaps/main/worker/src/routes/stac_catalog.json),
+or a STAC API collection's `assets.index.href`. New collections need a metadata
+refresh, not a new `iomaps` release.
+
+| Access path | Where search runs | Client support |
+| --- | --- | --- |
+| GitHub STAC GeoParquet | Locally in the client | `iomaps`, Rustac's DuckDB implementation and other GeoParquet-aware tools |
+| `https://indianopenmaps.com/stac` | On the Indian Open Maps Worker | Clients expecting STAC API discovery, `/search`, filtering and pagination, such as PySTAC Client |
+
+A Parquet URL is not a STAC API root; do not pass it to `pystac_client.Client.open()`.
+Static STAC JSON is another format: linked catalog, collection and item JSON files
+can support browsing without an API. The current Parquet indexes and collection
+sidecars do **not** constitute that complete linked JSON catalog. GitHub serves
+files; it does not execute the HTTP API's `/search?bbox=...` queries.
+
+### Browser access and CORS
+
+The same STAC API returns direct GitHub raster URLs to every client. Its JSON
+endpoints allow any browser origin. CORS permission on metadata does not grant
+permission to read the linked GitHub files; those responses have their own policy.
+
+| Endpoint | Response | Browser access |
+| --- | --- | --- |
+| `/stac` and its collection/search/item endpoints | STAC metadata with direct GitHub asset URLs | Cross-origin access allowed |
+| `/cog-info` and `/cog-tiles/{z}/{x}/{y}` | Raster metadata and rendered PNG/WebP tiles | Cross-origin access allowed |
+| `/proxy?url=...` | Original file bytes, including HTTP ranges | Successful responses omit CORS headers; other websites cannot read them with JavaScript |
+
+The proxy is not an authentication boundary: command-line and server-side clients
+are not subject to browser CORS. The COG/proxy URL allowlists restrict **upstream
+asset URLs**, not the caller's website. The current COG renderer supports north-up
+EPSG:3857 byte imagery; its tile URLs do not provide raw TIFF windows. These
+existing behaviors do not require separate direct-asset and browser STAC APIs.
+
+See [compatibility checks](../worker/test/STAC_COMPATIBILITY.md) and the
+[Rustac CLI documentation](https://stac-utils.github.io/rustac/cli/).
+
 ## Extracting from Remote Geoparquet Files
 
 These commands allow you to extract and filter data directly from remote geoparquet sources hosted on the indianopenmaps server without downloading the entire files.

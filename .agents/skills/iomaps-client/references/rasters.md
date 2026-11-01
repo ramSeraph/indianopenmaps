@@ -20,8 +20,25 @@ a match does not guarantee valid imagery at every pixel in the footprint.
 
 The raster client reads the catalog JSON from raw GitHub, then STAC GeoParquet
 indexes and GeoTIFF windows from their release URLs. It does not call the Indian
-Open Maps API or read `listing_files.csv`. This is separate from external STAC
-clients that query `https://indianopenmaps.com/stac`.
+Open Maps API or read `listing_files.csv`. External clients can either query
+`https://indianopenmaps.com/stac` or, if they support STAC GeoParquet, read the
+same release indexes directly. Rustac 0.9.19 was verified with:
+
+```bash
+uvx --from rustac==0.9.19 rustac search \
+  https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet \
+  matches.json --bbox 77.6,13.0,77.61,13.01
+```
+
+This returns metadata for `cdnd43r` and `cdnd43x`; it does not extract pixels.
+Rustac uses DuckDB for Parquet URLs. API clients such as PySTAC Client still need
+an HTTP API root; a Parquet URL cannot replace it. The indexes and collection
+sidecars are not a complete linked static STAC JSON catalog.
+
+STAC metadata and rendered `/cog-tiles/...` responses allow cross-origin browser
+access. Successful raw-file `/proxy` responses omit CORS permission, so another
+website's JavaScript cannot read them. This is not authentication or a restriction
+on command-line clients. Upstream GitHub asset URLs have their own CORS policy.
 
 `--catalog-url` selects a compatible local/GitHub catalog JSON file containing
 the release-index links; it does not accept a STAC HTTP API root. To bypass
