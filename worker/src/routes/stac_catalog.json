@@ -611,6 +611,7 @@
       "href": "./world-topo-american-ams",
       "title": "Army Map Service Topographic Maps 250k",
       "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/ams-georef/AMS_250k.stac.parquet",
+      "geoparquet_sha256": "9f7bd5034f5d2d9eba36a756e8c5bef472148aa26cd0facced239836c7c9e553",
       "collection": {
         "type": "Collection",
         "id": "world-topo-american-ams",
