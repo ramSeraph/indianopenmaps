@@ -650,6 +650,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-soviet-25k",
+      "title": "Soviet Genshtab 25k Topographic Maps",
+      "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/25k-gs-georef/Soviet_GS_25k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-soviet-25k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Soviet General Staff topographic maps at the 25k scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/russian_world_topo_maps/releases/tag/25k-gs-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 3050,
+        "title": "Soviet Genshtab 25k Topographic Maps",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                13.9980414,
+                42.0002098,
+                143.5014487,
+                67.2501209
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-10-26T04:42:17Z",
+                "2025-10-26T04:42:17Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Soviet_GS_25k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
