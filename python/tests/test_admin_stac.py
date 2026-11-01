@@ -13,6 +13,46 @@ from iomaps.commands import admin_publish, admin_stac
 from iomaps.commands.admin_stac_publish import STAC_FILE, build_stac_plan, merge_catalog
 
 
+@pytest.mark.parametrize("legacy_text", [False, True])
+def test_header_encoding_does_not_discard_georeferencing(tmp_path, monkeypatch, legacy_text):
+    data = {
+        "coordinateSystem": {"wkt": "test CRS"},
+        "size": [100, 200],
+        "geoTransform": [0, 0.04, 0, 4, 0, -0.02],
+        "wgs84Extent": mapping(box(0, 0, 4, 4)),
+        "stac": {"proj:epsg": 4326},
+        "metadata": {"IMAGE_STRUCTURE": {"LAYOUT": "COG"}, "": {"description": "degree PLACEHOLDER"}},
+    }
+    raw = json.dumps(data).encode().replace(b"PLACEHOLDER", b"\xb0" if legacy_text else b"symbol")
+    reader = Mock(return_value=SimpleNamespace(stdout=raw, stderr=b"legacy diagnostic \xb0"))
+    monkeypatch.setattr(admin_stac.subprocess, "run", reader)
+    output = tmp_path / "maps.stac.parquet"
+    options = {
+        "rows": [{"name": "old.tif", "url": "https://example.com/old.tif"}],
+        "originals": {},
+        "footprints": None,
+        "output": output,
+        "collection_id": "maps",
+        "title": "Maps",
+        "description": "Old map",
+        "license_id": "other",
+        "timestamp": datetime(2025, 1, 1, tzinfo=UTC),
+        "datetime_description": "Publication",
+        "source_url": "https://example.com",
+        "cache": tmp_path / "cache",
+    }
+    report = admin_stac.prepare_stac(**options)
+    row = pq.read_table(output).to_pylist()[0]
+    assert row["proj:code"] == "EPSG:4326"
+    assert row["proj:transform"] == [0.04, 0, 0, 0, -0.02, 4, 0, 0, 1]
+    assert row["assets"]["cog"]["href"] == "https://example.com/old.tif"
+    assert bool(report["metadata_warnings"]) is legacy_text
+    if legacy_text:
+        assert report["metadata_warnings"][0]["id"] == "old"
+    assert admin_stac.prepare_stac(**options)["metadata_warnings"] == report["metadata_warnings"]
+    reader.assert_called_once()
+
+
 @pytest.fixture
 def prepared_index(tmp_path, monkeypatch):
     metadata = {

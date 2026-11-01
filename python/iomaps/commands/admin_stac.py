@@ -60,15 +60,24 @@ def raster_metadata(row, cache, refresh=False):
             source,
         ],
         capture_output=True,
-        text=True,
         timeout=180,
         check=True,
     )
-    data = json.loads(result.stdout)
+    warning = None
+    try:
+        data = json.loads(result.stdout)
+    except UnicodeDecodeError:
+        # Some older TIFFs have Latin-1 text in descriptive tags that GDAL emits
+        # verbatim. Numeric georeferencing and COG layout remain valid JSON.
+        warning = "GDAL emitted non-UTF-8 metadata text; undecodable bytes were replaced in the header cache"
+        logger.warning("%s: %s", row["name"], warning)
+        data = json.loads(result.stdout.decode("utf-8", errors="replace"))
     if not data.get("coordinateSystem") or not data.get("wgs84Extent"):
         raise ValueError(f"{row['name']}: missing georeferencing or WGS84 footprint")
     # Do not retain unrelated GDAL statistics or embedded source XML.
     metadata = {k: data[k] for k in ("size", "geoTransform", "wgs84Extent", "bands", "stac", "metadata") if k in data}
+    if warning:
+        metadata["metadata_warning"] = warning
     temporary = cached.with_suffix(".tmp")
     temporary.write_text(json.dumps(metadata))
     temporary.replace(cached)
@@ -173,7 +182,7 @@ def prepare_stac(
         raise ValueError(f"Missing footprints for {len(set(ids) - footprints.keys())} TIFFs")
     cache.mkdir(parents=True, exist_ok=True)
     output.parent.mkdir(parents=True, exist_ok=True)
-    items, failures = {}, []
+    items, failures, metadata_warnings = {}, [], []
     reused = {}
     for row in tiffs:
         item_id = Path(row["name"]).stem
@@ -191,9 +200,12 @@ def prepare_stac(
             row = futures[future]
             item_id = Path(row["name"]).stem
             try:
+                metadata = future.result()
+                if metadata.get("metadata_warning"):
+                    metadata_warnings.append({"id": item_id, "warning": metadata["metadata_warning"]})
                 items[item_id] = make_item(
                     row,
-                    future.result(),
+                    metadata,
                     collection_id,
                     timestamp,
                     footprints.get(item_id) if footprints is not None else None,
@@ -209,6 +221,7 @@ def prepare_stac(
         "prepared": len(items),
         "reused_headers": len(reused),
         "failures": failures,
+        "metadata_warnings": sorted(metadata_warnings, key=lambda warning: warning["id"]),
         "missing_originals": sorted(set(ids) - originals.keys()) if originals else [],
         "datetime": timestamp.isoformat(),
         "datetime_description": datetime_description,
