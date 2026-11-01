@@ -448,8 +448,9 @@
       "rel": "child",
       "type": "application/json",
       "href": "./world-topo-american-onc",
-      "title": "Operational Navigation Charts",
+      "title": "Operational Navigation Charts 1m",
       "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/onc-georef/ONC.stac.parquet",
+      "geoparquet_sha256": "daba49915ef1b1d73fe75664f115d1b2f450fa8890974ea5a8f95e329d92806d",
       "collection": {
         "type": "Collection",
         "id": "world-topo-american-onc",
@@ -464,7 +465,7 @@
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
         "item_count": 281,
-        "title": "Operational Navigation Charts",
+        "title": "Operational Navigation Charts 1m",
         "extent": {
           "spatial": {
             "bbox": [
