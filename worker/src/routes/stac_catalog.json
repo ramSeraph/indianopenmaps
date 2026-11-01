@@ -385,6 +385,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./cartodem-v3r1-egm2008",
+      "title": "CartoDEM v3r1 30m EGM2008 Elevation",
+      "geoparquet": "https://github.com/ramSeraph/indian_land_features/releases/download/cartodem-30m-v3r1/Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "cartodem-v3r1-egm2008",
+        "stac_version": "1.1.0",
+        "description": "543 native-resolution Float32 CartoDEM v3r1 COGs in EPSG:4326, with heights converted to EGM2008, Copernicus GLO-30 ocean masking and experimental river flattening. River elevations are estimated from corrected CartoDEM; existing lake treatment is retained. NoData is -255. River flattening has documented gradient limitations. Item datetime is the catalog indexing date, not acquisition.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/indian_land_features/releases/tag/cartodem-30m-v3r1",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Catalog indexing date, not survey or imagery acquisition.",
+        "item_count": 543,
+        "title": "CartoDEM v3r1 30m EGM2008 Elevation",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                59.9998611,
+                8.0001389,
+                97.9998611,
+                39.0001389
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-11-01T20:51:32Z",
+                "2026-11-01T20:51:32Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Bhuvan_CartoDEM_v3r1_EGM2008.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
