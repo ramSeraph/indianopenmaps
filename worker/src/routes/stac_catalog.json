@@ -75,6 +75,7 @@
       "href": "./india-topo-25k-nhp",
       "title": "SOI Flood Risk Area Maps 25k",
       "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-nhp-georef/SOI_NHP_25k.stac.parquet",
+      "geoparquet_sha256": "305a337dae5238f12b99bfcd079de4890d1b4baadf18a27499f43759ba111c65",
       "collection": {
         "type": "Collection",
         "id": "india-topo-25k-nhp",
