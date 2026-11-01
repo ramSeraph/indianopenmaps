@@ -70,7 +70,10 @@ PNG/WebP output, edge crops, caching, concurrent/cancelled zoom requests, and er
 
 A Python package ([available on PyPI](https://pypi.org/project/iomaps/)) providing CLI tools for working with the data.
 
-Agent usage guidance is in the [iomaps skill](.agents/skills/iomaps/SKILL.md).
+Agent usage guidance is split into two skills:
+
+- [iomaps-client](.agents/skills/iomaps-client/SKILL.md) — discover sources and extract data.
+- [iomaps-admin](.agents/skills/iomaps-admin/SKILL.md) — create coverage, prepare datasets, and publish releases.
 
 **Commands:**
 - `iomaps cli extract` — extract intersecting features from remote GeoParquet, pruning partitions and row groups by bounding box

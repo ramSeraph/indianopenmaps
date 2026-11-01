@@ -1,27 +1,26 @@
 ---
-name: iomaps
-description: Use the Indianopenmaps iomaps CLI to discover vector datasets, extract features by area, create coverage PNGs, or prepare and publish datasets. Use for operating the tool; repository implementation work should follow the checkout's own instructions.
+name: iomaps-client
+description: Use the Indianopenmaps iomaps client to discover published vector datasets, find sources covering an area, and extract features for local analysis through the CLI or optional GUI. Excludes coverage generation, dataset preparation, publication, and repository implementation.
 ---
 
-# Indianopenmaps CLI
+# Indianopenmaps client
 
-Use the existing `iomaps` commands for Indianopenmaps data tasks. The executable
-is `iomaps`, including when the request spells it “iompas”.
+Use the existing `iomaps cli` commands to discover and extract Indianopenmaps data.
+The executable is `iomaps`, including when the request spells it “iompas”.
 
 ## Choose the runtime
 
-Use the Indianopenmaps checkout containing `python/pyproject.toml` and
-`worker/src/routes/listing.json`. Read its root `AGENTS.md` for local instructions.
-Run commands from that repository root using `python/.venv/bin/iomaps`; examples
-below use that environment. Inspect the
-relevant command's `--help` before relying on newer options. Admin commands are
-hidden from top-level help but available through `iomaps admin --help`.
+Use an installed `iomaps` or `uvx iomaps`; a repository checkout is optional for
+client tasks. Examples below use `iomaps`. Inspect the relevant command's
+`--help` before relying on newer options because the published package may lag
+the checkout.
 
-If the checkout environment is missing, its setup is
-`uv sync --project python --extra admin`. Outside the checkout, an installed
-`iomaps` or `uvx iomaps` can handle supported commands; inspect its help because
-the published package may lag this checkout. Use the checkout for its admin
-workflow. Consult `python/README.md` for maintained usage details.
+When working in an Indianopenmaps checkout containing `python/pyproject.toml` and
+`worker/src/routes/listing.json`, read its root `AGENTS.md` and prefer
+`python/.venv/bin/iomaps` from the repository root. If that environment is missing,
+use `uv sync --project python`. Client commands do not need the `admin` extra.
+Consult `python/README.md` for maintained usage details. Repository implementation
+work follows the checkout's instructions.
 
 ## Choose the evidence for the question
 
@@ -47,9 +46,9 @@ or every release asset; distinguish those when the user asks what data they have
 ## Find a source
 
 ```bash
-python/.venv/bin/iomaps cli source-categories --json
-python/.venv/bin/iomaps cli sources --search districts --json
-python/.venv/bin/iomaps cli sources --category buildings --json
+iomaps cli source-categories --json
+iomaps cli sources --search districts --json
+iomaps cli sources --category buildings --json
 ```
 
 Use `--json` for machine-readable stdout; status messages go to stderr. Source
@@ -61,7 +60,7 @@ Prefer the exact returned route as a stable source reference. Numeric IDs are
 positions in the current catalog and can change. `-s` means search for `sources`
 and source for `extract`.
 
-For a local catalog, pass `--routes-file worker/src/routes/listing.json` to both
+For a local catalog in the checkout, pass `--routes-file worker/src/routes/listing.json` to both
 `cli sources` and `cli extract`. This makes discovery local; extraction still
 reads the source's remote Parquet URLs. `--routes-url` selects another catalog
 endpoint and cannot be combined with `--routes-file`.
@@ -69,8 +68,8 @@ endpoint and cannot be combined with `--routes-file`.
 ## Find sources covering an area
 
 ```bash
-python/.venv/bin/iomaps cli search --bounds '77.1,28.5,77.3,28.7' --json
-python/.venv/bin/iomaps cli search --bounds '77.1,28.5,77.3,28.7' --force-update
+iomaps cli search --bounds '77.1,28.5,77.3,28.7' --json
+iomaps cli search --bounds '77.1,28.5,77.3,28.7' --force-update
 ```
 
 The first search caches the catalog and coverage PNGs with eight download workers.
@@ -102,7 +101,7 @@ Existing sources need their coverage uploaded before they can match spatially.
 ## Extract an area
 
 ```bash
-python/.venv/bin/iomaps cli extract \
+iomaps cli extract \
   --source /states/soi/ \
   --bounds '77.1,28.5,77.3,28.7' \
   --output-file scratch/extract/states.gpkg
@@ -130,6 +129,37 @@ sidecars together. Confirm that output was created and inspect its feature count
 CRS, and representative geometry/properties before reporting success. Some empty
 or unresolved-source paths log a message and return without writing a file.
 
+## Match administrative boundaries to a register
+
+Inspect catalog source/notes and extracted field schemas before joining a
+boundary layer to an administrative register. `sources --json` gives discovery
+fields, not the full provenance or effective date. Retain the underlying catalog
+entry and source URL. Dataset names and download dates do not establish current
+administrative coverage. Points, habitations and local-body polygons are not
+interchangeable with revenue village or subdistrict polygons.
+
+Inspect entity types within a layer: a panchayat dataset can also contain
+municipal polygons and unnamed or zero-code features (observed in Goa's Bhuvan
+and LGD extracts). Match and classify these separately before counting coverage
+or unioning them. A source field called `ulbcode` can contain census town codes;
+bridge it through the register's census field rather than treating it as an LGD
+local-body code. Likewise, `gp_mapping`/ULB coverage associations do not supply
+precise boundaries or justify copying a municipality outline to each village.
+Retain state-specific source preferences and compare actual polygon fit; do not
+infer a universal quality ranking from code coverage or a gap-free union.
+
+Prefer verified identifiers over names, preserving code namespaces and leading
+zeros. Record original source parents alongside current register parents: a
+transferred village can retain its code. Report expected codes, located codes,
+missing codes and multiple features per code separately. A bbox selection can
+include neighbouring districts and exclude misplaced features; verify unresolved
+codes against the broader source before declaring source-wide absence.
+
+When the task restricts provenance, check original sources and derivatives before
+using them. Keep excluded data out of matching and corroboration, including
+implicit geocoder or viewer basemap use. Do not infer source eligibility from a
+catalog route name.
+
 ## Before using extracted polygons as a mask
 
 A source name describes a dataset, not necessarily every feature in it. Before
@@ -147,44 +177,7 @@ rings in any diagnostic rasterization. Report selected classes, feature counts,
 area, bounds and input identity so an apparent geometry problem can be traced
 back to the selection. This is needed for mask analysis, not ordinary extraction.
 
-For interactive use, `iomaps ui` provides remote source selection and extraction.
-The legacy `filter-7z`, `infer-schema`, and their UI views are removed.
-
-## Create coverage
-
-```bash
-python/.venv/bin/iomaps admin coverage \
-  scratch/dataset/Dataset.parquet \
-  --output scratch/dataset/Dataset.coverage.png
-```
-
-Pass every final Parquet partition, or its existing `Dataset.parquet.meta.json`.
-Inputs are local GeoParquet 1.0/1.1 WKB with planar WGS84 coordinates. Do not use
-simplified PMTiles as the geometry source.
-
-The output is one **1-bit PNG**: white means occupied, black means empty, north is
-at the top. The fixed bounds are `(67,5,98,38)`; default dimensions are 1000×1000.
-`--grid-size N` changes resolution and `--batch-size N` changes the geometry batch.
-Features entirely outside those bounds contribute nothing; crossing features
-contribute only within them. Cells touched at edges or corners count. There is no
-coverage manifest or provenance sidecar. Null/empty geometry contributes nothing;
-invalid shapes with usable coordinates mark their own bbox cells and produce a
-warning identifying the source and first affected row in the batch. This may add
-false positives. Malformed WKB, unusable coordinates, and geometry-engine errors
-produce warnings and skip only the affected features; the command reports their
-count as `skipped_geometries`. Unreadable Parquet files and unsupported CRS metadata
-still fail creation.
-Report source problems without editing or repairing the Parquet. `--overwrite`
-replaces an existing PNG only after successful creation.
-
-`admin prepare` generates coverage by default after final partitioning; use
-`--no-coverage` to opt out. Its resolution option is `--coverage-grid-size`.
-`--no-parquet` also skips coverage. `make-release` automatically includes the
-common `<basename>.coverage.png` when present, with normal asset hash verification.
-
-## Prepare or publish
-
-For dataset preparation or publication, read
-[references/publication.md](references/publication.md), plus the checkout's
-`AGENTS.md` and `python/README.md`. Archive generation remains part of this admin
-workflow even though the old archive-consumer tools have been removed.
+For interactive use, `iomaps ui` provides remote source selection and extraction
+with the optional `ui` extra (`pip install "iomaps[ui]"`, or
+`uv sync --project python --extra ui` in the checkout). The default CLI install is
+headless. The legacy `filter-7z`, `infer-schema`, and their UI views are removed.

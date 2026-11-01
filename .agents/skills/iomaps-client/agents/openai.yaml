@@ -1,0 +1,4 @@
+interface:
+  display_name: "Indianopenmaps Client"
+  short_description: "Discover and extract Indianopenmaps data"
+  default_prompt: "Use $iomaps-client to find the right source and extract data for my area."

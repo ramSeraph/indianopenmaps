@@ -1,0 +1,4 @@
+interface:
+  display_name: "Indianopenmaps Admin"
+  short_description: "Prepare and publish Indianopenmaps datasets"
+  default_prompt: "Use $iomaps-admin to prepare my dataset and create a publication preview."
