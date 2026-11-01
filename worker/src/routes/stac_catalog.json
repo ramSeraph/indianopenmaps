@@ -288,6 +288,7 @@
       "href": "./myanmar-topo-50k",
       "title": "Myanmar Topographic Maps 50k",
       "geoparquet": "https://github.com/ramSeraph/myanmar_survey_maps/releases/download/50k-georef/Myanmar_50k.stac.parquet",
+      "geoparquet_sha256": "ef6c9845096795b0ac425392fe48f29e9df3e358f282e548a76da7a8eb17f191",
       "collection": {
         "type": "Collection",
         "id": "myanmar-topo-50k",
