@@ -1,5 +1,6 @@
 // Vector source and layer management
 import * as maplibregl from './maplibre.js';
+import { fetchTileJSON } from './tile_cache.js';
 
 export class VectorSourceHandler {
   #selectedSources = new Map();
@@ -278,8 +279,7 @@ export class VectorSourceHandler {
     const tileJsonUrl = new URL(`${sourceInfo.path}tiles.json`, window.location.origin).href;
     
     // Fetch TileJSON first to get attribution, then add source
-    fetch(tileJsonUrl)
-      .then(response => response.json())
+    fetchTileJSON(tileJsonUrl)
       .then(tileJson => {
         const attribution = tileJson.attribution || '';
         const attributionWithName = `<strong>${sourceInfo.name}:</strong> ${attribution}`;

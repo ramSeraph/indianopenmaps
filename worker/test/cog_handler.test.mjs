@@ -42,6 +42,7 @@ before(async () => {
   });
   worker = new Miniflare({
     compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution'],
+    bindings: { TILE_CACHE_REVALIDATION: 'true' },
     modulesRoot: root,
     modules: [
       { type: 'ESModule', path: root + 'cog-test.mjs', contents: bundle.outputFiles[0].text },
@@ -90,7 +91,7 @@ for (const name of ['masked.tif', 'jpeg.tif']) {
     assert.equal(metadata.imageCount, 4);
     const overviewResponse = await get(tilePath(), name);
     assert.equal(overviewResponse.headers.get('access-control-allow-origin'), '*');
-    assert.equal(overviewResponse.headers.get('cache-control'), 'max-age=86400000');
+    assert.equal(overviewResponse.headers.get('cache-control'), 'public, max-age=300, must-revalidate');
     const overview = await pixels(overviewResponse);
     assert.equal(at(overview, 20)[3], 0);
     const blue = at(overview, 128);
@@ -113,6 +114,22 @@ test('unmasked imagery stays opaque and edge blocks are cropped to the image ext
   assert.deepEqual(at(partial, 100, 100), [20, 60, 200, 255]);
   assert.equal(at(partial, 220, 100)[3], 0);
   assert.equal(at(partial, 100, 200)[3], 0);
+});
+
+test('COG metadata and tiles support conditional browser requests in workerd', async () => {
+  for (const path of ['/cog-info', tilePath()]) {
+    const url = `http://localhost${path}${path.includes('?') ? '&' : '?'}url=${encodeURIComponent(prefix + 'plain.tif')}`;
+    const response = await worker.dispatchFetch(url);
+    assert.equal(response.status, 200);
+    const etag = response.headers.get('ETag');
+    assert.match(etag, /^"[a-f0-9]{64}"$/);
+    await response.arrayBuffer();
+    const repeat = await worker.dispatchFetch(url, { headers: { 'If-None-Match': `W/${etag}` } });
+    assert.equal(repeat.status, 304);
+    assert.equal(await repeat.text(), '');
+    assert.equal(repeat.headers.get('Access-Control-Allow-Origin'), '*');
+    assert.equal(repeat.headers.get('Cache-Control'), path === '/cog-info' ? 'no-cache' : 'public, max-age=300, must-revalidate');
+  }
 });
 
 test('out-of-coverage, whitelist, missing data, and CRS errors keep HTTP semantics', async () => {

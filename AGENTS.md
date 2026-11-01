@@ -251,7 +251,7 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 ## Worker Architecture
 
 ### Handlers (in `worker/src/`)
-- **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives (shared 100-item promise cache)
+- **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives (shared 100-item resolved-value cache; metadata refreshes after five minutes)
 - **`mosaic_handler.js`**: Serves tiles from multiple PMTiles files (mosaic format v1, Flatbush spatial index for efficient tile lookup when ≥10 sources)
 - **`cog_handler.js`**: Dynamic tile generation from COGs with mask support (FilteredTiff separates mask/RGB, MaskAwareTiler for alpha blending)
 - **`stac_handler.js`**: STAC API v1.0.0 for COG collections; item indices stored in geoparquet files
@@ -355,10 +355,11 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 
 ### Worker Patterns
 - All route handlers should set CORS headers: `Access-Control-Allow-Origin: *`
-- Cache tiles with `Cache-Control: max-age=86400000` (long-lived)
+- Tile responses use `public, max-age=300, must-revalidate`; TileJSON/COG-info use `no-cache`. Use the shared `http_cache.js` response helper for content ETags and conditional GET/HEAD. Errors use `no-store`.
+- `TILE_CACHE_REVALIDATION = "true"` in `worker/wrangler.toml` enables the new cache behavior. Set it to `"false"` and push to disable periodic source refresh, conditional responses, shorter lifetimes, and the viewer URL migration. No preview mode; keep the rollback switch covered by tests.
 - Use console logger for logging (`console.log`, `console.error`)
 - Lazy initialization pattern: `initIfNeeded()` for handlers
-- Shared promise caches (100 items) across handler instances
+- Share only completed cache values across requests (100 entries for PMTiles headers/directories), never pending I/O. `refresh_cache.js` handles five-minute metadata snapshots and failure backoff; mosaic manifests use conditional GET and validate before replacing the resolver.
 
 ### Cloudflare Workers Restrictions
 Even with `nodejs_compat` enabled, Workers have significant limitations:

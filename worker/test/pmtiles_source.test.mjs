@@ -34,7 +34,7 @@ test('a small archive retries the initial 416 with its actual length', async t =
   t.mock.method(globalThis, 'fetch', async (input, options) => {
     ranges.push(options.headers.get('Range'));
     if (ranges.length === 1) return new Response('', { status: 416, headers: { 'Content-Range': 'bytes */2' } });
-    assert.equal(options.cache, 'reload');
+    assert.equal(options.cache, 'no-store');
     return new Response(tile, { status: 206 });
   });
   const result = await new PMTilesSource(url).getBytes(0, 16384);
@@ -47,7 +47,7 @@ test('ETag mismatches and noninitial 416 responses invalidate cached PMTiles dir
     const source = new PMTilesSource(url);
     const fetch = t.mock.method(globalThis, 'fetch', async (input, options) => {
       if (fetch.mock.callCount() === 0) return new Response('', { status, headers: { ETag: 'new' } });
-      assert.equal(options.cache, 'reload');
+      assert.equal(options.cache, 'no-store');
       return new Response(tile, { status: 206, headers: { ETag: 'new' } });
     });
     await assert.rejects(source.getBytes(4, 2, undefined, 'old'), EtagMismatch);

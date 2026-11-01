@@ -148,7 +148,9 @@
 
     <div id="map"></div>
 
-    <script>
+    <script src="/api/viewer-config.js"></script>
+    <script type="module">
+        import { tileCacheUrl, fetchTileMetadata } from '/js/tile_cache.js';
         // Extend Leaflet with corrected tile layer
         IndiaBoundaryCorrector.extendLeaflet(L);
 
@@ -172,7 +174,7 @@
                 const x = coords.x;
                 const y = coords.y;
                 const tileUrl = `/cog-tiles/${z}/${x}/${y}?url=${encodeURIComponent(url)}`;
-                return tileUrl;
+                return tileCacheUrl(tileUrl);
             }
         });
 
@@ -246,7 +248,7 @@
 
                 // Fetch COG info first
                 const infoUrl = `/cog-info?url=${encodeURIComponent(url)}`;
-                const infoResponse = await fetch(infoUrl);
+                const infoResponse = await fetchTileMetadata(infoUrl);
                 
                 if (!infoResponse.ok) {
                     const error = await infoResponse.json();

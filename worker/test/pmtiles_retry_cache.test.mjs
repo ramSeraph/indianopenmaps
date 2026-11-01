@@ -19,7 +19,7 @@ const leafRange = `bytes=${leafHeader.leafDirectoryOffset}-${leafHeader.leafDire
 function throttleFirst(t, rangeToThrottle, bytes = archive) {
   const requests = [];
   t.mock.method(globalThis, 'fetch', async (url, options) => {
-    const range = options.headers?.get('Range');
+    const range = options.headers?.get('Range') ?? undefined;
     requests.push({ url, range });
     if (range === rangeToThrottle && requests.filter(request => request.range === range).length === 1) {
       return new Response('', { status: 429, headers: { 'Retry-After': '1' } });
@@ -41,7 +41,7 @@ for (const [part, Handler, range, suffix] of [
     const failure = Promise.withResolvers();
     let stalled = false;
     const fetch = t.mock.method(globalThis, 'fetch', async (url, options) => {
-      if (!stalled && options.headers?.get('Range') === range) {
+      if (!stalled && (options.headers?.get('Range') ?? undefined) === range) {
         stalled = true;
         inFlight.resolve();
         return failure.promise;
@@ -183,7 +183,7 @@ test('workerd requests reuse completed initialization while a peer waits for Ret
   let headerReads = 0;
   let metadataReads = 0;
   const worker = new Miniflare({
-    compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution'],
+    compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution', 'cache_option_enabled', 'cache_no_cache_enabled'],
     modules: true, script: bundle.outputFiles[0].text,
     outboundService: request => {
       const range = request.headers.get('Range');

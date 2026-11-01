@@ -1,10 +1,10 @@
 import {
   getProtomapsBaseLayers,
   loadProtomapsStyle,
-  fetchMapJSON,
   resolveBaseLayerName,
   PROTOMAPS_DEFAULT_LAYER_NAME,
 } from './protomaps_basemaps.js';
+import { fetchTileJSON } from './tile_cache.js';
 
 // Extracted BaseLayerPicker control
 // Base layer definitions
@@ -178,7 +178,7 @@ export class BaseLayerPicker {
     if (layerInfo.styleUrl && !layerInfo.layers) {
       Object.assign(layerInfo, await loadProtomapsStyle(layerInfo));
     } else if (layerInfo.tileJsonUrl && Object.keys(layerInfo.sources).length === 0) {
-      const tileJson = await fetchMapJSON(layerInfo.tileJsonUrl);
+      const tileJson = await fetchTileJSON(layerInfo.tileJsonUrl);
       const srcId = `raster-${layerInfo.path.replace(/\//g, '-')}`;
       layerInfo.sources = {
         [srcId]: {

@@ -2,6 +2,7 @@
 // some of this html/js was copied from https://kokoalberti.com/articles/georeferencing-and-digitizing-old-maps-with-gdal/ and https://server.nikhilvj.co.in/pmgsy
 
 import { extendLeaflet } from 'https://esm.sh/@india-boundary-corrector/leaflet-layer@latest';
+import { fetchTileJSON } from './tile_cache.js';
 
 // Preset base layers with short identifiers
 const PRESETS = {
@@ -113,8 +114,7 @@ function buildLayersObject() {
     layer.on('add', async function() {
       if (this._tileJsonLoaded) return;
       try {
-        const response = await fetch(`${id}tiles.json`);
-        const tileJSON = await response.json();
+        const tileJSON = await fetchTileJSON(`${id}tiles.json`);
         this._tileJsonLoaded = true;
         this.options.maxNativeZoom = tileJSON.maxzoom;
         this.options.minZoom = tileJSON.minzoom;

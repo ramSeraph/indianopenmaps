@@ -1,3 +1,5 @@
+import { fetchTileJSON } from './tile_cache.js';
+
 // Public browser key; local overrides come from the Worker's runtime config.
 const API_KEY = globalThis.IOMAPS_CONFIG?.protomapsApiKey || '693abf6cacee62be';
 export const PROTOMAPS_DEFAULT_LAYER_NAME = 'Protomaps Black';
@@ -32,7 +34,7 @@ export async function fetchMapJSON(url) {
 
 export async function loadProtomapsStyle(layerInfo) {
   // All themes share this dataset. Retry failed metadata loads on the next pick.
-  boundaryPromise ||= fetchMapJSON(BOUNDARY_TILEJSON_URL).catch(error => {
+  boundaryPromise ||= fetchTileJSON(BOUNDARY_TILEJSON_URL).catch(error => {
     boundaryPromise = null;
     throw error;
   });

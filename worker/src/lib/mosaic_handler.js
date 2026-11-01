@@ -5,41 +5,61 @@ import { extendAttribution } from './common.js';
 import { UpstreamHttpError } from './errors.js';
 import { PMTilesSource } from './pmtiles_source.js';
 import { fetchUpstream, withRetries } from './request.js';
+import { RefreshCache } from './refresh_cache.js';
 
 // Cache resolved data only: pending I/O belongs to the request that started it.
 const sharedCache = new ResolvedValueCache(100, true);
 
 export default class MosaicHandler {
-  constructor(url, type, tileSuffix, logger, datameetAttribution) {
+  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
     this.type = type;
     this.tileSuffix = tileSuffix;
     this.datameetAttribution = datameetAttribution;
-    this.mosaic = new PMTilesMosaic(url, {
-      cache: sharedCache,
-      createIndex: createPartitionAwareIndex,
-      getSource: slice => new PMTilesSource(slice.location),
-      loadMosaic: async signal => {
-        const response = await fetchUpstream(url, { signal });
+    this.revalidate = revalidate;
+    this.manifest = new RefreshCache({
+      url, logger, revalidate,
+      load: async (previous, signal) => {
+        const headers = new Headers();
+        if (previous?.etag) headers.set('If-None-Match', previous.etag);
+        const response = await fetchUpstream(url, { headers, signal, cache: revalidate ? 'no-cache' : undefined });
+        if (response.status === 304 && previous) {
+          return { ...previous, etag: response.headers.get('ETag') || previous.etag };
+        }
         if (!response.ok) {
           const error = new UpstreamHttpError(response);
           await response.body?.cancel();
           throw error;
         }
-        return response.json();
+        const document = await response.json();
+        const mosaic = new PMTilesMosaic(url, {
+          cache: sharedCache,
+          createIndex: createPartitionAwareIndex,
+          getSource: slice => new PMTilesSource(slice.location, { revalidate }),
+          loadMosaic: async () => document,
+        });
+        // Validate before replacing the current resolver and its spatial index.
+        await mosaic.getResolver(signal);
+        return { mosaic, etag: response.headers.get('ETag') };
       },
     });
   }
 
   async getTile(z, x, y) {
     // Re-enter the resolver and archive caches after each retry wait.
-    const tile = await withRetries(() => this.mosaic.getTile(z, x, y));
-    if (tile === undefined) return [null, null];
-    return [tile, await this.mosaic.getMimeType()];
+    return withRetries(async () => {
+      const { mosaic } = await this.manifest.get();
+      const tile = await mosaic.getTile(z, x, y);
+      if (tile === undefined) return [null, null];
+      return [tile, await mosaic.getMimeType()];
+    });
   }
 
   async getConfig() {
     // routes/tiles.js supplies the public URL template after this call.
-    const config = await withRetries(() => this.mosaic.getTileJson([]));
+    const config = await withRetries(async () => {
+      const { mosaic } = await this.manifest.get();
+      return mosaic.getTileJson([]);
+    });
     return {
       ...config,
       attribution: extendAttribution(config.attribution, this.datameetAttribution),

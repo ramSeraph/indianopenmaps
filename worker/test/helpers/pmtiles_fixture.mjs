@@ -2,21 +2,21 @@ export const metadata = { name: 'Retry fixture', format: 'mvt', vector_layers: [
 export const tile = new Uint8Array([0x1a, 0]);
 
 // PMTiles v3 with one uncompressed z0 tile, optionally behind a leaf directory.
-export function makeArchive({ leafDirectory = false } = {}) {
-  const tileDirectory = new Uint8Array([1, 0, 1, tile.length, 1]);
+export function makeArchive({ leafDirectory = false, jsonMetadata = metadata, tileBytes = tile } = {}) {
+  const tileDirectory = new Uint8Array([1, 0, 1, tileBytes.length, 1]);
   const directory = leafDirectory ? new Uint8Array([1, 0, 0, tileDirectory.length, 1]) : tileDirectory;
-  const json = new TextEncoder().encode(JSON.stringify(metadata));
+  const json = new TextEncoder().encode(JSON.stringify(jsonMetadata));
   const metadataOffset = 127 + directory.length;
   const leafOffset = leafDirectory ? 16384 : 0;
   const tileOffset = leafDirectory ? leafOffset + tileDirectory.length : metadataOffset + json.length;
-  const bytes = new Uint8Array(tileOffset + tile.length);
+  const bytes = new Uint8Array(tileOffset + tileBytes.length);
   bytes.set(new TextEncoder().encode('PMTiles'));
   const view = new DataView(bytes.buffer);
   view.setUint8(7, 3);
   for (const [offset, value] of [
     [8, 127], [16, directory.length], [24, metadataOffset], [32, json.length],
     [40, leafOffset], [48, leafDirectory ? tileDirectory.length : 0],
-    [56, tileOffset], [64, tile.length], [72, 1], [80, 1], [88, 1],
+    [56, tileOffset], [64, tileBytes.length], [72, 1], [80, 1], [88, 1],
   ]) view.setBigUint64(offset, BigInt(value), true);
   for (const offset of [96, 97, 98, 99]) view.setUint8(offset, 1);
   for (const [offset, value] of [[102, -180], [106, -90], [110, 180], [114, 90]]) {
@@ -25,7 +25,7 @@ export function makeArchive({ leafDirectory = false } = {}) {
   bytes.set(directory, 127);
   bytes.set(json, metadataOffset);
   if (leafDirectory) bytes.set(tileDirectory, leafOffset);
-  bytes.set(tile, tileOffset);
+  bytes.set(tileBytes, tileOffset);
   return bytes;
 }
 

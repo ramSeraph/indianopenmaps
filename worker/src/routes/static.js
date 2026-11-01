@@ -1,3 +1,5 @@
+import { cacheRevalidationEnabled } from '../lib/http_cache.js';
+
 // HTML page routes (without .html extension)
 const htmlPages = {
   '/': 'index.html',
@@ -13,9 +15,10 @@ const htmlPages = {
 export function registerStaticRoutes(app) {
   // Public browser configuration; Wrangler loads local overrides from .dev.vars.
   app.get('/api/viewer-config.js', (c) => {
-    const config = c.env.PROTOMAPS_API_KEY
+    const config = c.env?.PROTOMAPS_API_KEY
       ? { protomapsApiKey: c.env.PROTOMAPS_API_KEY }
       : {};
+    config.tileCacheRevalidation = cacheRevalidationEnabled(c.env);
     return c.body(`globalThis.IOMAPS_CONFIG = ${JSON.stringify(config)};`, 200, {
       'Content-Type': 'application/javascript; charset=utf-8',
       'Cache-Control': 'no-store',

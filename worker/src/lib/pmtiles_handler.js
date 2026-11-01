@@ -2,71 +2,53 @@ import { PMTiles, ResolvedValueCache } from 'pmtiles';
 import { getMimeType, extendAttribution } from './common.js';
 import { PMTilesSource } from './pmtiles_source.js';
 import { withRetries } from './request.js';
+import { RefreshCache } from './refresh_cache.js';
 
 // Cache resolved data only: pending I/O belongs to the request that started it.
 const sharedCache = new ResolvedValueCache(100, true);
 
 class PMTilesHandler {
-  constructor(url, type, tileSuffix, logger, datameetAttribution) {
-    this.url = url;
-    this.source = null; // Lazy - created in init()
+  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
     this.tileSuffix = tileSuffix;
     this.type = type;
-    this.header = null;
-    this.metadata = null;
-    this.mimeType = null;
-    this.logger = logger;
     this.datameetAttribution = datameetAttribution;
-    this.title = null;
-    this.inited = false;
-  }
-
-  async init() {
-    const source = new PMTiles(new PMTilesSource(this.url), sharedCache);
-    const header = await source.getHeader();
-    const metadata = await source.getMetadata();
-    const mimeType = getMimeType(header.tileType);
-
-    // Publish complete state together; concurrent requests initialize independently.
-    this.source = source;
-    this.header = header;
-    this.mimeType = mimeType;
-    this.metadata = metadata;
-    this.inited = true;
-  }
-
-  async initIfNeeded() {
-    if (this.inited) {
-      return;
-    }
-    await withRetries(async () => {
-      // Another request may have initialized both header and metadata meanwhile.
-      if (!this.inited) await this.init();
+    this.revalidate = revalidate;
+    this.config = new RefreshCache({
+      url, logger, revalidate,
+      load: async previous => {
+        const source = previous?.source ?? new PMTiles(new PMTilesSource(url, { revalidate }), sharedCache);
+        // Metadata performs a range read, letting PMTiles detect replacements.
+        // Read the header afterwards because getMetadata may invalidate it.
+        const metadata = await source.getMetadata();
+        const header = await source.getHeader();
+        return { source, header, metadata };
+      },
     });
   }
 
   async getTile(z, x, y) {
-    await this.initIfNeeded();
-
-    const arr = await withRetries(() => this.source.getZxy(z, x, y));
-    return [ arr, this.mimeType ];
+    return withRetries(async () => {
+      const { source } = await this.config.get();
+      const arr = await source.getZxy(z, x, y);
+      return [arr, getMimeType((await source.getHeader()).tileType)];
+    });
   }
 
   async getConfig() {
-    await this.initIfNeeded();
+    const { header, metadata } = await withRetries(() => this.config.get());
 
     return {
       tilejson: "3.0.0",
       scheme: "xyz",
-      vector_layers: this.metadata.vector_layers,
-      attribution: extendAttribution(this.metadata.attribution, this.datameetAttribution),
-      description: this.metadata.description,
-      name: this.metadata.name,
-      version: this.metadata.version,
-      bounds: [this.header.minLon, this.header.minLat, this.header.maxLon, this.header.maxLat],
-      center: [this.header.centerLon, this.header.centerLat, this.header.centerZoom],
-      minzoom: this.header.minZoom,
-      maxzoom: this.header.maxZoom,
+      vector_layers: metadata.vector_layers,
+      attribution: extendAttribution(metadata.attribution, this.datameetAttribution),
+      description: metadata.description,
+      name: metadata.name,
+      version: metadata.version,
+      bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat],
+      center: [header.centerLon, header.centerLat, header.centerZoom],
+      minzoom: header.minZoom,
+      maxzoom: header.maxZoom,
     };
   }
 }

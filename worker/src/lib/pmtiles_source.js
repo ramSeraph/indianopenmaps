@@ -8,15 +8,16 @@ import { etagMismatch, strongEtag } from './http_etag.js';
 export class PMTilesSource {
   #mustReload = false;
 
-  constructor(url) {
+  constructor(url, { revalidate = false } = {}) {
     this.url = url;
+    this.revalidate = revalidate;
   }
 
   getKey() { return this.url; }
 
   async getBytes(offset, length, signal, etag) {
     const headers = new Headers({ Range: `bytes=${offset}-${offset + length - 1}` });
-    const options = { headers, signal, cache: this.#mustReload ? 'reload' : undefined };
+    const options = { headers, signal, cache: this.#mustReload ? 'no-store' : this.revalidate ? 'no-cache' : undefined };
     let response = await fetchUpstream(this.url, options);
 
     // Some servers reject the initial 16 KiB read for very small archives.
@@ -25,7 +26,7 @@ export class PMTilesSource {
       await response.body?.cancel();
       if (!match || Number(match[1]) <= 0) throw new Error('Missing content-length on 416 response');
       headers.set('Range', `bytes=0-${Number(match[1]) - 1}`);
-      response = await fetchUpstream(this.url, { ...options, cache: 'reload' });
+      response = await fetchUpstream(this.url, { ...options, cache: 'no-store' });
     }
 
     if (response.status >= 300 && response.status !== 416) {

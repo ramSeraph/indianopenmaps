@@ -2,14 +2,15 @@ import { PhotonImage } from '@cf-wasm/photon';
 import MosaicHandler from '../lib/mosaic_handler.js';
 import PMTilesHandler from '../lib/pmtiles_handler.js';
 import { UpstreamHttpError } from '../lib/errors.js';
+import { conditionalResponse, cacheRevalidationEnabled, TILE_CACHE_CONTROL, METADATA_CACHE_CONTROL } from '../lib/http_cache.js';
 
 import routes from './listing.json' with { type: 'json' };
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
+const errorHeaders = { ...corsHeaders, 'Cache-Control': 'no-store' };
 
-const handlerMap = {};
-
-function createHandlers(logger) {
+function createHandlers(logger, revalidate) {
+  const handlerMap = {};
   Object.keys(routes).forEach((rPrefix) => {
     const rInfo = routes[rPrefix];
     const datameetAttribution = !('license' in rInfo);
@@ -27,11 +28,12 @@ function createHandlers(logger) {
     }
 
     if (rInfo['handlertype'] === 'mosaic') {
-      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
+      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate });
     } else {
-      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution);
+      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate });
     }
   });
+  return handlerMap;
 }
 
 function getTileParams(c) {
@@ -48,18 +50,18 @@ async function getTile(handler, c) {
   if (!Number.isInteger(z) || z < 0 || z > 26 ||
       !Number.isInteger(x) || !Number.isInteger(y) ||
       x < 0 || y < 0 || x >= 2 ** z || y >= 2 ** z) {
-    return c.text('invalid XYZ tile coordinates', 400, corsHeaders);
+    return c.text('invalid XYZ tile coordinates', 400, errorHeaders);
   }
 
   const tileSuffix = handler.tileSuffix;
   const validExts = tileSuffix === 'webp' ? ['webp', 'png'] : [tileSuffix];
   if (!validExts.includes(ext)) {
-    return c.text('', 404, corsHeaders);
+    return c.text('', 404, errorHeaders);
   }
 
   const [ arr, mimeType ] = await handler.getTile(z,x,y);
   if (!arr) {
-    return c.text('', 404, corsHeaders);
+    return c.text('', 404, errorHeaders);
   }
 
   // PNG conversion requested for WebP tiles
@@ -70,25 +72,17 @@ async function getTile(handler, c) {
       const pngBytes = photonImage.get_bytes(); // Returns PNG by default
       photonImage.free(); // Free WASM memory
 
-      return new Response(pngBytes, {
-        headers: {
-          'Content-Type': 'image/png',
-          'Cache-Control': 'max-age=86400000',
-          ...corsHeaders
-        }
+      return conditionalResponse(c.req.raw, pngBytes, {
+        contentType: 'image/png', cacheControl: TILE_CACHE_CONTROL, revalidate: handler.revalidate,
       });
     } catch (err) {
       console.error('WebP to PNG conversion failed:', err);
-      return c.text('Image conversion failed', 500, corsHeaders);
+      return c.text('Image conversion failed', 500, errorHeaders);
     }
   }
 
-  return new Response(new Uint8Array(arr.data), {
-    headers: {
-      'Content-Type': mimeType,
-      'Cache-Control': 'max-age=86400000',
-      ...corsHeaders
-    }
+  return conditionalResponse(c.req.raw, new Uint8Array(arr.data), {
+    contentType: mimeType, cacheControl: TILE_CACHE_CONTROL, revalidate: handler.revalidate,
   });
 }
 
@@ -98,11 +92,8 @@ async function getTileJson(handler, c, serverUrl) {
   const baseUrl = tileJsonUrl.replace(/\/tiles\.json.*$/, '');
   config['tiles'] = [ serverUrl + baseUrl + `/{z}/{x}/{y}.${handler.tileSuffix}` ];
 
-  return c.json(config, {
-    headers: {
-      'Cache-Control': 'max-age=86400000',
-      ...corsHeaders
-    }
+  return conditionalResponse(c.req.raw, JSON.stringify(config), {
+    contentType: 'application/json; charset=utf-8', cacheControl: METADATA_CACHE_CONTROL, revalidate: handler.revalidate,
   });
 }
 
@@ -141,23 +132,27 @@ function withTileErrorHandling(serve, sourceUrl, logger) {
 }
 
 export function registerTileRoutes(app, getServerUrl, logger) {
-  createHandlers(logger);
+  const handlerMaps = new Map();
+  const getHandler = (c, prefix) => {
+    const enabled = cacheRevalidationEnabled(c.env);
+    if (!handlerMaps.has(enabled)) handlerMaps.set(enabled, createHandlers(logger, enabled));
+    return handlerMaps.get(enabled)[prefix];
+  };
 
   // API route for listing all tile sources
   app.get('/api/routes', (c) => {
     return c.json(routes, { headers: corsHeaders });
   });
 
-  Object.keys(handlerMap).forEach((rPrefix) => {
-    const handler = handlerMap[rPrefix];
+  Object.keys(routes).forEach((rPrefix) => {
     const sourceUrl = routes[rPrefix].url;
 
     app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`,
-      withTileErrorHandling((c) => getTile(handler, c), sourceUrl, logger));
+      withTileErrorHandling((c) => getTile(getHandler(c, rPrefix), c), sourceUrl, logger));
     app.get(`${rPrefix}tiles.json`,
-      withTileErrorHandling((c) => getTileJson(handler, c, getServerUrl(c)), sourceUrl, logger));
+      withTileErrorHandling((c) => getTileJson(getHandler(c, rPrefix), c, getServerUrl(c)), sourceUrl, logger));
 
-    if (handler.type == 'raster') {
+    if (routes[rPrefix].type == 'raster') {
       app.get(`${rPrefix}rasterview`, (c) => {
         const hashParams = new URLSearchParams();
         hashParams.set('left', rPrefix);

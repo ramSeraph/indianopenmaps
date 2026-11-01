@@ -34,6 +34,50 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 - Provides TileJSON metadata endpoints for each source
 - Currently serves ~498 tile sources
 
+TileJSON and COG-info responses use `Cache-Control: no-cache`; tile responses use
+`public, max-age=300, must-revalidate`. Both include content ETags and return
+`304 Not Modified` for matching `If-None-Match` requests. Revalidation still reads
+or renders the current response before comparing its ETag; it saves response
+bandwidth, not all upstream reads or rendering work. Errors use `no-store`.
+
+This behavior is enabled by `[vars] TILE_CACHE_REVALIDATION = "true"` in
+`worker/wrangler.toml`. To roll it back, set the value to `"false"` and push.
+The switch restores the previous long response lifetimes, disables conditional
+responses and periodic metadata refresh, and disables the viewer URL migration
+on the next page load. No preview mode or package release is needed.
+
+On the next request after five minutes, each Worker instance revalidates its
+`mosaic.json` with `If-None-Match` (or downloads it again if no ETag was supplied).
+An unchanged manifest retains its resolver; a changed manifest is validated before
+replacing it. Single-archive PMTiles metadata also refreshes after five minutes,
+using the library's ETag mismatch recovery. Failed refreshes retain the last valid
+metadata and retry after 30 seconds or the upstream `Retry-After`, whichever is
+longer. These source and browser freshness windows are separate, so a manifest
+change can take up to roughly ten minutes to appear on subsequent tile requests.
+COG responses follow the same browser policy; their existing byte-range cache
+does not yet revalidate replaced source COGs by ETag.
+
+Our viewers append a fixed `iomaps-cache=2` query parameter to metadata and tile
+requests to bypass responses previously cached for 1,000 days. This is a one-time
+migration, not a per-publication version: release asset filenames and API paths
+stay the same. Other clients holding old responses need a forced reload or their
+own cache-busting query parameter once. Already displayed tiles are not pushed
+updates; reload the page or map source to request them again.
+
+A November 2026 public GitHub client review found ordinary browser tile loaders
+in [Amche Atlas](https://github.com/publicmap/amche-atlas/blob/0ef70e319560f0008d53ced1923358956133c6d9/js/map-utils.js#L677),
+[Bhoonaksha](https://github.com/saurabh4269/bhoonaksha/blob/4ba34ddf3ecdb4b5f18c9a8d4baee9d9318d40ce/js/app.js#L7),
+[AeroForge](https://github.com/sharmapalak09082006-stack/AeroForge/blob/4bc67d41c7fa0c5fc3623848e2b99b3d591c9f35/client/src/components/MapViewer.tsx#L90),
+[FSS Survey Calculator](https://github.com/moorthimms/FSS-survey-calculator/blob/01b3ff2d5c0878e63fc4adabbe14f041f79ffee3/map_assets/app.js#L1140),
+[Goa AQI Logger](https://github.com/publicmap/goa-aqi-logger/blob/9930dfeb0f4f86a2085b7b17a609b4d4e4b5b981/index.html#L1035),
+and [amnmalik's hiking map](https://github.com/amnmalik/mysite/blob/c8ba53b20446a1a5e4c3ea42038f258e32c48d43/static/hikes/index.html#L373).
+No incompatible custom conditional-request handling was found in the reviewed
+code. Cross-origin Chrome checks cover JSON fetch, binary fetch/XHR, and image
+loading: automatic HTTP revalidation exposes the cached body as a successful
+response to application code. This is a source and transport compatibility check,
+not an end-to-end test of every external application or an inventory of private
+and unindexed clients. Direct GitHub release downloads are unaffected.
+
 **STAC API:**
 - Implements a [STAC](https://stacspec.org/) API for browsing raster collections (e.g. SOI Open series maps 50k)
 - Item indexes are stored in STAC GeoParquet files in GitHub releases; searches preserve source footprints and support bbox, intersects, datetime, IDs and complete GET/POST pagination.

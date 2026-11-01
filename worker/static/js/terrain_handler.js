@@ -1,4 +1,5 @@
 import * as maplibregl from './maplibre.js';
+import { tileCacheUrl } from './tile_cache.js';
 
 export class TerrainHandler {
   constructor(searchParams) {
@@ -37,7 +38,7 @@ export class TerrainHandler {
   getTerrainTileUrl() {
     const currUrl = window.location.href;
     const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);
-    return terrainTileUrl;
+    return tileCacheUrl(terrainTileUrl);
   }
 
   getHillShadeLayer() {

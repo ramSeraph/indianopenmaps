@@ -1,5 +1,6 @@
 // STAC Viewer JavaScript
 import { fetchStacPages } from './stac_pagination.js';
+import { tileCacheUrl } from './tile_cache.js';
 const STAC_API_BASE = window.location.origin + '/stac';
 const COG_TILER_BASE = window.location.origin + '/cog-tiles';
 
@@ -265,7 +266,7 @@ function toggleCogTiles(encodedUrl, itemId) {
     }
     
     // Create tile layer URL: /cog-tiles/{z}/{x}/{y}?url={cogUrl}
-    const tileUrl = `${COG_TILER_BASE}/{z}/{x}/{y}?url=${encodedUrl}`;
+    const tileUrl = tileCacheUrl(`${COG_TILER_BASE}/{z}/{x}/{y}?url=${encodedUrl}`);
     
     // Add new tile layer
     // TODO: Pick maxZoom from /cog-info API instead of hardcoding to 20
