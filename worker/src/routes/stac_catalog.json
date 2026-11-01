@@ -756,6 +756,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-soviet-200k",
+      "title": "Soviet Genshtab 200k Topographic Maps",
+      "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/200k-gs-georef/Soviet_GS_200k.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-soviet-200k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Soviet General Staff topographic maps at the 200k scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/russian_world_topo_maps/releases/tag/200k-gs-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 11791,
+        "title": "Soviet Genshtab 200k Topographic Maps",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -179.9968295,
+                -47.3329319,
+                180,
+                82.0009216
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-10-14T15:23:09Z",
+                "2025-10-14T15:23:09Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "Soviet_GS_200k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
