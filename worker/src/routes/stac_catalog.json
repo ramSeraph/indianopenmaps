@@ -491,6 +491,59 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-american-tpc",
+      "title": "Tactical Pilotage Charts",
+      "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/tpc-georef/TPC.stac.parquet",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-american-tpc",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Tactical Pilotage Charts from the Perry-Casta\u00f1eda Library Map Collection and Mapstor Archive. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/american_world_topo_maps/releases/tag/tpc-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
+        "item_count": 665,
+        "title": "Tactical Pilotage Charts",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -180,
+                -64,
+                180,
+                84
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2025-08-26T08:42:41Z",
+                "2025-08-26T08:42:41Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "TPC.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
