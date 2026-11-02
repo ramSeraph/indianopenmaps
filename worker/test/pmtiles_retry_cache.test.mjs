@@ -172,8 +172,16 @@ test('workerd requests reuse completed initialization while a peer waits for Ret
   const bundle = await build({
     stdin: {
       contents: `import PMTilesHandler from './src/lib/pmtiles_handler.js';
+        import { withRequestContext } from './src/lib/request.js';
         const handler = new PMTilesHandler('https://example.test/workerd.pmtiles', 'vector', 'pbf', console, false);
-        export default { async fetch() { return Response.json(await handler.getConfig()); } };`,
+        const events = [];
+        console.log = console.warn = row => { if (row.event === 'upstream_fetch') events.push(row); };
+        export default { fetch(request) {
+          return withRequestContext(request, async requestId => {
+            const config = await handler.getConfig();
+            return Response.json(config, {headers: {'test-events': JSON.stringify(events.filter(row => row.requestId === requestId))}});
+          });
+        } };`,
       resolveDir: root,
     },
     bundle: true, format: 'esm', platform: 'browser', conditions: ['workerd'], target: 'es2022', write: false,
@@ -206,6 +214,15 @@ test('workerd requests reuse completed initialization while a peer waits for Ret
     assert.equal((await retried.json()).name, metadata.name);
     assert.equal(headerReads, 2, 'one rate-limited request and one successful header read');
     assert.equal(metadataReads, 1);
+    const firstLogs = JSON.parse(retried.headers.get('test-events'));
+    const secondLogs = JSON.parse(second.headers.get('test-events'));
+    assert.equal(firstLogs.length, 1, 'cache recovery does not invent a second network fetch');
+    assert.equal(firstLogs[0].status, 429);
+    assert.equal(firstLogs[0].range, headerRange);
+    assert.equal(firstLogs[0].retryAfter, '1');
+    assert.equal(secondLogs.length, 2);
+    assert.notEqual(firstLogs[0].requestId, secondLogs[0].requestId);
+    assert.ok(secondLogs.every(row => row.requestId === secondLogs[0].requestId));
   } finally {
     await worker.dispose();
   }

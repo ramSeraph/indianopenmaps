@@ -5,6 +5,7 @@ import { registerStacRoutes } from './routes/stac.js';
 import { registerProxyRoutes } from './routes/proxy.js';
 import { registerStaticRoutes } from './routes/static.js';
 import { registerCogRoutes } from './routes/cog.js';
+import { withRequestContext } from './lib/request.js';
 
 const app = new Hono();
 
@@ -16,9 +17,10 @@ const logger = {
 };
 
 // Log client headers before routing, including requests that fail or return 404.
-app.use('*', async (c, next) => {
+app.use('*', (c, next) => withRequestContext(c.req.raw, async requestId => {
   console.log({
     message: 'Request headers',
+    requestId,
     method: c.req.method,
     path: c.req.path,
     requestedWith: c.req.header('x-requested-with') ?? null,
@@ -26,7 +28,7 @@ app.use('*', async (c, next) => {
     referer: c.req.header('referer') ?? null,
   });
   await next();
-});
+}));
 
 // Determine server URL from request
 function getServerUrl(c) {
