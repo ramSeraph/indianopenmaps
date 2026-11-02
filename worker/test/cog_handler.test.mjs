@@ -38,7 +38,6 @@ before(async () => {
           Date.now = () => now() + Number(c.req.header('test-clock-offset') || 0);
           if (c.req.header('test-disable-revalidation')) c.env = { CACHE_REVALIDATION_SECONDS: '0' };
           if (c.req.header('test-source-period')) c.env = { ...c.env, CACHE_REVALIDATION_SECONDS: c.req.header('test-source-period') };
-          if (c.req.header('test-tile-period')) c.env = { ...c.env, TILE_CACHE_MAX_AGE_SECONDS: c.req.header('test-tile-period') };
           await next();
         });
         registerCogRoutes(app, {error() {}, warn() {}});
@@ -120,7 +119,7 @@ for (const name of ['masked.tif', 'jpeg.tif']) {
     assert.equal(metadata.imageCount, 4);
     const overviewResponse = await get(tilePath(), name);
     assert.equal(overviewResponse.headers.get('access-control-allow-origin'), '*');
-    assert.equal(overviewResponse.headers.get('cache-control'), 'public, max-age=300, must-revalidate');
+    assert.equal(overviewResponse.headers.get('cache-control'), 'public, max-age=3600, must-revalidate');
     const overview = await pixels(overviewResponse);
     assert.equal(at(overview, 20)[3], 0);
     const blue = at(overview, 128);
@@ -157,7 +156,7 @@ test('COG metadata and tiles support conditional browser requests in workerd', a
     assert.equal(repeat.status, 304);
     assert.equal(await repeat.text(), '');
     assert.equal(repeat.headers.get('Access-Control-Allow-Origin'), '*');
-    assert.equal(repeat.headers.get('Cache-Control'), path === '/cog-info' ? 'no-cache' : 'public, max-age=300, must-revalidate');
+    assert.equal(repeat.headers.get('Cache-Control'), path === '/cog-info' ? 'no-cache' : 'public, max-age=3600, must-revalidate');
   }
 });
 
@@ -256,13 +255,13 @@ test('COG replacements refresh pixels and metadata at the same URL after one hou
   assert.ok(requests.filter(request => request.range).every(request => request.ifMatch));
 });
 
-test('COG routes keep custom source refresh and browser freshness independent', async () => {
+test('COG routes use one configured period for source refresh and browser freshness', async () => {
   const name = 'custom-period.tif';
   files.set(name, makeCOG());
-  const headers = { 'test-source-period': '10', 'test-tile-period': '900' };
+  const headers = { 'test-source-period': '10' };
   const first = await get(tilePath(), name, headers);
   assert.equal(first.status, 200);
-  assert.equal(first.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
+  assert.equal(first.headers.get('Cache-Control'), 'public, max-age=10, must-revalidate');
   await first.arrayBuffer();
   requests = [];
   await (await get('/cog-info', name, headers)).arrayBuffer();

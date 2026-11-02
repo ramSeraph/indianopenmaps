@@ -35,23 +35,22 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 - Currently serves ~498 tile sources
 
 TileJSON and COG-info responses use `Cache-Control: no-cache`; tile responses use
-`public, max-age=300, must-revalidate`. Both include content ETags and return
+`public, max-age=3600, must-revalidate` by default. Both include content ETags and return
 `304 Not Modified` for matching `If-None-Match` requests. Revalidation still reads
 or renders the current response before comparing its ETag; it saves response
 bandwidth, not all upstream reads or rendering work. Errors use `no-store`.
 
-Configure the periods in `worker/wrangler.toml` and push:
+Configure the shared period in `worker/wrangler.toml` and push:
 
 ```toml
 [vars]
 CACHE_REVALIDATION_SECONDS = "3600"
-TILE_CACHE_MAX_AGE_SECONDS = "300"
 ```
 
-The first setting controls source metadata and STAC index refresh (one hour by
-default). The second controls browser tile freshness independently (five minutes
-by default); `0` requires browser revalidation on every reuse. Missing or invalid
-values use these defaults; durations must be non-negative whole seconds.
+This setting controls source metadata, STAC index refresh, and browser tile
+freshness (one hour by default). Fresh browser-cached tiles avoid Worker requests;
+conditional requests still run the Worker even when they return 304. Missing or
+invalid values use the default; durations must be non-negative whole seconds.
 
 Set `CACHE_REVALIDATION_SECONDS` to `"0"` to disable periodic source/STAC refresh
 and restore the previous tile/TileJSON/COG response policy: long response lifetimes,
@@ -65,8 +64,8 @@ An unchanged manifest retains its resolver; a changed manifest is validated befo
 replacing it. Single-archive PMTiles metadata refreshes at the same interval,
 using the library's ETag mismatch recovery. Failed refreshes retain the last valid
 metadata and retry after 30 seconds or the upstream `Retry-After`, whichever is
-longer. These source and browser freshness windows are separate, so a manifest
-change can take up to roughly 65 minutes with the defaults to appear on subsequent
+longer. The source and browser freshness windows can add together, so a manifest
+change can take up to roughly two hours with the default to appear on subsequent
 tile requests, provided upstream revalidation succeeds. These are maximum freshness
 windows, not guaranteed cache retention: a new isolate or eviction requires a new read.
 

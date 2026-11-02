@@ -96,9 +96,9 @@ test('PMTiles routes revalidate TileJSON and tile bytes after an archive replace
   assert.equal(missing.headers.get('Cache-Control'), 'no-store');
 });
 
-for (const kind of ['pmtiles', 'mosaic']) test(`${kind}: custom source period and browser max-age are independent`, async t => {
+for (const kind of ['pmtiles', 'mosaic']) test(`${kind}: one configured period controls source refresh and browser max-age`, async t => {
   t.mock.timers.enable({ apis: ['Date'], now: 0 });
-  const server = app(true, { CACHE_REVALIDATION_SECONDS: '10', TILE_CACHE_MAX_AGE_SECONDS: '900' });
+  const server = app(true, { CACHE_REVALIDATION_SECONDS: '10' });
   const prefix = Object.entries(routes).find(([, r]) => r.handlertype === kind && r.type !== 'raster')[0];
   let version = 1;
   const fetch = t.mock.method(globalThis, 'fetch', async (url, options) => {
@@ -118,10 +118,10 @@ for (const kind of ['pmtiles', 'mosaic']) test(`${kind}: custom source period an
   assert.equal((await (await server.request(prefix + 'tiles.json')).json()).name, 'Version 2');
   const response = await server.request(prefix + '0/0/0.pbf');
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
+  assert.equal(response.headers.get('Cache-Control'), 'public, max-age=10, must-revalidate');
   const cached = await server.request(prefix + '0/0/0.pbf', { headers: { 'If-None-Match': response.headers.get('ETag') } });
   assert.equal(cached.status, 304);
-  assert.equal(cached.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
+  assert.equal(cached.headers.get('Cache-Control'), 'public, max-age=10, must-revalidate');
 });
 
 test('WebP and converted PNG responses have distinct validators', async t => {
