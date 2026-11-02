@@ -231,8 +231,8 @@ test('a cancelled COG HEAD cannot delay a peer or install its old metadata', asy
   const oldRead = read(undefined, { signal: controller.signal });
   const rejected = assert.rejects(oldRead, /cancelled/);
   await pending;
-  assert.deepEqual(await read(), [Array(8).fill(1)]);
   controller.abort(new Error('cancelled'));
+  assert.deepEqual(await read(), [Array(8).fill(1)], 'cancellation releases coordination before the old read settles');
   release();
   await rejected;
   const count = requests.length;

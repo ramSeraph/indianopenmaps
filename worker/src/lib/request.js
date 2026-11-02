@@ -9,6 +9,8 @@ const SLOW_FETCH_MS = 5_000;
 // Scope cache probes to one async operation; concurrent requests can still fetch.
 const requestContext = new AsyncLocalStorage();
 
+export function isCacheOnly() { return requestContext.getStore()?.cacheOnly === true; }
+
 export function withRequestContext(request, operation) {
   const context = { requestId: crypto.randomUUID(), requestPath: new URL(request.url).pathname };
   return requestContext.run(context, () => operation(context.requestId));

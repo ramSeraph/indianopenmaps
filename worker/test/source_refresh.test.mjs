@@ -6,6 +6,7 @@ import { Miniflare } from 'miniflare';
 import MosaicHandler from '../src/lib/mosaic_handler.js';
 import PMTilesHandler from '../src/lib/pmtiles_handler.js';
 import { SOURCE_REFRESH_MS } from '../src/lib/refresh_cache.js';
+import { CACHE_FILL_LEASE_MS } from '../src/lib/cache_fill.js';
 import { makeArchive, metadata, mosaic, respond, tile } from './helpers/pmtiles_fixture.mjs';
 
 function setup(t, revalidate = true) {
@@ -124,6 +125,8 @@ for (const lateResponse of ['304', '200']) {
     await handler.getConfig();
     expire();
     const first = handler.getConfig();
+    // An orphaned lease expires; its eventual result must still lose to a peer.
+    t.mock.timers.tick(CACHE_FILL_LEASE_MS);
     assert.equal((await handler.getConfig()).name, 'New');
     stalled.resolve(lateResponse === '304' ? new Response(null, { status: 304 }) : Response.json(mosaic));
     assert.equal((await first).name, 'New');
@@ -191,7 +194,7 @@ test('workerd refreshes manifests and archive ETags without unsupported cache mo
   const updatedTile = new Uint8Array([0x1a, 8]);
   const worker = new Miniflare({
     compatibilityDate: '2024-11-01',
-    compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution', 'cache_option_enabled', 'cache_no_cache_enabled'],
+    compatibilityFlags: ['nodejs_compat', 'cache_option_enabled', 'cache_no_cache_enabled'],
     modules: true, script: bundle.outputFiles[0].text,
     outboundService: request => {
       assert.equal(request.headers.get('Cache-Control'), 'no-cache');

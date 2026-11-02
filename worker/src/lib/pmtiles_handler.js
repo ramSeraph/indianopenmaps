@@ -1,11 +1,9 @@
-import { PMTiles, ResolvedValueCache } from 'pmtiles';
+import { PMTiles } from 'pmtiles';
+import { sharedPMTilesCache } from './pmtiles_cache.js';
 import { getMimeType, extendAttribution } from './common.js';
 import { PMTilesSource } from './pmtiles_source.js';
 import { withRetries } from './request.js';
 import { RefreshCache } from './refresh_cache.js';
-
-// Cache resolved data only: pending I/O belongs to the request that started it.
-const sharedCache = new ResolvedValueCache(100, true);
 
 class PMTilesHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
@@ -16,7 +14,7 @@ class PMTilesHandler {
     this.config = new RefreshCache({
       url, logger, revalidate,
       load: async previous => {
-        const source = previous?.source ?? new PMTiles(new PMTilesSource(url, { revalidate }), sharedCache);
+        const source = previous?.source ?? new PMTiles(new PMTilesSource(url, { revalidate }), sharedPMTilesCache);
         // Metadata performs a range read, letting PMTiles detect replacements.
         // Read the header afterwards because getMetadata may invalidate it.
         const metadata = await source.getMetadata();

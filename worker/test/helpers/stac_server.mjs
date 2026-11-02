@@ -31,7 +31,7 @@ const bundle = await build({
 });
 const worker = new Miniflare({
   port: Number(process.env.STAC_TEST_PORT || 8791),
-  compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution'],
+  compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat'],
   modules: true, script: bundle.outputFiles[0].text,
   outboundService: request => {
     const bytes = files.get(request.url);

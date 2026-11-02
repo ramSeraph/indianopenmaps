@@ -1,4 +1,4 @@
-import { ResolvedValueCache } from 'pmtiles';
+import { sharedPMTilesCache } from './pmtiles_cache.js';
 import { PMTilesMosaic } from '@ramseraph/pmtiles-mosaic';
 import { createPartitionAwareIndex } from '@ramseraph/pmtiles-mosaic/partition-aware';
 import { extendAttribution } from './common.js';
@@ -6,9 +6,6 @@ import { UpstreamHttpError } from './errors.js';
 import { PMTilesSource } from './pmtiles_source.js';
 import { fetchUpstream, withRetries } from './request.js';
 import { RefreshCache } from './refresh_cache.js';
-
-// Cache resolved data only: pending I/O belongs to the request that started it.
-const sharedCache = new ResolvedValueCache(100, true);
 
 export default class MosaicHandler {
   constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
@@ -32,7 +29,7 @@ export default class MosaicHandler {
         }
         const document = await response.json();
         const mosaic = new PMTilesMosaic(url, {
-          cache: sharedCache,
+          cache: sharedPMTilesCache,
           createIndex: createPartitionAwareIndex,
           getSource: slice => new PMTilesSource(slice.location, { revalidate }),
           loadMosaic: async () => document,

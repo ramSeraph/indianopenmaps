@@ -52,7 +52,7 @@ before(async () => {
   });
   worker = new Miniflare({
     compatibilityDate: '2024-11-01', compatibilityFlags: [
-      'nodejs_compat', 'no_handle_cross_request_promise_resolution', 'cache_option_enabled', 'cache_no_cache_enabled',
+      'nodejs_compat', 'cache_option_enabled', 'cache_no_cache_enabled',
     ],
     bindings: { TILE_CACHE_REVALIDATION: 'true' },
     modulesRoot: root,

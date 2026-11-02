@@ -7,6 +7,7 @@ import { Miniflare } from 'miniflare';
 import { bytesToHeader } from 'pmtiles';
 import PMTilesHandler from '../src/lib/pmtiles_handler.js';
 import MosaicHandler from '../src/lib/mosaic_handler.js';
+import { CACHE_FILL_LEASE_MS } from '../src/lib/cache_fill.js';
 import { archive, makeArchive, metadata, tile, respond } from './helpers/pmtiles_fixture.mjs';
 
 const headerRange = 'bytes=0-16383';
@@ -35,7 +36,7 @@ for (const [part, Handler, range, suffix] of [
   ['manifest', MosaicHandler, undefined, 'mosaic.json'],
 ]) {
   test(`a late ${part} 429 uses the completed cache immediately, even with Retry-After 60`, { timeout: 2000 }, async t => {
-    t.mock.timers.enable({ apis: ['setTimeout'] });
+    t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
     const handler = new Handler(`https://example.test/immediate-${part}/${suffix}`, 'vector', 'pbf', console, false);
     const inFlight = Promise.withResolvers();
     const failure = Promise.withResolvers();
@@ -50,6 +51,8 @@ for (const [part, Handler, range, suffix] of [
     });
     const first = handler.getConfig();
     await inFlight.promise;
+    // Simulate an orphaned leader so a peer can take over the cache fill.
+    t.mock.timers.tick(CACHE_FILL_LEASE_MS);
     assert.equal((await handler.getConfig()).name, metadata.name);
     const completed = fetch.mock.callCount();
     failure.resolve(new Response('', { status: 429, headers: { 'Retry-After': '60' } }));
@@ -191,7 +194,7 @@ test('workerd requests reuse completed initialization while a peer waits for Ret
   let headerReads = 0;
   let metadataReads = 0;
   const worker = new Miniflare({
-    compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution', 'cache_option_enabled', 'cache_no_cache_enabled'],
+    compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'cache_option_enabled', 'cache_no_cache_enabled'],
     modules: true, script: bundle.outputFiles[0].text,
     outboundService: request => {
       const range = request.headers.get('Range');

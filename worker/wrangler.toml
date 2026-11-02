@@ -2,7 +2,9 @@ name = "indianopenmaps"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
 # nodejs_compat needed because @basemaps/tiler uses process.env at module init
-compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution", "cache_option_enabled", "cache_no_cache_enabled"]
+# Keep default cross-request promise handling: cache-fill notifications must
+# resume each waiter in its own request context.
+compatibility_flags = ["nodejs_compat", "cache_option_enabled", "cache_no_cache_enabled"]
 workers_dev = true
 
 routes = [

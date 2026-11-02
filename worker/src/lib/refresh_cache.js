@@ -1,5 +1,6 @@
 import { CacheMissError } from './errors.js';
 import { parseRetryAfter } from './request.js';
+import { CacheFill } from './cache_fill.js';
 
 export const SOURCE_REFRESH_MS = 5 * 60 * 1000;
 const RETRY_REFRESH_MS = 30_000;
@@ -8,6 +9,7 @@ const RETRY_REFRESH_MS = 30_000;
 // response cannot overwrite a snapshot installed by a peer in the meantime.
 export class RefreshCache {
   #snapshot;
+  #fill = new CacheFill();
 
   constructor({ load, logger, url, revalidate = true }) {
     this.load = load;
@@ -16,7 +18,14 @@ export class RefreshCache {
     this.revalidate = revalidate;
   }
 
-  async get(signal) {
+  get(signal) {
+    return this.#fill.run('snapshot', () => this.#get(signal), {
+      signal,
+      ready: () => this.#snapshot && (!this.revalidate || Date.now() < this.#snapshot.expires),
+    });
+  }
+
+  async #get(signal) {
     signal?.throwIfAborted();
     const previous = this.#snapshot;
     if (previous && (!this.revalidate || Date.now() < previous.expires)) return previous.value;
