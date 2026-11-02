@@ -251,7 +251,7 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 ## Worker Architecture
 
 ### Handlers (in `worker/src/`)
-- **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives (shared 100-item resolved-value cache; metadata refreshes after five minutes)
+- **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives (shared 100-item resolved-value cache; metadata refreshes at the configured interval, one hour by default)
 - **`mosaic_handler.js`**: Serves tiles from multiple PMTiles files (mosaic format v1, Flatbush spatial index for efficient tile lookup when ≥10 sources)
 - **`cog_handler.js`**: Dynamic tile generation from COGs with mask support (FilteredTiff separates mask/RGB, MaskAwareTiler for alpha blending)
 - **`stac_handler.js`**: STAC API v1.0.0 for COG collections; item indices stored in geoparquet files
@@ -356,13 +356,13 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 ### Worker Patterns
 - All route handlers should set CORS headers: `Access-Control-Allow-Origin: *`
 - Tile responses use `public, max-age=300, must-revalidate`; TileJSON/COG-info use `no-cache`. Use the shared `http_cache.js` response helper for content ETags and conditional GET/HEAD. Errors use `no-store`.
-- `TILE_CACHE_REVALIDATION = "true"` in `worker/wrangler.toml` enables the new cache behavior. Set it to `"false"` and push to disable periodic source refresh, conditional responses, shorter lifetimes, and the viewer URL migration. No preview mode; keep the rollback switch covered by tests.
+- `CACHE_REVALIDATION_SECONDS = "3600"` in `worker/wrangler.toml` controls source metadata and STAC index refresh. Set it to `"0"` and push to disable periodic refresh, conditional tile/TileJSON/COG responses, shorter response lifetimes, and the viewer URL migration. `TILE_CACHE_MAX_AGE_SECONDS = "300"` independently controls browser tile freshness (0 requires revalidation on reuse). `cache_policy.js` owns defaults and parsing; missing/invalid durations use defaults. The old boolean setting is removed. No preview mode; keep custom periods and rollback covered by tests.
 - Use console logger for logging (`console.log`, `console.error`)
 - `request.js` logs every actual upstream fetch as `event: "upstream_fetch"`, including recovered 429s. `requestId` joins it to the incoming request; source host/path, byte range, retry attempt, status, Retry-After and time to response headers expose overlapping manifest/header reads. HTTP failures and fetches taking at least five seconds are warnings. Keep signed URL queries, credentials and arbitrary headers out of these logs; cache-only probes must not create fetch events.
 - Lazy initialization pattern: `initIfNeeded()` for handlers
 - Share only completed cache values across requests (100 entries in `pmtiles_cache.js` for PMTiles headers/directories), never pending fetches or I/O objects. `cache_fill.js` coordinates simultaneous misses and metadata refreshes using separate request-owned notification promises. Keep Workers' default cross-request promise handling enabled; `no_handle_cross_request_promise_resolution` causes hung requests in the workerd regression test. Each follower owns a fallback timer, and a one-second renewable lease permits takeover if the loader disappears (renewal stops after 60 seconds). Coordination is per isolate; other isolates can still issue duplicate reads. Retry cache-only probes bypass waits.
-- `refresh_cache.js` handles five-minute metadata snapshots and failure backoff; mosaic manifests use conditional GET and validate before replacing the resolver. COG HEAD snapshots use the same coordination; COG/STAC byte-range caches still share only completed bytes.
-- `cog_source.js` revalidates COGs with conditional HEAD and pins range reads with `If-Match`. Strong ETag and size identify cached ranges; weak/missing validators disable shared range reuse. A mismatch retries the whole reader/render once. This uses the same `TILE_CACHE_REVALIDATION` rollback switch and the existing shared byte budget.
+- `refresh_cache.js` handles metadata snapshots with a configurable lifetime and failure backoff; mosaic manifests use conditional GET and validate before replacing the resolver. COG HEAD snapshots use the same coordination; COG/STAC byte-range caches still share only completed bytes.
+- `cog_source.js` revalidates COGs with conditional HEAD and pins range reads with `If-Match`. Strong ETag and size identify cached ranges; weak/missing validators disable shared range reuse. A mismatch retries the whole reader/render once. This uses the same `CACHE_REVALIDATION_SECONDS` rollback setting and the existing shared byte budget.
 
 ### Cloudflare Workers Restrictions
 Even with `nodejs_compat` enabled, Workers have significant limitations:

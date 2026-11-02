@@ -6,13 +6,13 @@ import { withRetries } from './request.js';
 import { RefreshCache } from './refresh_cache.js';
 
 class PMTilesHandler {
-  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
+  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false, refreshMs } = {}) {
     this.tileSuffix = tileSuffix;
     this.type = type;
     this.datameetAttribution = datameetAttribution;
     this.revalidate = revalidate;
     this.config = new RefreshCache({
-      url, logger, revalidate,
+      url, logger, revalidate, refreshMs,
       load: async previous => {
         const source = previous?.source ?? new PMTiles(new PMTilesSource(url, { revalidate }), sharedPMTilesCache);
         // Metadata performs a range read, letting PMTiles detect replacements.

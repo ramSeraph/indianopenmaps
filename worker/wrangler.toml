@@ -13,8 +13,11 @@ routes = [
 ]
 
 [vars]
-# Set to "false" and push to restore the previous cache policy and manifest lifetime.
-TILE_CACHE_REVALIDATION = "true"
+# Source metadata/STAC index refresh interval. Set to "0" and push to roll back
+# periodic refresh, conditional tile responses and the viewer URL migration.
+CACHE_REVALIDATION_SECONDS = "3600"
+# Browser tile freshness is independent of source metadata refresh.
+TILE_CACHE_MAX_AGE_SECONDS = "300"
 
 # Use the Workers Paid CPU budget explicitly, including on migrated accounts.
 [limits]

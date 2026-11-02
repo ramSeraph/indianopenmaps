@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { COGSourceCache, COGChangedError } from '../src/lib/cog_source.js';
 import { RangeCache } from '../src/lib/range_cache.js';
-import { SOURCE_REFRESH_MS } from '../src/lib/refresh_cache.js';
+import { DEFAULT_SOURCE_REFRESH_MS as SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 
 const url = 'https://github.com/ramSeraph/fixtures/replace.tif';
 
@@ -69,7 +69,7 @@ test('same-length COG replacement changes cached ranges at the same upstream URL
   const { read, state, requests, expire } = setup(t);
   await read();
   state.version = 2;
-  assert.deepEqual(await read(), [Array(8).fill(1)], 'snapshot remains fresh for five minutes');
+  assert.deepEqual(await read(), [Array(8).fill(1)], 'snapshot remains fresh for one hour');
   expire();
   assert.deepEqual(await read(), [Array(8).fill(2)]);
   assert.equal(requests.at(-1).headers.get('If-Match'), '"v2"');

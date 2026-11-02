@@ -38,7 +38,7 @@ function edgeCache(t) {
 
 test('search columns and sparse item pages skip unrelated payloads and reuse completed ranges', async t => {
   const ranges = upstream(t);
-  const reader = new STACParquet(logger, new RangeCache());
+  const reader = new STACParquet(logger, { rangeCache: new RangeCache() });
   const lookup = await reader.read(url, { searchOnly: true });
   assert.equal(lookup.length, 192);
   assert.equal(lookup[0].payload, undefined);
@@ -59,12 +59,12 @@ test('search columns and sparse item pages skip unrelated payloads and reuse com
 test('a fresh reader reuses validated edge ranges without sharing pending I/O', async t => {
   const entries = edgeCache(t);
   const ranges = upstream(t);
-  const first = await new STACParquet(logger, new RangeCache()).read(url, { rowStart: 32, rowEnd: 35 });
+  const first = await new STACParquet(logger, { rangeCache: new RangeCache() }).read(url, { rowStart: 32, rowEnd: 35 });
   assert.deepEqual(first.map(row => row.id), ['sheet-032', 'sheet-033', 'sheet-034']);
   assert.ok(entries.size > 0);
   assert.ok([...entries.values()].every(response => response.status === 200));
   const count = ranges.length;
-  assert.deepEqual(await new STACParquet(logger, new RangeCache()).read(url, { rowStart: 32, rowEnd: 35 }), first);
+  assert.deepEqual(await new STACParquet(logger, { rangeCache: new RangeCache() }).read(url, { rowStart: 32, rowEnd: 35 }), first);
   assert.equal(ranges.length, count);
 });
 
@@ -81,7 +81,7 @@ for (const failure of ['ignored', 'wrong-range', 'truncated', 'oversized', 'corr
       return new Response(body, { status: 206, headers });
     });
     const cache = new RangeCache();
-    const reader = new STACParquet(logger, cache);
+    const reader = new STACParquet(logger, { rangeCache: cache });
     await assert.rejects(reader.read(url, { rowStart: 0, rowEnd: 1 }));
     assert.equal(cache.byteLength, 0);
     assert.equal(entries.size, 0);
@@ -94,13 +94,13 @@ for (const failure of ['ignored', 'wrong-range', 'truncated', 'oversized', 'corr
 test('unavailable edge cache leaves direct range reads usable', async t => {
   mockCaches(t, { open: async () => { throw new Error('cache unavailable'); } });
   upstream(t);
-  assert.equal((await new STACParquet(logger, new RangeCache()).read(url, { rowStart: 191, rowEnd: 192 }))[0].id, 'sheet-191');
+  assert.equal((await new STACParquet(logger, { rangeCache: new RangeCache() }).read(url, { rowStart: 191, rowEnd: 192 }))[0].id, 'sheet-191');
 });
 
 test('in-place revisions keep the upstream URL stable and isolate every cache', async t => {
   edgeCache(t);
   const ranges = upstream(t);
-  const reader = new STACParquet(logger, new RangeCache());
+  const reader = new STACParquet(logger, { rangeCache: new RangeCache() });
   const options = { rowStart: 0, rowEnd: 1, revision: 'old-hash' };
   const first = await reader.read(url, options);
   const count = ranges.length;
@@ -122,7 +122,7 @@ test('an asset changing between HEAD and a range cannot mix revisions', async t 
     } });
   });
   const cache = new RangeCache();
-  const reader = new STACParquet(logger, cache);
+  const reader = new STACParquet(logger, { rangeCache: cache });
   await assert.rejects(reader.read(url, { rowStart: 0, rowEnd: 1 }), /Index changed/);
   assert.equal(cache.byteLength, 0);
   assert.equal(entries.size, 0);

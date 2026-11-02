@@ -1,8 +1,8 @@
 import { CacheMissError } from './errors.js';
 import { parseRetryAfter } from './request.js';
 import { CacheFill } from './cache_fill.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
 
-export const SOURCE_REFRESH_MS = 5 * 60 * 1000;
 const RETRY_REFRESH_MS = 30_000;
 
 // Share only completed snapshots. Every request owns its refresh I/O; a late
@@ -11,11 +11,12 @@ export class RefreshCache {
   #snapshot;
   #fill = new CacheFill();
 
-  constructor({ load, logger, url, revalidate = true }) {
+  constructor({ load, logger, url, revalidate = true, refreshMs = DEFAULT_SOURCE_REFRESH_MS }) {
     this.load = load;
     this.logger = logger;
     this.url = url;
-    this.revalidate = revalidate;
+    this.revalidate = revalidate && refreshMs > 0;
+    this.refreshMs = refreshMs;
   }
 
   get(signal) {
@@ -33,7 +34,7 @@ export class RefreshCache {
       const value = await this.load(previous?.value, signal);
       signal?.throwIfAborted();
       if (this.#snapshot === previous) {
-        this.#snapshot = { value, expires: Date.now() + SOURCE_REFRESH_MS };
+        this.#snapshot = { value, expires: Date.now() + this.refreshMs };
       }
     } catch (error) {
       signal?.throwIfAborted();

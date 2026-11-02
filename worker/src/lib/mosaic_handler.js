@@ -8,13 +8,13 @@ import { fetchUpstream, withRetries } from './request.js';
 import { RefreshCache } from './refresh_cache.js';
 
 export default class MosaicHandler {
-  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false } = {}) {
+  constructor(url, type, tileSuffix, logger, datameetAttribution, { revalidate = false, refreshMs } = {}) {
     this.type = type;
     this.tileSuffix = tileSuffix;
     this.datameetAttribution = datameetAttribution;
     this.revalidate = revalidate;
     this.manifest = new RefreshCache({
-      url, logger, revalidate,
+      url, logger, revalidate, refreshMs,
       load: async (previous, signal) => {
         const headers = new Headers();
         if (previous?.etag) headers.set('If-None-Match', previous.etag);

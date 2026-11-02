@@ -8,6 +8,7 @@ import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 import { PhotonImage } from '@cf-wasm/photon';
 import { COGRangeCache } from '../src/lib/cog_range_cache.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 import { makeCOG, TILE } from './helpers/cog_fixture.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -35,7 +36,9 @@ before(async () => {
         const app = new Hono();
         app.use('*', async (c, next) => {
           Date.now = () => now() + Number(c.req.header('test-clock-offset') || 0);
-          if (c.req.header('test-disable-revalidation')) c.env = { TILE_CACHE_REVALIDATION: 'false' };
+          if (c.req.header('test-disable-revalidation')) c.env = { CACHE_REVALIDATION_SECONDS: '0' };
+          if (c.req.header('test-source-period')) c.env = { ...c.env, CACHE_REVALIDATION_SECONDS: c.req.header('test-source-period') };
+          if (c.req.header('test-tile-period')) c.env = { ...c.env, TILE_CACHE_MAX_AGE_SECONDS: c.req.header('test-tile-period') };
           await next();
         });
         registerCogRoutes(app, {error() {}, warn() {}});
@@ -54,7 +57,7 @@ before(async () => {
     compatibilityDate: '2024-11-01', compatibilityFlags: [
       'nodejs_compat', 'cache_option_enabled', 'cache_no_cache_enabled',
     ],
-    bindings: { TILE_CACHE_REVALIDATION: 'true' },
+    bindings: { CACHE_REVALIDATION_SECONDS: '3600' },
     modulesRoot: root,
     modules: [
       { type: 'ESModule', path: root + 'cog-test.mjs', contents: bundle.outputFiles[0].text },
@@ -226,14 +229,14 @@ test('overlapping zoom requests survive cancellation and reuse completed ranges'
   assert.equal(requests.length, 0, 'completed ranges are shared with later requests');
 });
 
-test('COG replacements refresh pixels and metadata at the same URL after five minutes', async () => {
+test('COG replacements refresh pixels and metadata at the same URL after one hour', async () => {
   const name = 'replace.tif';
   files.set(name, makeCOG());
   const original = await get(tilePath(), name);
   const oldEtag = original.headers.get('ETag');
   assert.deepEqual(at(await pixels(original), 128), [20, 60, 200, 255]);
   requests = [];
-  clockOffset += 300_001;
+  clockOffset += DEFAULT_SOURCE_REFRESH_MS + 1;
   await pixels(await get(tilePath(), name));
   assert.equal(requests.length, 1, '304 HEAD retains all completed ranges');
   assert.equal(requests[0].method, 'HEAD');
@@ -241,7 +244,7 @@ test('COG replacements refresh pixels and metadata at the same URL after five mi
 
   files.set(name, makeCOG({ mask: false, width: 384, height: 320, colors: [[60, 200, 20], [20, 200, 60]] }));
   requests = [];
-  clockOffset += 300_001;
+  clockOffset += DEFAULT_SOURCE_REFRESH_MS + 1;
   const changed = await get(tilePath(), name, { 'If-None-Match': oldEtag });
   assert.notEqual(changed.headers.get('ETag'), oldEtag);
   const data = await pixels(changed);
@@ -251,6 +254,23 @@ test('COG replacements refresh pixels and metadata at the same URL after five mi
   assert.deepEqual(info.size, { width: 384, height: 320 });
   assert.equal(info.imageCount, 2);
   assert.ok(requests.filter(request => request.range).every(request => request.ifMatch));
+});
+
+test('COG routes keep custom source refresh and browser freshness independent', async () => {
+  const name = 'custom-period.tif';
+  files.set(name, makeCOG());
+  const headers = { 'test-source-period': '10', 'test-tile-period': '900' };
+  const first = await get(tilePath(), name, headers);
+  assert.equal(first.status, 200);
+  assert.equal(first.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
+  await first.arrayBuffer();
+  requests = [];
+  await (await get('/cog-info', name, headers)).arrayBuffer();
+  assert.equal(requests.length, 0);
+  clockOffset += 10_001;
+  await (await get('/cog-info', name, headers)).arrayBuffer();
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].method, 'HEAD');
 });
 
 test('a replacement during rendering reopens TIFF directories, masks and imagery together', async () => {
@@ -282,7 +302,7 @@ test('disabling revalidation restores legacy COG caching without HEAD checks', a
   const data = await pixels(initial);
   assert.ok(requests.length > 0);
   assert.ok(requests.every(request => request.range && !request.ifMatch));
-  clockOffset += 300_001;
+  clockOffset += DEFAULT_SOURCE_REFRESH_MS + 1;
   files.set(name, makeCOG({ mask: false }));
   requests = [];
   assert.deepEqual(await pixels(await get(tilePath(), name, headers)), data);

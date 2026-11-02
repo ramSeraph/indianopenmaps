@@ -3,6 +3,7 @@ import { HttpError } from './errors.js';
 import { strongEtag, etagMismatch } from './http_etag.js';
 import { fetchWithRetry } from './request.js';
 import { RefreshCache } from './refresh_cache.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
 
 const MAX_SOURCES = 100;
 const MAX_RANGE_BYTES = 16 * 1024 * 1024;
@@ -90,10 +91,11 @@ export class COGSourceCache {
     this.logger = logger;
   }
 
-  #entry(url) {
+  #entry(url, refreshMs) {
     let entry = this.#sources.get(url);
-    if (entry) this.#sources.delete(url);
-    else entry = new RefreshCache({ url, logger: this.logger, load: async (previous, signal) => {
+    if (entry?.refreshMs !== refreshMs) entry = undefined;
+    this.#sources.delete(url);
+    if (!entry) entry = new RefreshCache({ url, refreshMs, logger: this.logger, load: async (previous, signal) => {
       const headers = new Headers();
       if (previous?.eTag) headers.set('If-None-Match', previous.eTag);
       let response = await fetchWithRetry(url, { method: 'HEAD', headers, signal, cache: 'no-cache' });
@@ -113,9 +115,9 @@ export class COGSourceCache {
     return entry;
   }
 
-  async read(url, operation, { signal } = {}) {
+  async read(url, operation, { signal, refreshMs = DEFAULT_SOURCE_REFRESH_MS } = {}) {
     for (let attempt = 0; ; attempt++) {
-      const entry = this.#entry(url);
+      const entry = this.#entry(url, refreshMs);
       const metadata = await entry.get(signal);
       // Internal identity only; preserve the complete upstream URL and query.
       const key = JSON.stringify([url, metadata.eTag, metadata.size]);

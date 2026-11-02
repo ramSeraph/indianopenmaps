@@ -6,6 +6,7 @@ import { registerStacRoutes } from '../src/routes/stac.js';
 import { bboxGeometry } from '../src/lib/stac_query.js';
 import { fetchStacPages } from '../static/js/stac_pagination.js';
 import { RangeCache } from '../src/lib/range_cache.js';
+import STACHandler from '../src/lib/stac_handler.js';
 
 const base = 'https://example.org/stac';
 const item = (id, bbox = [77, 28, 78, 29], datetime = '2025-01-01T00:00:00Z') => ({
@@ -36,6 +37,42 @@ function rangeResponse(bytes, init = {}) {
     'Content-Range': `bytes ${start}-${end}/${bytes.length}`, 'Content-Length': String(Number(end) + 1 - Number(start)),
   } });
 }
+
+for (const seconds of [10, 0]) test(`STAC routes apply source period ${seconds} to both decoded indexes and Parquet metadata`, async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 0 });
+  const bytes = await readFile(new URL('./fixtures/stac-ranges.parquet', import.meta.url));
+  const app = new Hono();
+  const configuredCatalog = structuredClone(catalog);
+  configuredCatalog.links[0].geoparquet = `https://example.org/period-${seconds}.parquet`;
+  await registerStacRoutes(app, { error() {} }, configuredCatalog);
+  let heads = 0;
+  const loads = t.mock.method(STACHandler.prototype, 'readGeoparquet', STACHandler.prototype.readGeoparquet);
+  t.mock.method(globalThis, 'fetch', async (_, init) => {
+    if (init.method === 'HEAD') heads++;
+    const response = rangeResponse(bytes, init);
+    response.headers.set('ETag', `"period-${seconds}-${heads}"`);
+    return response;
+  });
+  const get = async () => {
+    const response = await app.request(`${base}/search?collections=one&ids=sheet-000&limit=1`, {}, {
+      CACHE_REVALIDATION_SECONDS: String(seconds),
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).features[0].id, 'sheet-000');
+  };
+  const searchReads = () => loads.mock.calls.filter(call => call.arguments[1]?.searchOnly).length;
+  await get();
+  assert.equal(heads, 1);
+  assert.equal(searchReads(), 1);
+  t.mock.timers.tick(9999);
+  await get();
+  assert.equal(heads, 1);
+  assert.equal(searchReads(), 1);
+  t.mock.timers.tick(seconds ? 1 : 86_400_000);
+  await get();
+  assert.equal(heads, seconds ? 2 : 1);
+  assert.equal(searchReads(), seconds ? 2 : 1);
+});
 
 test('GET and standard POST pagination cross collection boundaries without duplicates', async () => {
   const { app } = await fixture();

@@ -2,6 +2,7 @@ import { parquetMetadataAsync, parquetRead, parquetSchema } from 'hyparquet';
 import { fetchWithRetry } from './request.js';
 import { sharedRangeCache } from './range_cache.js';
 import { etagMismatch, strongEtag } from './http_etag.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
 
 const SEARCH_COLUMNS = ['id', 'bbox', 'geometry', 'datetime', 'start_datetime', 'end_datetime', 'properties'];
 const MAX_INDEX_BYTES = 256 * 1024 * 1024;
@@ -25,16 +26,17 @@ async function readBytes(response, expected) {
 
 /** Request-scoped readers, with only completed metadata and ranges shared. */
 export class STACParquet {
-  constructor(logger, rangeCache = sharedRangeCache) {
+  constructor(logger, { rangeCache = sharedRangeCache, refreshMs = DEFAULT_SOURCE_REFRESH_MS } = {}) {
     this.logger = logger;
     this.rangeCache = rangeCache;
+    this.refreshMs = refreshMs;
     this.metadataCache = new Map();
   }
 
   async open(url, state) {
     const cacheUrl = state.cacheUrl;
     let cached = this.metadataCache.get(cacheUrl);
-    if (cached && Date.now() - cached.created >= 300_000) {
+    if (cached && this.refreshMs > 0 && Date.now() - cached.created >= this.refreshMs) {
       this.metadataCache.delete(cacheUrl); cached = undefined;
     }
     let byteLength = cached?.byteLength;

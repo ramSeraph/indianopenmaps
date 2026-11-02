@@ -5,7 +5,7 @@ import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 import MosaicHandler from '../src/lib/mosaic_handler.js';
 import PMTilesHandler from '../src/lib/pmtiles_handler.js';
-import { SOURCE_REFRESH_MS } from '../src/lib/refresh_cache.js';
+import { DEFAULT_SOURCE_REFRESH_MS as SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 import { CACHE_FILL_LEASE_MS } from '../src/lib/cache_fill.js';
 import { makeArchive, metadata, mosaic, respond, tile } from './helpers/pmtiles_fixture.mjs';
 
@@ -163,7 +163,7 @@ test('single PMTiles TileJSON refresh reads metadata and the replacement header 
   });
   assert.equal((await handler.getConfig()).name, metadata.name);
   version = 2;
-  assert.equal((await handler.getConfig()).name, metadata.name, 'metadata is fresh for five minutes');
+  assert.equal((await handler.getConfig()).name, metadata.name, 'metadata is fresh for one hour');
   t.mock.timers.tick(SOURCE_REFRESH_MS);
   const config = await handler.getConfig();
   assert.equal(config.name, 'New and longer metadata');

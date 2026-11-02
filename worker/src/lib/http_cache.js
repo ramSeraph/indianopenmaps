@@ -1,10 +1,11 @@
 import { ifNoneMatchMatches } from './http_etag.js';
+import { cachePolicy } from './cache_policy.js';
 
-export const TILE_CACHE_CONTROL = 'public, max-age=300, must-revalidate';
+export const TILE_CACHE_CONTROL = cachePolicy().tileCacheControl;
 export const METADATA_CACHE_CONTROL = 'no-cache';
 
 export function cacheRevalidationEnabled(env) {
-  return env?.TILE_CACHE_REVALIDATION === 'true';
+  return cachePolicy(env).revalidate;
 }
 
 // Hash the representation sent to the client, including any image conversion.

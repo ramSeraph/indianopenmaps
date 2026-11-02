@@ -2,14 +2,15 @@ import { PhotonImage } from '@cf-wasm/photon';
 import MosaicHandler from '../lib/mosaic_handler.js';
 import PMTilesHandler from '../lib/pmtiles_handler.js';
 import { UpstreamHttpError } from '../lib/errors.js';
-import { conditionalResponse, cacheRevalidationEnabled, TILE_CACHE_CONTROL, METADATA_CACHE_CONTROL } from '../lib/http_cache.js';
+import { conditionalResponse, METADATA_CACHE_CONTROL } from '../lib/http_cache.js';
+import { cachePolicy } from '../lib/cache_policy.js';
 
 import routes from './listing.json' with { type: 'json' };
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' };
 const errorHeaders = { ...corsHeaders, 'Cache-Control': 'no-store' };
 
-function createHandlers(logger, revalidate) {
+function createHandlers(logger, { revalidate, refreshMs }) {
   const handlerMap = {};
   Object.keys(routes).forEach((rPrefix) => {
     const rInfo = routes[rPrefix];
@@ -28,9 +29,9 @@ function createHandlers(logger, revalidate) {
     }
 
     if (rInfo['handlertype'] === 'mosaic') {
-      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate });
+      handlerMap[rPrefix] = new MosaicHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate, refreshMs });
     } else {
-      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate });
+      handlerMap[rPrefix] = new PMTilesHandler(rInfo['url'], type, tilesuffix, logger, datameetAttribution, { revalidate, refreshMs });
     }
   });
   return handlerMap;
@@ -73,7 +74,7 @@ async function getTile(handler, c) {
       photonImage.free(); // Free WASM memory
 
       return conditionalResponse(c.req.raw, pngBytes, {
-        contentType: 'image/png', cacheControl: TILE_CACHE_CONTROL, revalidate: handler.revalidate,
+        contentType: 'image/png', cacheControl: cachePolicy(c.env).tileCacheControl, revalidate: handler.revalidate,
       });
     } catch (err) {
       console.error('WebP to PNG conversion failed:', err);
@@ -82,7 +83,7 @@ async function getTile(handler, c) {
   }
 
   return conditionalResponse(c.req.raw, new Uint8Array(arr.data), {
-    contentType: mimeType, cacheControl: TILE_CACHE_CONTROL, revalidate: handler.revalidate,
+    contentType: mimeType, cacheControl: cachePolicy(c.env).tileCacheControl, revalidate: handler.revalidate,
   });
 }
 
@@ -134,9 +135,9 @@ function withTileErrorHandling(serve, sourceUrl, logger) {
 export function registerTileRoutes(app, getServerUrl, logger) {
   const handlerMaps = new Map();
   const getHandler = (c, prefix) => {
-    const enabled = cacheRevalidationEnabled(c.env);
-    if (!handlerMaps.has(enabled)) handlerMaps.set(enabled, createHandlers(logger, enabled));
-    return handlerMaps.get(enabled)[prefix];
+    const policy = cachePolicy(c.env);
+    if (!handlerMaps.has(policy.refreshMs)) handlerMaps.set(policy.refreshMs, createHandlers(logger, policy));
+    return handlerMaps.get(policy.refreshMs)[prefix];
   };
 
   // API route for listing all tile sources

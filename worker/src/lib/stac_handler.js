@@ -2,6 +2,7 @@ import { wkbToGeojson } from 'hyparquet/src/wkb.js';
 import { STACParquet } from './stac_parquet.js';
 import { ResourceUnavailableError } from './errors.js';
 import { bboxGeometry, normalizeQuery, predicate, queryUrl } from './stac_query.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
 
 export const CONFORMANCE = [
   'https://api.stacspec.org/v1.0.0/core',
@@ -42,16 +43,17 @@ export function rowToItem(row) {
 }
 
 class STACHandler {
-  constructor(catalog, logger) {
+  constructor(catalog, logger, { refreshMs = DEFAULT_SOURCE_REFRESH_MS } = {}) {
     this.catalog = catalog;
     this.logger = logger;
+    this.refreshMs = refreshMs;
     this.collections = new Map();
     this.itemsCache = new Map();
     this.indexRevisions = new Map();
-    this.parquet = new STACParquet(logger);
+    this.parquet = new STACParquet(logger, { refreshMs });
   }
 
-  async init() {
+  init() {
     for (const entry of this.catalog.links || []) if (entry.rel === 'child' && entry.geoparquet) {
       const id = entry.collection?.id || entry.href.replace(/^\.\//, '').replace(/\/$/, '');
       this.collections.set(id, { id, title: entry.title || id, geoparquetUrl: entry.geoparquet, metadata: entry.collection });
@@ -181,7 +183,7 @@ class STACHandler {
 
   async loadItemsFromGeoparquet(url) {
     const cached = this.itemsCache.get(url);
-    if (cached && Date.now() - cached.created < 300_000) {
+    if (cached && (this.refreshMs === 0 || Date.now() - cached.created < this.refreshMs)) {
       this.itemsCache.delete(url); this.itemsCache.set(url, cached);
       return cached.items;
     }

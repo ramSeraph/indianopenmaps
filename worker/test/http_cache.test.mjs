@@ -6,8 +6,8 @@ import { conditionalResponse, TILE_CACHE_CONTROL } from '../src/lib/http_cache.j
 import { ifNoneMatchMatches } from '../src/lib/http_etag.js';
 import { registerTileRoutes } from '../src/routes/tiles.js';
 import routes from '../src/routes/listing.json' with { type: 'json' };
-import { SOURCE_REFRESH_MS } from '../src/lib/refresh_cache.js';
-import { makeArchive, metadata, respond } from './helpers/pmtiles_fixture.mjs';
+import { DEFAULT_SOURCE_REFRESH_MS as SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
+import { makeArchive, metadata, mosaic, respond } from './helpers/pmtiles_fixture.mjs';
 import { fetchTileJSON, tileCacheUrl } from '../static/js/tile_cache.js';
 import { registerStaticRoutes } from '../src/routes/static.js';
 
@@ -45,10 +45,10 @@ test('conditional responses hash only the actual bytes and keep headers on 304/H
   assert.equal((await head.arrayBuffer()).byteLength, 0);
 });
 
-function app(enabled = true) {
+function app(enabled = true, env = {}) {
   const app = new Hono();
   app.use('*', async (c, next) => {
-    c.env = { TILE_CACHE_REVALIDATION: String(enabled) };
+    c.env = { CACHE_REVALIDATION_SECONDS: enabled ? '3600' : '0', ...env };
     await next();
   });
   registerTileRoutes(app, () => 'https://example.test', console);
@@ -79,7 +79,10 @@ test('PMTiles routes revalidate TileJSON and tile bytes after an archive replace
     assert.equal(repeat.headers.get('Access-Control-Allow-Origin'), '*');
   }
   version = 2;
-  t.mock.timers.tick(SOURCE_REFRESH_MS);
+  t.mock.timers.tick(300_001);
+  assert.equal((await (await server.request(prefix + 'tiles.json')).json()).name, metadata.name,
+    'the default metadata lifetime now exceeds five minutes');
+  t.mock.timers.tick(SOURCE_REFRESH_MS - 300_001);
   for (const [path, etag] of original) {
     const response = await server.request(prefix + path, { headers: { 'If-None-Match': etag } });
     assert.equal(response.status, 200);
@@ -91,6 +94,34 @@ test('PMTiles routes revalidate TileJSON and tile bytes after an archive replace
   assert.equal(missing.status, 404, 'a validator must not turn a missing tile into 304');
   assert.equal(missing.headers.get('ETag'), null);
   assert.equal(missing.headers.get('Cache-Control'), 'no-store');
+});
+
+for (const kind of ['pmtiles', 'mosaic']) test(`${kind}: custom source period and browser max-age are independent`, async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 0 });
+  const server = app(true, { CACHE_REVALIDATION_SECONDS: '10', TILE_CACHE_MAX_AGE_SECONDS: '900' });
+  const prefix = Object.entries(routes).find(([, r]) => r.handlertype === kind && r.type !== 'raster')[0];
+  let version = 1;
+  const fetch = t.mock.method(globalThis, 'fetch', async (url, options) => {
+    const name = `Version ${version}`;
+    const response = url.endsWith('.json') ? Response.json({ ...mosaic, metadata: { ...metadata, name } })
+      : respond(url, options, makeArchive({ jsonMetadata: { ...metadata, name } }));
+    response.headers.set('ETag', `"custom-${version}"`);
+    return response;
+  });
+  assert.equal((await (await server.request(prefix + 'tiles.json')).json()).name, 'Version 1');
+  const reads = fetch.mock.callCount();
+  version = 2;
+  t.mock.timers.tick(9999);
+  assert.equal((await (await server.request(prefix + 'tiles.json')).json()).name, 'Version 1');
+  assert.equal(fetch.mock.callCount(), reads);
+  t.mock.timers.tick(1);
+  assert.equal((await (await server.request(prefix + 'tiles.json')).json()).name, 'Version 2');
+  const response = await server.request(prefix + '0/0/0.pbf');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
+  const cached = await server.request(prefix + '0/0/0.pbf', { headers: { 'If-None-Match': response.headers.get('ETag') } });
+  assert.equal(cached.status, 304);
+  assert.equal(cached.headers.get('Cache-Control'), 'public, max-age=900, must-revalidate');
 });
 
 test('WebP and converted PNG responses have distinct validators', async t => {

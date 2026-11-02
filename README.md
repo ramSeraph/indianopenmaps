@@ -40,27 +40,46 @@ TileJSON and COG-info responses use `Cache-Control: no-cache`; tile responses us
 or renders the current response before comparing its ETag; it saves response
 bandwidth, not all upstream reads or rendering work. Errors use `no-store`.
 
-This behavior is enabled by `[vars] TILE_CACHE_REVALIDATION = "true"` in
-`worker/wrangler.toml`. To roll it back, set the value to `"false"` and push.
-The switch restores the previous long response lifetimes, disables conditional
-responses and periodic metadata refresh, and disables the viewer URL migration
-on the next page load. No preview mode or package release is needed.
+Configure the periods in `worker/wrangler.toml` and push:
 
-On the next request after five minutes, each Worker instance revalidates its
+```toml
+[vars]
+CACHE_REVALIDATION_SECONDS = "3600"
+TILE_CACHE_MAX_AGE_SECONDS = "300"
+```
+
+The first setting controls source metadata and STAC index refresh (one hour by
+default). The second controls browser tile freshness independently (five minutes
+by default); `0` requires browser revalidation on every reuse. Missing or invalid
+values use these defaults; durations must be non-negative whole seconds.
+
+Set `CACHE_REVALIDATION_SECONDS` to `"0"` to disable periodic source/STAC refresh
+and restore the previous tile/TileJSON/COG response policy: long response lifetimes,
+no conditional responses, and no viewer URL migration on the next page load.
+The old `TILE_CACHE_REVALIDATION` boolean is replaced by this duration setting.
+No preview mode or package release is needed.
+
+On the next request after the configured interval, each Worker instance revalidates its
 `mosaic.json` with `If-None-Match` (or downloads it again if no ETag was supplied).
 An unchanged manifest retains its resolver; a changed manifest is validated before
-replacing it. Single-archive PMTiles metadata also refreshes after five minutes,
+replacing it. Single-archive PMTiles metadata refreshes at the same interval,
 using the library's ETag mismatch recovery. Failed refreshes retain the last valid
 metadata and retry after 30 seconds or the upstream `Retry-After`, whichever is
 longer. These source and browser freshness windows are separate, so a manifest
-change can take up to roughly ten minutes to appear on subsequent tile requests.
+change can take up to roughly 65 minutes with the defaults to appear on subsequent
+tile requests, provided upstream revalidation succeeds. These are maximum freshness
+windows, not guaranteed cache retention: a new isolate or eviction requires a new read.
 
-COG sources also revalidate after five minutes, using conditional HEAD requests.
+COG sources use the same refresh interval, with conditional HEAD requests.
 Cached byte ranges are keyed by the source's strong ETag and size; network range
 reads use `If-Match`. If the source changes during rendering, the Worker reopens
 the entire reader and retries once, keeping TIFF metadata, masks and image blocks
 from the same version. Sources without a strong ETag skip the shared byte cache.
 The same rollback switch disables COG source revalidation too.
+
+STAC's decoded search indexes and Parquet metadata use the source refresh interval
+as well. Their memory budgets and the ETag/revision-keyed byte-range cache remain
+independent of this interval.
 
 Our viewers append a fixed `iomaps-cache=2` query parameter to metadata and tile
 requests to bypass responses previously cached for 1,000 days. This is a one-time
