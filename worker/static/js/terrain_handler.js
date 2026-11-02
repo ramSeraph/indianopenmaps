@@ -69,9 +69,9 @@ export class TerrainHandler {
     return {
       'type': 'raster-dem',
       'tiles': [this.getTerrainTileUrl()],
-      'tileSize': 256,
+      'tileSize': 512,
       'maxzoom': 12,
-      'minzoom': 5,
+      'minzoom': 0,
       'attribution': 'Terrain: <a href="https://bhuvan-app3.nrsc.gov.in/data/download/index.php" target="_blank">CartoDEM 30m v3r1</a>'
     };
   }
