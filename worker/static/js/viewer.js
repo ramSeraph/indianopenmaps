@@ -164,7 +164,7 @@ function setupMap() {
   // Add sidebar to map
   map.addControl(sidebar, 'top-left');
 
-  let popupHandler = new PopupHandler({ map, layers: vectorSourceHandler.layers, routesHandler, vectorSourceHandler });
+  let popupHandler = new PopupHandler({ map, layers: vectorSourceHandler.layers, routesHandler, vectorSourceHandler, terrainHandler });
   let hoverToggleControl = new HoverPopupToggleControl(popupHandler);
 
   map.addControl(terrainHandler.getControl(), 'top-right');
@@ -192,8 +192,11 @@ function setupMap() {
   
   map.on('terrain', (e) => {
     terrainHandler.terrainChangeCallback(map);
+    popupHandler.refreshClickPopup();
   });
 
+  // Update a clicked elevation after DEM tiles load or the view changes.
+  map.on('idle', () => popupHandler.refreshClickPopup());
   map.on('mousemove', (e) => popupHandler.handleMouseMove(e));
   map.on('click', (e) => popupHandler.handleClick(e));
 

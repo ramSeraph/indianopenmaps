@@ -51,16 +51,23 @@ function renderCoordinates(lngLat) {
   return `<div class="maplibregl-ctrl-inspect_layer">Coords: ${(lngLat.lng).toFixed(5)},${(lngLat.lat).toFixed(5)}</div>`;
 }
 
-function renderPopup(features, lngLat, getLayerColor) {
-  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + renderFeatures(features, getLayerColor) + '</div>';
+function renderPopup(features, lngLat, getLayerColor, elevation) {
+  let altitude = '';
+  if (elevation !== undefined) {
+    const label = Number.isFinite(elevation) ? `Altitude: ≈ ${(Math.round(elevation) || 0).toLocaleString()} m`
+      : 'Altitude unavailable';
+    altitude = `<div class="maplibregl-ctrl-inspect_elevation" role="status">${label}</div>`;
+  }
+  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + altitude + renderFeatures(features, getLayerColor) + '</div>';
 }
 
 export class PopupHandler {
-  constructor({ map, layers, routesHandler, vectorSourceHandler }) {
+  constructor({ map, layers, routesHandler, vectorSourceHandler, terrainHandler }) {
     this.map = map;
     this.layers = layers;
     this.routesHandler = routesHandler;
     this.vectorSourceHandler = vectorSourceHandler;
+    this.terrainHandler = terrainHandler;
     
     // Click popup - persistent
     this.clickPopup = new maplibregl.Popup({
@@ -77,10 +84,16 @@ export class PopupHandler {
     this.highlightedFeatures = [];
     this.hoverEnabled = true;
     this.clickPopupOpen = false;
+    this.clickedLocation = null;
+    this.clickedFeatures = [];
+    this.clickPopupHTML = null;
     
     // Track when click popup is closed
     this.clickPopup.on('close', () => {
       this.clickPopupOpen = false;
+      this.clickedLocation = null;
+      this.clickedFeatures = [];
+      this.clickPopupHTML = null;
     });
   }
 
@@ -177,19 +190,27 @@ export class PopupHandler {
   }
 
   handleClick(e) {
-    var features = this.queryFeatures(e);
+    this.clickedFeatures = this.queryFeatures(e);
+    this.clickedLocation = e.lngLat;
+    this.hoverPopup.remove();
+    this.refreshClickPopup();
+  }
 
-    if (!features.length) {
+  refreshClickPopup() {
+    if (!this.clickedLocation) return;
+    const elevation = this.terrainHandler.getElevation(this.map, this.clickedLocation);
+    if (!this.clickedFeatures.length && elevation === undefined) {
       this.clickPopup.remove();
-      this.clickPopupOpen = false;
-    } else {
-      // Remove hover popup and show click popup
-      this.hoverPopup.remove();
-      this.clickPopup.setLngLat(e.lngLat)
-        .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
-        .addTo(this.map);
-      this.clickPopupOpen = true;
+      this.clickedLocation = null;
+      return;
     }
+    const html = renderPopup(this.clickedFeatures, this.clickedLocation, (ft) => this.getLayerColor(ft), elevation);
+    if (html !== this.clickPopupHTML) {
+      this.clickPopup.setLngLat(this.clickedLocation).setHTML(html);
+      this.clickPopupHTML = html;
+    }
+    if (!this.clickPopup.isOpen()) this.clickPopup.addTo(this.map);
+    this.clickPopupOpen = true;
   }
 }
 

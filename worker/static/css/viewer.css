@@ -54,6 +54,12 @@ body { margin:0; padding:0; }
   border-bottom: 1px solid #444;
 }
 
+.maplibregl-ctrl-inspect_elevation {
+  margin: 6px 0;
+  font-size: 13px;
+  font-weight: bold;
+}
+
 .maplibregl-ctrl-inspect_layer:before {
   content: '#';
 }

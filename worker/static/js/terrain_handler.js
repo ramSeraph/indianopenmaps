@@ -35,6 +35,17 @@ export class TerrainHandler {
     this.searchParams.updateTerrain(!!terrain);
   }
 
+  getElevation(map, lngLat) {
+    const terrain = map.getTerrain();
+    if (!terrain) return undefined;
+    const exaggeration = terrain.exaggeration ?? 1;
+    // queryTerrainElevation returns 0 both at sea level and when DEM data is
+    // missing. MapLibre's DEM state distinguishes these without another fetch.
+    const { elevation, demState } = map.terrain.getElevationAndDEMStateForLngLat(lngLat, Math.floor(map.getZoom()));
+    return demState === 'loaded' && Number.isFinite(elevation) && exaggeration > 0
+      ? elevation / exaggeration : null;
+  }
+
   getTerrainTileUrl() {
     const currUrl = window.location.href;
     const terrainTileUrl = decodeURI(new URL('/dem/terrain-rgb/cartodem-v3r1/bhuvan/{z}/{x}/{y}.webp', currUrl).href);

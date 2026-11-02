@@ -94,7 +94,7 @@ updates; reload the page or map source to request them again.
 - EPSG:3857 COG items expose standard Web Map Links `xyz` links for generic viewers. See [compatibility checks](worker/test/STAC_COMPATIBILITY.md).
 
 **Web viewers (in `worker/static/`):**
-- Vector tile viewer using [MapLibre GL JS](https://maplibre.org/) — layer selection, feature inspection, styling, 3D terrain, geocoding, and partial data download from remote parquet sources in multiple formats using [geoparquet-extractor](https://github.com/ramSeraph/geoparquet-extractor)
+- Vector tile viewer using [MapLibre GL JS](https://maplibre.org/) — layer selection, feature inspection, styling, 3D terrain with altitude shown on click, geocoding, and partial data download from remote parquet sources in multiple formats using [geoparquet-extractor](https://github.com/ramSeraph/geoparquet-extractor)
 - Raster tile viewer for raster/COG data
 - STAC viewer using [Leaflet](https://leafletjs.com/) for browsing STAC collections
 - COG viewer for on-demand COG visualization
