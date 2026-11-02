@@ -15,7 +15,7 @@ export function registerCogRoutes(app, logger) {
     }
 
     try {
-      const info = await cogHandler.getInfo(url);
+      const info = await cogHandler.getInfo(url, { revalidate: cacheRevalidationEnabled(c.env), signal: c.req.raw.signal });
       
       return conditionalResponse(c.req.raw, JSON.stringify(info), {
         contentType: 'application/json; charset=utf-8', cacheControl: METADATA_CACHE_CONTROL,
@@ -44,7 +44,8 @@ export function registerCogRoutes(app, logger) {
       
       const outputFormat = (format === 'webp') ? 'webp' : 'png';
 
-      const result = await cogHandler.getTile(url, zNum, xNum, yNum, outputFormat);
+      const result = await cogHandler.getTile(url, zNum, xNum, yNum, outputFormat,
+        { revalidate: cacheRevalidationEnabled(c.env), signal: c.req.raw.signal });
       
       if (!result) {
         return c.body('', 404, errorHeaders);

@@ -3,6 +3,7 @@ import { after, before, test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
+import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 import { PhotonImage } from '@cf-wasm/photon';
@@ -22,13 +23,22 @@ let worker;
 let requests = [];
 let failNext = false;
 let rateLimitNext = false;
+let replaceOnRange;
+let clockOffset = 0;
 
 before(async () => {
   const bundle = await build({
     stdin: {
       contents: `import { Hono } from 'hono';
         import { registerCogRoutes } from './src/routes/cog.js';
-        const app = new Hono(); registerCogRoutes(app, {error() {}});
+        const now = Date.now;
+        const app = new Hono();
+        app.use('*', async (c, next) => {
+          Date.now = () => now() + Number(c.req.header('test-clock-offset') || 0);
+          if (c.req.header('test-disable-revalidation')) c.env = { TILE_CACHE_REVALIDATION: 'false' };
+          await next();
+        });
+        registerCogRoutes(app, {error() {}, warn() {}});
         export default app;`,
       resolveDir: root,
     },
@@ -41,7 +51,9 @@ before(async () => {
     } }],
   });
   worker = new Miniflare({
-    compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat', 'no_handle_cross_request_promise_resolution'],
+    compatibilityDate: '2024-11-01', compatibilityFlags: [
+      'nodejs_compat', 'no_handle_cross_request_promise_resolution', 'cache_option_enabled', 'cache_no_cache_enabled',
+    ],
     bindings: { TILE_CACHE_REVALIDATION: 'true' },
     modulesRoot: root,
     modules: [
@@ -50,27 +62,41 @@ before(async () => {
     ],
     outboundService: async request => {
       const name = new URL(request.url).pathname.split('/').at(-1);
+      if (replaceOnRange?.name === name && request.headers.has('range')) {
+        files.set(name, replaceOnRange.bytes);
+        replaceOnRange = undefined;
+      }
       const bytes = files.get(name);
-      requests.push({ name, range: request.headers.get('range') });
+      requests.push({ name, method: request.method, range: request.headers.get('range'),
+        ifMatch: request.headers.get('If-Match'), ifNoneMatch: request.headers.get('If-None-Match') });
       if (failNext) { failNext = false; return new Response('', { status: 502 }); }
-      if (rateLimitNext) {
+      if (rateLimitNext && request.headers.has('range')) {
         rateLimitNext = false;
         return new Response('', { status: 429, headers: { 'Retry-After': '1' } });
       }
       if (!bytes) return new Response('', { status: 404 });
+      const etag = '"' + createHash('sha256').update(bytes).digest('hex') + '"';
+      if (request.method === 'HEAD') {
+        if (request.headers.get('If-None-Match') === etag) return new Response(null, { status: 304, headers: { ETag: etag } });
+        return new Response(null, { headers: { 'Content-Length': String(bytes.length), ETag: etag } });
+      }
+      if (request.headers.has('If-Match') && request.headers.get('If-Match') !== etag) return new Response(null, { status: 412 });
       const match = /^bytes=(\d+)-(\d+)$/.exec(request.headers.get('range'));
       assert.ok(match, 'COGs must be read with Range requests');
       const start = Number(match[1]), end = Math.min(Number(match[2]), bytes.length - 1);
       if (name === 'zoom.tif') await delay(40);
       return new Response(bytes.subarray(start, end + 1), { status: 206, headers: {
-        'Content-Range': `bytes ${start}-${end}/${bytes.length}`, 'Content-Length': String(end - start + 1),
+        'Content-Range': `bytes ${start}-${end}/${bytes.length}`, 'Content-Length': String(end - start + 1), ETag: etag,
       } });
     },
   });
 });
 after(async () => { await worker?.dispose(); });
 
-function get(path, name) { return worker.dispatchFetch(`http://localhost${path}${path.includes('?') ? '&' : '?'}url=${encodeURIComponent(prefix + name)}`); }
+function get(path, name, headers = {}) {
+  return worker.dispatchFetch(`http://localhost${path}${path.includes('?') ? '&' : '?'}url=${encodeURIComponent(prefix + name)}`,
+    { headers: { 'test-clock-offset': String(clockOffset), ...headers } });
+}
 function tilePath(z = TILE.z, x = TILE.x, y = TILE.y, format = 'png') { return `/cog-tiles/${z}/${x}/${y}?format=${format}`; }
 async function pixels(response) {
   if (response.status !== 200) assert.fail(`HTTP ${response.status}: ${(await response.text()).slice(0, 200)}`);
@@ -160,7 +186,8 @@ test('COG range reads recover from a rate limit through the shared request helpe
   const response = await get('/cog-info', 'rate-limit.tif');
   assert.equal(response.status, 200);
   assert.equal((await response.json()).size.width, 512);
-  assert.deepEqual(requests[0], requests[1], 'retry the same byte range');
+  const ranges = requests.filter(request => request.range);
+  assert.deepEqual(ranges[0], ranges[1], 'retry the same byte range');
 });
 
 test('overlapping zoom requests survive cancellation and reuse completed ranges', { timeout: 15000 }, async () => {
@@ -197,6 +224,69 @@ test('overlapping zoom requests survive cancellation and reuse completed ranges'
   requests = [];
   await pixels(await get(tilePath(TILE.z + 1, TILE.x * 2, TILE.y * 2), 'zoom.tif'));
   assert.equal(requests.length, 0, 'completed ranges are shared with later requests');
+});
+
+test('COG replacements refresh pixels and metadata at the same URL after five minutes', async () => {
+  const name = 'replace.tif';
+  files.set(name, makeCOG());
+  const original = await get(tilePath(), name);
+  const oldEtag = original.headers.get('ETag');
+  assert.deepEqual(at(await pixels(original), 128), [20, 60, 200, 255]);
+  requests = [];
+  clockOffset += 300_001;
+  await pixels(await get(tilePath(), name));
+  assert.equal(requests.length, 1, '304 HEAD retains all completed ranges');
+  assert.equal(requests[0].method, 'HEAD');
+  assert.ok(requests[0].ifNoneMatch);
+
+  files.set(name, makeCOG({ mask: false, width: 384, height: 320, colors: [[60, 200, 20], [20, 200, 60]] }));
+  requests = [];
+  clockOffset += 300_001;
+  const changed = await get(tilePath(), name, { 'If-None-Match': oldEtag });
+  assert.notEqual(changed.headers.get('ETag'), oldEtag);
+  const data = await pixels(changed);
+  assert.deepEqual(at(data, 20, 100), [20, 200, 60, 255], 'new mask and imagery are used');
+  assert.equal(at(data, 220, 100)[3], 0, 'new dimensions are used');
+  const info = await (await get('/cog-info', name)).json();
+  assert.deepEqual(info.size, { width: 384, height: 320 });
+  assert.equal(info.imageCount, 2);
+  assert.ok(requests.filter(request => request.range).every(request => request.ifMatch));
+});
+
+test('a replacement during rendering reopens TIFF directories, masks and imagery together', async () => {
+  const name = 'mid-render.tif';
+  files.set(name, makeCOG({ blockAlignment: 32 * 1024 }));
+  const info = await (await get('/cog-info', name)).json();
+  assert.equal(info.imageCount, 4);
+  replaceOnRange = { name, bytes: makeCOG({ mask: false, blockAlignment: 32 * 1024,
+    colors: [[60, 200, 20], [20, 200, 60]],
+  }) };
+  requests = [];
+  const data = await pixels(await get(tilePath(), name));
+  assert.deepEqual(at(data, 20), [20, 200, 60, 255]);
+  assert.equal(requests.filter(request => request.method === 'HEAD').length, 1, 'mismatch triggers a fresh HEAD');
+  assert.equal((await (await get('/cog-info', name)).json()).imageCount, 2);
+  requests = [];
+  await pixels(await get(tilePath(), name));
+  assert.equal(requests.length, 0, 'retried ranges are reusable');
+});
+
+test('disabling revalidation restores legacy COG caching without HEAD checks', async () => {
+  const name = 'rollback.tif';
+  const headers = { 'test-disable-revalidation': 'true' };
+  files.set(name, makeCOG());
+  requests = [];
+  const initial = await get(tilePath(), name, headers);
+  assert.equal(initial.headers.get('Cache-Control'), 'max-age=86400000');
+  assert.equal(initial.headers.get('ETag'), null);
+  const data = await pixels(initial);
+  assert.ok(requests.length > 0);
+  assert.ok(requests.every(request => request.range && !request.ifMatch));
+  clockOffset += 300_001;
+  files.set(name, makeCOG({ mask: false }));
+  requests = [];
+  assert.deepEqual(await pixels(await get(tilePath(), name, headers)), data);
+  assert.equal(requests.length, 0, 'legacy cache does not refresh');
 });
 
 test('range cache respects its byte cap and retries failures', async () => {

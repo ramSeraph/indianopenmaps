@@ -5,7 +5,9 @@ import { PhotonImage } from '@cf-wasm/photon';
 // a blue overview, and optional 1-bit masks. Distinct colors detect accidental
 // selection of the primary image or a mask IFD at overview zooms.
 export const TILE = { z: 10, x: 710, y: 446 };
-export function makeCOG({ mask = true, jpeg = false, epsg = 3857, width = 512, height = 512, blockAlignment = 8 } = {}) {
+export function makeCOG({ mask = true, jpeg = false, epsg = 3857, width = 512, height = 512, blockAlignment = 8,
+  colors = [[200, 60, 20], [20, 60, 200]],
+} = {}) {
   const block = 256;
   const span = 2 * Math.PI * 6378137 / 2 ** TILE.z;
   const resolution = span / 512;
@@ -14,7 +16,7 @@ export function makeCOG({ mask = true, jpeg = false, epsg = 3857, width = 512, h
   const levels = [];
   for (const factor of [1, 2]) {
     const w = Math.ceil(width / factor), h = Math.ceil(height / factor);
-    const color = factor === 1 ? [200, 60, 20] : [20, 60, 200];
+    const color = colors[factor === 1 ? 0 : 1];
     for (const isMask of mask ? [false, true] : [false]) {
       const data = [];
       for (let y = 0; y < Math.ceil(h / block); y++) {

@@ -84,12 +84,12 @@ export class COGReader {
     }));
   }
 
-  static async open(url, cache) {
+  static async open(url, cache, { httpSource, cacheUrl, shared = true } = {}) {
     // Each request owns its reader, pending reads, and concurrency queue. Only
     // completed header/image bytes are shared, so cancelled tiles cannot leave
     // another request waiting for I/O owned by a finished Worker invocation.
-    const source = new SourceView(new SourceHttp(url, {}), [
-      new SourceChunk({ size: 32 * 1024 }), cache.forRequest(),
+    const source = new SourceView(httpSource ?? new SourceHttp(url, {}), [
+      new SourceChunk({ size: 32 * 1024 }), cache.forRequest({ cacheUrl, shared }),
     ]);
     const geotiff = await GeoTIFF.open({
       headerSource: source,

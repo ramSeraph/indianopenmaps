@@ -360,6 +360,7 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 - Use console logger for logging (`console.log`, `console.error`)
 - Lazy initialization pattern: `initIfNeeded()` for handlers
 - Share only completed cache values across requests (100 entries for PMTiles headers/directories), never pending I/O. `refresh_cache.js` handles five-minute metadata snapshots and failure backoff; mosaic manifests use conditional GET and validate before replacing the resolver.
+- `cog_source.js` revalidates COGs with conditional HEAD and pins range reads with `If-Match`. Strong ETag and size identify cached ranges; weak/missing validators disable shared range reuse. A mismatch retries the whole reader/render once. This uses the same `TILE_CACHE_REVALIDATION` rollback switch and the existing shared byte budget.
 
 ### Cloudflare Workers Restrictions
 Even with `nodejs_compat` enabled, Workers have significant limitations:

@@ -21,18 +21,18 @@ export class RangeCache {
     }
   }
 
-  forRequest() {
+  forRequest({ cacheUrl, shared = true } = {}) {
     const pending = new Map();
     const limiter = new PerOriginSemaphore({ maxRequests: 4 });
     return {
       name: this.name,
       fetch: (request, next) => {
         const { length, offset, source } = request;
-        const key = `${source.url.href}@${offset}+${length}`;
-        const hit = this.#get(key);
+        const key = `${cacheUrl ?? source.url.href}@${offset}+${length}`;
+        const hit = shared && this.#get(key);
         if (hit) return Promise.resolve(hit);
         if (pending.has(key)) return pending.get(key);
-        const promise = this.#read(key, request, next, limiter).finally(() => pending.delete(key));
+        const promise = this.#read(key, request, next, limiter, shared).finally(() => pending.delete(key));
         pending.set(key, promise);
         return promise;
       },
@@ -64,15 +64,15 @@ export class RangeCache {
     this.#size += bytes.byteLength;
   }
 
-  async #read(key, request, next, limiter) {
+  async #read(key, request, next, limiter, shared) {
     const generation = this.#generation;
     const release = await limiter.acquire(request.source.url, request.signal);
     try {
       // Another request may have completed this range while we were queued.
-      const hit = this.#get(key);
+      const hit = shared && this.#get(key);
       if (hit) return hit;
       const bytes = await next(request);
-      if (request.length != null && generation === this.#generation) this.#set(key, bytes);
+      if (shared && request.length != null && generation === this.#generation) this.#set(key, bytes);
       return bytes;
     }
     finally { release(); }

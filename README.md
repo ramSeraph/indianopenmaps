@@ -54,8 +54,13 @@ using the library's ETag mismatch recovery. Failed refreshes retain the last val
 metadata and retry after 30 seconds or the upstream `Retry-After`, whichever is
 longer. These source and browser freshness windows are separate, so a manifest
 change can take up to roughly ten minutes to appear on subsequent tile requests.
-COG responses follow the same browser policy; their existing byte-range cache
-does not yet revalidate replaced source COGs by ETag.
+
+COG sources also revalidate after five minutes, using conditional HEAD requests.
+Cached byte ranges are keyed by the source's strong ETag and size; network range
+reads use `If-Match`. If the source changes during rendering, the Worker reopens
+the entire reader and retries once, keeping TIFF metadata, masks and image blocks
+from the same version. Sources without a strong ETag skip the shared byte cache.
+The same rollback switch disables COG source revalidation too.
 
 Our viewers append a fixed `iomaps-cache=2` query parameter to metadata and tile
 requests to bypass responses previously cached for 1,000 days. This is a one-time
