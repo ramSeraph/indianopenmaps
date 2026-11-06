@@ -6,24 +6,26 @@ IndiaBoundaryCorrector.extendLeaflet(L);
 const map = L.map('map').setView([20, 78], 5);
 
 // Add OSM base layer with India boundary correction
-const osmLayer = L.tileLayer.indiaBoundaryCorrected('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const osmLayer = L.tileLayer
+  .indiaBoundaryCorrected('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
-}).addTo(map);
+  })
+  .addTo(map);
 
 let cogLayer = null;
 let currentCogUrl = null;
 
 // Custom tile layer for COG
 const COGTileLayer = L.TileLayer.extend({
-    getTileUrl: function(coords) {
-        const url = this.options.cogUrl;
-        const z = coords.z;
-        const x = coords.x;
-        const y = coords.y;
-        const tileUrl = `/cog-tiles/${z}/${x}/${y}?url=${encodeURIComponent(url)}`;
-        return tileCacheUrl(tileUrl);
-    }
+  getTileUrl: function (coords) {
+    const url = this.options.cogUrl;
+    const z = coords.z;
+    const x = coords.x;
+    const y = coords.y;
+    const tileUrl = `/cog-tiles/${z}/${x}/${y}?url=${encodeURIComponent(url)}`;
+    return tileCacheUrl(tileUrl);
+  }
 });
 
 // UI Elements
@@ -35,12 +37,12 @@ let statusTimeout = null;
 
 // Create opacity control
 const OpacityControl = L.Control.extend({
-    options: {
-        position: 'topright'
-    },
-    onAdd: function(map) {
-        const container = L.DomUtil.create('div', 'leaflet-control-opacity leaflet-bar');
-        container.innerHTML = `
+  options: {
+    position: 'topright'
+  },
+  onAdd: function (map) {
+    const container = L.DomUtil.create('div', 'leaflet-control-opacity leaflet-bar');
+    container.innerHTML = `
             <div class="opacity-slider-container">
                 <label>Opacity</label>
                 <div class="opacity-slider-row">
@@ -50,172 +52,174 @@ const OpacityControl = L.Control.extend({
             </div>
         `;
 
-        L.DomEvent.disableClickPropagation(container);
-        L.DomEvent.disableScrollPropagation(container);
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
 
-        return container;
-    }
+    return container;
+  }
 });
 
 map.addControl(new OpacityControl());
 
 // GitHub link control
 const GithubControl = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd() {
-        const container = L.DomUtil.create('div', 'leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = 'https://github.com/ramSeraph/indianopenmaps';
-        link.target = '_blank';
-        link.title = 'GitHub';
-        link.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;';
-        link.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="#333"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
-        L.DomEvent.disableClickPropagation(container);
-        return container;
-    }
+  options: { position: 'topleft' },
+  onAdd() {
+    const container = L.DomUtil.create('div', 'leaflet-bar');
+    const link = L.DomUtil.create('a', '', container);
+    link.href = 'https://github.com/ramSeraph/indianopenmaps';
+    link.target = '_blank';
+    link.title = 'GitHub';
+    link.style.cssText = 'display:flex;align-items:center;justify-content:center;width:30px;height:30px;';
+    link.innerHTML =
+      '<svg width="16" height="16" viewBox="0 0 16 16" fill="#333"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
+    L.DomEvent.disableClickPropagation(container);
+    return container;
+  }
 });
 map.addControl(new GithubControl());
 
 // Load COG
 async function loadCOG() {
-    const url = cogUrlInput.value.trim();
-    if (!url) {
-        showError('Please enter a COG URL');
-        return;
+  const url = cogUrlInput.value.trim();
+  if (!url) {
+    showError('Please enter a COG URL');
+    return;
+  }
+
+  showInfo('Loading COG...');
+  loadBtn.disabled = true;
+
+  try {
+    // Remove existing COG layer
+    if (cogLayer) {
+      map.removeLayer(cogLayer);
+      cogLayer = null;
     }
 
-    showInfo('Loading COG...');
-    loadBtn.disabled = true;
+    // Fetch COG info first
+    const infoUrl = `/cog-info?url=${encodeURIComponent(url)}`;
+    const infoResponse = await fetchTileMetadata(infoUrl);
 
-    try {
-        // Remove existing COG layer
-        if (cogLayer) {
-            map.removeLayer(cogLayer);
-            cogLayer = null;
-        }
-
-        // Fetch COG info first
-        const infoUrl = `/cog-info?url=${encodeURIComponent(url)}`;
-        const infoResponse = await fetchTileMetadata(infoUrl);
-
-        if (!infoResponse.ok) {
-            const error = await infoResponse.json();
-            throw new Error(error.error || `Failed to load COG info: ${infoResponse.statusText}`);
-        }
-
-        const cogInfo = await infoResponse.json();
-
-        // Create new COG layer
-        const opacitySlider = document.getElementById('opacity');
-        cogLayer = new COGTileLayer('', {
-            cogUrl: url,
-            opacity: opacitySlider.value / 100,
-            maxZoom: 19,
-            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-        }).addTo(map);
-
-        currentCogUrl = url;
-
-        // Update URL in address bar
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('url', url);
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        window.history.pushState({ cogUrl: url }, '', newUrl);
-
-        // Fit map to COG bounds
-        const bounds = [
-            [cogInfo.bounds.south, cogInfo.bounds.west],
-            [cogInfo.bounds.north, cogInfo.bounds.east]
-        ];
-        map.fitBounds(bounds);
-
-        showInfo(`COG loaded successfully. Bounds: [${cogInfo.bounds.west.toFixed(4)}, ${cogInfo.bounds.south.toFixed(4)}, ${cogInfo.bounds.east.toFixed(4)}, ${cogInfo.bounds.north.toFixed(4)}]`);
-
-        cogLayer.on('tileerror', (e) => {
-            console.error('Tile error:', e);
-        });
-
-    } catch (err) {
-        showError(`Error loading COG: ${err.message}`);
-        console.error(err);
-    } finally {
-        loadBtn.disabled = false;
+    if (!infoResponse.ok) {
+      const error = await infoResponse.json();
+      throw new Error(error.error || `Failed to load COG info: ${infoResponse.statusText}`);
     }
+
+    const cogInfo = await infoResponse.json();
+
+    // Create new COG layer
+    const opacitySlider = document.getElementById('opacity');
+    cogLayer = new COGTileLayer('', {
+      cogUrl: url,
+      opacity: opacitySlider.value / 100,
+      maxZoom: 19,
+      errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+    }).addTo(map);
+
+    currentCogUrl = url;
+
+    // Update URL in address bar
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('url', url);
+    const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+    window.history.pushState({ cogUrl: url }, '', newUrl);
+
+    // Fit map to COG bounds
+    const bounds = [
+      [cogInfo.bounds.south, cogInfo.bounds.west],
+      [cogInfo.bounds.north, cogInfo.bounds.east]
+    ];
+    map.fitBounds(bounds);
+
+    showInfo(
+      `COG loaded successfully. Bounds: [${cogInfo.bounds.west.toFixed(4)}, ${cogInfo.bounds.south.toFixed(4)}, ${cogInfo.bounds.east.toFixed(4)}, ${cogInfo.bounds.north.toFixed(4)}]`
+    );
+
+    cogLayer.on('tileerror', e => {
+      console.error('Tile error:', e);
+    });
+  } catch (err) {
+    showError(`Error loading COG: ${err.message}`);
+    console.error(err);
+  } finally {
+    loadBtn.disabled = false;
+  }
 }
 
 // Opacity control - need to wait for DOM to be ready
 setTimeout(() => {
-    const opacitySlider = document.getElementById('opacity');
-    const opacityValue = document.getElementById('opacityValue');
+  const opacitySlider = document.getElementById('opacity');
+  const opacityValue = document.getElementById('opacityValue');
 
-    if (opacitySlider && opacityValue) {
-        opacitySlider.addEventListener('input', (e) => {
-            const value = e.target.value;
-            opacityValue.textContent = value;
-            if (cogLayer) {
-                cogLayer.setOpacity(value / 100);
-            }
-        });
-    }
+  if (opacitySlider && opacityValue) {
+    opacitySlider.addEventListener('input', e => {
+      const value = e.target.value;
+      opacityValue.textContent = value;
+      if (cogLayer) {
+        cogLayer.setOpacity(value / 100);
+      }
+    });
+  }
 }, 100);
 
 // Load button
 loadBtn.addEventListener('click', loadCOG);
 
 // Enter key to load
-cogUrlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        loadCOG();
-    }
+cogUrlInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') {
+    loadCOG();
+  }
 });
 
 // Helper functions
 function showStatus(message, type = 'info') {
-    // Remove existing popup if any
+  // Remove existing popup if any
+  if (statusPopup) {
+    statusPopup.remove();
+  }
+  if (statusTimeout) {
+    clearTimeout(statusTimeout);
+  }
+
+  // Create new popup
+  statusPopup = document.createElement('div');
+  statusPopup.className = `status-popup ${type}`;
+  statusPopup.textContent = message;
+  document.body.appendChild(statusPopup);
+
+  // Auto-hide after 5 seconds for info, 8 seconds for errors
+  const duration = type === 'error' ? 8000 : 5000;
+  statusTimeout = setTimeout(() => {
     if (statusPopup) {
-        statusPopup.remove();
+      statusPopup.remove();
+      statusPopup = null;
     }
-    if (statusTimeout) {
-        clearTimeout(statusTimeout);
-    }
-
-    // Create new popup
-    statusPopup = document.createElement('div');
-    statusPopup.className = `status-popup ${type}`;
-    statusPopup.textContent = message;
-    document.body.appendChild(statusPopup);
-
-    // Auto-hide after 5 seconds for info, 8 seconds for errors
-    const duration = type === 'error' ? 8000 : 5000;
-    statusTimeout = setTimeout(() => {
-        if (statusPopup) {
-            statusPopup.remove();
-            statusPopup = null;
-        }
-    }, duration);
+  }, duration);
 }
 
 function showInfo(message) {
-    showStatus(message, 'info');
+  showStatus(message, 'info');
 }
 
 function showError(message) {
-    showStatus(message, 'error');
+  showStatus(message, 'error');
 }
 
 // Load default COG on page load
 window.addEventListener('load', () => {
-    // Check for URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlFromParam = urlParams.get('url');
+  // Check for URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlFromParam = urlParams.get('url');
 
-    if (urlFromParam) {
-        // Update input field with URL from parameter
-        cogUrlInput.value = urlFromParam;
-        // Load the COG
-        loadCOG();
-    } else if (cogUrlInput.value) {
-        // Load default URL if present
-        loadCOG();
-    }
+  if (urlFromParam) {
+    // Update input field with URL from parameter
+    cogUrlInput.value = urlFromParam;
+    // Load the COG
+    loadCOG();
+  } else if (cogUrlInput.value) {
+    // Load default URL if present
+    loadCOG();
+  }
 });

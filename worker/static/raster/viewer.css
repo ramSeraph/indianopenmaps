@@ -1,113 +1,113 @@
 body {
-    margin:0;
+  margin: 0;
 }
 div#map-wrapper {
-    display: flex;
-    width:100vw;
-    height:100vh;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
 }
 div#map-wrapper div {
-    flex-basis: 100%;
+  flex-basis: 100%;
 }
 div#map-left {
-    border-right:1px solid #000;
+  border-right: 1px solid #000;
 }
 /* Geocoder control */
 .leaflet-control-geocoder {
-    background: white;
-    border-radius: 4px;
+  background: white;
+  border-radius: 4px;
 }
 .leaflet-control-geocoder-toggle {
-    display: block;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    text-align: center;
-    text-decoration: none;
-    position: relative;
-    cursor: pointer;
+  display: block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  text-decoration: none;
+  position: relative;
+  cursor: pointer;
 }
 .leaflet-control-geocoder-toggle::before {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 7px;
-    width: 10px;
-    height: 10px;
-    border: 2px solid #333;
-    border-radius: 50%;
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #333;
+  border-radius: 50%;
 }
 .leaflet-control-geocoder-toggle::after {
-    content: '';
-    position: absolute;
-    top: 18px;
-    left: 17px;
-    width: 2px;
-    height: 7px;
-    background: #333;
-    transform: rotate(-45deg);
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 17px;
+  width: 2px;
+  height: 7px;
+  background: #333;
+  transform: rotate(-45deg);
 }
 .leaflet-control-geocoder-form {
-    display: none;
-    width: 250px;
+  display: none;
+  width: 250px;
 }
 .leaflet-control-geocoder-expanded .leaflet-control-geocoder-toggle {
-    display: none;
+  display: none;
 }
 .leaflet-control-geocoder-expanded .leaflet-control-geocoder-form {
-    display: block;
+  display: block;
 }
 .leaflet-control-geocoder input {
-    width: 100%;
-    padding: 8px 30px 8px 12px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    outline: none;
-    box-sizing: border-box;
-    background: white;
+  width: 100%;
+  padding: 8px 30px 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  box-sizing: border-box;
+  background: white;
 }
 .leaflet-control-geocoder .auto-clear {
-    top: 0 !important;
-    bottom: 0 !important;
-    height: auto !important;
-    margin: auto !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  height: auto !important;
+  margin: auto !important;
 }
 .leaflet-control-geocoder .auto-clear:before {
-    height: 18px;
-    width: 18px;
+  height: 18px;
+  width: 18px;
 }
 .leaflet-control-geocoder .auto-is-loading:after {
-    top: 0 !important;
-    bottom: 0 !important;
-    margin: auto !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  margin: auto !important;
 }
 .leaflet-control-geocoder ul {
-    max-height: 300px;
-    overflow-y: auto;
+  max-height: 300px;
+  overflow-y: auto;
 }
 .leaflet-control-geocoder ul li p {
-    white-space: normal;
-    word-wrap: break-word;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 /* Layer control text wrapping */
 .leaflet-control-layers-toggle {
-    width: 30px !important;
-    height: 30px !important;
-    background-size: 18px 18px !important;
+  width: 30px !important;
+  height: 30px !important;
+  background-size: 18px 18px !important;
 }
 .leaflet-control-layers label {
-    display: flex;
-    align-items: flex-start;
-    max-width: 220px;
-    font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  max-width: 220px;
+  font-size: 12px;
 }
 .leaflet-control-layers label input {
-    flex-shrink: 0;
-    margin-top: 3px;
+  flex-shrink: 0;
+  margin-top: 3px;
 }
 .leaflet-control-layers label span {
-    white-space: normal;
-    word-wrap: break-word;
+  white-space: normal;
+  word-wrap: break-word;
 }

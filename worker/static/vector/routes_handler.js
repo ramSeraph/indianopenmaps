@@ -4,7 +4,6 @@ export class RoutesHandler {
   }
 
   fetchRoutes() {
-
     // this should return a promise that resolves when fetching is done
 
     let promise = new Promise((resolve, reject) => {

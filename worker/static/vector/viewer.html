@@ -1,27 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset='utf-8' />
-  <title>Indianopenmaps Viewer</title>
-  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <head>
+    <meta charset="utf-8" />
+    <title>Indianopenmaps Viewer</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 
-  <script type="importmap">
-  {
-    "imports": {
-      "apache-arrow": "https://esm.sh/apache-arrow@17.0.0",
-      "geoparquet-extractor": "https://cdn.jsdelivr.net/npm/geoparquet-extractor@0.2.3/dist/geoparquet-extractor.js"
-    }
-  }
-  </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "apache-arrow": "https://esm.sh/apache-arrow@17.0.0",
+          "geoparquet-extractor": "https://cdn.jsdelivr.net/npm/geoparquet-extractor@0.2.3/dist/geoparquet-extractor.js"
+        }
+      }
+    </script>
 
-  <link href='https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css' rel='stylesheet'/>
-  <link href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.9.1/dist/maplibre-gl-geocoder.css" rel="stylesheet" />
-  <link href='/vector/viewer.css' rel='stylesheet'/>
-</head>
+    <link href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <link
+      href="https://unpkg.com/@maplibre/maplibre-gl-geocoder@1.9.1/dist/maplibre-gl-geocoder.css"
+      rel="stylesheet"
+    />
+    <link href="/vector/viewer.css" rel="stylesheet" />
+  </head>
 
-<body>
-<div id='map'></div>
-<script src='/api/viewer-config.js'></script>
-<script type='module' src='/vector/viewer.js'></script>
-</body>
+  <body>
+    <div id="map"></div>
+    <script src="/api/viewer-config.js"></script>
+    <script type="module" src="/vector/viewer.js"></script>
+  </body>
 </html>

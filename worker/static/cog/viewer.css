@@ -1,127 +1,127 @@
 html {
-    background: #1a1a1a;
+  background: #1a1a1a;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: #1a1a1a;
-    color: #e0e0e0;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: #1a1a1a;
+  color: #e0e0e0;
 }
 #map {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
 }
 .url-input-container {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    background: white;
-    padding: 10px 15px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 .url-input-container label {
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap;
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
 }
-.url-input-container input[type="text"] {
-    width: 500px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+.url-input-container input[type='text'] {
+  width: 500px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
 }
-.url-input-container input[type="text"]:focus {
-    outline: none;
-    border-color: #4a9eff;
+.url-input-container input[type='text']:focus {
+  outline: none;
+  border-color: #4a9eff;
 }
 .url-input-container button {
-    padding: 8px 20px;
-    background: #4a9eff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
+  padding: 8px 20px;
+  background: #4a9eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
 }
 .url-input-container button:hover {
-    background: #3a8eef;
+  background: #3a8eef;
 }
 .url-input-container button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+  background: #ccc;
+  cursor: not-allowed;
 }
 .status-popup {
-    position: absolute;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    padding: 10px 20px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    max-width: 600px;
-    word-wrap: break-word;
-    animation: slideDown 0.3s ease;
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 10px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  max-width: 600px;
+  word-wrap: break-word;
+  animation: slideDown 0.3s ease;
 }
 .status-popup.info {
-    background: #4a9eff;
-    color: white;
+  background: #4a9eff;
+  color: white;
 }
 .status-popup.error {
-    background: #ff6b6b;
-    color: white;
+  background: #ff6b6b;
+  color: white;
 }
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 .leaflet-control-opacity {
-    background: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
 }
 .opacity-slider-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 .opacity-slider-container label {
-    font-size: 12px;
-    font-weight: bold;
-    min-width: auto;
-    color: #333;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: auto;
+  color: #333;
 }
 .opacity-slider-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.opacity-slider-row input[type="range"] {
-    flex: 1;
-    min-width: 150px;
+.opacity-slider-row input[type='range'] {
+  flex: 1;
+  min-width: 150px;
 }
 .opacity-slider-row .opacity-value {
-    min-width: 35px;
-    text-align: right;
-    font-size: 12px;
-    color: #333;
+  min-width: 35px;
+  text-align: right;
+  font-size: 12px;
+  color: #333;
 }

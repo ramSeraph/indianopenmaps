@@ -1,5 +1,13 @@
-body { margin:0; padding:0; }
-#map { position:absolute; top:0; bottom:0; width:100%; }
+body {
+  margin: 0;
+  padding: 0;
+}
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
 
 /* Dark popup styling */
 .maplibregl-popup-content {
@@ -45,7 +53,7 @@ body { margin:0; padding:0; }
 .maplibregl-ctrl-inspect_popup {
   color: #e0e0e0;
   display: block;
-  font-family: "Open Sans", sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-size: 10px;
   padding-right: 20px;
 }
@@ -116,7 +124,7 @@ body { margin:0; padding:0; }
   border-radius: 0 4px 4px 0;
 }
 
-.maplibre-ctrl-styles-expanded button+button {
+.maplibre-ctrl-styles-expanded button + button {
   border: none;
 }
 
@@ -719,9 +727,15 @@ body { margin:0; padding:0; }
   animation: ellipsis 1.2s infinite;
 }
 @keyframes ellipsis {
-  0% { content: '.'; }
-  33% { content: '..'; }
-  66% { content: '...'; }
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
 }
 .copy-url-btn {
   background: none;
@@ -839,7 +853,9 @@ body { margin:0; padding:0; }
 }
 .partial-memory-control > summary {
   cursor: pointer;
-  font: 11px 'Open Sans', sans-serif;
+  font:
+    11px 'Open Sans',
+    sans-serif;
   color: #666;
 }
 .partial-memory-control[open] > summary {
@@ -863,7 +879,8 @@ body { margin:0; padding:0; }
   gap: 8px;
   margin-bottom: 8px;
 }
-.partial-start-btn, .partial-cancel-btn {
+.partial-start-btn,
+.partial-cancel-btn {
   flex: 1;
   padding: 8px 12px;
   font-size: 11px;
@@ -879,7 +896,7 @@ body { margin:0; padding:0; }
 }
 .partial-start-btn:hover:not(:disabled) {
   background: #1e88e5 !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 .partial-start-btn:disabled {
   opacity: 0.5;
@@ -891,7 +908,7 @@ body { margin:0; padding:0; }
 }
 .partial-cancel-btn:hover {
   background: #ef5350 !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 .partial-progress-container {
   background: #f5f5f5;
@@ -985,7 +1002,9 @@ body { margin:0; padding:0; }
   align-items: center;
   justify-content: center;
   color: #333;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   border-bottom: 1px solid #eee;
   flex-shrink: 0;
 }
@@ -1110,7 +1129,7 @@ body { margin:0; padding:0; }
   background: #e3f2fd;
   color: #1976d2;
 }
-.base-layer-option input[type="radio"] {
+.base-layer-option input[type='radio'] {
   margin-right: 8px;
 }
 /* Mobile responsive styles for sidebar */

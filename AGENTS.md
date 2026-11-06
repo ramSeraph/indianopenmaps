@@ -407,6 +407,9 @@ Even with `nodejs_compat` enabled, Workers have significant limitations:
 - Test with `wrangler dev` which simulates the Workers environment
 
 ### Frontend Patterns
+- Format static HTML, CSS and JavaScript with two-space indentation using
+  `cd worker && npm run format:static`. Run `npm run format:static:check` to
+  check without writing; GitHub Actions runs this check for static-file changes.
 - No bundler - use browser-native ES modules
 - Import external libs from `https://esm.sh/`
 - MapLibre controls as ES6 classes
@@ -472,7 +475,6 @@ The source is automatically available at its `/{key}/` route.
 ## Other Directories
 
 - **`fly-redirect/`**: Nginx redirect service on Fly.io (indianopenmaps.fly.dev → indianopenmaps.com)
-- **`data_processing/`**: Scripts for data processing (create_geoparquet.py, create_parquet_meta.py, update_partitioned_routes.py, upgrade_mosaic.sh, etc.)
 - **`utils/`**: Utility scripts (check_endpoints.js, validate_bboxes.py, etc.)
 - **`tests/`**: Integration tests for tile serving and COG processing
 - **`plans/`**: Planning documents

@@ -59,7 +59,7 @@ export class IomSourceResolver extends SourceResolver {
     let files = Object.entries(metaJson.extents).map(([id, fileBbox]) => ({
       id,
       url: baseUrl + id,
-      bbox: normalizeBbox(fileBbox),
+      bbox: normalizeBbox(fileBbox)
     }));
 
     if (bbox) {
@@ -87,7 +87,7 @@ export class IomSourceResolver extends SourceResolver {
       }
 
       return response.json();
-    })().catch((error) => {
+    })().catch(error => {
       this._metaJsonCache.delete(metaUrl);
       console.error('Error fetching partition metadata:', error);
       return null;

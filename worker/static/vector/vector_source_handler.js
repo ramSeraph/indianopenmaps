@@ -50,7 +50,7 @@ export class VectorSourceHandler {
   getSourceName(sourcePath) {
     return `source-${sourcePath.replace(/\//g, '-')}`;
   }
- 
+
   updateUrlWithSelectedSources() {
     const sourcePaths = Array.from(this.#selectedSources.keys());
     this.searchParams.updateSources(sourcePaths);
@@ -71,139 +71,99 @@ export class VectorSourceHandler {
     if (!this.map.getSource(srcName) || !this.map.isSourceLoaded(srcName) || !e.isSourceLoaded) {
       return;
     }
-    
+
     const sourceData = this.#selectedSources.get(sourcePath);
-    
+
     if (!sourceData || !sourceData.vectorLayers) return;
-    
+
     const vectorLayerIds = sourceData.vectorLayers;
     const layerColor = '#' + this.getColor(sourceData);
-    
+
     for (const layerId of vectorLayerIds) {
       const fullLayerId = `${sourcePath}-${layerId}`;
-      
+
       this.map.addLayer({
-        'id': `${fullLayerId}-polygons`,
-        'type': 'fill',
-        'source': srcName,
+        id: `${fullLayerId}-polygons`,
+        type: 'fill',
+        source: srcName,
         'source-layer': `${layerId}`,
-        'filter': ["==", "$type", "Polygon"],
-        'layout': {},
-        'paint': {
-          'fill-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            0.25,
-            0.1
-          ],
+        filter: ['==', '$type', 'Polygon'],
+        layout: {},
+        paint: {
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 0.25, 0.1],
           'fill-color': layerColor
-        }
-      });
-      
-      this.map.addLayer({
-        'id': `${fullLayerId}-polygons-outline`,
-        'type': 'line',
-        'source': srcName,
-        'source-layer': `${layerId}`,
-        'filter': ["==", "$type", "Polygon"],
-        'layout': {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        'paint': {
-          'line-color': layerColor,
-          'line-width': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            2,
-            1
-          ],
-          'line-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            0.9,
-            0.75
-          ]
         }
       });
 
       this.map.addLayer({
-        'id': `${fullLayerId}-polygons-extrusions`,
-        'type': 'fill-extrusion',
-        'source': srcName,
+        id: `${fullLayerId}-polygons-outline`,
+        type: 'line',
+        source: srcName,
         'source-layer': `${layerId}`,
-        'minzoom': 14,
-        'filter': [
-          "all",
-          ["==", "$type", "Polygon"],
-          [
-            "any",
-            ["has", "Height"],
-            ["has", "HEIGHT"],
-            ["has", "height"],
-          ]
-        ],
-        'paint': {
-          'fill-extrusion-color': layerColor,
-          'fill-extrusion-height': [
-            "interpolate", ["linear"], ["zoom"],
-            14, 0,
-            15, ["coalesce", ["get", "Height"], ["get", "HEIGHT"], ["get", "height"], 3]
-          ],
-          'fill-extrusion-opacity': 0.80,
-        }
-      });
-     
-      this.map.addLayer({
-        'id': `${fullLayerId}-lines`,
-        'type': 'line',
-        'source': srcName,
-        'source-layer': `${layerId}`,
-        'filter': ["==", "$type", "LineString"],
-        'layout': {
+        filter: ['==', '$type', 'Polygon'],
+        layout: {
           'line-join': 'round',
           'line-cap': 'round'
         },
-        'paint': {
+        paint: {
           'line-color': layerColor,
-          'line-width': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            2,
-            1
-          ],
-          'line-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            0.9,
-            0.75
-          ]
+          'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 2, 1],
+          'line-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 0.9, 0.75]
         }
       });
-      
+
       this.map.addLayer({
-        'id': `${fullLayerId}-pts`,
-        'type': 'circle',
-        'source': srcName,
+        id: `${fullLayerId}-polygons-extrusions`,
+        type: 'fill-extrusion',
+        source: srcName,
         'source-layer': `${layerId}`,
-        'filter': ["==", "$type", "Point"],
-        'paint': {
-          'circle-color': layerColor,
-          'circle-radius': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            4,
-            2.5
+        minzoom: 14,
+        filter: ['all', ['==', '$type', 'Polygon'], ['any', ['has', 'Height'], ['has', 'HEIGHT'], ['has', 'height']]],
+        paint: {
+          'fill-extrusion-color': layerColor,
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            14,
+            0,
+            15,
+            ['coalesce', ['get', 'Height'], ['get', 'HEIGHT'], ['get', 'height'], 3]
           ],
-          'circle-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'highlight'], false],
-            0.9,
-            0.75
-          ]
+          'fill-extrusion-opacity': 0.8
         }
       });
-      
+
+      this.map.addLayer({
+        id: `${fullLayerId}-lines`,
+        type: 'line',
+        source: srcName,
+        'source-layer': `${layerId}`,
+        filter: ['==', '$type', 'LineString'],
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': layerColor,
+          'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 2, 1],
+          'line-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 0.9, 0.75]
+        }
+      });
+
+      this.map.addLayer({
+        id: `${fullLayerId}-pts`,
+        type: 'circle',
+        source: srcName,
+        'source-layer': `${layerId}`,
+        filter: ['==', '$type', 'Point'],
+        paint: {
+          'circle-color': layerColor,
+          'circle-radius': ['case', ['boolean', ['feature-state', 'highlight'], false], 4, 2.5],
+          'circle-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 0.9, 0.75]
+        }
+      });
+
       this.layers.polygons.push(`${fullLayerId}-polygons`);
       this.layers.polygons.push(`${fullLayerId}-polygons-outline`);
       this.layers.lines.push(`${fullLayerId}-lines`);
@@ -214,13 +174,13 @@ export class VectorSourceHandler {
   removeVectorSource(sourcePath) {
     const srcName = this.getSourceName(sourcePath);
     const sourceData = this.#selectedSources.get(sourcePath);
-    
+
     if (!sourceData) return;
-    
+
     // Get layers from stored source data before removing
     if (this.map.getSource(srcName) && sourceData.vectorLayers) {
       const vectorLayerIds = sourceData.vectorLayers;
-      
+
       for (const layerId of vectorLayerIds) {
         const fullLayerId = `${sourcePath}-${layerId}`;
         const layersToRemove = [
@@ -240,10 +200,10 @@ export class VectorSourceHandler {
           }
         }
       }
-      
+
       this.map.removeSource(srcName);
     }
-    
+
     this.colorHandler.releaseColors(sourceData.color);
     this.#selectedSources.delete(sourcePath);
     this.updateUrlWithSelectedSources();
@@ -259,61 +219,58 @@ export class VectorSourceHandler {
     }
 
     const maxSourcesAllowed = this.getMaxSources();
-    
+
     if (this.#selectedSources.size >= maxSourcesAllowed) {
       alert(`Maximum ${maxSourcesAllowed} sources can be selected at once.`);
       return;
     }
-    
-    const color = this.colorHandler.assignColors(
-      sourceInfo.path,
-      () => Array.from(this.#selectedSources.keys())
-    );
+
+    const color = this.colorHandler.assignColors(sourceInfo.path, () => Array.from(this.#selectedSources.keys()));
     this.#selectedSources.set(sourceInfo.path, {
       name: sourceInfo.name,
       color: color,
       vectorLayers: null
     });
-    
+
     const srcName = this.getSourceName(sourceInfo.path);
     const tileJsonUrl = new URL(`${sourceInfo.path}tiles.json`, window.location.origin).href;
-    
+
     // Fetch TileJSON first to get attribution, then add source
     fetchTileJSON(tileJsonUrl)
       .then(tileJson => {
         const attribution = tileJson.attribution || '';
         const attributionWithName = `<strong>${sourceInfo.name}:</strong> ${attribution}`;
-        
+
         // Store vector layer IDs from TileJSON
         const vectorLayerIds = (tileJson.vector_layers || []).map(layer => layer.id);
         const sourceData = this.#selectedSources.get(sourceInfo.path);
         if (sourceData) {
           sourceData.vectorLayers = vectorLayerIds;
         }
-        
+
         // Get promoteId from routes if available
         const routes = this.routesHandler.getVectorSources();
         const routeInfo = routes[sourceInfo.path];
         const promoteId = routeInfo ? routeInfo.promoteid : null;
-        
+
         // Add source with modified TileJSON
         const sourceSpec = {
-          'type': 'vector',
-          'tiles': tileJson.tiles,
-          'attribution': attributionWithName,
-          'minzoom': tileJson.minzoom,
-          'maxzoom': tileJson.maxzoom,
-          'bounds': tileJson.bounds,
-          'scheme': tileJson.scheme
+          type: 'vector',
+          tiles: tileJson.tiles,
+          attribution: attributionWithName,
+          minzoom: tileJson.minzoom,
+          maxzoom: tileJson.maxzoom,
+          bounds: tileJson.bounds,
+          scheme: tileJson.scheme
         };
-        
+
         if (promoteId) {
           sourceSpec.promoteId = promoteId;
         }
-        
+
         this.map.addSource(srcName, sourceSpec);
-        
-        const handler = (e) => {
+
+        const handler = e => {
           if (e.sourceId === srcName && e.isSourceLoaded) {
             const sourceData = this.#selectedSources.get(sourceInfo.path);
             if (sourceData && sourceData.vectorLayers && sourceData.vectorLayers.length > 0) {
@@ -322,7 +279,7 @@ export class VectorSourceHandler {
             }
           }
         };
-        
+
         this.map.on('sourcedata', handler);
       })
       .catch(error => {
@@ -335,7 +292,7 @@ export class VectorSourceHandler {
         this.#selectedSources.delete(sourceInfo.path);
         this.updateUrlWithSelectedSources();
       });
-    
+
     this.updateUrlWithSelectedSources();
   }
 }

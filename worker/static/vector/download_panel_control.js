@@ -5,17 +5,20 @@ import { proxyUrl } from './utils.js';
 import { PartialDownloadUI } from './partial_download_ui.js';
 import { ExtentHandler } from './extent_handler.js';
 
-setProxyUrl((url) => proxyUrl(url, { absolute: true }));
+setProxyUrl(url => proxyUrl(url, { absolute: true }));
 
-const DEFAULT_LICENSE = '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
+const DEFAULT_LICENSE =
+  '<a href="https://github.com/ramSeraph/indianopenmaps/blob/main/DATA_LICENSE.md" target="_blank" style="color:#4a9eff">CC0 1.0 but attribute datameet and the original government source where possible</a>';
 
 function linkifyUrls(text) {
   if (!text) return '';
   return text.replace(/(https?:\/\/[^\s,)]+)/g, '<a href="$1" target="_blank">$1</a>');
 }
 
-const COPY_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-const CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+const COPY_SVG =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+const CHECK_SVG =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
 
 export class DownloadPanelControl {
   constructor({ map, routesHandler, vectorSourceHandler }) {
@@ -32,7 +35,7 @@ export class DownloadPanelControl {
     this.lastCopiedBtn = null;
     this.copyResetTimeout = null;
     this.sizeGetter = new SizeGetter();
-    
+
     this.extentHandler = new ExtentHandler(map, routesHandler);
     this.partialUI = new PartialDownloadUI({ map, routesHandler });
   }
@@ -68,7 +71,7 @@ export class DownloadPanelControl {
 
     // Clear dropdown
     this.sourceDropdownContainer.innerHTML = '';
-    
+
     const hasSources = handler.selectedSourceCount > 0;
     this.noSourcesMessage.style.display = hasSources ? 'none' : 'block';
     this.sourceDropdownContainer.style.display = hasSources ? 'block' : 'none';
@@ -98,13 +101,13 @@ export class DownloadPanelControl {
     // Create custom dropdown
     const dropdownWrapper = document.createElement('div');
     dropdownWrapper.className = 'custom-dropdown';
-    
+
     const selectedDisplay = document.createElement('div');
     selectedDisplay.className = 'dropdown-selected';
-    
+
     // Show current selection
     this._populateSelectedDisplay(selectedDisplay, currentColor, currentData.name);
-    
+
     const optionsList = document.createElement('div');
     optionsList.className = 'dropdown-options';
     optionsList.style.display = 'none';
@@ -114,7 +117,7 @@ export class DownloadPanelControl {
       const option = document.createElement('div');
       option.className = 'dropdown-option';
       option.dataset.value = path;
-      
+
       const color = handler.getColorForPath(path);
       if (color) {
         const colorDot = document.createElement('span');
@@ -122,22 +125,22 @@ export class DownloadPanelControl {
         colorDot.style.backgroundColor = color;
         option.appendChild(colorDot);
       }
-      
+
       const nameSpan = document.createElement('span');
       nameSpan.textContent = data.name;
       option.appendChild(nameSpan);
-      
+
       option.addEventListener('click', () => {
         this.selectedSource = path;
         this._populateSelectedDisplay(selectedDisplay, color, data.name);
         optionsList.style.display = 'none';
         this._onSourceSelected(path);
       });
-      
+
       optionsList.appendChild(option);
     }
 
-    selectedDisplay.addEventListener('click', (e) => {
+    selectedDisplay.addEventListener('click', e => {
       e.stopPropagation();
       optionsList.style.display = optionsList.style.display === 'none' ? 'block' : 'none';
     });
@@ -183,9 +186,7 @@ export class DownloadPanelControl {
         return;
       }
 
-      this._renderDownloadLinks(
-        resolvedFiles.map(file => ({ url: file.url, label: file.id }))
-      );
+      this._renderDownloadLinks(resolvedFiles.map(file => ({ url: file.url, label: file.id })));
     } catch (error) {
       console.error('Error loading download links:', error);
       this.linksContainer.innerHTML = '<div class="error-message">Error loading download links</div>';
@@ -246,43 +247,43 @@ export class DownloadPanelControl {
   createDownloadSection(headingText, listContainer) {
     const section = document.createElement('div');
     section.className = 'download-section';
-    
+
     const heading = document.createElement('div');
     heading.className = 'download-section-heading';
-    
+
     const leftPart = document.createElement('div');
     leftPart.className = 'download-section-left';
-    
+
     const label = document.createElement('span');
     label.textContent = headingText;
-    
+
     const helpBtn = document.createElement('a');
     helpBtn.href = '/data-help#geoparquet';
     helpBtn.target = '_blank';
     helpBtn.className = 'download-help-btn';
     helpBtn.textContent = '?';
     helpBtn.title = 'Help with downloaded data';
-    helpBtn.addEventListener('click', (e) => {
+    helpBtn.addEventListener('click', e => {
       e.stopPropagation();
     });
-    
+
     leftPart.appendChild(label);
     leftPart.appendChild(helpBtn);
-    
+
     const toggleIcon = document.createElement('span');
     toggleIcon.className = 'download-toggle-icon';
     toggleIcon.textContent = '▼';
-    
+
     heading.appendChild(leftPart);
     heading.appendChild(toggleIcon);
-    
+
     heading.addEventListener('click', () => {
       section.classList.toggle('collapsed');
     });
-    
+
     section.appendChild(heading);
     section.appendChild(listContainer);
-    
+
     return section;
   }
 
@@ -291,22 +292,22 @@ export class DownloadPanelControl {
     copyBtn.className = 'copy-url-btn';
     copyBtn.innerHTML = COPY_SVG;
     copyBtn.title = 'Copy URL';
-    copyBtn.addEventListener('click', async (e) => {
+    copyBtn.addEventListener('click', async e => {
       e.preventDefault();
       e.stopPropagation();
       try {
         await navigator.clipboard.writeText(url);
-        
+
         if (this.lastCopiedBtn && this.lastCopiedBtn !== copyBtn) {
           this.lastCopiedBtn.innerHTML = COPY_SVG;
         }
         if (this.copyResetTimeout) {
           clearTimeout(this.copyResetTimeout);
         }
-        
+
         copyBtn.innerHTML = CHECK_SVG;
         this.lastCopiedBtn = copyBtn;
-        this.copyResetTimeout = setTimeout(() => { 
+        this.copyResetTimeout = setTimeout(() => {
           copyBtn.innerHTML = COPY_SVG;
           this.lastCopiedBtn = null;
         }, 1500);

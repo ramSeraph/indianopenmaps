@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "format:static": "prettier --write \"static/**/*.{html,css,js,mjs}\"",
+    "format:static:check": "prettier --check \"static/**/*.{html,css,js,mjs}\""
   },
   "dependencies": {
     "@basemaps/geo": "^8.9.0",
@@ -26,6 +28,7 @@
   "devDependencies": {
     "esbuild": "0.27.3",
     "miniflare": "4.20260212.0",
+    "prettier": "3.9.10",
     "wrangler": "^4.65.0"
   }
 }

@@ -12,18 +12,20 @@ export function getProtomapsBaseLayers() {
   return ['black', 'white', 'grayscale'].map(flavor => ({
     name: `Protomaps ${flavor[0].toUpperCase()}${flavor.slice(1)}`,
     styleUrl: `https://api.protomaps.com/styles/v5/${flavor}/en.json?key=${API_KEY}`,
-    sources: {},
+    sources: {}
   }));
 }
 
 export function resolveBaseLayerName(name) {
   // Keep existing shared links working after the provider change.
-  return {
-    'Carto OSM Dark': PROTOMAPS_DEFAULT_LAYER_NAME,
-    'CartoDB Light': 'Protomaps White',
-    'Protomaps Dark': PROTOMAPS_DEFAULT_LAYER_NAME,
-    'Protomaps Light': 'Protomaps White',
-  }[name] || name;
+  return (
+    {
+      'Carto OSM Dark': PROTOMAPS_DEFAULT_LAYER_NAME,
+      'CartoDB Light': 'Protomaps White',
+      'Protomaps Dark': PROTOMAPS_DEFAULT_LAYER_NAME,
+      'Protomaps Light': 'Protomaps White'
+    }[name] || name
+  );
 }
 
 export async function fetchMapJSON(url) {
@@ -38,9 +40,7 @@ export async function loadProtomapsStyle(layerInfo) {
     boundaryPromise = null;
     throw error;
   });
-  const [style, boundary] = await Promise.all([
-    fetchMapJSON(layerInfo.styleUrl), boundaryPromise,
-  ]);
+  const [style, boundary] = await Promise.all([fetchMapJSON(layerInfo.styleUrl), boundaryPromise]);
   if (style.version !== 8 || !style.sources || !Array.isArray(style.layers)) {
     throw new Error('Invalid Protomaps style');
   }
@@ -63,33 +63,35 @@ export async function loadProtomapsStyle(layerInfo) {
         minzoom: boundary.minzoom ?? 0,
         maxzoom: boundary.maxzoom,
         bounds: boundary.bounds,
-        attribution: boundary.attribution,
-      },
-    },
-    layers: style.layers.filter(layer => layer.id !== 'boundaries_country').map(layer => {
-      if (layer.id === 'boundaries') {
-        // SOI state polygons supply both the country outline and state borders.
-        // Retain the theme's color/dashes, with twice its boundary line width.
-        // Drop the Protomaps-specific filter for the SOI polygon outlines.
-        const { source, 'source-layer': sourceLayer, filter, ...appearance } = layer;
-        return {
-          ...appearance,
-          id: 'basemap-soi-boundaries',
-          source: BOUNDARY_SOURCE_ID,
-          'source-layer': boundaryLayer.id,
-          paint: {
-            ...appearance.paint,
-            'line-width': 2 * (appearance.paint['line-width'] ?? 1),
-          },
-        };
+        attribution: boundary.attribution
       }
-      return {
-        ...layer,
-        id: `basemap-${layer.id}`,
-        ...(layer.source ? { source: sourceId(layer.source) } : {}),
-      };
-    }),
+    },
+    layers: style.layers
+      .filter(layer => layer.id !== 'boundaries_country')
+      .map(layer => {
+        if (layer.id === 'boundaries') {
+          // SOI state polygons supply both the country outline and state borders.
+          // Retain the theme's color/dashes, with twice its boundary line width.
+          // Drop the Protomaps-specific filter for the SOI polygon outlines.
+          const { source, 'source-layer': sourceLayer, filter, ...appearance } = layer;
+          return {
+            ...appearance,
+            id: 'basemap-soi-boundaries',
+            source: BOUNDARY_SOURCE_ID,
+            'source-layer': boundaryLayer.id,
+            paint: {
+              ...appearance.paint,
+              'line-width': 2 * (appearance.paint['line-width'] ?? 1)
+            }
+          };
+        }
+        return {
+          ...layer,
+          id: `basemap-${layer.id}`,
+          ...(layer.source ? { source: sourceId(layer.source) } : {})
+        };
+      }),
     glyphs: style.glyphs,
-    sprite: style.sprite,
+    sprite: style.sprite
   };
 }

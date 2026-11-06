@@ -1,12 +1,6 @@
 // UI for partial (bbox-filtered) downloads.
-import {
-  GeoParquetExtractor,
-  formatSize, getStorageEstimate,
-} from 'geoparquet-extractor';
-import {
-  bootstrapDuckDB,
-  chooseDuckDBMemoryLimitMB,
-} from './utils.js';
+import { GeoParquetExtractor, formatSize, getStorageEstimate } from 'geoparquet-extractor';
+import { bootstrapDuckDB, chooseDuckDBMemoryLimitMB } from './utils.js';
 import { sourceResolver } from './iom_metadata_provider.js';
 
 const FORMAT_OPTIONS = [
@@ -19,7 +13,7 @@ const FORMAT_OPTIONS = [
   { value: 'csv', label: 'CSV (WKT geometry)' },
   { value: 'shapefile', label: 'Shapefile (.shp)' },
   { value: 'kml', label: 'KML (.kml)' },
-  { value: 'dxf', label: 'DXF (.dxf)' },
+  { value: 'dxf', label: 'DXF (.dxf)' }
 ];
 
 // Memory slider constants
@@ -28,7 +22,7 @@ const MEMORY_SLIDER_MIN_MB = MEMORY_STEP;
 
 function getMemorySliderMaxMB() {
   const ramGB = navigator.deviceMemory ?? 4;
-  const roundedMB = Math.floor(ramGB * 1024 / MEMORY_STEP) * MEMORY_STEP;
+  const roundedMB = Math.floor((ramGB * 1024) / MEMORY_STEP) * MEMORY_STEP;
   return Math.max(chooseDuckDBMemoryLimitMB(), roundedMB);
 }
 
@@ -160,8 +154,8 @@ export class PartialDownloadUI {
       `<span class="partial-download-info-detail">memory: ${memStr}</span>`;
 
     const callbacks = {
-      onProgress: (pct) => this._updateProgress(pct),
-      onStatus: (msg) => this._updateStatus(msg)
+      onProgress: pct => this._updateProgress(pct),
+      onStatus: msg => this._updateStatus(msg)
     };
 
     try {
@@ -174,7 +168,7 @@ export class PartialDownloadUI {
         this.extractor = new GeoParquetExtractor({
           duckdb,
           sourceResolver,
-          gpkgWorkerUrl: GPKG_WORKER_URL,
+          gpkgWorkerUrl: GPKG_WORKER_URL
         });
         GeoParquetExtractor.cleanupOrphanedFiles();
       }
@@ -188,7 +182,7 @@ export class PartialDownloadUI {
         ...callbacks
       });
 
-      if (!await this._checkStorageAvailability(formatHandler, callbacks.onStatus)) {
+      if (!(await this._checkStorageAvailability(formatHandler, callbacks.onStatus))) {
         this._finishDownload('Cancelled');
         return;
       }
@@ -208,7 +202,8 @@ export class PartialDownloadUI {
 
       const baseName = GeoParquetExtractor.getDownloadBaseName(sourceName, bbox);
       await this.extractor.download(formatHandler, {
-        baseName, ...callbacks
+        baseName,
+        ...callbacks
       });
 
       this._finishDownload('Complete!');

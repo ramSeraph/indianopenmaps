@@ -23,7 +23,7 @@ export class TerrainHandler {
     if (initialTerrainSetting === 'false') {
       map.setTerrain(null);
     } else {
-      map.setTerrain({ 'source': this.TERRAIN_SOURCE_ID, 'exaggeration': this.TERRAIN_EXAGGERATION });
+      map.setTerrain({ source: this.TERRAIN_SOURCE_ID, exaggeration: this.TERRAIN_EXAGGERATION });
     }
   }
 
@@ -42,8 +42,7 @@ export class TerrainHandler {
     // queryTerrainElevation returns 0 both at sea level and when DEM data is
     // missing. MapLibre's DEM state distinguishes these without another fetch.
     const { elevation, demState } = map.terrain.getElevationAndDEMStateForLngLat(lngLat, Math.floor(map.getZoom()));
-    return demState === 'loaded' && Number.isFinite(elevation) && exaggeration > 0
-      ? elevation / exaggeration : null;
+    return demState === 'loaded' && Number.isFinite(elevation) && exaggeration > 0 ? elevation / exaggeration : null;
   }
 
   getTerrainTileUrl() {
@@ -56,25 +55,24 @@ export class TerrainHandler {
     let initialTerrainSetting = this.searchParams.getTerrain('false');
     const visibility = initialTerrainSetting === 'false' ? 'none' : 'visible';
     return {
-      'type': 'hillshade',
-      'id': this.HILLSHADE_LAYER_ID,
-      'source': this.HILLSHADE_SOURCE_ID,
-      'maxzoom': 22,
-      'layout': { 'visibility': visibility },
-      'paint' : { 'hillshade-shadow-color': '#473B24' }
+      type: 'hillshade',
+      id: this.HILLSHADE_LAYER_ID,
+      source: this.HILLSHADE_SOURCE_ID,
+      maxzoom: 22,
+      layout: { visibility: visibility },
+      paint: { 'hillshade-shadow-color': '#473B24' }
     };
   }
 
   getTerrainSource() {
     return {
-      'type': 'raster-dem',
-      'tiles': [this.getTerrainTileUrl()],
-      'tileSize': 512,
-      'maxzoom': 12,
-      'minzoom': 0,
-      'attribution': 'Terrain: <a href="https://bhuvan-app3.nrsc.gov.in/data/download/index.php" target="_blank">CartoDEM 30m v3r1</a>'
+      type: 'raster-dem',
+      tiles: [this.getTerrainTileUrl()],
+      tileSize: 512,
+      maxzoom: 12,
+      minzoom: 0,
+      attribution:
+        'Terrain: <a href="https://bhuvan-app3.nrsc.gov.in/data/download/index.php" target="_blank">CartoDEM 30m v3r1</a>'
     };
   }
-
 }
-

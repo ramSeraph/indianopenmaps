@@ -1,26 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>COG Viewer</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@india-boundary-corrector/leaflet-layer/dist/index.global.js"></script>
-    <link rel="stylesheet" href="/cog/viewer.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/cog/viewer.css" />
+  </head>
+  <body>
     <div class="url-input-container">
-        <label for="cogUrl">COG URL:</label>
-        <input type="text" id="cogUrl"
-               placeholder="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif"
-               value="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif">
-        <button id="loadBtn">Load COG</button>
+      <label for="cogUrl">COG URL:</label>
+      <input
+        type="text"
+        id="cogUrl"
+        placeholder="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif"
+        value="https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-georef/40F_5.tif"
+      />
+      <button id="loadBtn">Load COG</button>
     </div>
 
     <div id="map"></div>
 
     <script src="/api/viewer-config.js"></script>
     <script type="module" src="/cog/viewer.js"></script>
-</body>
+  </body>
 </html>

@@ -1,0 +1,38 @@
+name: Static formatting
+
+on:
+  push:
+    paths:
+      - 'worker/static/**'
+      - 'worker/.prettierrc.json'
+      - 'worker/package.json'
+      - 'worker/package-lock.json'
+      - '.editorconfig'
+      - '.github/workflows/static-format.yml'
+  pull_request:
+    paths:
+      - 'worker/static/**'
+      - 'worker/.prettierrc.json'
+      - 'worker/package.json'
+      - 'worker/package-lock.json'
+      - '.editorconfig'
+      - '.github/workflows/static-format.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run format:static:check

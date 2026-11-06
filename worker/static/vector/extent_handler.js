@@ -25,22 +25,30 @@ function extentsToGeoJSON(extents) {
       properties: { name, label },
       geometry: {
         type: 'Polygon',
-        coordinates: [[[minx, miny], [maxx, miny], [maxx, maxy], [minx, maxy], [minx, miny]]],
-      },
+        coordinates: [
+          [
+            [minx, miny],
+            [maxx, miny],
+            [maxx, maxy],
+            [minx, maxy],
+            [minx, miny]
+          ]
+        ]
+      }
     });
 
     if (label) {
       labelFeatures.push({
         type: 'Feature',
         properties: { label },
-        geometry: { type: 'Point', coordinates: [minx, maxy] },
+        geometry: { type: 'Point', coordinates: [minx, maxy] }
       });
     }
   }
 
   return {
     polygons: { type: 'FeatureCollection', features: polyFeatures },
-    labelPoints: { type: 'FeatureCollection', features: labelFeatures },
+    labelPoints: { type: 'FeatureCollection', features: labelFeatures }
   };
 }
 
@@ -69,7 +77,7 @@ const LAYER_CONFIGS = {
     fillHoverColor: 'rgba(255, 152, 0, 0.35)',
     lineColor: 'rgba(255, 152, 0, 0.8)',
     lineHoverColor: 'rgba(255, 200, 0, 1)',
-    textColor: '#FF9800',
+    textColor: '#FF9800'
   },
   rg: {
     sourceId: 'rg-extents',
@@ -81,8 +89,8 @@ const LAYER_CONFIGS = {
     fillHoverColor: 'rgba(0, 188, 212, 0.30)',
     lineColor: 'rgba(0, 188, 212, 0.7)',
     lineHoverColor: 'rgba(0, 230, 255, 1)',
-    textColor: '#00BCD4',
-  },
+    textColor: '#00BCD4'
+  }
 };
 
 const SHOW_DATA_EXTENTS_TOOLTIP = 'Shows the extents of the individual parquet files and the row groups within them.';
@@ -150,7 +158,10 @@ export class ExtentHandler extends EventTarget {
   // --- Toggle ---
 
   async _onToggle() {
-    if (!this._sourcePath) { this.checkbox.checked = false; return; }
+    if (!this._sourcePath) {
+      this.checkbox.checked = false;
+      return;
+    }
     if (this.checkbox.checked) {
       await this._showAll(this._sourcePath);
     } else {
@@ -176,7 +187,7 @@ export class ExtentHandler extends EventTarget {
       sourceResolver.setPartitioned(routeInfo.url, routeInfo.partitioned_parquet === true);
       const { dataExtents, rgExtents } = await this._extentData.fetchExtents({
         sourceUrl: routeInfo.url,
-        onStatus: (msg) => this._setStatus(msg),
+        onStatus: msg => this._setStatus(msg)
       });
 
       this._showExtentLayers(dataExtents, rgExtents);
@@ -234,24 +245,28 @@ export class ExtentHandler extends EventTarget {
     const { polygons, labelPoints } = extentsToGeoJSON(extents);
     this.map.addSource(cfg.sourceId, { type: 'geojson', data: polygons, generateId: true });
     this.map.addLayer({
-      id: cfg.fillLayer, type: 'fill', source: cfg.sourceId,
+      id: cfg.fillLayer,
+      type: 'fill',
+      source: cfg.sourceId,
       paint: {
-        'fill-color': ['case', ['boolean', ['feature-state', 'hover'], false],
-          cfg.fillHoverColor, cfg.fillColor],
-      },
+        'fill-color': ['case', ['boolean', ['feature-state', 'hover'], false], cfg.fillHoverColor, cfg.fillColor]
+      }
     });
     this.map.addLayer({
-      id: cfg.lineLayer, type: 'line', source: cfg.sourceId,
+      id: cfg.lineLayer,
+      type: 'line',
+      source: cfg.sourceId,
       paint: {
-        'line-color': ['case', ['boolean', ['feature-state', 'hover'], false],
-          cfg.lineHoverColor, cfg.lineColor],
-        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.5, 1.5],
-      },
+        'line-color': ['case', ['boolean', ['feature-state', 'hover'], false], cfg.lineHoverColor, cfg.lineColor],
+        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.5, 1.5]
+      }
     });
     if (labelPoints.features.length > 1) {
       this.map.addSource(cfg.labelSourceId, { type: 'geojson', data: labelPoints });
       this.map.addLayer({
-        id: cfg.labelLayer, type: 'symbol', source: cfg.labelSourceId,
+        id: cfg.labelLayer,
+        type: 'symbol',
+        source: cfg.labelSourceId,
         layout: {
           'text-field': ['get', 'label'],
           'text-size': 11,
@@ -259,13 +274,13 @@ export class ExtentHandler extends EventTarget {
           'text-offset': [0.3, 0.3],
           'text-allow-overlap': false,
           'text-ignore-placement': false,
-          'text-font': ['Open Sans Semibold'],
+          'text-font': ['Open Sans Semibold']
         },
         paint: {
           'text-color': cfg.textColor,
           'text-halo-color': 'rgba(0, 0, 0, 0.7)',
-          'text-halo-width': 1,
-        },
+          'text-halo-width': 1
+        }
       });
     }
     this._addHoverHandlers(cfg);
@@ -281,7 +296,7 @@ export class ExtentHandler extends EventTarget {
   }
 
   _addHoverHandlers(cfg) {
-    const onMove = (e) => {
+    const onMove = e => {
       const features = this.map.queryRenderedFeatures(e.point, { layers: [cfg.fillLayer] });
       const prevIds = this._hoveredFeatures.get(cfg.sourceId) || new Set();
       const nextIds = new Set(features.map(f => f.id));

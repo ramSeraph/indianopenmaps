@@ -1,256 +1,256 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
-    background: #1a1a1a;
+  background: #1a1a1a;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    color: #e0e0e0;
-    min-height: 100vh;
-    padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 20px;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 20px;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
 }
 
 .header h1 {
-    font-size: 2.5rem;
-    background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 10px;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
 }
 
 .header p {
-    font-size: 1rem;
-    color: #999;
+  font-size: 1rem;
+  color: #999;
 }
 
 .header a {
-    color: #4a9eff;
-    text-decoration: none;
-    margin-top: 10px;
-    display: inline-block;
+  color: #4a9eff;
+  text-decoration: none;
+  margin-top: 10px;
+  display: inline-block;
 }
 
 .github-link {
-    color: #888;
-    display: block;
-    margin-top: 10px;
-    transition: color 0.2s;
+  color: #888;
+  display: block;
+  margin-top: 10px;
+  transition: color 0.2s;
 }
 
 .github-link:hover {
-    color: #e0e0e0;
+  color: #e0e0e0;
 }
 
 .github-link svg {
-    fill: currentColor;
+  fill: currentColor;
 }
 
 .search-box {
-    margin-bottom: 30px;
-    text-align: center;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
 .search-box input {
-    width: 100%;
-    max-width: 600px;
-    padding: 12px 20px;
-    font-size: 1rem;
-    background: rgba(42, 42, 42, 0.8);
-    border: 1px solid #444;
-    border-radius: 8px;
-    color: #e0e0e0;
+  width: 100%;
+  max-width: 600px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  background: rgba(42, 42, 42, 0.8);
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #e0e0e0;
 }
 
 .search-box input:focus {
-    outline: none;
-    border-color: #4a9eff;
+  outline: none;
+  border-color: #4a9eff;
 }
 
 .dataset-list {
-    display: grid;
-    gap: 15px;
+  display: grid;
+  gap: 15px;
 }
 
 .dataset-item {
-    background: rgba(42, 42, 42, 0.8);
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 20px;
-    transition: all 0.3s;
+  background: rgba(42, 42, 42, 0.8);
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s;
 }
 
 .dataset-item:hover {
-    background: rgba(52, 52, 52, 0.9);
-    border-color: #4a9eff;
-    transform: translateX(5px);
+  background: rgba(52, 52, 52, 0.9);
+  border-color: #4a9eff;
+  transform: translateX(5px);
 }
 
 .dataset-name {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #4a9eff;
-    margin-bottom: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4a9eff;
+  margin-bottom: 8px;
 }
 
 .dataset-links {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin-top: 10px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 .dataset-links a {
-    font-size: 0.9rem;
-    color: #888;
-    text-decoration: none;
-    padding: 5px 12px;
-    background: rgba(74, 158, 255, 0.1);
-    border-radius: 4px;
-    transition: all 0.2s;
+  font-size: 0.9rem;
+  color: #888;
+  text-decoration: none;
+  padding: 5px 12px;
+  background: rgba(74, 158, 255, 0.1);
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .dataset-links a:hover {
-    color: #4a9eff;
-    background: rgba(74, 158, 255, 0.2);
+  color: #4a9eff;
+  background: rgba(74, 158, 255, 0.2);
 }
 
 .no-results {
-    text-align: center;
-    color: #666;
-    padding: 40px;
-    font-size: 1.1rem;
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  font-size: 1.1rem;
 }
 
 .section {
-    margin-bottom: 50px;
+  margin-bottom: 50px;
 }
 
 .section-title {
-    font-size: 2rem;
-    color: #4a9eff;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #444;
+  font-size: 2rem;
+  color: #4a9eff;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #444;
 }
 
 .results-header {
-    font-size: 1rem;
-    color: #999;
-    margin: 20px 0 10px 0;
-    font-weight: 600;
+  font-size: 1rem;
+  color: #999;
+  margin: 20px 0 10px 0;
+  font-weight: 600;
 }
 
 .api-section {
-    background: rgba(42, 42, 42, 0.6);
-    border: 1px solid #444;
-    border-radius: 12px;
-    padding: 30px;
+  background: rgba(42, 42, 42, 0.6);
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 30px;
 }
 
 .api-section h3 {
-    color: #4a9eff;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
+  color: #4a9eff;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
 }
 
 .stac-links {
-    display: grid;
-    gap: 15px;
+  display: grid;
+  gap: 15px;
 }
 
 .stac-link-card {
-    background: rgba(26, 26, 26, 0.8);
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 20px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .stac-link-card:hover {
-    background: rgba(36, 36, 36, 0.9);
-    border-color: #4a9eff;
-    transform: translateX(5px);
+  background: rgba(36, 36, 36, 0.9);
+  border-color: #4a9eff;
+  transform: translateX(5px);
 }
 
 .stac-link-icon {
-    font-size: 2rem;
+  font-size: 2rem;
 }
 
 .stac-link-content h4 {
-    color: #4a9eff;
-    font-size: 1.2rem;
-    margin-bottom: 5px;
+  color: #4a9eff;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
 }
 
 .stac-link-content p {
-    color: #999;
-    font-size: 0.9rem;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .api-endpoint {
-    background: rgba(26, 26, 26, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .api-endpoint:hover {
-    border-color: #4a9eff;
-    background: rgba(36, 36, 36, 0.9);
+  border-color: #4a9eff;
+  background: rgba(36, 36, 36, 0.9);
 }
 
 .endpoint-method {
-    color: #4caf50;
-    font-weight: 600;
-    margin-right: 10px;
+  color: #4caf50;
+  font-weight: 600;
+  margin-right: 10px;
 }
 
 .endpoint-path {
-    color: #4a9eff;
-    flex: 1;
-    overflow-wrap: break-word;
-    word-break: break-all;
-    min-width: 0;
+  color: #4a9eff;
+  flex: 1;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  min-width: 0;
 }
 
 .endpoint-link {
-    color: #999;
-    text-decoration: none;
-    font-size: 0.8rem;
-    white-space: nowrap;
+  color: #999;
+  text-decoration: none;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .endpoint-link:hover {
-    color: #4a9eff;
+  color: #4a9eff;
 }

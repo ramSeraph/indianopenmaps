@@ -14,7 +14,7 @@ export class ColorHandler {
       '5856D6', // Indigo
       '00C7BE', // Teal
       'FC49A3', // Hot Pink
-      'FF5E3A', // Coral
+      'FF5E3A' // Coral
     ];
 
     this.availableColors = [...this.colors];
@@ -53,7 +53,7 @@ export class ColorHandler {
     if (sourcePath && this.sessionColorMap[sourcePath] !== undefined) {
       const colorIndex = this.sessionColorMap[sourcePath];
       const color = this.colors[colorIndex];
-      
+
       // Remove from available if present
       const idx = this.availableColors.indexOf(color);
       if (idx !== -1) {
@@ -74,20 +74,20 @@ export class ColorHandler {
 
     const color = this.availableColors.shift();
     const colorIndex = this.colors.indexOf(color);
-    
+
     // Remember this color assignment for the session
     if (sourcePath && colorIndex !== -1) {
       this.sessionColorMap[sourcePath] = colorIndex;
       this._saveSessionColors();
     }
-    
+
     return color;
   }
 
   _reclaimInactiveColors(activePaths) {
     const activeSet = new Set(activePaths);
     const toRemove = [];
-    
+
     for (const [path, colorIndex] of Object.entries(this.sessionColorMap)) {
       if (!activeSet.has(path)) {
         // This source is not active, reclaim its color
@@ -98,12 +98,12 @@ export class ColorHandler {
         toRemove.push(path);
       }
     }
-    
+
     // Remove reclaimed entries from session map
     for (const path of toRemove) {
       delete this.sessionColorMap[path];
     }
-    
+
     if (toRemove.length > 0) {
       this._saveSessionColors();
     }
@@ -112,5 +112,4 @@ export class ColorHandler {
   releaseColors(color) {
     this.availableColors.push(color);
   }
-
 }

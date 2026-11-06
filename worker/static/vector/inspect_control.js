@@ -3,25 +3,31 @@ import * as maplibregl from './maplibre.js';
 
 function displayValue(value, propName) {
   if (propName === '@timestamp') {
-    return value.toString() + "<br>[ " + (new Date(value * 1000)).toISOString() + " ]";
+    return value.toString() + '<br>[ ' + new Date(value * 1000).toISOString() + ' ]';
   }
   if (typeof value === 'undefined' || value === null) return value;
-  if (typeof value === 'object' ||
-      typeof value === 'number' ||
-      typeof value === 'string') return value.toString()
-                                              .replaceAll('&', '&amp;')
-                                              .replaceAll('<', '&lt;')
-                                              .replaceAll('>', '&gt;')
-                                              .replaceAll("'", '&#39;')
-                                              .replaceAll('"', '&quot;');
+  if (typeof value === 'object' || typeof value === 'number' || typeof value === 'string')
+    return value
+      .toString()
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll("'", '&#39;')
+      .replaceAll('"', '&quot;');
   return value;
 }
 
 function renderProperty(propertyName, property) {
-  return '<div class="maplibregl-ctrl-inspect_property">' +
-    '<div class="maplibregl-ctrl-inspect_property-name">' + propertyName + '</div>' +
-    '<div class="maplibregl-ctrl-inspect_property-value">' + displayValue(property, propertyName) + '</div>' +
-    '</div>';
+  return (
+    '<div class="maplibregl-ctrl-inspect_property">' +
+    '<div class="maplibregl-ctrl-inspect_property-name">' +
+    propertyName +
+    '</div>' +
+    '<div class="maplibregl-ctrl-inspect_property-value">' +
+    displayValue(property, propertyName) +
+    '</div>' +
+    '</div>'
+  );
 }
 
 function renderLayer(layerId, color = null) {
@@ -36,29 +42,39 @@ function renderProperties(feature, layerColor = null) {
   var properties = Object.keys(feature.properties).map(function (propertyName) {
     return renderProperty(propertyName, feature.properties[propertyName]);
   });
-  return (feature.id ? [sourceProperty, idProperty, typeProperty]
-    : [sourceProperty, typeProperty]).concat(properties).join('');
+  return (feature.id ? [sourceProperty, idProperty, typeProperty] : [sourceProperty, typeProperty])
+    .concat(properties)
+    .join('');
 }
 
 function renderFeatures(features, getLayerColor) {
-  return features.map(function (ft) {
-    const color = getLayerColor ? getLayerColor(ft) : null;
-    return '<div class="maplibregl-ctrl-inspect_feature">' + renderProperties(ft, color) + '</div>';
-  }).join('');
+  return features
+    .map(function (ft) {
+      const color = getLayerColor ? getLayerColor(ft) : null;
+      return '<div class="maplibregl-ctrl-inspect_feature">' + renderProperties(ft, color) + '</div>';
+    })
+    .join('');
 }
 
 function renderCoordinates(lngLat) {
-  return `<div class="maplibregl-ctrl-inspect_layer">Coords: ${(lngLat.lng).toFixed(5)},${(lngLat.lat).toFixed(5)}</div>`;
+  return `<div class="maplibregl-ctrl-inspect_layer">Coords: ${lngLat.lng.toFixed(5)},${lngLat.lat.toFixed(5)}</div>`;
 }
 
 function renderPopup(features, lngLat, getLayerColor, elevation) {
   let altitude = '';
   if (elevation !== undefined) {
-    const label = Number.isFinite(elevation) ? `Altitude: ≈ ${(Math.round(elevation) || 0).toLocaleString()} m`
+    const label = Number.isFinite(elevation)
+      ? `Altitude: ≈ ${(Math.round(elevation) || 0).toLocaleString()} m`
       : 'Altitude unavailable';
     altitude = `<div class="maplibregl-ctrl-inspect_elevation" role="status">${label}</div>`;
   }
-  return '<div class="maplibregl-ctrl-inspect_popup">' + renderCoordinates(lngLat) + altitude + renderFeatures(features, getLayerColor) + '</div>';
+  return (
+    '<div class="maplibregl-ctrl-inspect_popup">' +
+    renderCoordinates(lngLat) +
+    altitude +
+    renderFeatures(features, getLayerColor) +
+    '</div>'
+  );
 }
 
 export class PopupHandler {
@@ -68,26 +84,26 @@ export class PopupHandler {
     this.routesHandler = routesHandler;
     this.vectorSourceHandler = vectorSourceHandler;
     this.terrainHandler = terrainHandler;
-    
+
     // Click popup - persistent
     this.clickPopup = new maplibregl.Popup({
       closeButton: true,
       closeOnClick: false
     });
-    
+
     // Hover popup - transient
     this.hoverPopup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false
     });
-    
+
     this.highlightedFeatures = [];
     this.hoverEnabled = true;
     this.clickPopupOpen = false;
     this.clickedLocation = null;
     this.clickedFeatures = [];
     this.clickPopupHTML = null;
-    
+
     // Track when click popup is closed
     this.clickPopup.on('close', () => {
       this.clickPopupOpen = false;
@@ -107,42 +123,36 @@ export class PopupHandler {
   clearHighlight() {
     for (const { source, sourceLayer, id } of this.highlightedFeatures) {
       if (!this.map.getSource(source)) continue;
-      this.map.setFeatureState(
-        { source, sourceLayer, id },
-        { highlight: false }
-      );
+      this.map.setFeatureState({ source, sourceLayer, id }, { highlight: false });
     }
     this.highlightedFeatures = [];
   }
 
   highlightFeatures(features) {
     this.clearHighlight();
-    
+
     const routes = this.routesHandler.getVectorSources();
-    
+
     for (const feature of features) {
       const sourceId = feature.source;
-      
+
       // Find the source path from vectorSourceHandler
       let sourcePath = this.vectorSourceHandler.getPathBySourceName(feature.source);
-      
+
       if (!sourcePath || !routes[sourcePath]) continue;
-      
+
       const promoteId = routes[sourcePath].promoteid;
       if (!promoteId) continue;
-      
+
       // Get the feature id from the promoteId property
       const featureId = feature.properties[promoteId];
       if (featureId === undefined || featureId === null) continue;
-      
+
       const sourceLayer = feature.sourceLayer || feature.layer['source-layer'];
       if (!sourceLayer) continue;
-      
-      this.map.setFeatureState(
-        { source: sourceId, sourceLayer, id: featureId },
-        { highlight: true }
-      );
-      
+
+      this.map.setFeatureState({ source: sourceId, sourceLayer, id: featureId }, { highlight: true });
+
       this.highlightedFeatures.push({ source: sourceId, sourceLayer, id: featureId });
     }
   }
@@ -155,35 +165,32 @@ export class PopupHandler {
   queryFeatures(e) {
     var selectThreshold = 3;
     var queryBox = [
-      [
-        e.point.x - selectThreshold,
-        e.point.y + selectThreshold
-      ],
-      [
-        e.point.x + selectThreshold,
-        e.point.y - selectThreshold
-      ]
+      [e.point.x - selectThreshold, e.point.y + selectThreshold],
+      [e.point.x + selectThreshold, e.point.y - selectThreshold]
     ];
 
-    return this.map.queryRenderedFeatures(queryBox, {
-      layers: this.layers.polygons.concat(this.layers.lines.concat(this.layers.pts))
-    }) || [];
+    return (
+      this.map.queryRenderedFeatures(queryBox, {
+        layers: this.layers.polygons.concat(this.layers.lines.concat(this.layers.pts))
+      }) || []
+    );
   }
 
   handleMouseMove(e) {
     var features = this.queryFeatures(e);
-    this.map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    this.map.getCanvas().style.cursor = features.length ? 'pointer' : '';
 
     if (!features.length) {
       this.clearHighlight();
       this.hoverPopup.remove();
     } else {
       this.highlightFeatures(features);
-      
+
       // Show hover popup only if enabled and no click popup is open
       if (this.hoverEnabled && !this.clickPopupOpen) {
-        this.hoverPopup.setLngLat(e.lngLat)
-          .setHTML(renderPopup(features, e.lngLat, (ft) => this.getLayerColor(ft)))
+        this.hoverPopup
+          .setLngLat(e.lngLat)
+          .setHTML(renderPopup(features, e.lngLat, ft => this.getLayerColor(ft)))
           .addTo(this.map);
       }
     }
@@ -204,7 +211,7 @@ export class PopupHandler {
       this.clickedLocation = null;
       return;
     }
-    const html = renderPopup(this.clickedFeatures, this.clickedLocation, (ft) => this.getLayerColor(ft), elevation);
+    const html = renderPopup(this.clickedFeatures, this.clickedLocation, ft => this.getLayerColor(ft), elevation);
     if (html !== this.clickPopupHTML) {
       this.clickPopup.setLngLat(this.clickedLocation).setHTML(html);
       this.clickPopupHTML = html;
@@ -227,19 +234,19 @@ export class HoverPopupToggleControl {
     this.map = map;
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-    
+
     this.button = document.createElement('button');
     this.button.type = 'button';
     this.button.className = 'maplibregl-ctrl-hover-popup';
     this.button.setAttribute('aria-label', 'Toggle hover popup');
     this.updateButtonState();
-    
+
     this.button.addEventListener('click', () => {
       this.enabled = !this.enabled;
       this.popupHandler.setHoverEnabled(this.enabled);
       this.updateButtonState();
     });
-    
+
     this.container.appendChild(this.button);
     return this.container;
   }
@@ -248,7 +255,9 @@ export class HoverPopupToggleControl {
     // Message box icon - same outline shape, blue when enabled, black when disabled
     const color = this.enabled ? '#29b6f6' : '#333';
     this.button.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" style="color: ${color}"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>`;
-    this.button.title = this.enabled ? 'Hover popup enabled - click to disable' : 'Hover popup disabled - click to enable';
+    this.button.title = this.enabled
+      ? 'Hover popup enabled - click to disable'
+      : 'Hover popup disabled - click to enable';
   }
 
   onRemove() {
