@@ -1,8 +1,8 @@
 import { parquetMetadataAsync, parquetRead, parquetSchema } from 'hyparquet';
-import { fetchWithRetry } from './request.js';
-import { sharedRangeCache } from './range_cache.js';
-import { etagMismatch, strongEtag } from './http_etag.js';
-import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
+import { fetchWithRetry } from '../lib/request.js';
+import { sharedRangeCache } from '../lib/range_cache.js';
+import { etagMismatch, strongEtag } from '../lib/http_etag.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from '../lib/cache_policy.js';
 
 const SEARCH_COLUMNS = ['id', 'bbox', 'geometry', 'datetime', 'start_datetime', 'end_datetime', 'properties'];
 const MAX_INDEX_BYTES = 256 * 1024 * 1024;

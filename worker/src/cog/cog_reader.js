@@ -5,8 +5,8 @@ import { PhotonImage } from '@cf-wasm/photon';
 import { SourceChunk } from '@chunkd/middleware';
 import { SourceView } from '@chunkd/source';
 import { SourceHttp } from '@chunkd/source-http';
-import { BadRequestError } from './errors.js';
-import { fetchWithRetry } from './request.js';
+import { BadRequestError } from '../lib/errors.js';
+import { fetchWithRetry } from '../lib/request.js';
 
 // Use SourceHttp's supported fetch hook for both HEAD and range requests.
 SourceHttp.fetch = fetchWithRetry;

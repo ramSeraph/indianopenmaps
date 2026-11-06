@@ -3,10 +3,10 @@ import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { Hono } from 'hono';
 import { registerStacRoutes } from '../src/routes/stac.js';
-import { bboxGeometry } from '../src/lib/stac_query.js';
-import { fetchStacPages } from '../static/js/stac_pagination.js';
+import { bboxGeometry } from '../src/stac/stac_query.js';
+import { fetchStacPages } from '../static/stac/pagination.js';
 import { RangeCache } from '../src/lib/range_cache.js';
-import STACHandler from '../src/lib/stac_handler.js';
+import STACHandler from '../src/stac/stac_handler.js';
 
 const base = 'https://example.org/stac';
 const item = (id, bbox = [77, 28, 78, 29], datetime = '2025-01-01T00:00:00Z') => ({

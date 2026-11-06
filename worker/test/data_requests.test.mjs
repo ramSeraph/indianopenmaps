@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { Hono } from 'hono';
 import { registerProxyRoutes } from '../src/routes/proxy.js';
-import STACHandler from '../src/lib/stac_handler.js';
+import STACHandler from '../src/stac/stac_handler.js';
 
 const url = 'https://github.com/owner/repo/releases/download/data/archive.parquet';
 const logger = { info() {}, error() { assert.fail('successful retries must not log an error'); } };

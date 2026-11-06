@@ -2,7 +2,7 @@
 // some of this html/js was copied from https://kokoalberti.com/articles/georeferencing-and-digitizing-old-maps-with-gdal/ and https://server.nikhilvj.co.in/pmgsy
 
 import { extendLeaflet } from 'https://esm.sh/@india-boundary-corrector/leaflet-layer@latest';
-import { fetchTileJSON } from './tile_cache.js';
+import { fetchTileJSON } from '../shared/tile_cache.js';
 
 // Preset base layers with short identifiers
 const PRESETS = {

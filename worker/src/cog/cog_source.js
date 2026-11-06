@@ -1,9 +1,9 @@
 import { SourceError } from '@chunkd/source';
-import { HttpError } from './errors.js';
-import { strongEtag, etagMismatch } from './http_etag.js';
-import { fetchWithRetry } from './request.js';
-import { RefreshCache } from './refresh_cache.js';
-import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
+import { HttpError } from '../lib/errors.js';
+import { strongEtag, etagMismatch } from '../lib/http_etag.js';
+import { fetchWithRetry } from '../lib/request.js';
+import { RefreshCache } from '../lib/refresh_cache.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from '../lib/cache_policy.js';
 
 const MAX_SOURCES = 100;
 const MAX_RANGE_BYTES = 16 * 1024 * 1024;

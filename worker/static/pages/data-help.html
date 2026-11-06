@@ -4,192 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Help - Indian Open Maps</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html {
-            background: #1a1a1a;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 40px 20px;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 1.1rem;
-            color: #999;
-        }
-        
-        .back-link {
-            display: inline-block;
-            margin-bottom: 30px;
-            color: #4a9eff;
-            text-decoration: none;
-            font-size: 0.95rem;
-        }
-        
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        
-        .github-link {
-            color: #888;
-            transition: color 0.2s;
-        }
-        
-        .github-link:hover {
-            color: #e0e0e0;
-        }
-        
-        .github-link svg {
-            fill: currentColor;
-        }
-        
-        section {
-            background: rgba(42, 42, 42, 0.8);
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
-        }
-        
-        h2 {
-            font-size: 1.5rem;
-            color: #4a9eff;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #444;
-        }
-        
-        h3 {
-            font-size: 1.2rem;
-            color: #e0e0e0;
-            margin: 20px 0 10px 0;
-        }
-        
-        p {
-            color: #bbb;
-            margin-bottom: 15px;
-        }
-        
-        ul, ol {
-            color: #bbb;
-            margin-left: 25px;
-            margin-bottom: 15px;
-        }
-        
-        li {
-            margin-bottom: 8px;
-        }
-        
-        code {
-            background: #333;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9em;
-            color: #00d4ff;
-        }
-        
-        pre {
-            background: #333;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin-bottom: 15px;
-        }
-        
-        pre code {
-            background: none;
-            padding: 0;
-        }
-        
-        a {
-            color: #4a9eff;
-        }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        .tool-card {
-            background: rgba(50, 50, 50, 0.5);
-            border: 1px solid #555;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .tool-card h4 {
-            color: #4a9eff;
-            margin-bottom: 8px;
-        }
-        
-        .tool-card p {
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-        
-        .anchor-link {
-            color: #666;
-            text-decoration: none;
-            margin-left: 8px;
-            font-size: 0.8em;
-        }
-        
-        .anchor-link:hover {
-            color: #4a9eff;
-        }
-    </style>
+    <link rel="stylesheet" href="/pages/data-help.css">
 </head>
 <body>
     <div class="container">
         
         <div class="header">
             <h1>Data Help</h1>
-            <p>Guide to working with downloaded data</p>
+            <p>Find, download and use vector data and raster maps</p>
             <br>
             <a href="https://github.com/ramSeraph/indianopenmaps" target="_blank" class="github-link" title="GitHub">
                 <svg height="18" width="18" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
             </a>
         </div>
         
+        <nav class="section-links" aria-label="On this page">
+            <a href="/">Home</a>
+            <a href="#downloads">Downloads</a>
+            <a href="#geoparquet">GeoParquet</a>
+            <a href="#iomaps">Vector CLI</a>
+            <a href="#partitioned">Partitions</a>
+            <a href="#rasters">Raster maps</a>
+        </nav>
+
+        <section id="downloads">
+            <h2>Choose a Download <a href="#downloads" class="anchor-link">#</a></h2>
+            <p>Data files are hosted in GitHub Releases. Each dataset's release lists the available files, source information and reuse terms.</p>
+            <ul>
+                <li><strong>Vector features:</strong> find a dataset in the <a href="/vectors">vector catalog</a>. In its map viewer, open Downloads, choose the source and use Partial Download to export the current map extent. Formats include GeoPackage, GeoJSON, GeoParquet, FlatGeobuf, CSV and Shapefile.</li>
+                <li><strong>Full datasets:</strong> use the release or full-download links. Large datasets may have several files; see <a href="#partitioned">Partitioned Data</a>.</li>
+                <li><strong>Raster maps and elevation:</strong> browse the <a href="/stac-viewer">STAC collections</a> for individual GeoTIFF sheets, or <a href="#rasters">extract an area with the CLI</a>.</li>
+            </ul>
+            <p>PMTiles and PNG/WebP tiles are for map display. Use the feature downloads for vector analysis and GeoTIFF assets for imagery or elevation values. A STAC GeoParquet index contains sheet metadata and links, not image pixels.</p>
+            <p>Browser extraction uses your device's memory and temporary storage. Start with a small area; use the CLI for larger jobs. Geographic selection retains whole intersecting vector features rather than cutting them at the selection boundary.</p>
+        </section>
+
         <section id="geoparquet">
             <h2>GeoParquet Format <a href="#geoparquet" class="anchor-link">#</a></h2>
             
-            <p>All data available for download is in <strong>GeoParquet 1.1</strong> format. GeoParquet is a geospatial extension of Apache Parquet that stores geometries as WKB (Well-Known Binary) with per-row-group bounding box columns, enabling efficient spatial filtering without scanning entire files.</p>
+            <p>Vector source downloads are available as <strong>GeoParquet</strong>. Many use GeoParquet 1.1 with WKB (Well-Known Binary) geometry and a per-feature bounding box column. Parquet statistics for those columns let compatible readers skip row groups outside an area of interest. Raster downloads use GeoTIFF; available formats vary by dataset.</p>
             
-            <div class="tool-card" style="background: rgba(74, 158, 255, 0.1); border-color: #4a9eff;">
-                <h4 style="color: #4a9eff;">💡 Bbox Column Filtering</h4>
-                <p>GeoParquet 1.1 includes <code>bbox</code> struct columns (xmin, ymin, xmax, ymax) alongside the geometry. Tools like DuckDB can use these columns to skip entire row groups that fall outside your area of interest, dramatically reducing the amount of data downloaded from remote files.</p>
+            <div class="tool-card tip-card">
+                <h4>💡 Bbox Column Filtering</h4>
+                <p>GeoParquet 1.1 supports optional bounding box covering metadata. Our prepared vector files commonly use a <code>bbox</code> struct with xmin, ymin, xmax and ymax fields. Check the file schema before using the SQL examples below. Remote reads can still transfer large row groups; the savings depend on the file layout and the reader.</p>
             </div>
             
             <h3>Why GeoParquet?</h3>
@@ -205,7 +62,7 @@
             
             <div class="tool-card">
                 <h4>QGIS</h4>
-                <p>Free and open-source desktop GIS. <strong>QGIS 3.28+</strong> with <strong>GDAL 3.5+</strong> supports GeoParquet.</p>
+                <p>Free and open-source desktop GIS. Use a QGIS build with the GDAL Parquet driver enabled; GDAL 3.9 or newer supports GeoParquet 1.1. Driver availability depends on the QGIS installation.</p>
                 <p>Simply drag and drop the .parquet file into QGIS or use Layer → Add Layer → Add Vector Layer.</p>
                 <p><a href="https://qgis.org/" target="_blank">Download QGIS →</a> | <a href="https://github.com/cholmes/qgis_plugin_gpq_downloader" target="_blank">GeoParquet Downloader Plugin (for remote files) →</a></p>
             </div>
@@ -236,7 +93,7 @@ WHERE bbox.xmin &lt;= 77.7 AND bbox.xmax &gt;= 77.5
             
             <div class="tool-card">
                 <h4>GeoPandas (Python)</h4>
-                <p>Python library for working with geospatial data. Requires <strong>GeoPandas 0.14+</strong> with <strong>PyArrow</strong>.</p>
+                <p>Python library for working with geospatial data. Use <strong>GeoPandas 1.0 or newer</strong> with <strong>PyArrow</strong> for the bbox examples. The file must contain supported bounding box covering metadata.</p>
                 <pre><code>import geopandas as gpd
 from shapely.geometry import box
 
@@ -244,19 +101,23 @@ from shapely.geometry import box
 gdf = gpd.read_parquet('file.parquet')
 
 # Filter by bounding box
-bbox = box(77.5, 12.9, 77.7, 13.1)
+bbox = (77.5, 12.9, 77.7, 13.1)
 gdf = gpd.read_parquet('file.parquet', bbox=bbox)
 
 # Read from remote URL with bbox filter
-gdf = gpd.read_parquet('https://example.com/data.parquet', bbox=bbox)</code></pre>
-                <p><a href="https://geopandas.org/" target="_blank">GeoPandas Documentation →</a></p>
+gdf = gpd.read_parquet('https://example.com/data.parquet', bbox=bbox)
+
+# Optional: exact intersection after bounding box filtering
+gdf = gdf[gdf.intersects(box(*bbox))]</code></pre>
+                <p>Bounds use the file's coordinate reference system. These examples assume WGS84 longitude/latitude. Bbox filtering selects candidate features; the optional intersection check removes features whose bounding boxes overlap but whose geometry does not.</p>
+                <p><a href="https://geopandas.org/en/stable/docs/reference/api/geopandas.read_parquet.html" target="_blank">GeoPandas read_parquet documentation →</a></p>
             </div>
             
             <h3>Converting to Other Formats</h3>
             
             <div class="tool-card">
                 <h4>Using ogr2ogr (GDAL)</h4>
-                <p>Command-line tool for converting between geospatial formats. Requires <strong>GDAL 3.5+</strong> for GeoParquet support.</p>
+                <p>Command-line tool for converting between geospatial formats. Use <strong>GDAL 3.9+</strong> for GeoParquet 1.1 and a build with the Parquet driver. Check with <code>ogrinfo --format Parquet</code>.</p>
                 <pre><code># Convert to GeoJSON
 ogr2ogr -f GeoJSON output.geojson input.parquet
 
@@ -272,10 +133,10 @@ ogr2ogr -f FlatGeobuf output.fgb input.parquet
 # Read from remote URL using /vsicurl/
 ogr2ogr -f GPKG output.gpkg /vsicurl/https://example.com/data.parquet
 
-# Extract bbox from remote file (downloads only relevant portions)
+# Select intersecting features from a remote file
 ogr2ogr -f GPKG output.gpkg /vsicurl/https://example.com/data.parquet \
   -spat 77.5 12.9 77.7 13.1</code></pre>
-                <p><a href="https://gdal.org/programs/ogr2ogr.html" target="_blank">ogr2ogr Documentation →</a></p>
+                <p><a href="https://gdal.org/en/stable/programs/ogr2ogr.html" target="_blank">ogr2ogr Documentation →</a> · <a href="https://gdal.org/en/stable/drivers/vector/parquet.html" target="_blank">GDAL Parquet driver requirements →</a></p>
             </div>
             
             <div class="tool-card">
@@ -307,13 +168,11 @@ gdal vector pipeline \
             <div class="tool-card">
                 <h4>Using GeoPandas (Python)</h4>
                 <pre><code>import geopandas as gpd
-from shapely.geometry import box
-
 # Read GeoParquet
 gdf = gpd.read_parquet('input.parquet')
 
 # Read with bbox filter (efficient for large/remote files)
-bbox = box(77.5, 12.9, 77.7, 13.1)
+bbox = (77.5, 12.9, 77.7, 13.1)
 gdf = gpd.read_parquet('input.parquet', bbox=bbox)
 
 # Export to various formats
@@ -358,72 +217,65 @@ gpio convert input.parquet output.gpkg
 gpio convert input.parquet output.fgb
 
 # Extract by bounding box from remote URL
-gpio extract --bbox "77.5,12.9,77.7,13.1" https://example.com/data.parquet -o local.parquet
+gpio extract https://example.com/data.parquet local.parquet --bbox "77.5,12.9,77.7,13.1"
 
 # Extract bbox and pipe to convert in one command
-gpio extract --bbox "77.5,12.9,77.7,13.1" https://example.com/data.parquet | \
+gpio extract https://example.com/data.parquet --bbox "77.5,12.9,77.7,13.1" | \
 gpio convert - output.geojson
 
 # Python API
 import geoparquet_io as gpio
-gpio.convert('input.parquet').write('output.geojson')</code></pre>
+gpio.read('input.parquet').to_geojson('output.geojson')</code></pre>
                 <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a>:<br>
                 <code>uvx --from geoparquet-io gpio convert input.parquet output.geojson</code></p>
                 <p><a href="https://geoparquet.io/" target="_blank">geoparquet-io Documentation →</a></p>
             </div>
             
-            <h3>Using iomaps CLI</h3>
+            <h3 id="iomaps">Using iomaps CLI</h3>
             <p>Our Python package <code>iomaps</code> can extract and convert data with spatial filtering. Use <code>iomaps cli sources</code> to list available sources and pick one for extraction:</p>
             <pre><code># Install
 pip install iomaps
 
-# List available sources
+# List sources and find candidates covering an area
 iomaps cli sources
+iomaps cli search --bounds "77.5,12.9,77.7,13.1"
 
-# Extract with bounding box and convert to GeoPackage
-iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
+# Use a source route returned by the catalog
+iomaps cli extract -s /states/soi/ -o states.gpkg -b "77.5,12.9,77.7,13.1"</code></pre>
             <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a> (no install required):</p>
             <pre><code>uvx iomaps cli sources
-uvx iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
+uvx iomaps cli extract -s /states/soi/ -o states.gpkg -b "77.5,12.9,77.7,13.1"</code></pre>
+            <p>Bounds are WGS84 <code>west,south,east,north</code>. Coverage search finds approximate candidates; extraction checks the actual feature geometries. Use <code>--filter-file area.geojson</code> instead of <code>-b</code> for a polygon selection. Matching features retain their full geometry.</p>
+            <p>Replace <code>https://example.com/...</code> in the examples above with a release asset URL. See the <a href="https://github.com/ramSeraph/indianopenmaps/tree/main/python#extracting-from-remote-geoparquet-files" target="_blank">iomaps command documentation</a> for output formats and selection options.</p>
         </section>
-        
+
         <section id="partitioned">
             <h2>Partitioned Data <a href="#partitioned" class="anchor-link">#</a></h2>
-            <p>Some large datasets are split into multiple partition files for easier handling. Each partition covers a different geographic area.</p>
+            <p>Some large datasets are split into multiple partition files for easier handling. Partitions group features spatially, but their bounding boxes can overlap.</p>
             
-            <div class="tool-card" style="background: rgba(74, 158, 255, 0.1); border-color: #4a9eff;">
-                <h4 style="color: #4a9eff;">💡 Recommended: Use iomaps CLI</h4>
-                <p>Due to current hosting constraints, we couldn't use standard partitioning schemes like Iceberg or Hive (this may change in the future). Instead, partition metadata is stored in a custom <code>&lt;base_name&gt;.parquet.meta.json</code> file next to the partitions. This file contains the spatial extents of each partition and the schema of the data.</p>
-                <p>The <code>iomaps</code> CLI understands this format and automatically leverages the metadata to efficiently extract and convert data from partitioned sources—downloading only portions of the partitions needed for your area of interest.</p>
-                <pre><code># Install
-pip install iomaps
-
-# List available sources
-iomaps cli sources
-
-# Extract from partitioned source with spatial filtering
-iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
-                <p>Or run using <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">uv</a> (no install required):</p>
-                <pre><code>uvx iomaps cli sources
-uvx iomaps cli extract -s source_name -o output.gpkg -b "min_lon,min_lat,max_lon,max_lat"</code></pre>
+            <div class="tool-card tip-card">
+                <h4>💡 Recommended: Use iomaps CLI</h4>
+                <p>Partition metadata is stored in a <code>&lt;base_name&gt;.parquet.meta.json</code> file next to the partitions. This file contains the spatial extents of each partition and the schema of the data.</p>
+                <p>The browser download tool and <code>iomaps</code> use this metadata to choose intersecting partitions and read matching data. Use the source route with the same extraction command as for a single-file dataset.</p>
+                <p>See <a href="#iomaps">Using iomaps CLI</a> for commands.</p>
             </div>
             
             <h3>Manual Extraction from Partitions</h3>
             <p>If you want to extract only portions you're interested in manually, you can apply spatial filters on each remote partition and merge the resulting filtered files:</p>
-            <pre><code># Filter each partition individually (only downloads relevant portions)
+            <pre><code># Filter each partition individually
 ogr2ogr -f GPKG filtered1.gpkg /vsicurl/https://example.com/part1.parquet -spat 77.5 12.9 77.7 13.1
 ogr2ogr -f GPKG filtered2.gpkg /vsicurl/https://example.com/part2.parquet -spat 77.5 12.9 77.7 13.1
 
 # Then merge the filtered results
-ogr2ogr -f GPKG merged.gpkg filtered1.gpkg
-ogr2ogr -f GPKG -append merged.gpkg filtered2.gpkg</code></pre>
+ogr2ogr -f GPKG merged.gpkg filtered1.gpkg -nln features
+ogr2ogr -f GPKG -update -append merged.gpkg filtered2.gpkg -nln features</code></pre>
             
             <h3>Merging Full Partitions</h3>
-            <p>If you need the complete dataset, download the partitions and merge them:</p>
+            <p>If you need the complete dataset, download the partitions and merge them. The inputs must have compatible schemas and the same CRS. The Python example loads every partition into memory:</p>
             <pre><code># Using ogr2ogr
-ogr2ogr -f GPKG merged.gpkg part1.parquet
-ogr2ogr -f GPKG -append merged.gpkg part2.parquet
-ogr2ogr -f GPKG -append merged.gpkg part3.parquet
+ogr2ogr -f GPKG merged.gpkg part1.parquet -nln features
+ogr2ogr -f GPKG -update -append merged.gpkg part2.parquet -nln features
+ogr2ogr -f GPKG -update -append merged.gpkg part3.parquet -nln features
 
 # Using Python
 import geopandas as gpd
@@ -431,8 +283,23 @@ import pandas as pd
 
 files = ['part1.parquet', 'part2.parquet', 'part3.parquet']
 gdfs = [gpd.read_parquet(f) for f in files]
-merged = pd.concat(gdfs, ignore_index=True)
+merged = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True), crs=gdfs[0].crs)
 merged.to_parquet('merged.parquet')</code></pre>
+        </section>
+        <section id="rasters">
+            <h2>Raster Maps and Elevation <a href="#rasters" class="anchor-link">#</a></h2>
+            <p>The <a href="/stac-viewer">STAC viewer</a> lists map collections and sheet footprints. Item assets link to GeoTIFFs and, where available, original scans. Collections can exist without a PMTiles mosaic or a View Map entry in the raster tile list.</p>
+            <p>Use <code>iomaps cli stac</code> to find sheets and extract an area. It reads the published indexes and rasters directly from GitHub Releases:</p>
+            <pre><code># List collections and search for sheets
+iomaps cli stac collections
+iomaps cli stac search -c india-topo-50k -b "77.6,13.1,77.61,13.11"
+
+# Crop matching sheets into a Cloud-Optimized GeoTIFF
+iomaps cli stac extract -c india-topo-50k \
+  -b "77.6,13.1,77.61,13.11" -o bengaluru.tif</code></pre>
+            <p>Raster extraction needs <code>gdalwarp</code> on PATH with the COG driver available. Bounds use WGS84 <code>west,south,east,north</code>; the output defaults to the source CRS and resolution. Use <code>--crs</code> and <code>--resolution</code> to change them. Elevation data retains its numeric values.</p>
+            <p>After collections are updated, run <code>iomaps cli stac --refresh collections</code> to refresh discovery metadata. A sheet's recorded date may describe publication or indexing rather than the survey date; check its collection description.</p>
+            <p><a href="https://github.com/ramSeraph/indianopenmaps/tree/main/python#raster-discovery-and-bbox-extraction" target="_blank">Raster CLI and Python examples →</a> · <a href="/stac/api.html">STAC API help →</a></p>
         </section>
     </div>
 </body>

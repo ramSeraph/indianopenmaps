@@ -1,5 +1,5 @@
 import * as maplibregl from './maplibre.js';
-import { tileCacheUrl } from './tile_cache.js';
+import { tileCacheUrl } from '../shared/tile_cache.js';
 
 export class TerrainHandler {
   constructor(searchParams) {

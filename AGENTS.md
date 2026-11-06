@@ -243,7 +243,7 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 - **No build step**: Browser-native ES modules, CSS files served directly
 - **Key patterns**:
   - Modules loaded via `https://esm.sh/` CDN
-  - Local modules in `/js/` use ES module syntax
+  - Local modules in the feature folders use ES module syntax
   - India boundary correction via `@india-boundary-corrector/maplibre-protocol`
   - Web Workers for heavy processing (GeoPackage writing)
   - Web Locks API for tab-aware orphan file cleanup
@@ -253,15 +253,18 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 ### Handlers (in `worker/src/`)
 - **`pmtiles_handler.js`**: Serves tiles from single PMTiles archives (shared 100-item resolved-value cache; metadata refreshes at the configured interval, one hour by default)
 - **`mosaic_handler.js`**: Serves tiles from multiple PMTiles files (mosaic format v1, Flatbush spatial index for efficient tile lookup when ≥10 sources)
-- **`cog_handler.js`**: Dynamic tile generation from COGs with mask support (FilteredTiff separates mask/RGB, MaskAwareTiler for alpha blending)
-- **`stac_handler.js`**: STAC API v1.0.0 for COG collections; item indices stored in geoparquet files
-- **`tile_maker_photon.js`**: WebAssembly-based tile composition using @cf-wasm/photon (crop, resize, overlay, RGBA handling)
+- **`cog/cog_handler.js`**: Dynamic tile generation from COGs with mask support
+- **`stac/stac_handler.js`**: STAC API v1.0.0 for COG collections; item indices stored in geoparquet files
+- **`cog/tile_maker_photon.js`**: WebAssembly-based tile composition using @cf-wasm/photon (crop, resize, overlay, RGBA handling)
 
 ### Key Files
 - **`index.js`**: Main entry point, Hono app setup with modular route registration
 - **`routes/`**: Route handlers split by feature (tiles, stac, cog, proxy, static)
+- **`stac/`**: STAC handler, Parquet reader, query handling and OpenAPI schema
+- **`cog/`**: COG handler, reader, source revalidation and tile composition
+- **`lib/`**: Shared utilities and PMTiles/mosaic implementations; COG and STAC share the byte-range cache here
 - **`routes/listing.json`**: Configuration for tile sources (~4,900 lines; URLs, types, handlers, categories)
-- **`routes/stac_catalog.json`**: STAC catalog configuration
+- **`routes/stac_catalog.json`**: STAC catalog configuration; keep this path stable because published Python clients read its raw GitHub URL
 - **`routes/proxy_whitelist.json`**: Allowed domains for proxy (GitHub URLs, localhost)
 - **`errors.js`**: Custom HTTP error classes (HttpError base → NotFoundError, BadRequestError, ForbiddenError, UnauthorizedError, UnknownError, ResourceUnavailableError)
 - **`common.js`**: Shared utilities (getMimeType, getExt, extendAttribution)
@@ -284,18 +287,33 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
 - `GET /proxy?url=` - Proxy (whitelisted URLs, supports Range requests)
 
 ### Static Pages
-- `/` → `index.html` (landing page)
-- `/vectors` → `vectors.html`
-- `/rasters` → `rasters.html`
-- `/viewer` → `viewer.html` (main vector viewer)
-- `/raster-viewer` → `raster_view.html` (dual-map raster comparison)
-- `/stac-viewer` → `stac_viewer.html`
-- `/cog-viewer` → `cog-viewer.html`
-- `/data-help` → `data-help.html`
+- `/` → `pages/home.html` (landing page)
+- `/vectors` → `pages/vectors.html`
+- `/rasters` → `pages/rasters.html`
+- `/viewer` → `vector/viewer.html` (main vector viewer)
+- `/raster-viewer` → `raster/viewer.html` (dual-map raster comparison)
+- `/stac-viewer` → `stac/viewer.html`
+- `/cog-viewer` → `cog/viewer.html`
+- `/data-help` → `pages/data-help.html`
 
 ## Frontend Architecture (`worker/static/`)
 
-### Main Viewer (`js/viewer.js`)
+Static files are grouped by purpose, with each page's HTML, CSS and JavaScript
+kept together:
+- `pages/`: home, vector/raster catalogs and data help
+- `vector/`: MapLibre viewer, controls and download UI
+- `raster/`: dual-map raster viewer
+- `stac/`: STAC viewer, pagination and API help page
+- `cog/`: COG viewer
+- `shared/`: modules reused by multiple viewers
+
+Public page URLs are mapped in `src/routes/static.js`; STAC API help remains at
+`/stac/api.html` through `src/routes/stac.js`. Use absolute asset URLs in HTML so
+both public aliases and the Assets paths work. JavaScript imports use relative
+paths within and between feature folders. Keep the vector viewer's import map in
+its HTML; executable page scripts and styles live in separate files.
+
+### Main Viewer (`vector/viewer.js`)
 - Vector tile viewer with MapLibre GL
 - All dependencies injected at construction (no late `setMap()` calls)
 - Constructors with 3+ params use destructured config objects for readability
@@ -313,7 +331,7 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
   - `size_getter.js` - File size estimation utilities
   - `extent_handler.js` - Visualizes data extents and row group extents as map rectangles; extends `EventTarget`, dispatches `'loadingchange'` CustomEvents
 
-### Download System (`js/download_panel_control.js` + related)
+### Download System (`vector/download_panel_control.js` + related)
 - Multi-format download UI with spatial filtering (bbox or polygon)
 - Split into two focused classes:
   - `download_panel_control.js` - Source dropdown, source info display, full download links
@@ -330,17 +348,17 @@ https://gis.dda.org.in/server/rest/services/Hosted/MAP_1_LANDUSE_PLAN_FOR_DELHI_
   - `parquet_metadata.js` - Parquet metadata caching; fetches `.parquet.meta.json`; partition/bbox lookups
   - `duckdb_client.js` - Singleton DuckDB WASM client (v1.33.0, spatial + httpfs extensions)
 
-### STAC Viewer (`js/stac_viewer.js`)
+### STAC Viewer (`stac/viewer.js`)
 - Leaflet-based viewer for STAC collections
 - Displays COG tiles on-demand
 
-### Raster Viewer (`js/raster_view.js`)
+### Raster Viewer (`raster/viewer.js`)
 - Dual-map Leaflet viewer with side-by-side comparison and synchronized panning
 
 ### Styling
-- `css/viewer.css` - All viewer styles (sidebar, panels, map controls, source panel, download panel, category filters)
-- `css/raster_view.css` - Dual-map raster viewer styles
-- `viewer.html` is minimal (~29 lines) — just head with stylesheet links and body with map div
+- `vector/viewer.css` - All viewer styles (sidebar, panels, map controls, source panel, download panel, category filters)
+- `raster/viewer.css` - Dual-map raster viewer styles
+- `vector/viewer.html` is minimal (~29 lines) — just head with stylesheet links and body with map div
 
 ## Code Style & Conventions
 

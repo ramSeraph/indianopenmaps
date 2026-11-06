@@ -1,6 +1,6 @@
 // STAC Viewer JavaScript
-import { fetchStacPages } from './stac_pagination.js';
-import { tileCacheUrl } from './tile_cache.js';
+import { fetchStacPages } from './pagination.js';
+import { tileCacheUrl } from '../shared/tile_cache.js';
 const STAC_API_BASE = window.location.origin + '/stac';
 const COG_TILER_BASE = window.location.origin + '/cog-tiles';
 

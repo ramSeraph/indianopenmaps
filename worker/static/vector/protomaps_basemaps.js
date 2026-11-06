@@ -1,4 +1,4 @@
-import { fetchTileJSON } from './tile_cache.js';
+import { fetchTileJSON } from '../shared/tile_cache.js';
 
 // Public browser key; local overrides come from the Worker's runtime config.
 const API_KEY = globalThis.IOMAPS_CONFIG?.protomapsApiKey || '693abf6cacee62be';

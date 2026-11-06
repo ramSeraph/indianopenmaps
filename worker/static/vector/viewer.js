@@ -2,18 +2,18 @@ import * as maplibregl from './maplibre.js';
 import { Protocol } from 'https://esm.sh/pmtiles@4.3.0';
 import MaplibreGeocoder from 'https://esm.sh/@maplibre/maplibre-gl-geocoder@1.9.1';
 
-import { BaseLayerPicker } from '/js/base_layer_picker.js';
-import { PROTOMAPS_GLYPHS } from '/js/protomaps_basemaps.js';
-import { SearchParamHandler } from '/js/search_param_handler.js';
-import { ColorHandler } from '/js/color_handler.js';
-import { VectorSourceHandler } from '/js/vector_source_handler.js';
-import { PopupHandler, HoverPopupToggleControl } from '/js/inspect_control.js';
-import { nominatimGeocoder } from '/js/nominatim_geocoder.js';
-import { SourcePanelControl } from '/js/source_panel_control.js';
-import { DownloadPanelControl } from '/js/download_panel_control.js';
-import { RoutesHandler } from '/js/routes_handler.js';
-import { TerrainHandler } from '/js/terrain_handler.js';
-import { SidebarControl } from '/js/sidebar_control.js';
+import { BaseLayerPicker } from './base_layer_picker.js';
+import { PROTOMAPS_GLYPHS } from './protomaps_basemaps.js';
+import { SearchParamHandler } from './search_param_handler.js';
+import { ColorHandler } from './color_handler.js';
+import { VectorSourceHandler } from './vector_source_handler.js';
+import { PopupHandler, HoverPopupToggleControl } from './inspect_control.js';
+import { nominatimGeocoder } from './nominatim_geocoder.js';
+import { SourcePanelControl } from './source_panel_control.js';
+import { DownloadPanelControl } from './download_panel_control.js';
+import { RoutesHandler } from './routes_handler.js';
+import { TerrainHandler } from './terrain_handler.js';
+import { SidebarControl } from './sidebar_control.js';
 
 import { registerCorrectionProtocol } from 'https://esm.sh/@india-boundary-corrector/maplibre-protocol@latest';
 

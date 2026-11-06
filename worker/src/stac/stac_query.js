@@ -1,5 +1,5 @@
 import { booleanIntersects } from '@turf/boolean-intersects';
-import { BadRequestError } from './errors.js';
+import { BadRequestError } from '../lib/errors.js';
 
 export const PAGE_LIMIT = 1000;
 

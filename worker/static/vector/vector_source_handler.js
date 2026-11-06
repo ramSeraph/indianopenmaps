@@ -1,6 +1,6 @@
 // Vector source and layer management
 import * as maplibregl from './maplibre.js';
-import { fetchTileJSON } from './tile_cache.js';
+import { fetchTileJSON } from '../shared/tile_cache.js';
 
 export class VectorSourceHandler {
   #selectedSources = new Map();

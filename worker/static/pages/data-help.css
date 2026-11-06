@@ -1,0 +1,176 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: #1a1a1a;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 40px 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #4a9eff 0%, #00d4ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+}
+
+.header p {
+    font-size: 1.1rem;
+    color: #999;
+}
+
+.section-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 18px;
+    margin-bottom: 25px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 30px;
+    color: #4a9eff;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.github-link {
+    color: #888;
+    transition: color 0.2s;
+}
+
+.github-link:hover {
+    color: #e0e0e0;
+}
+
+.github-link svg {
+    fill: currentColor;
+}
+
+section {
+    background: rgba(42, 42, 42, 0.8);
+    border: 1px solid #444;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #4a9eff;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+
+h3 {
+    font-size: 1.2rem;
+    color: #e0e0e0;
+    margin: 20px 0 10px 0;
+}
+
+p {
+    color: #bbb;
+    margin-bottom: 15px;
+}
+
+ul, ol {
+    color: #bbb;
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+    color: #00d4ff;
+}
+
+pre {
+    background: #333;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+}
+
+a {
+    color: #4a9eff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.tool-card {
+    background: rgba(50, 50, 50, 0.5);
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.tool-card h4 {
+    color: #4a9eff;
+    margin-bottom: 8px;
+}
+
+.tip-card {
+    background: rgba(74, 158, 255, 0.1);
+    border-color: #4a9eff;
+}
+
+.tool-card p {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.anchor-link {
+    color: #666;
+    text-decoration: none;
+    margin-left: 8px;
+    font-size: 0.8em;
+}
+
+.anchor-link:hover {
+    color: #4a9eff;
+}

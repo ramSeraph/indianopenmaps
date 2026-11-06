@@ -33,6 +33,11 @@ const worker = new Miniflare({
   port: Number(process.env.STAC_TEST_PORT || 8791),
   compatibilityDate: '2024-11-01', compatibilityFlags: ['nodejs_compat'],
   modules: true, script: bundle.outputFiles[0].text,
+  serviceBindings: {
+    ASSETS: async request => new URL(request.url).pathname === '/stac/api-help'
+      ? new Response(await readFile(root + 'static/stac/api-help.html'), { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      : new Response('Not found', { status: 404 }),
+  },
   outboundService: request => {
     const bytes = files.get(request.url);
     if (!bytes) return new Response('Fixture not found', { status: 404 });

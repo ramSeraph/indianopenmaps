@@ -1,4 +1,4 @@
-import COGHandler from '../lib/cog_handler.js';
+import COGHandler from '../cog/cog_handler.js';
 import { conditionalResponse, METADATA_CACHE_CONTROL } from '../lib/http_cache.js';
 import { cachePolicy } from '../lib/cache_policy.js';
 

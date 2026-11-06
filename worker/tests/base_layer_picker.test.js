@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { BaseLayerPicker, getDefaultBaseLayers } from '../static/js/base_layer_picker.js';
-import { loadProtomapsStyle, resolveBaseLayerName } from '../static/js/protomaps_basemaps.js';
+import { BaseLayerPicker, getDefaultBaseLayers } from '../static/vector/base_layer_picker.js';
+import { loadProtomapsStyle, resolveBaseLayerName } from '../static/vector/protomaps_basemaps.js';
 
 function mockMap() {
   const sources = new Map([['terrain', {}], ['user-data', {}]]);

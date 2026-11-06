@@ -1,8 +1,8 @@
 import { wkbToGeojson } from 'hyparquet/src/wkb.js';
 import { STACParquet } from './stac_parquet.js';
-import { ResourceUnavailableError } from './errors.js';
+import { ResourceUnavailableError } from '../lib/errors.js';
 import { bboxGeometry, normalizeQuery, predicate, queryUrl } from './stac_query.js';
-import { DEFAULT_SOURCE_REFRESH_MS } from './cache_policy.js';
+import { DEFAULT_SOURCE_REFRESH_MS } from '../lib/cache_policy.js';
 
 export const CONFORMANCE = [
   'https://api.stacspec.org/v1.0.0/core',

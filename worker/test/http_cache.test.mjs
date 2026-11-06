@@ -8,7 +8,7 @@ import { registerTileRoutes } from '../src/routes/tiles.js';
 import routes from '../src/routes/listing.json' with { type: 'json' };
 import { DEFAULT_SOURCE_REFRESH_MS as SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 import { makeArchive, metadata, mosaic, respond } from './helpers/pmtiles_fixture.mjs';
-import { fetchTileJSON, tileCacheUrl } from '../static/js/tile_cache.js';
+import { fetchTileJSON, tileCacheUrl } from '../static/shared/tile_cache.js';
 import { registerStaticRoutes } from '../src/routes/static.js';
 
 test('GET validators accept weak tags, lists, and commas inside opaque tags', () => {

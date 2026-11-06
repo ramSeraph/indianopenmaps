@@ -1,9 +1,9 @@
 import { Tiler } from '@basemaps/tiler';
 import { GoogleTms } from '@basemaps/geo';
-import { ForbiddenError, ResourceUnavailableError, UnknownError } from './errors.js';
+import { ForbiddenError, ResourceUnavailableError, UnknownError } from '../lib/errors.js';
 import { TileMakerPhoton } from './tile_maker_photon.js';
 import { COGReader } from './cog_reader.js';
-import { sharedRangeCache } from './range_cache.js';
+import { sharedRangeCache } from '../lib/range_cache.js';
 import { COGSourceCache } from './cog_source.js';
 
 const URL_WHITELIST = [

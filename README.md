@@ -17,8 +17,9 @@ GitHub Releases downloads do not enable
 [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS), so browser
 JavaScript cannot read these files directly from another site. The Cloudflare
 Worker exists to make that data usable in web maps: it reads the release assets
-and serves tiles, metadata, and proxied data with CORS enabled. The data files
-remain hosted on GitHub Releases. Command-line tools such as `iomaps` can read
+and serves tiles and metadata with CORS enabled. Its viewers use a same-origin
+proxy for file reads. The data files remain hosted on GitHub Releases.
+Command-line tools such as `iomaps` can read
 them directly because they are not subject to browser CORS restrictions.
 
 Contains [code](https://github.com/ramSeraph/indianopenmaps/blob/main/worker/src/mosaic_handler.js) for getting tiles from a big pmtiles file which has been split into multiple shards (to overcome hosting size limits).

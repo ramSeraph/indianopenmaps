@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { STACParquet } from '../src/lib/stac_parquet.js';
+import { STACParquet } from '../src/stac/stac_parquet.js';
 import { RangeCache } from '../src/lib/range_cache.js';
 
 const bytes = await readFile(new URL('./fixtures/stac-ranges.parquet', import.meta.url));

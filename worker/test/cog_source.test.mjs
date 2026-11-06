@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { COGSourceCache, COGChangedError } from '../src/lib/cog_source.js';
+import { COGSourceCache, COGChangedError } from '../src/cog/cog_source.js';
 import { RangeCache } from '../src/lib/range_cache.js';
 import { DEFAULT_SOURCE_REFRESH_MS as SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 

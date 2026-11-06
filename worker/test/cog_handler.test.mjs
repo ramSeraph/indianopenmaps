@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 import { PhotonImage } from '@cf-wasm/photon';
-import { COGRangeCache } from '../src/lib/cog_range_cache.js';
+import { COGRangeCache } from '../src/cog/cog_range_cache.js';
 import { DEFAULT_SOURCE_REFRESH_MS } from '../src/lib/cache_policy.js';
 import { makeCOG, TILE } from './helpers/cog_fixture.mjs';
 

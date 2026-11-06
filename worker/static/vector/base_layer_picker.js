@@ -4,7 +4,7 @@ import {
   resolveBaseLayerName,
   PROTOMAPS_DEFAULT_LAYER_NAME,
 } from './protomaps_basemaps.js';
-import { fetchTileJSON } from './tile_cache.js';
+import { fetchTileJSON } from '../shared/tile_cache.js';
 
 // Extracted BaseLayerPicker control
 // Base layer definitions
