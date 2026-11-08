@@ -178,12 +178,12 @@ test('workerd requests reuse completed initialization while a peer waits for Ret
         import { withRequestContext } from './src/lib/request.js';
         const handler = new PMTilesHandler('https://example.test/workerd.pmtiles', 'vector', 'pbf', console, false);
         const events = [];
-        console.log = console.warn = row => { if (row.event === 'upstream_fetch') events.push(row); };
+        console.log = console.warn = console.error = row => { if (row.event === 'upstream_fetch') events.push(row); };
         export default { fetch(request) {
           return withRequestContext(request, async requestId => {
             const config = await handler.getConfig();
             return Response.json(config, {headers: {'test-events': JSON.stringify(events.filter(row => row.requestId === requestId))}});
-          });
+          }, { logLevel: 'info' });
         } };`,
       resolveDir: root,
     },

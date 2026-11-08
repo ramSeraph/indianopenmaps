@@ -6,19 +6,15 @@ import { registerProxyRoutes } from './routes/proxy.js';
 import { registerStaticRoutes } from './routes/static.js';
 import { registerCogRoutes } from './routes/cog.js';
 import { withRequestContext } from './lib/request.js';
+import { logger } from './lib/logger.js';
+import { logAccess } from './lib/access_log.js';
 
 const app = new Hono();
 
-// Simple console logger for Workers
-const logger = {
-  info: (...args) => console.log('[INFO]', ...args),
-  error: (...args) => console.error('[ERROR]', ...args),
-  warn: (...args) => console.warn('[WARN]', ...args),
-};
-
-// Log client headers before routing, including requests that fail or return 404.
+// Error logging is unsampled; access logging has a separate per-request sample.
 app.use('*', (c, next) => withRequestContext(c.req.raw, async requestId => {
-  console.log({
+  const startedAt = Date.now();
+  if (logger.enabled('debug')) logger.debug({
     message: 'Request headers',
     requestId,
     method: c.req.method,
@@ -28,7 +24,22 @@ app.use('*', (c, next) => withRequestContext(c.req.raw, async requestId => {
     referer: c.req.header('referer') ?? null,
   });
   await next();
-}));
+  logAccess(c.req.raw, c.res, {
+    sampleRate: c.env?.ACCESS_LOG_SAMPLE_RATE, elapsedMs: Date.now() - startedAt,
+  });
+}, { logLevel: c.env?.LOG_LEVEL }));
+
+// Hono's default error handler writes directly to console.error, bypassing off.
+app.onError((error, c) => {
+  if ('getResponse' in error) return error.getResponse();
+  logger.error({
+    event: 'request_error', message: error.message, name: error.name,
+    stack: error.stack, method: c.req.method, path: c.req.path,
+  });
+  return c.text('Internal Server Error', 500, {
+    'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store',
+  });
+});
 
 // Determine server URL from request
 function getServerUrl(c) {
@@ -37,15 +48,11 @@ function getServerUrl(c) {
 }
 
 async function addRoutes() {
-  logger.info('adding routes');
-
   registerStaticRoutes(app);
   registerProxyRoutes(app, logger);
   await registerStacRoutes(app, logger);
   registerTileRoutes(app, getServerUrl, logger);
   registerCogRoutes(app, logger);
-
-  logger.info('done adding routes');
 }
 
 // Initialize routes

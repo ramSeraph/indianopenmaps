@@ -1,18 +1,20 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { CacheMissError, UpstreamHttpError } from './errors.js';
+import { requestContext } from './request_context.js';
+import { logger, parseLogLevel } from './logger.js';
 
 const MAX_RETRIES = 2;
 const MAX_RETRY_WAIT_MS = 10_000;
 const INITIAL_RETRY_WAIT_MS = 1_000;
 const RETRYABLE_STATUSES = new Set([429, 503, 522]);
 const SLOW_FETCH_MS = 5_000;
-// Scope cache probes to one async operation; concurrent requests can still fetch.
-const requestContext = new AsyncLocalStorage();
 
 export function isCacheOnly() { return requestContext.getStore()?.cacheOnly === true; }
 
-export function withRequestContext(request, operation) {
-  const context = { requestId: crypto.randomUUID(), requestPath: new URL(request.url).pathname };
+export function withRequestContext(request, operation, { logLevel } = {}) {
+  const context = {
+    requestId: crypto.randomUUID(), requestPath: new URL(request.url).pathname,
+    logLevel: parseLogLevel(logLevel),
+  };
   return requestContext.run(context, () => operation(context.requestId));
 }
 
@@ -29,34 +31,37 @@ export async function fetchUpstream(input, init) {
     throw error;
   } finally {
     const elapsedMs = Date.now() - start;
-    // Release redirects contain signed query strings. Log source paths and host
-    // names only, never full redirect URLs, credentials, or arbitrary headers.
-    let source;
-    try { source = new URL(input.url ?? input); } catch { /* Preserve invalid-URL fetch errors. */ }
     const slow = elapsedMs >= SLOW_FETCH_MS;
-    const failed = failure || response.status >= 400;
-    const log = failed || slow ? console.warn : console.log;
-    log({
-      event: 'upstream_fetch',
-      message: response?.status === 429 ? 'Upstream rate limited'
-        : failed ? 'Upstream fetch failed' : slow ? 'Slow upstream fetch' : 'Upstream fetch',
-      requestId: context?.requestId ?? null,
-      requestPath: context?.requestPath ?? null,
-      status: response?.status ?? null,
-      method: (init?.method ?? input.method ?? 'GET').toUpperCase(),
-      host: source?.host ?? null,
-      path: source?.pathname ?? null,
-      range: new Headers(init?.headers ?? input.headers).get('Range'),
-      responseHost: response?.url ? new URL(response.url).host : null,
-      attempt: context?.attempt ?? 1,
-      retryAfter: response?.headers.get('Retry-After') ?? null,
-      startedAt: start,
-      // fetch resolves at response headers; body transfer/decoding are separate.
-      elapsedMs,
-      githubRequestId: response?.headers.get('X-GitHub-Request-Id') ?? null,
-      ray: response?.headers.get('CF-Ray') ?? null,
-      error: failure?.name ?? null,
-    });
+    const failed = failure || response?.status >= 400;
+    const level = failed ? 'error' : slow ? 'warn' : 'info';
+    // Avoid constructing diagnostic records on the normal production path.
+    if (logger.enabled(level)) {
+      // Release redirects contain signed query strings. Log source paths and host
+      // names only, never full redirect URLs, credentials, or arbitrary headers.
+      let source;
+      try { source = new URL(input.url ?? input); } catch { /* Preserve invalid-URL fetch errors. */ }
+      logger[level]({
+        event: 'upstream_fetch',
+        message: response?.status === 429 ? 'Upstream rate limited'
+          : failed ? 'Upstream fetch failed' : slow ? 'Slow upstream fetch' : 'Upstream fetch',
+        requestId: context?.requestId ?? null,
+        requestPath: context?.requestPath ?? null,
+        status: response?.status ?? null,
+        method: (init?.method ?? input.method ?? 'GET').toUpperCase(),
+        host: source?.host ?? null,
+        path: source?.pathname ?? null,
+        range: new Headers(init?.headers ?? input.headers).get('Range'),
+        responseHost: response?.url ? new URL(response.url).host : null,
+        attempt: context?.attempt ?? 1,
+        retryAfter: response?.headers.get('Retry-After') ?? null,
+        startedAt: start,
+        // fetch resolves at response headers; body transfer/decoding are separate.
+        elapsedMs,
+        githubRequestId: response?.headers.get('X-GitHub-Request-Id') ?? null,
+        ray: response?.headers.get('CF-Ray') ?? null,
+        error: failure?.name ?? null,
+      });
+    }
   }
 }
 

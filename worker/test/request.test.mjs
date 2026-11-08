@@ -6,12 +6,12 @@ import { UpstreamHttpError } from '../src/lib/errors.js';
 
 const url = 'https://github.com/owner/repo/releases/download/data/archive.pmtiles';
 beforeEach(t => {
-  t.mock.method(console, 'warn', () => {});
+  t.mock.method(console, 'error', () => {});
   t.mock.method(console, 'log', () => {});
 });
 
 test('rate limits are logged even when retries succeed, without signed URLs or credentials', async t => {
-  const warnings = t.mock.method(console, 'warn', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
   const input = new URL(url + '?token=secret-query#secret-fragment');
   input.username = 'secret-user'; input.password = 'secret-password';
   const limited = new Response('limited', { status: 429, headers: {
@@ -20,8 +20,8 @@ test('rate limits are logged even when retries succeed, without signed URLs or c
   Object.defineProperty(limited, 'url', { value: 'https://release-assets.githubusercontent.com/file?sig=secret-signature' });
   const fetch = t.mock.method(globalThis, 'fetch', async () => fetch.mock.callCount() === 0 ? limited : new Response('ok'));
   assert.equal(await (await fetchWithRetry(input, { headers: { Authorization: 'secret-authorization' } })).text(), 'ok');
-  assert.equal(warnings.mock.callCount(), 1, 'cache probes and successful retries must not duplicate the warning');
-  const [row] = warnings.mock.calls[0].arguments;
+  assert.equal(errors.mock.callCount(), 1, 'cache probes and successful retries must not duplicate the error');
+  const [row] = errors.mock.calls[0].arguments;
   assert.equal(row.message, 'Upstream rate limited');
   assert.equal(row.status, 429);
   assert.equal(row.host, 'github.com');
@@ -37,55 +37,76 @@ test('rate limits are logged even when retries succeed, without signed URLs or c
 });
 
 test('every real rate-limited attempt is logged, including the exhausted final attempt', async t => {
-  const warnings = t.mock.method(console, 'warn', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
   t.mock.method(globalThis, 'fetch', async () => new Response(null, { status: 429, headers: { 'Retry-After': '0' } }));
   assert.equal((await fetchWithRetry(url)).status, 429);
-  assert.deepEqual(warnings.mock.calls.map(call => call.arguments[0].attempt), [1, 2, 3]);
+  assert.deepEqual(errors.mock.calls.map(call => call.arguments[0].attempt), [1, 2, 3]);
 });
 
 test('rate limits are logged for operation retries and non-retried requests too', async t => {
-  const warnings = t.mock.method(console, 'warn', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
   t.mock.method(globalThis, 'fetch', async () => new Response(null, { status: 429, headers: { 'Retry-After': '0' } }));
   // PMTiles uses fetchUpstream inside an operation-level retry.
   await assert.rejects(withRetries(async () => { throw new UpstreamHttpError(await fetchUpstream(url)); }));
-  assert.deepEqual(warnings.mock.calls.map(call => call.arguments[0].attempt), [1, 2, 3]);
+  assert.deepEqual(errors.mock.calls.map(call => call.arguments[0].attempt), [1, 2, 3]);
   await fetchWithRetry(new Request(url, { method: 'POST' }));
-  assert.equal(warnings.mock.calls.at(-1).arguments[0].method, 'POST');
-  assert.equal(warnings.mock.calls.at(-1).arguments[0].attempt, 1);
+  assert.equal(errors.mock.calls.at(-1).arguments[0].method, 'POST');
+  assert.equal(errors.mock.calls.at(-1).arguments[0].attempt, 1);
 });
 
-test('an unretried long rate limit still produces one warning', async t => {
-  const warnings = t.mock.method(console, 'warn', () => {});
+test('an unretried long rate limit still produces one error', async t => {
+  const errors = t.mock.method(console, 'error', () => {});
   t.mock.method(globalThis, 'fetch', async () => new Response(null, { status: 429, headers: { 'Retry-After': '60' } }));
   await fetchWithRetry(url);
-  assert.equal(warnings.mock.callCount(), 1);
-  assert.equal(warnings.mock.calls[0].arguments[0].retryAfter, '60');
+  assert.equal(errors.mock.callCount(), 1);
+  assert.equal(errors.mock.calls[0].arguments[0].retryAfter, '60');
 });
 
-test('successful fetches are logged and slow fetches or gateway failures are warnings', async t => {
+test('info logs successful fetches, warns about slow ones and errors on HTTP failures', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: 0 });
   const warnings = t.mock.method(console, 'warn', () => {});
   const logs = t.mock.method(console, 'log', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
   const fetch = t.mock.method(globalThis, 'fetch', async () => {
     if (fetch.mock.callCount() === 1) t.mock.timers.tick(20_000);
     return new Response(null, { status: fetch.mock.callCount() >= 2 ? 522 : 206 });
   });
+  await withRequestContext(new Request('https://example.test/'), async () => {
+    await fetchUpstream(url);
+    assert.equal(warnings.mock.callCount(), 0);
+    assert.equal(logs.mock.callCount(), 1);
+    assert.equal(logs.mock.calls[0].arguments[0].status, 206);
+    await fetchUpstream(url);
+    const row = warnings.mock.calls[0].arguments[0];
+    assert.equal(row.message, 'Slow upstream fetch');
+    assert.equal(row.elapsedMs, 20_000);
+    await fetchUpstream(url);
+    assert.equal(errors.mock.calls[0].arguments[0].status, 522);
+  }, { logLevel: 'info' });
+});
+
+test('default logging suppresses successful and slow fetches but retains failures', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: 0 });
+  const logs = t.mock.method(console, 'log', () => {});
+  const warnings = t.mock.method(console, 'warn', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
+  let status = 200;
+  t.mock.method(globalThis, 'fetch', async () => {
+    t.mock.timers.tick(6000);
+    return new Response(null, { status });
+  });
   await fetchUpstream(url);
+  assert.equal(logs.mock.callCount(), 0);
   assert.equal(warnings.mock.callCount(), 0);
-  assert.equal(logs.mock.callCount(), 1);
-  assert.equal(logs.mock.calls[0].arguments[0].status, 206);
+  status = 503;
   await fetchUpstream(url);
-  const row = warnings.mock.calls[0].arguments[0];
-  assert.equal(row.message, 'Slow upstream fetch');
-  assert.equal(row.elapsedMs, 20_000);
-  await fetchUpstream(url);
-  assert.equal(warnings.mock.calls[1].arguments[0].status, 522);
+  assert.equal(errors.mock.callCount(), 1);
 });
 
 test('concurrent tile requests retain separate log identities through retries and cache probes', async t => {
   const rows = [];
   t.mock.method(console, 'log', row => rows.push(row));
-  t.mock.method(console, 'warn', row => rows.push(row));
+  t.mock.method(console, 'error', row => rows.push(row));
   const firstStarted = Promise.withResolvers();
   const releaseFirst = Promise.withResolvers();
   let calls = 0;
@@ -98,7 +119,7 @@ test('concurrent tile requests retain separate log identities through retries an
     return new Response('ok');
   });
   const run = (path, range) => withRequestContext(new Request(`https://indianopenmaps.com${path}?private=query`),
-    () => fetchWithRetry(url, { headers: { Range: range } }));
+    () => fetchWithRetry(url, { headers: { Range: range } }), { logLevel: 'info' });
   const first = run('/tiles/1/0/0.pbf', 'bytes=0-16383');
   await firstStarted.promise;
   await run('/tiles/1/0/1.pbf', 'bytes=0-16383');
@@ -114,11 +135,11 @@ test('concurrent tile requests retain separate log identities through retries an
 });
 
 test('network failures are logged without leaking signed URLs in the error message', async t => {
-  const warnings = t.mock.method(console, 'warn', () => {});
+  const errors = t.mock.method(console, 'error', () => {});
   const error = new TypeError('Failed fetch https://example.com/?secret=token');
   t.mock.method(globalThis, 'fetch', async () => { throw error; });
   await assert.rejects(fetchUpstream(url), actual => actual === error);
-  const row = warnings.mock.calls[0].arguments[0];
+  const row = errors.mock.calls[0].arguments[0];
   assert.equal(row.error, 'TypeError');
   assert.equal(row.status, null);
   assert.doesNotMatch(JSON.stringify(row), /secret/);

@@ -46,7 +46,7 @@ function getTileParams(c) {
   return { z, x, y, ext };
 }
 
-async function getTile(handler, c) {
+async function getTile(handler, c, logger) {
   const { z, x, y, ext } = getTileParams(c);
   if (!Number.isInteger(z) || z < 0 || z > 26 ||
       !Number.isInteger(x) || !Number.isInteger(y) ||
@@ -77,7 +77,7 @@ async function getTile(handler, c) {
         contentType: 'image/png', cacheControl: cachePolicy(c.env).tileCacheControl, revalidate: handler.revalidate,
       });
     } catch (err) {
-      console.error('WebP to PNG conversion failed:', err);
+      logger.error('WebP to PNG conversion failed:', err);
       return c.text('Image conversion failed', 500, errorHeaders);
     }
   }
@@ -149,7 +149,7 @@ export function registerTileRoutes(app, getServerUrl, logger) {
     const sourceUrl = routes[rPrefix].url;
 
     app.get(`${rPrefix}:z/:x/:tile{[0-9]+\\.[a-z]+}`,
-      withTileErrorHandling((c) => getTile(getHandler(c, rPrefix), c), sourceUrl, logger));
+      withTileErrorHandling((c) => getTile(getHandler(c, rPrefix), c, logger), sourceUrl, logger));
     app.get(`${rPrefix}tiles.json`,
       withTileErrorHandling((c) => getTileJson(getHandler(c, rPrefix), c, getServerUrl(c)), sourceUrl, logger));
 
