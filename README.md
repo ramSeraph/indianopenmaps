@@ -22,10 +22,6 @@ proxy for file reads. The data files remain hosted on GitHub Releases.
 Command-line tools such as `iomaps` can read
 them directly because they are not subject to browser CORS restrictions.
 
-Contains [code](https://github.com/ramSeraph/indianopenmaps/blob/main/worker/src/mosaic_handler.js) for getting tiles from a big pmtiles file which has been split into multiple shards (to overcome hosting size limits).
-
-Tools for splitting a big pmtiles into smaller ones is at [pmtiles_mosaic](https://github.com/ramSeraph/pmtiles_mosaic).
-
 See the list of data available at https://indianopenmaps.com/
 
 Use [iomaps](https://github.com/ramSeraph/indianopenmaps/tree/main/python) to extract remote GeoParquet features by polygon or bounding box and export them in other geospatial formats.
@@ -41,7 +37,6 @@ A [Hono](https://hono.dev/)-based Cloudflare Worker that serves vector and raste
 **Tile serving:**
 
 - Serves vector tiles (protobuf) and raster tiles (webp/png) from PMTiles archives
-- Supports "mosaic" mode for large PMTiles files that have been split into multiple shards
 - Dynamically generates tiles from north-up EPSG:3857 COG byte imagery
 - Provides TileJSON metadata endpoints for each source
 
@@ -79,58 +74,6 @@ To override the Protomaps browser key locally, set `PROTOMAPS_API_KEY` in
 `worker/.dev.vars`. This local configuration file is ignored by Git.
 
 Run `npm test` from `worker/` for the offline Worker tests.
-
-**Worker logging:**
-
-`LOG_LEVEL` in `worker/wrangler.toml` defaults to `error`. Missing or invalid
-values also use `error`. Set it and redeploy to change production logging;
-use `worker/.dev.vars` for local overrides.
-
-| Level | Diagnostic logs retained |
-| --- | --- |
-| `off` | None |
-| `error` | Handler failures and failed upstream HTTP/network attempts, including retries |
-| `warn` | Errors plus slow upstream fetches and source refresh warnings |
-| `info` | Warnings plus every successful upstream fetch |
-| `debug` | Info plus incoming request header diagnostics |
-
-Separately, `ACCESS_LOG_SAMPLE_RATE = "0.01"` samples 1% of requests handled by
-the Worker, regardless of response status. Use `"0"` to disable access logs or
-`"1"` to log every request. Missing, empty or invalid rates default to 0.01.
-`LOG_LEVEL = "off"` disables both diagnostics and access logs. Other severity
-levels do not change the access sample or sample out errors.
-
-Access records have `event: "access"`, `requestId`, `method`, `path`, `status`,
-`referer`, `refererHost`, `elapsedMs` (through response creation, not body transfer),
-and `sampleRate`. Request paths omit queries; referrers omit credentials, queries
-and fragments. Missing, malformed or non-HTTP referrers become null. Only sampled
-requests produce access records; normal validation errors and missing tiles are
-included in the same sample. Requests served directly by Cloudflare Assets
-without invoking the Worker are outside this sample.
-
-In Workers Logs, filter `event = access`, group by `refererHost` or `path`, and
-count records. At the default rate, multiply counts by 100 for estimated requests;
-if the rate changes, weight each record by `1 / sampleRate`. These are request
-estimates, not visitor counts, and low-volume referrers may be missed. Ten million
-Worker requests produce about 100,000 access records plus diagnostic error logs.
-
-All application logs use the shared logger; levels are request-scoped so cached
-handlers cannot retain another request's setting. Upstream records retain request
-IDs, status, range and retry information, without signed queries or credentials.
-
-Cloudflare's automatic per-request invocation logs are disabled with
-`observability.logs.invocation_logs = false`. Log collection stays enabled at
-`head_sampling_rate = 1` so application errors are not deliberately sampled out.
-`LOG_LEVEL = "off"` suppresses our application logs; to stop Workers Logs
-collection entirely (including runtime/dependency logs), set
-`observability.logs.enabled = false` and redeploy. Raising verbosity or enabling
-invocation logs should be temporary while diagnosing a problem.
-
-From 1 December 2026, [Cloudflare Observability pricing](https://developers.cloudflare.com/observability/pricing/)
-meters uncompressed ingestion (including enriched metadata) and stored GB-month,
-with shared account allowances. Monitor Billable Usage after deploying; filtering
-the log viewer does not reduce ingestion. Keep the default seven-day retention
-and avoid enabling extra trace/log datasets unless needed.
 
 ### Python CLI — `iomaps` (`python/`)
 

@@ -362,6 +362,16 @@ its HTML; executable page scripts and styles live in separate files.
 
 ## Code Style & Conventions
 
+### Documentation scope
+- Keep the root `README.md` focused on the project's purpose, user-facing
+  capabilities, high-level architecture, and getting started.
+- Routine implementation changes do not require README updates. Do not add
+  internal mechanics, exhaustive configuration details, or operational minutiae
+  unless they are necessary for users to understand or use the project.
+- Document implementation details only when they provide lasting value to
+  maintainers, in the relevant code, focused developer documentation, or
+  `AGENTS.md`. Do not document every change by default.
+
 ### JavaScript
 - Use ES modules (`import/export`) in both worker and frontend code
 - Prefer `async/await` over callbacks
