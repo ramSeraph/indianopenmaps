@@ -7466,5 +7466,18 @@
     "partitioned_parquet": true,
     "notes": "Incomplete snapshot containing 30,290,413 source records; the source service reported 42,682,593 records at the saved download checkpoint. The input file was last modified on 10 April 2026. Derived formats contain 30,290,331 features after filtering 82 empty/null or malformed records. Some source coordinates are outside Rajasthan, including latitudes near zero; coordinate guessing is disabled and those source locations are retained. The split 7z archive preserves the original GeoJSONL. Vector tiles cover zooms 0\u201315; features are simplified and dropped at lower zooms to fit tile size limits. GeoParquet retains all filtered records. The derived formats share OGC_FID as their unique feature identifier.",
     "promoteid": "OGC_FID"
+  },
+  "/not-so-open/cadastrals/chhattisgarh/cggis/": {
+    "handlertype": "pmtiles",
+    "category": [
+      "cadastrals",
+      "chhattisgarh",
+      "cggis"
+    ],
+    "name": "CGGIS Chhattisgarh cadastral parcels (partial download)",
+    "url": "https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/CGGIS_Chhattisgarh_Cadastrals_Partial_20261105.pmtiles",
+    "partitioned_parquet": true,
+    "notes": "PARTIAL DOWNLOAD: This snapshot contains 6,261,183 of the 16,294,918 records originally reported by the source (38.4%). It is an incomplete download of CGCOG_DATABASE:villagedetails_partitioned and must not be treated as complete statewide cadastral coverage. The last successful records were saved on 5 November 2026; the run was stopped after persistent source-server failures.\n\nThe original GeoJSONL archive preserves all 6,261,183 downloaded records byte-for-byte. The map and GeoParquet are prepared from 6,261,076 records after excluding 107 records with empty or null geometry; the cleaning step applied no coordinate repairs. Source feature IDs are available as the id property in both derived formats. The projected geometry properties geom_3857 and geom_32644 are retained as geom_renamed_0 and geom_renamed_1 in GeoParquet and omitted from map tile attributes. Map tiles simplify geometry and reduce feature density where needed; use GeoParquet or the original archive for data analysis.\n\nThe <a href=\"https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/CGGIS_Chhattisgarh_Cadastrals_Partial_20261105.geojsonl.state\">download checkpoint (.state)</a> is provided separately. It corresponds to the unmodified GeoJSONL inside the archive and records offset 6,261,183 and output_bytes 17,845,015,664.",
+    "promoteid": "id"
   }
 }
