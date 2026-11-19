@@ -6542,6 +6542,19 @@
     "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/tpc-pmtiles/TPC.mosaic.json",
     "license": "unknown"
   },
+  "/world/topo/american/jog/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster",
+      "topographic",
+      "world",
+      "american"
+    ],
+    "name": "JOG Topographic Maps",
+    "url": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/jog-pmtiles/JOG.mosaic.json",
+    "license": "unknown"
+  },
   "/world/topo/russian/1m/gs/": {
     "handlertype": "pmtiles",
     "type": "raster",
