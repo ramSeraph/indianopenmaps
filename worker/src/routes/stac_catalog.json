@@ -924,6 +924,60 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./world-topo-american-jog",
+      "title": "Joint Operations Graphic 1:250,000",
+      "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/jog-georef/JOG.stac.parquet",
+      "geoparquet_sha256": "fd7f08c8a7f26ecb34a8ade0cd564793e2d4fe8a1b69aa7e3abb8a8cb5f22579",
+      "collection": {
+        "type": "Collection",
+        "id": "world-topo-american-jog",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Joint Operations Graphic map sheets at 1:250,000, including the New Zealand series. Each item links to its published GeoTIFF and original source asset.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/american_world_topo_maps/releases/tag/jog-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Completion of the November 2026 georeferenced release uploads, not the survey or map edition date.",
+        "item_count": 4983,
+        "title": "Joint Operations Graphic 1:250,000",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                -180.0,
+                -47.532566169147856,
+                180.0,
+                81.00000686159092
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-11-13T08:57:51Z",
+                "2026-11-13T08:57:51Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "JOG.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
