@@ -558,6 +558,7 @@
       "href": "./world-topo-soviet-1m",
       "title": "Soviet Genshtab 1m Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/1m-gs-georef/Soviet_GS_1m.stac.parquet",
+      "geoparquet_sha256": "3f5d204ee313667f62d38560389d6078746c14ab5055a4e1a6184265445dab1e",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-1m",
@@ -571,7 +572,7 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 301,
+        "item_count": 385,
         "title": "Soviet Genshtab 1m Topographic Maps",
         "extent": {
           "spatial": {
@@ -579,7 +580,7 @@
               [
                 -179.9972546,
                 -48.0008543,
-                180,
+                180.0,
                 84.0012244
               ]
             ]
@@ -588,7 +589,7 @@
             "interval": [
               [
                 "2025-10-15T18:41:37Z",
-                "2025-10-15T18:41:37Z"
+                "2026-11-20T15:18:02Z"
               ]
             ]
           }
