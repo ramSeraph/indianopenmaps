@@ -6556,7 +6556,7 @@
     "license": "unknown"
   },
   "/world/topo/russian/1m/gs/": {
-    "handlertype": "pmtiles",
+    "handlertype": "mosaic",
     "type": "raster",
     "category": [
       "raster",
@@ -6566,7 +6566,7 @@
       "1m"
     ],
     "name": "Soviet Genshtab 1:1m Topographic Maps",
-    "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/1m-gs-pmtiles/Soviet-GS-1m.pmtiles",
+    "url": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/1m-gs-pmtiles/Soviet-GS-1m.mosaic.json",
     "license": "unknown"
   },
   "/world/topo/russian/500k/gs/": {
