@@ -773,6 +773,7 @@
       "href": "./world-topo-soviet-200k",
       "title": "Soviet Genshtab 200k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/200k-gs-georef/Soviet_GS_200k.stac.parquet",
+      "geoparquet_sha256": "e1a50b5ca6fa6236ca483691e63e2149d3062a8a372e1db2a41abbebcda1feb2",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-200k",
@@ -786,15 +787,15 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 11791,
+        "item_count": 12356,
         "title": "Soviet Genshtab 200k Topographic Maps",
         "extent": {
           "spatial": {
             "bbox": [
               [
                 -179.9968295,
-                -47.3329319,
-                180,
+                -53.33295932512896,
+                180.0,
                 82.0009216
               ]
             ]
@@ -803,7 +804,7 @@
             "interval": [
               [
                 "2025-10-14T15:23:09Z",
-                "2025-10-14T15:23:09Z"
+                "2026-11-21T16:41:13Z"
               ]
             ]
           }
