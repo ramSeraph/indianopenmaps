@@ -879,6 +879,7 @@
       "href": "./world-topo-soviet-500k",
       "title": "Soviet Genshtab 500k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/500k-gs-georef/Soviet_GS_500k.stac.parquet",
+      "geoparquet_sha256": "27882fea6b00c1c3c0f9b9f2dd0b06e82202284b5acd7d31b7be5d0befe4f63a",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-500k",
@@ -892,7 +893,7 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 2274,
+        "item_count": 2506,
         "title": "Soviet Genshtab 500k Topographic Maps",
         "extent": {
           "spatial": {
@@ -900,8 +901,8 @@
               [
                 -179.9969,
                 -55.9994409,
-                180,
-                82.0011964
+                180.0,
+                83.99878891104501
               ]
             ]
           },
@@ -909,7 +910,7 @@
             "interval": [
               [
                 "2025-10-15T09:30:56Z",
-                "2025-10-15T09:30:56Z"
+                "2026-11-21T10:46:19Z"
               ]
             ]
           }
