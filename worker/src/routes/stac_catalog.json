@@ -934,7 +934,7 @@
       "href": "./world-topo-american-jog",
       "title": "Joint Operations Graphic 1:250,000",
       "geoparquet": "https://github.com/ramSeraph/american_world_topo_maps/releases/download/jog-georef/JOG.stac.parquet",
-      "geoparquet_sha256": "31fb65af28e33bc53dc3ed843d8058f06f37f7b8e6c95dd3ca525669fc5a86f4",
+      "geoparquet_sha256": "c092961c00b8b7b36c42da216fe5296a45104112ddbae62d640c639a02ef6a3c",
       "collection": {
         "type": "Collection",
         "id": "world-topo-american-jog",
