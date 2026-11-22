@@ -720,11 +720,12 @@
       "href": "./world-topo-soviet-100k",
       "title": "Soviet Genshtab 100k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/100k-gs-georef/Soviet_GS_100k.stac.parquet",
+      "geoparquet_sha256": "d50e1c49f04ec241ed31c0e47fca811574799d35666352c3d616b8071378aea0",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-100k",
         "stac_version": "1.1.0",
-        "description": "Georeferenced Soviet General Staff topographic maps at the 100k scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date.",
+        "description": "Georeferenced 1:100,000 topographic maps in the Soviet General Staff sheet grid, including cut scans of Polish paper maps. Each item links its original scan and georeferenced COG. The item datetime records publication of the georeferenced data. Source properties record the available sheet year and its basis.",
         "links": [
           {
             "rel": "derived_from",
@@ -733,15 +734,15 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 12972,
+        "item_count": 15639,
         "title": "Soviet Genshtab 100k Topographic Maps",
         "extent": {
           "spatial": {
             "bbox": [
               [
                 -179.9963102,
-                13.6663115,
-                180,
+                10.666053244190488,
+                180.0,
                 82.0008931
               ]
             ]
@@ -750,7 +751,7 @@
             "interval": [
               [
                 "2025-10-07T18:24:17Z",
-                "2025-10-07T18:24:17Z"
+                "2026-11-22T00:56:58Z"
               ]
             ]
           }
