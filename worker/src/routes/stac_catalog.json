@@ -828,11 +828,12 @@
       "href": "./world-topo-soviet-50k",
       "title": "Soviet Genshtab 50k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/50k-gs-georef/Soviet_GS_50k.stac.parquet",
+      "geoparquet_sha256": "f24e7be2631f268c9275fc3e85d9f6a491765db9910e675274edbba5eea9c86f",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-50k",
         "stac_version": "1.1.0",
-        "description": "Georeferenced Soviet General Staff topographic maps at the 50k scale, with source sheet metadata and original scans where available. Item datetime is the publication date of the georeferenced release, not the survey or imagery acquisition date. The index is reconciled against the current GitHub release assets.",
+        "description": "Georeferenced 1:50,000 topographic maps in the Soviet General Staff sheet grid. Each item links its original scan and georeferenced COG. Its datetime records publication of the georeferenced data. Source properties give the sheet year and the evidence for that year.",
         "links": [
           {
             "rel": "derived_from",
@@ -841,15 +842,15 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 9865,
+        "item_count": 14252,
         "title": "Soviet Genshtab 50k Topographic Maps",
         "extent": {
           "spatial": {
             "bbox": [
               [
-                -2.7518006,
+                -6.501757304197431,
                 24.8331253,
-                159.0020354,
+                161.00182395820124,
                 74.3344022
               ]
             ]
@@ -858,7 +859,7 @@
             "interval": [
               [
                 "2025-10-11T20:27:55Z",
-                "2025-10-11T20:27:55Z"
+                "2026-11-22T23:16:44Z"
               ]
             ]
           }
