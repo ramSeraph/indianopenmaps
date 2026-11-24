@@ -983,6 +983,60 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./indian-atlas-253k",
+      "title": "Indian Atlas 1:253k",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/253k-indian-atlas-georef/Indian_Atlas_253k.stac.parquet",
+      "geoparquet_sha256": "5087d73e86968bb78d2791b7626f38ab82ad50972abea6a5971348c3c0210e4b",
+      "collection": {
+        "type": "Collection",
+        "id": "indian-atlas-253k",
+        "stac_version": "1.1.0",
+        "description": "Historical Indian Atlas sheets at 1:253k. Each georeferenced TIFF links to its source scan. The collection includes 318 current editions, the two Sheet 138 components and two comparison trials. Sheet 138 includes the inset in the full-sheet TIFF. The item date records publication of the georeferenced release. Historical edition dates appear in the source properties.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://doi.org/10.5281/zenodo.19431985",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication of the georeferenced release on GitHub (UTC). Historical edition dates are recorded separately where known.",
+        "item_count": 322,
+        "title": "Indian Atlas 1:253k",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                65.9471998333212,
+                7.815079099181079,
+                98.37730964401786,
+                36.53333566222957
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-11-24T21:03:04Z",
+                "2026-11-24T21:03:04Z"
+              ]
+            ]
+          }
+        },
+        "license": "CC-BY-4.0",
+        "assets": {
+          "index": {
+            "href": "Indian_Atlas_253k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
