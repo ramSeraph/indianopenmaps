@@ -7479,5 +7479,18 @@
     "partitioned_parquet": true,
     "notes": "PARTIAL DOWNLOAD: This snapshot contains 6,261,183 of the 16,294,918 records originally reported by the source (38.4%). It is an incomplete download of CGCOG_DATABASE:villagedetails_partitioned and must not be treated as complete statewide cadastral coverage. The last successful records were saved on 5 November 2026; the run was stopped after persistent source-server failures.\n\nThe original GeoJSONL archive preserves all 6,261,183 downloaded records byte-for-byte. The map and GeoParquet are prepared from 6,261,076 records after excluding 107 records with empty or null geometry; the cleaning step applied no coordinate repairs. Source feature IDs are available as the id property in both derived formats. The projected geometry properties geom_3857 and geom_32644 are retained as geom_renamed_0 and geom_renamed_1 in GeoParquet and omitted from map tile attributes. Map tiles simplify geometry and reduce feature density where needed; use GeoParquet or the original archive for data analysis.\n\nThe <a href=\"https://github.com/ramSeraph/indian_cadastrals/releases/download/chhattisgarh/CGGIS_Chhattisgarh_Cadastrals_Partial_20261105.geojsonl.state\">download checkpoint (.state)</a> is provided separately. It corresponds to the unmodified GeoJSONL inside the archive and records offset 6,261,183 and output_bytes 17,845,015,664.",
     "promoteid": "id"
+  },
+  "/soi/253k/indian-atlas/": {
+    "handlertype": "mosaic",
+    "category": [
+      "raster",
+      "soi",
+      "253k"
+    ],
+    "name": "Survey of India \u2013 Indian Atlas 1:253k",
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/253k-indian-atlas-pmtiles/Indian_Atlas_253k.mosaic.json",
+    "license": "Scans by <a href=\"https://doi.org/10.5281/zenodo.19431985\">John Brown</a> under <a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>.",
+    "type": "raster",
+    "description": "Historical Indian Atlas mosaic of 308 editions across 121 sheet IDs. Quarter sheets overlay full sheets. Later editions take priority within each extent, with non-colour preferred for same-year ties."
   }
 }
