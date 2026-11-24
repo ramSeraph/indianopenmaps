@@ -26,32 +26,45 @@
             </a>
           </p>
         </div>
+        <label class="mobile-collection"
+          >Collection
+          <select id="collection-select">
+            <option disabled selected value="">Loading collections…</option>
+          </select>
+        </label>
         <div class="collections-list" id="collections-list">
           <div class="loading">
             <span class="loading-spinner"></span>
             Loading collections...
           </div>
         </div>
+        <section id="shown-panel" aria-labelledby="shown-heading" hidden>
+          <h2 id="shown-heading">On the map</h2>
+          <ul id="shown-list"></ul>
+          <label id="blend-control" hidden
+            >Top layer opacity
+            <input id="blend" type="range" min="0" max="100" value="100" />
+            <output for="blend">100%</output>
+          </label>
+        </section>
+        <details id="info-panel" class="info-panel hidden">
+          <summary>Collection info</summary>
+          <div id="info-content"></div>
+        </details>
       </div>
 
       <div class="map-container">
         <div id="map"></div>
+        <div id="pick-hint" role="status"></div>
         <div class="loading hidden" id="map-loading">
           <span class="loading-spinner"></span>
           <span id="loading-text">Loading items...</span>
-        </div>
-        <div class="info-panel hidden" id="info-panel">
-          <div class="info-title">Collection Info</div>
-          <div id="info-content"></div>
         </div>
       </div>
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- STAC Layer -->
-    <script src="https://unpkg.com/stac-layer@0.15.0/dist/stac-layer.min.js"></script>
 
     <script src="/api/viewer-config.js"></script>
     <script type="module" src="/stac/viewer.js"></script>
