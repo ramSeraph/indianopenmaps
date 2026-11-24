@@ -666,7 +666,7 @@
       "href": "./world-topo-soviet-25k",
       "title": "Soviet Genshtab 25k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/25k-gs-georef/Soviet_GS_25k.stac.parquet",
-      "geoparquet_sha256": "d9775cb7e0de536a51d3ed5e102bcac38a736c5544fd9a54a4fdfb6815e922a7",
+      "geoparquet_sha256": "fd1ac26c1dcfa650057ae2d69f05127fb6fedb017ae32b6aa291ecfe6eb0340f",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-25k",
@@ -680,7 +680,7 @@
           }
         ],
         "iomaps:datetime_description": "Publication of the georeferenced release, not survey or imagery acquisition.",
-        "item_count": 3050,
+        "item_count": 3341,
         "title": "Soviet Genshtab 25k Topographic Maps",
         "extent": {
           "spatial": {
@@ -697,7 +697,7 @@
             "interval": [
               [
                 "2025-10-26T04:42:17Z",
-                "2025-10-26T04:42:17Z"
+                "2026-11-24T22:50:51Z"
               ]
             ]
           }
