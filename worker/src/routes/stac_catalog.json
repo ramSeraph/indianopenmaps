@@ -666,7 +666,7 @@
       "href": "./world-topo-soviet-25k",
       "title": "Soviet Genshtab 25k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/25k-gs-georef/Soviet_GS_25k.stac.parquet",
-      "geoparquet_sha256": "fd1ac26c1dcfa650057ae2d69f05127fb6fedb017ae32b6aa291ecfe6eb0340f",
+      "geoparquet_sha256": "05a22f1c1a4befa54fb7e9f4e05bf7be5d474f75e0cba2cb3dff2679eac7f3dc",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-25k",
