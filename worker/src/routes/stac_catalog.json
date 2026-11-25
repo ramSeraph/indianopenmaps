@@ -720,7 +720,7 @@
       "href": "./world-topo-soviet-100k",
       "title": "Soviet Genshtab 100k Topographic Maps",
       "geoparquet": "https://github.com/ramSeraph/russian_world_topo_maps/releases/download/100k-gs-georef/Soviet_GS_100k.stac.parquet",
-      "geoparquet_sha256": "d50e1c49f04ec241ed31c0e47fca811574799d35666352c3d616b8071378aea0",
+      "geoparquet_sha256": "83c33e46e28404e2b6a2eead3989c5115f81559b7baf58738b6dbbfef7692a58",
       "collection": {
         "type": "Collection",
         "id": "world-topo-soviet-100k",
