@@ -7492,5 +7492,18 @@
     "license": "Scans by <a href=\"https://doi.org/10.5281/zenodo.19431985\">John Brown</a> under <a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>.",
     "type": "raster",
     "description": "Historical Indian Atlas mosaic of 308 editions across 121 sheet IDs. Quarter sheets overlay full sheets. Later editions take priority within each extent, with non-colour preferred for same-year ties."
+  },
+  "/czmp/25k/ncscm/": {
+    "handlertype": "pmtiles",
+    "type": "raster",
+    "category": [
+      "raster",
+      "ncscm",
+      "25k",
+      "czmp"
+    ],
+    "name": "India CZMP 1:25,000",
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-czmp-pmtiles/CZMP-25k.pmtiles",
+    "license": "License not specified in the published source metadata. Consult the original map provider for reuse terms."
   }
 }
