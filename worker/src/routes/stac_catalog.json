@@ -1044,12 +1044,12 @@
       "href": "./india-czmp-25k",
       "title": "India Coastal Zone Management Plan maps, 1:25,000",
       "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-czmp-georef/CZMP_25k.stac.parquet",
-      "geoparquet_sha256": "733a5a8500f22120d822863cae2a4a5e3d9c076906e8d36a6ba6e770b99db747",
+      "geoparquet_sha256": "dc62fa9e2daa06fd5e685e7bf9cef7e4630ab40ebc483657e8f4c2d0f1682c06",
       "collection": {
         "type": "Collection",
         "id": "india-czmp-25k",
         "stac_version": "1.1.0",
-        "description": "Georeferenced Coastal Zone Management Plan sheets from the National Centre for Sustainable Coastal Management. Each item links to the original scan and the Cloud Optimized GeoTIFF. Shared sheets are clipped to their state or union territory boundary. Odisha sheets 91 and 94 have blank source scans and are omitted.",
+        "description": "Coastal Zone Management Plan sheets from the National Centre for Sustainable Coastal Management. Each item links to the original scan and a Web Mercator (EPSG:3857) Cloud Optimized GeoTIFF created with topo_map_processor. Shared sheets use the state or union territory cutline. Odisha sheets 91 and 94 have blank source scans and are omitted.",
         "links": [
           {
             "rel": "derived_from",
