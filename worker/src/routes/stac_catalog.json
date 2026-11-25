@@ -1044,12 +1044,12 @@
       "href": "./india-czmp-25k",
       "title": "India Coastal Zone Management Plan maps, 1:25,000",
       "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-czmp-georef/CZMP_25k.stac.parquet",
-      "geoparquet_sha256": "dc62fa9e2daa06fd5e685e7bf9cef7e4630ab40ebc483657e8f4c2d0f1682c06",
+      "geoparquet_sha256": "f724b0c5b2e12aba302a98b3cdc57e9f33f63acb02409e2d8d966e110bcde39d",
       "collection": {
         "type": "Collection",
         "id": "india-czmp-25k",
         "stac_version": "1.1.0",
-        "description": "Coastal Zone Management Plan sheets from the National Centre for Sustainable Coastal Management. Each item links to the original scan and a Web Mercator (EPSG:3857) Cloud Optimized GeoTIFF created with topo_map_processor. Shared sheets use the state or union territory cutline. Odisha sheets 91 and 94 have blank source scans and are omitted.",
+        "description": "Coastal Zone Management Plan map sheets at 1:25,000. Each item links to a north-up EPSG:3857 Cloud Optimized GeoTIFF and its original scan. The mosaic uses approved 2011-notification maps for West Bengal. Shared state and Maharashtra district editions are clipped at their boundaries.",
         "links": [
           {
             "rel": "derived_from",
@@ -1057,8 +1057,8 @@
             "title": "Source"
           }
         ],
-        "iomaps:datetime_description": "Publication time of the georeferenced release. Survey and imagery acquisition dates vary by sheet.",
-        "item_count": 923,
+        "iomaps:datetime_description": "Collection revision time. Survey, approval and edition dates vary by sheet.",
+        "item_count": 1007,
         "title": "India Coastal Zone Management Plan maps, 1:25,000",
         "extent": {
           "spatial": {
@@ -1074,8 +1074,8 @@
           "temporal": {
             "interval": [
               [
-                "2026-11-25T14:34:06Z",
-                "2026-11-25T14:34:06Z"
+                "2026-11-25T19:02:41Z",
+                "2026-11-25T19:02:41Z"
               ]
             ]
           }
