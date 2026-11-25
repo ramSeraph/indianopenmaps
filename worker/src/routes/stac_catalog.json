@@ -1037,6 +1037,60 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./india-czmp-25k",
+      "title": "India Coastal Zone Management Plan maps, 1:25,000",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/25k-czmp-georef/CZMP_25k.stac.parquet",
+      "geoparquet_sha256": "733a5a8500f22120d822863cae2a4a5e3d9c076906e8d36a6ba6e770b99db747",
+      "collection": {
+        "type": "Collection",
+        "id": "india-czmp-25k",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced Coastal Zone Management Plan sheets from the National Centre for Sustainable Coastal Management. Each item links to the original scan and the Cloud Optimized GeoTIFF. Shared sheets are clipped to their state or union territory boundary. Odisha sheets 91 and 94 have blank source scans and are omitted.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://czmp.ncscm.res.in/",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication time of the georeferenced release. Survey and imagery acquisition dates vary by sheet.",
+        "item_count": 923,
+        "title": "India Coastal Zone Management Plan maps, 1:25,000",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                68.125,
+                6.75,
+                94.0,
+                24.375
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-11-25T14:34:06Z",
+                "2026-11-25T14:34:06Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "CZMP_25k.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
