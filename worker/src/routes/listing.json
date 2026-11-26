@@ -10,6 +10,18 @@
     "name": "SOI Open Series Maps",
     "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/50k-osm-pmtiles/SOI-OSM-50k.mosaic.json"
   },
+  "/soi/5k/cmpdi/": {
+    "handlertype": "mosaic",
+    "type": "raster",
+    "category": [
+      "raster",
+      "soi",
+      "5k"
+    ],
+    "name": "Survey of India / CMPDI 1:5,000 coalfield maps",
+    "url": "https://github.com/ramSeraph/india_topo_maps/releases/download/5k-cmpdi-pmtiles/CMPDI-5k-masked.mosaic.json",
+    "description": "Georeferenced sheets clipped to 12 coalfield boundaries. The mosaic contains 1,430 sheets at zooms 0–18."
+  },
   "/soi/25k/nhp/": {
     "handlertype": "mosaic",
     "type": "raster",
