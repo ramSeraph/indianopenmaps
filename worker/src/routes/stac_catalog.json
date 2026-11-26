@@ -1091,6 +1091,60 @@
           }
         }
       }
+    },
+    {
+      "rel": "child",
+      "type": "application/json",
+      "href": "./india-topo-5k-cmpdi",
+      "title": "Survey of India / CMPDI 1:5,000 coalfield sheets",
+      "geoparquet": "https://github.com/ramSeraph/india_topo_maps/releases/download/5k-cmpdi-georef/CMPDI-5k-masked.stac.parquet",
+      "geoparquet_sha256": "e0e4cb306fce58f726c9fbc242e7eff302725bec99da0870c379bb246df52aee",
+      "collection": {
+        "type": "Collection",
+        "id": "india-topo-5k-cmpdi",
+        "stac_version": "1.1.0",
+        "description": "Georeferenced topographic sheets for 12 Indian coalfields. Each cloud-optimized GeoTIFF is clipped to its CMPDI coalfield boundary and linked to the original sheet PDF.",
+        "links": [
+          {
+            "rel": "derived_from",
+            "href": "https://github.com/ramSeraph/india_topo_maps/releases/tag/5k-cmpdi-orig",
+            "title": "Source"
+          }
+        ],
+        "iomaps:datetime_description": "Publication time of the georeferenced collection. Survey dates vary by sheet.",
+        "item_count": 1430,
+        "title": "Survey of India / CMPDI 1:5,000 coalfield sheets",
+        "extent": {
+          "spatial": {
+            "bbox": [
+              [
+                78.71247325354068,
+                19.57387348219208,
+                87.3,
+                25.25740791216646
+              ]
+            ]
+          },
+          "temporal": {
+            "interval": [
+              [
+                "2026-11-26T07:53:24Z",
+                "2026-11-26T07:53:24Z"
+              ]
+            ]
+          }
+        },
+        "license": "other",
+        "assets": {
+          "index": {
+            "href": "CMPDI-5k-masked.stac.parquet",
+            "type": "application/vnd.apache.parquet",
+            "roles": [
+              "metadata"
+            ]
+          }
+        }
+      }
     }
   ]
 }
